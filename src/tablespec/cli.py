@@ -123,9 +123,13 @@ if _HAS_VALIDATOR:
 
             # Convert
             console.print(f"[cyan]Converting[/cyan] {source} -> {dest}")
-            console.print(f"[dim]Format: {source_format.value} -> {target_format.value}[/dim]")
+            console.print(
+                f"[dim]Format: {source_format.value} -> {target_format.value}[/dim]"
+            )
 
-            convert_table(source, dest, target_format=target_format, context=_validation_context)
+            convert_table(
+                source, dest, target_format=target_format, context=_validation_context
+            )
 
             console.print("[green]Done.[/green] Conversion complete!")
 
@@ -171,13 +175,17 @@ if _HAS_VALIDATOR:
             # Determine if path is single table or pipeline
             if path.is_dir() and (path / "schema.yaml").exists():
                 # Single table validation
-                success, errors = validate_table(path, _validation_context, verbose=verbose)
+                success, errors = validate_table(
+                    path, _validation_context, verbose=verbose
+                )
 
                 if success:
                     # Show summary
                     umf = _validation_context.load_umf(path)
                     console.print("[green]Valid[/green] UMF schema")
-                    console.print(f"  [cyan]Table:[/cyan] {umf.table_name} ({umf.canonical_name})")
+                    console.print(
+                        f"  [cyan]Table:[/cyan] {umf.table_name} ({umf.canonical_name})"
+                    )
                     console.print(f"    [cyan]Columns:[/cyan] {len(umf.columns)}")
                     if umf.file_format and umf.file_format.filename_pattern:
                         console.print("    [cyan]Filename pattern:[/cyan] Valid")
@@ -193,7 +201,9 @@ if _HAS_VALIDATOR:
                         )
                     if hasattr(umf, "derivations") and umf.derivations:
                         surv_mappings = len(umf.derivations.get("mappings", {}))
-                        console.print(f"    [cyan]Survivorship mappings:[/cyan] {surv_mappings}")
+                        console.print(
+                            f"    [cyan]Survivorship mappings:[/cyan] {surv_mappings}"
+                        )
                 else:
                     console.print("[red]FAIL[/red] Validation failed")
                     for error in errors:
@@ -212,15 +222,21 @@ if _HAS_VALIDATOR:
                         for error in errs:
                             console.print(f"  {error}")
                     raise typer.Exit(1)
-                console.print(f"[green]Valid[/green] All {len(results)} tables passed validation")
+                console.print(
+                    f"[green]Valid[/green] All {len(results)} tables passed validation"
+                )
             else:
                 # Single file validation
-                success, errors = validate_table(path, _validation_context, verbose=verbose)
+                success, errors = validate_table(
+                    path, _validation_context, verbose=verbose
+                )
 
                 if success:
                     umf = _validation_context.load_umf(path)
                     console.print("[green]Valid[/green] UMF schema")
-                    console.print(f"  [cyan]Table:[/cyan] {umf.table_name} ({umf.canonical_name})")
+                    console.print(
+                        f"  [cyan]Table:[/cyan] {umf.table_name} ({umf.canonical_name})"
+                    )
                     console.print(f"    [cyan]Columns:[/cyan] {len(umf.columns)}")
                 else:
                     console.print("[red]FAIL[/red] Validation failed")
@@ -280,7 +296,9 @@ if _HAS_VALIDATOR:
             # Validation summary
             if umf.expectations and umf.expectations.expectations:
                 exp_count = len(umf.expectations.expectations)
-                console.print(f"\n[bold cyan]Validation:[/bold cyan] {exp_count} expectations")
+                console.print(
+                    f"\n[bold cyan]Validation:[/bold cyan] {exp_count} expectations"
+                )
 
             # Relationships
             if umf.relationships:
@@ -346,7 +364,9 @@ def batch_convert(
     elif format.lower() in ("json", "j"):
         target_format = UMFFormat.JSON
     else:
-        console.print(f"[red]Error:[/red] Unknown format '{format}'. Use 'split' or 'json'.")
+        console.print(
+            f"[red]Error:[/red] Unknown format '{format}'. Use 'split' or 'json'."
+        )
         raise typer.Exit(1)
 
     # Find files to convert
@@ -415,17 +435,19 @@ def generate(
         ...,
         "--format",
         "-f",
-        help="Output format: sql, pyspark, or json",
+        help="Output format: sql, pyspark, json, or ingest",
     ),
 ) -> None:
-    """Generate SQL DDL, PySpark schema, or JSON Schema from a UMF file.
+    """Generate SQL DDL, PySpark schema, JSON Schema, or an ingest plan from a UMF file.
 
     Writes raw output to stdout so it can be piped to files or other tools.
+    The ``ingest`` format emits a committed raw->ingest SQL artifact (Databricks/Delta).
 
     Examples:
       tablespec generate table.umf.yaml --format sql
       tablespec generate tables/claims/ -f pyspark > schema.py
       tablespec generate table.umf.yaml -f json > schema.json
+      tablespec generate tables/claims/ -f ingest > claims.ingest.sql
 
     """
     import json as json_mod
@@ -435,10 +457,13 @@ def generate(
         generate_pyspark_schema,
         generate_sql_ddl,
     )
+    from tablespec.schemas.ingest_generator import generate_ingest_sql
 
     format_lower = format.strip().lower()
-    if format_lower not in ("sql", "pyspark", "json"):
-        console.print(f"[red]Error:[/red] Unknown format '{format}'. Choose from: sql, pyspark, json")
+    if format_lower not in ("sql", "pyspark", "json", "ingest"):
+        console.print(
+            f"[red]Error:[/red] Unknown format '{format}'. Choose from: sql, pyspark, json, ingest"
+        )
         raise typer.Exit(1)
 
     try:
@@ -455,6 +480,9 @@ def generate(
         elif format_lower == "json":
             result = generate_json_schema(umf_data)
             print(json_mod.dumps(result, indent=2))
+        elif format_lower == "ingest":
+            result = generate_ingest_sql(umf_data)
+            print(result)
 
     except FileNotFoundError as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -573,7 +601,9 @@ def import_excel(
 
         # Check if destination exists
         if dest.exists() and not force:
-            console.print(f"[red]Error:[/red] {dest} already exists. Use --force to overwrite.")
+            console.print(
+                f"[red]Error:[/red] {dest} already exists. Use --force to overwrite."
+            )
             raise typer.Exit(1)
 
         # Handle --force by removing existing destination
@@ -718,7 +748,9 @@ def domains_show(
             # YAML output
             import yaml
 
-            output = yaml.dump({name: domain_type}, default_flow_style=False, sort_keys=False)
+            output = yaml.dump(
+                {name: domain_type}, default_flow_style=False, sort_keys=False
+            )
             console.print(output)
 
     except FileNotFoundError as e:
@@ -777,7 +809,9 @@ def domains_infer(
         )
 
         if domain_type:
-            console.print(f"[green]Found[/green] Inferred domain type: [cyan]{domain_type}[/cyan]")
+            console.print(
+                f"[green]Found[/green] Inferred domain type: [cyan]{domain_type}[/cyan]"
+            )
             console.print(f"  [dim]Confidence:[/dim] {confidence:.1%}")
 
             # Show details
@@ -821,7 +855,9 @@ def domains_set(
         if not registry.get_domain_type(domain_type):
             available = registry.list_domain_types()
             console.print(f"[red]Error:[/red] Unknown domain type '{domain_type}'")
-            console.print(f"[dim]Available: {', '.join(sorted(available)[:10])}... ({len(available)} total)[/dim]")
+            console.print(
+                f"[dim]Available: {', '.join(sorted(available)[:10])}... ({len(available)} total)[/dim]"
+            )
             raise typer.Exit(1)
 
         loader = UMFLoader()
@@ -830,7 +866,9 @@ def domains_set(
         dest = Path(table_path)
         fmt = UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
         loader.save(updated, dest, format=fmt)
-        console.print(f"[green]Set[/green] domain type '{domain_type}' on column '{column}'")
+        console.print(
+            f"[green]Set[/green] domain type '{domain_type}' on column '{column}'"
+        )
 
     except (ValueError, FileNotFoundError) as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -841,9 +879,15 @@ def domains_set(
 def column_add(
     table_path: str = typer.Argument(..., help="Path to UMF table (file or directory)"),
     name: str = typer.Option(..., "--name", "-n", help="Column name"),
-    data_type: str = typer.Option(..., "--type", "-t", help="Data type (e.g., VARCHAR, INTEGER, DATE)"),
-    description: str = typer.Option(None, "--description", "-d", help="Column description"),
-    nullable: bool = typer.Option(True, "--nullable/--not-nullable", help="Whether column is nullable"),
+    data_type: str = typer.Option(
+        ..., "--type", "-t", help="Data type (e.g., VARCHAR, INTEGER, DATE)"
+    ),
+    description: str = typer.Option(
+        None, "--description", "-d", help="Column description"
+    ),
+    nullable: bool = typer.Option(
+        True, "--nullable/--not-nullable", help="Whether column is nullable"
+    ),
     length: int = typer.Option(None, "--length", help="Max length for VARCHAR/CHAR"),
 ) -> None:
     """Add a column to a UMF table.
@@ -871,7 +915,9 @@ def column_add(
         dest = Path(table_path)
         fmt = UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
         loader.save(updated, dest, format=fmt)
-        console.print(f"[green]Added[/green] column '{name}' ({data_type}) to {umf.table_name}")
+        console.print(
+            f"[green]Added[/green] column '{name}' ({data_type}) to {umf.table_name}"
+        )
 
     except (ValueError, FileNotFoundError) as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -910,7 +956,9 @@ def column_modify(
     table_path: str = typer.Argument(..., help="Path to UMF table (file or directory)"),
     name: str = typer.Option(..., "--name", "-n", help="Column name to modify"),
     data_type: str = typer.Option(None, "--type", "-t", help="New data type"),
-    description: str = typer.Option(None, "--description", "-d", help="New description"),
+    description: str = typer.Option(
+        None, "--description", "-d", help="New description"
+    ),
     length: int = typer.Option(None, "--length", help="New max length"),
 ) -> None:
     """Modify a column's attributes in a UMF table.
@@ -942,7 +990,9 @@ def column_modify(
         dest = Path(table_path)
         fmt = UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
         loader.save(updated, dest, format=fmt)
-        console.print(f"[green]Modified[/green] column '{name}' in {umf.table_name}: {', '.join(changes)}")
+        console.print(
+            f"[green]Modified[/green] column '{name}' in {umf.table_name}: {', '.join(changes)}"
+        )
 
     except (ValueError, FileNotFoundError) as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -954,7 +1004,9 @@ def column_rename(
     table_path: str = typer.Argument(..., help="Path to UMF table (file or directory)"),
     old_name: str = typer.Option(..., "--from", help="Current column name"),
     new_name: str = typer.Option(..., "--to", help="New column name"),
-    keep_alias: bool = typer.Option(False, "--keep-alias", help="Add old name to aliases list"),
+    keep_alias: bool = typer.Option(
+        False, "--keep-alias", help="Add old name to aliases list"
+    ),
 ) -> None:
     """Rename a column in a UMF table.
 
@@ -983,10 +1035,18 @@ def column_rename(
 
 @app.command()
 def validation_sync(
-    table_path: str = typer.Argument(..., help="Path to UMF table directory (split format)"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would change without modifying files"),
-    clean_outdated: bool = typer.Option(False, "--clean-outdated", help="Remove outdated baseline expectations"),
-    aggressive: bool = typer.Option(False, "--aggressive", help="Upgrade unmarked expectations to baseline"),
+    table_path: str = typer.Argument(
+        ..., help="Path to UMF table directory (split format)"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would change without modifying files"
+    ),
+    clean_outdated: bool = typer.Option(
+        False, "--clean-outdated", help="Remove outdated baseline expectations"
+    ),
+    aggressive: bool = typer.Option(
+        False, "--aggressive", help="Upgrade unmarked expectations to baseline"
+    ),
 ) -> None:
     """Sync baseline expectations from UMF metadata.
 
@@ -1004,18 +1064,35 @@ def validation_sync(
     try:
         syncer = BaselineSyncer()
         result = syncer.sync_table(
-            Path(table_path), dry_run=dry_run, aggressive=aggressive, clean_outdated=clean_outdated
+            Path(table_path),
+            dry_run=dry_run,
+            aggressive=aggressive,
+            clean_outdated=clean_outdated,
         )
 
         if result.validations_added:
-            console.print(f"[green]Added:[/green] {result.validations_added} expectations")
+            console.print(
+                f"[green]Added:[/green] {result.validations_added} expectations"
+            )
         if result.validations_upgraded:
-            console.print(f"[blue]Upgraded:[/blue] {result.validations_upgraded} expectations")
+            console.print(
+                f"[blue]Upgraded:[/blue] {result.validations_upgraded} expectations"
+            )
         if result.validations_conflicts:
-            console.print(f"[yellow]Conflicts:[/yellow] {result.validations_conflicts} (preserved existing)")
+            console.print(
+                f"[yellow]Conflicts:[/yellow] {result.validations_conflicts} (preserved existing)"
+            )
         if result.validations_severity_preserved:
-            console.print(f"[dim]Severity preserved:[/dim] {result.validations_severity_preserved}")
-        if not any([result.validations_added, result.validations_upgraded, result.validations_conflicts]):
+            console.print(
+                f"[dim]Severity preserved:[/dim] {result.validations_severity_preserved}"
+            )
+        if not any(
+            [
+                result.validations_added,
+                result.validations_upgraded,
+                result.validations_conflicts,
+            ]
+        ):
             console.print("[dim]Already in sync.[/dim]")
         if dry_run:
             console.print("\n[dim]Dry run — no changes written.[/dim]")
@@ -1028,8 +1105,12 @@ def validation_sync(
 @app.command()
 def validation_remove(
     table_path: str = typer.Argument(..., help="Path to UMF table (file or directory)"),
-    expectation_type: str = typer.Option(..., "--type", "-t", help="Expectation type to remove"),
-    column: str = typer.Option(None, "--column", "-c", help="Column name (removes all matching if omitted)"),
+    expectation_type: str = typer.Option(
+        ..., "--type", "-t", help="Expectation type to remove"
+    ),
+    column: str = typer.Option(
+        None, "--column", "-c", help="Column name (removes all matching if omitted)"
+    ),
 ) -> None:
     """Remove expectations matching a type and optional column.
 
@@ -1055,7 +1136,9 @@ def validation_remove(
         fmt = UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
         loader.save(updated, dest, format=fmt)
         target = f" on column '{column}'" if column else ""
-        console.print(f"[green]Removed[/green] {count} expectation(s) of type '{expectation_type}'{target}")
+        console.print(
+            f"[green]Removed[/green] {count} expectation(s) of type '{expectation_type}'{target}"
+        )
 
     except (ValueError, FileNotFoundError) as e:
         console.print(f"[red]Error:[/red] {e}")
@@ -1132,7 +1215,11 @@ def preview(
 
     for exp in result.raw:
         table.add_row(
-            "[green]RAW[/green]", exp.type, exp.column or "-", exp.severity, exp.generated_from or "-"
+            "[green]RAW[/green]",
+            exp.type,
+            exp.column or "-",
+            exp.severity,
+            exp.generated_from or "-",
         )
     for exp in result.ingested:
         table.add_row(
@@ -1144,7 +1231,11 @@ def preview(
         )
     for exp in result.redundant:
         table.add_row(
-            "[dim]REDUNDANT[/dim]", exp.type, exp.column or "-", exp.severity, exp.generated_from or "-"
+            "[dim]REDUNDANT[/dim]",
+            exp.type,
+            exp.column or "-",
+            exp.severity,
+            exp.generated_from or "-",
         )
     for exp in result.unknown:
         table.add_row(
@@ -1166,7 +1257,9 @@ def preview(
 def apply_response(
     table_path: str = typer.Argument(..., help="Path to UMF table (file or directory)"),
     response_path: str = typer.Argument(..., help="Path to LLM response JSON file"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be applied without modifying the UMF"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be applied without modifying the UMF"
+    ),
 ) -> None:
     """Apply LLM-generated validation expectations to a UMF table."""
     import json
@@ -1195,7 +1288,9 @@ def apply_response(
         elif isinstance(raw, dict) and "expectations" in raw:
             response = raw["expectations"]
         else:
-            console.print("[red]Error:[/red] Response JSON must be a list or {expectations: [...]}.")
+            console.print(
+                "[red]Error:[/red] Response JSON must be a list or {expectations: [...]}."
+            )
             raise typer.Exit(1)
 
         result = apply_validation_response(umf, response)
@@ -1211,7 +1306,9 @@ def apply_response(
                 col = exp.get("kwargs", {}).get("column", "(table-level)")
                 console.print(f"  [{stage}] {exp.get('type', '?')} on {col}")
         if result.deduplicated:
-            console.print(f"[yellow]Deduplicated:[/yellow] {len(result.deduplicated)} (already exist)")
+            console.print(
+                f"[yellow]Deduplicated:[/yellow] {len(result.deduplicated)} (already exist)"
+            )
         if result.invalid:
             console.print(f"[red]Invalid:[/red] {len(result.invalid)} rejected")
             for exp, reason in result.invalid:

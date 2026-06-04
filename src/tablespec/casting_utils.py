@@ -83,7 +83,11 @@ def _format_to_prefilter_regex(spark_format: str) -> str:
     while idx < len(spark_format):
         if spark_format[idx] == "'":
             end_idx = spark_format.find("'", idx + 1)
-            literal = spark_format[idx + 1 :] if end_idx == -1 else spark_format[idx + 1 : end_idx]
+            literal = (
+                spark_format[idx + 1 :]
+                if end_idx == -1
+                else spark_format[idx + 1 : end_idx]
+            )
             parts.append(re.escape(literal))
             idx = len(spark_format) if end_idx == -1 else end_idx + 1
             continue
@@ -128,7 +132,9 @@ def safe_to_timestamp(
     if spark is not None:
         from tablespec.session import get_capabilities
 
-        can_use_try_with_format = get_capabilities(spark)["try_to_timestamp_with_format"]
+        can_use_try_with_format = get_capabilities(spark)[
+            "try_to_timestamp_with_format"
+        ]
 
     if can_use_try_with_format:
         return F.try_to_timestamp(column, F.lit(spark_format))  # type: ignore[attr-defined]
@@ -146,7 +152,9 @@ def safe_to_date(
     spark: object | None = None,
 ) -> Column:
     """Compatibility wrapper that delegates to ``safe_to_timestamp`` then casts to date."""
-    return safe_to_timestamp(column, spark_format=spark_format, spark=spark).cast("date")
+    return safe_to_timestamp(column, spark_format=spark_format, spark=spark).cast(
+        "date"
+    )
 
 
 def build_flexible_formats(
@@ -174,7 +182,9 @@ def build_flexible_formats(
         return []
 
     # Get formats from SUPPORTED_DATE_FORMATS (explicit UMF formats)
-    supported = [fmt.umf_format for fmt in SUPPORTED_DATE_FORMATS if fmt.format_type in allowed]
+    supported = [
+        fmt.umf_format for fmt in SUPPORTED_DATE_FORMATS if fmt.format_type in allowed
+    ]
 
     seen: set[str] = set()
     ordered: list[str] = []
@@ -311,6 +321,77 @@ def convert_umf_format_to_spark(umf_format: str) -> str:
     return result
 
 
+def cast_column_sql(
+    column: str,
+    target_type: str,
+    format: str | None = None,
+    *,
+    precision: int | None = None,
+    scale: int | None = None,
+) -> str:
+    """Return a Spark SQL expression that casts *column* to *target_type*.
+
+    SQL counterpart of :func:`cast_column_with_format`: it emits the same casting
+    logic as a plain Spark SQL string so it can be embedded in a committed,
+    independently-runnable ingest artifact -- no PySpark at runtime. Both functions
+    share :func:`convert_umf_format_to_spark`, so the date/timestamp formats are
+    guaranteed identical.
+
+    Args:
+    ----
+        column: Raw column reference (assumed to be a valid SQL identifier).
+        target_type: UMF/Spark target type (DATE, TIMESTAMP, INTEGER, DECIMAL, ...).
+        format: Optional UMF date/timestamp format (e.g. "YYYYMMDD").
+        precision: DECIMAL precision (defaults to 10, matching the runtime caster).
+        scale: DECIMAL scale (defaults to 2, matching the runtime caster).
+
+    Returns:
+    -------
+        A Spark SQL expression string,
+        e.g. ``cast(try_to_timestamp(d, 'yyyyMMdd') as date)``.
+
+    Examples:
+    --------
+        >>> cast_column_sql("birth_date", "DATE", "MM/DD/YYYY")
+        "cast(try_to_timestamp(birth_date, 'MM/dd/yyyy') as date)"
+        >>> cast_column_sql("age", "INTEGER")
+        "cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
+
+    """
+    t = target_type.upper()
+
+    # String types: raw landing data is already a string -- passthrough.
+    if t in ("STRING", "VARCHAR", "TEXT", "CHAR"):
+        return column
+
+    # Numerics: strip a leading "$", trim, and treat empty/whitespace strings as
+    # NULL (Spark's cast fails on "") before casting -- mirrors cast_column_with_format.
+    if t in ("INTEGER", "DECIMAL", "DOUBLE", "FLOAT"):
+        cleaned = f"nullif(trim(regexp_replace({column}, '^\\\\$', '')), '')"
+        if t == "INTEGER":
+            sql_type = "INT"
+        elif t == "DECIMAL":
+            sql_type = f"DECIMAL({precision or 10},{scale if scale is not None else 2})"
+        else:  # DOUBLE, FLOAT -> double (runtime maps FLOAT to DoubleType)
+            sql_type = "DOUBLE"
+        return f"cast({cleaned} as {sql_type})"
+
+    # Date/time: try_to_timestamp yields graceful NULL-on-failure (Spark 4.0+).
+    if t in ("DATE", "DATETIME", "TIMESTAMP"):
+        if format:
+            spark_format = convert_umf_format_to_spark(format)
+            expr = f"try_to_timestamp({column}, '{spark_format}')"
+        else:
+            expr = f"try_to_timestamp({column})"
+        return f"cast({expr} as date)" if t == "DATE" else expr
+
+    if t == "BOOLEAN":
+        return f"cast({column} as boolean)"
+
+    msg = f"Unsupported target_type for SQL cast: {target_type}"
+    raise ValueError(msg)
+
+
 def cast_column_with_format(
     column: Column,
     target_type: str,
@@ -371,7 +452,9 @@ def cast_column_with_format(
         # Strip leading currency symbol ($) and trim whitespace
         column = F.regexp_replace(F.trim(column), r"^\$", "")
         # Convert empty/whitespace-only strings to NULL (Spark cast fails on empty strings)
-        column = F.when(F.trim(column) == "", F.lit(None).cast(StringType())).otherwise(column)
+        column = F.when(F.trim(column) == "", F.lit(None).cast(StringType())).otherwise(
+            column
+        )
 
     # STRING type - no casting needed, already string
     if target_type_upper == "STRING":
@@ -819,7 +902,9 @@ def cast_timestamp_with_flexible_fallback(
     # Detect if value looks like epoch milliseconds (check before normalization affects it)
     scientific_pattern = r"^[0-9]+\.?[0-9]*[Ee][+\-]?[0-9]+$"
     large_number_pattern = r"^[0-9]{12,}$"
-    is_epoch = trimmed_col.rlike(scientific_pattern) | trimmed_col.rlike(large_number_pattern)
+    is_epoch = trimmed_col.rlike(scientific_pattern) | trimmed_col.rlike(
+        large_number_pattern
+    )
 
     # Convert epoch ms to timestamp
     epoch_seconds = trimmed_col.cast("double") / 1000

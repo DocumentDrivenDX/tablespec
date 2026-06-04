@@ -52,6 +52,7 @@ from tablespec.prompts import (
 )
 from tablespec.schemas import (
     SQLPlanGenerator,
+    generate_ingest_sql,
     generate_json_schema,
     generate_pyspark_schema,
     generate_sql_ddl,
@@ -67,7 +68,11 @@ from tablespec.type_mappings import (
 from tablespec.validation import GXExpectationProcessor
 
 from tablespec.changelog_generator import ChangelogGenerator
-from tablespec.compatibility import CompatibilityIssue, CompatibilityReport, check_compatibility
+from tablespec.compatibility import (
+    CompatibilityIssue,
+    CompatibilityReport,
+    check_compatibility,
+)
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
 from tablespec.sample_data import GenerationConfig, SampleDataGenerator
@@ -88,6 +93,7 @@ __all__ = [
     "save_umf_to_yaml",
     # -- Schema Generation --
     "SQLPlanGenerator",
+    "generate_ingest_sql",
     "generate_json_schema",
     "generate_pyspark_schema",
     "generate_sql_ddl",
@@ -173,7 +179,14 @@ try:
     from tablespec.type_mappings import map_to_pyspark_type_obj  # noqa: F401
     from tablespec.validation import VALIDATION_ERROR_SCHEMA, TableValidator  # noqa: F401
 
-    __all__.extend(["VALIDATION_ERROR_SCHEMA", "SparkToUmfMapper", "TableValidator", "map_to_pyspark_type_obj"])
+    __all__.extend(
+        [
+            "VALIDATION_ERROR_SCHEMA",
+            "SparkToUmfMapper",
+            "TableValidator",
+            "map_to_pyspark_type_obj",
+        ]
+    )
 except ImportError:
     # pyspark not available - Spark-dependent classes won't be exported
     pass

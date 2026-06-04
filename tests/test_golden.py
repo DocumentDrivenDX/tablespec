@@ -19,6 +19,7 @@ from tablespec.schemas.generators import (
     generate_pyspark_schema,
     generate_sql_ddl,
 )
+from tablespec.schemas.ingest_generator import generate_ingest_sql
 
 GOLDEN_DIR = Path(__file__).parent / "golden"
 
@@ -63,6 +64,28 @@ def test_sql_ddl_golden(name: str, input_path: Path, expected_path: Path) -> Non
     )
 
 
+# --- Ingest SQL golden tests ---
+
+ingest_sql_cases = _discover_cases("ingest_sql", "sql")
+
+
+@pytest.mark.parametrize(
+    "name,input_path,expected_path",
+    ingest_sql_cases,
+    ids=[c[0] for c in ingest_sql_cases],
+)
+def test_ingest_sql_golden(name: str, input_path: Path, expected_path: Path) -> None:
+    """Verify raw->ingest SQL artifact matches golden file."""
+    umf_data = yaml.safe_load(input_path.read_text())
+    actual = generate_ingest_sql(umf_data)
+    expected = expected_path.read_text().rstrip("\n")
+    assert actual == expected, (
+        f"Ingest SQL golden mismatch for '{name}'.\n"
+        f"--- expected ---\n{expected}\n"
+        f"--- actual ---\n{actual}"
+    )
+
+
 # --- PySpark schema golden tests ---
 
 pyspark_cases = _discover_cases("pyspark_schema", "py")
@@ -97,9 +120,7 @@ json_schema_cases = _discover_cases("json_schema", "json")
     json_schema_cases,
     ids=[c[0] for c in json_schema_cases],
 )
-def test_json_schema_golden(
-    name: str, input_path: Path, expected_path: Path
-) -> None:
+def test_json_schema_golden(name: str, input_path: Path, expected_path: Path) -> None:
     """Verify JSON Schema output matches golden file."""
     umf_data = yaml.safe_load(input_path.read_text())
     actual = generate_json_schema(umf_data)

@@ -12,10 +12,76 @@ from tablespec.casting_utils import (
     COMMON_DATE_FORMATS,
     COMMON_TIMESTAMP_FORMATS,
     build_flexible_formats,
+    cast_column_sql,
     convert_umf_format_to_spark,
 )
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
+
+
+class TestCastColumnSql:
+    """Pure-Python SQL cast expression generation (no PySpark)."""
+
+    def test_string_types_passthrough(self):
+        """String-family types are already strings -- no cast emitted."""
+        for t in ("VARCHAR", "TEXT", "CHAR", "STRING"):
+            assert cast_column_sql("col", t) == "col"
+
+    def test_integer_cleans_and_casts(self):
+        """INTEGER strips currency/empties then casts to INT."""
+        assert (
+            cast_column_sql("age", "INTEGER")
+            == "cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
+        )
+
+    def test_decimal_uses_precision_and_scale(self):
+        """DECIMAL honours precision/scale so the cast matches the typed column."""
+        assert (
+            cast_column_sql("amt", "DECIMAL", precision=18, scale=2)
+            == "cast(nullif(trim(regexp_replace(amt, '^\\\\$', '')), '') as DECIMAL(18,2))"
+        )
+
+    def test_decimal_defaults_to_10_2(self):
+        """DECIMAL without precision/scale defaults to (10,2), matching the runtime caster."""
+        assert "DECIMAL(10,2)" in cast_column_sql("amt", "DECIMAL")
+
+    def test_float_maps_to_double(self):
+        """FLOAT casts to DOUBLE (runtime maps FLOAT to DoubleType)."""
+        assert cast_column_sql("rate", "FLOAT").endswith("as DOUBLE)")
+
+    def test_date_with_format(self):
+        """DATE with a UMF format uses try_to_timestamp + cast to date."""
+        assert (
+            cast_column_sql("d", "DATE", "YYYYMMDD")
+            == "cast(try_to_timestamp(d, 'yyyyMMdd') as date)"
+        )
+
+    def test_timestamp_with_format(self):
+        """TIMESTAMP keeps the full timestamp; format is converted to Spark tokens."""
+        assert (
+            cast_column_sql("ts", "TIMESTAMP", "YYYY-MM-DD HH:MM:SS")
+            == "try_to_timestamp(ts, 'yyyy-MM-dd HH:mm:ss')"
+        )
+
+    def test_datetime_treated_as_timestamp(self):
+        """UMF DATETIME maps to TIMESTAMP (no date truncation)."""
+        assert (
+            cast_column_sql("ts", "DATETIME", "YYYY-MM-DD")
+            == "try_to_timestamp(ts, 'yyyy-MM-dd')"
+        )
+
+    def test_date_without_format(self):
+        """DATE with no format still parses gracefully via try_to_timestamp."""
+        assert cast_column_sql("d", "DATE") == "cast(try_to_timestamp(d) as date)"
+
+    def test_boolean(self):
+        """BOOLEAN is a plain cast."""
+        assert cast_column_sql("flag", "BOOLEAN") == "cast(flag as boolean)"
+
+    def test_unsupported_type_raises(self):
+        """Unknown target types raise ValueError."""
+        with pytest.raises(ValueError, match="Unsupported target_type"):
+            cast_column_sql("col", "GEOGRAPHY")
 
 
 class TestConvertUmfFormatToSpark:
@@ -141,7 +207,9 @@ class TestBuildFlexibleFormats:
 
     def test_fallback_formats_included(self):
         """Fallback formats appear after primary."""
-        result = build_flexible_formats("DATE", "YYYY-MM-DD", ["MM/DD/YYYY", "YYYYMMDD"])
+        result = build_flexible_formats(
+            "DATE", "YYYY-MM-DD", ["MM/DD/YYYY", "YYYYMMDD"]
+        )
         assert result[0] == "YYYY-MM-DD"
         idx_mm = result.index("MM/DD/YYYY")
         idx_compact = result.index("YYYYMMDD")
