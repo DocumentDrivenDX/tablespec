@@ -45,6 +45,9 @@ duckdb = [
     "duckdb-engine>=0.15.0,<1.0.0",
     "sqlalchemy>=2.0.0,<3.0.0",
 ]
+tui = [
+    "textual>=0.50.0",
+]
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
