@@ -21,6 +21,13 @@ from tablespec.dbt.project import DbtProjectError, generate_dbt_dag_project
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError, ResolvedNode
 from tablespec.dbt.renderer import DbtRefRenderer, UnknownRelationError
 from tablespec.dbt.routing import RoutingPolicy
+from tablespec.dbt.seeds import (
+    SeedArtifacts,
+    SeedEmitterError,
+    emit_seeds,
+    render_seeds_config,
+    seed_column_types,
+)
 from tablespec.dbt.selection import (
     EMPTY_SELECTION,
     select_expression,
@@ -38,9 +45,14 @@ __all__ = [
     "NodeRegistryError",
     "ResolvedNode",
     "RoutingPolicy",
+    "SeedArtifacts",
+    "SeedEmitterError",
     "UnknownRelationError",
+    "emit_seeds",
     "generate_dbt_dag_project",
     "generate_dbt_project",
+    "render_seeds_config",
+    "seed_column_types",
     "select_expression",
     "state_modified_expression",
 ]

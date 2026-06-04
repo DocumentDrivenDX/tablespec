@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "table_name": "member",
+  "description": "Seed-fixture member table: INTEGER pk + DECIMAL + DATE + VARCHAR, with a canonical_name on one column to exercise the seed header remap.",
+  "primary_key": ["member_id"],
+  "ingestion": {"mode": "incremental", "order_by": ["_load_ts"]},
+  "columns": [
+    {"name": "member_id", "data_type": "INTEGER", "nullable": {"default": false}},
+    {"name": "premium_amount", "data_type": "DECIMAL", "precision": 18, "scale": 2, "nullable": {"default": true}},
+    {"name": "enrolled_on", "data_type": "DATE", "nullable": {"default": true}},
+    {"name": "full_name", "canonical_name": "MemberName", "data_type": "VARCHAR", "length": 64, "nullable": {"default": false}}
+  ]
+}

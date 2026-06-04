@@ -113,6 +113,34 @@ def test_dbt_selection_imports_no_dbt_package() -> None:
     assert not bad, f"dbt.selection imports the dbt-core package: {sorted(bad)}"
 
 
+def test_dbt_seeds_imports_no_dbt_core_package() -> None:
+    """The seed emitter is pure text emission -- no ``dbt`` (dbt-core) package import.
+
+    Emitting ``seeds/<t>.csv`` + the ``column_types`` config must work with the
+    ``[dbt]`` extra UNINSTALLED, so ``tablespec.dbt.seeds`` may import core
+    (``schema_facts``) + the sibling contracts text but must not import the
+    ``dbt`` (dbt-core) package itself.
+    """
+    path = SRC / "dbt" / "seeds.py"
+    assert path.exists(), f"dbt seeds module missing: {path}"
+    imported = _imported_modules(path)
+    bad = {m for m in imported if m == "dbt" or m.startswith("dbt.")}
+    assert not bad, f"dbt.seeds imports the dbt-core package: {sorted(bad)}"
+
+
+def test_dbt_seeds_does_not_import_sample_data_engine() -> None:
+    """The seed emitter CONSUMES the generator's on-disk output -- it does not
+    import or re-run the generator. It must not depend on the heavy
+    ``sample_data.engine`` module (only on the public UMF model + core facts)."""
+    path = SRC / "dbt" / "seeds.py"
+    imported = _imported_modules(path)
+    bad = {m for m in imported if m.startswith("tablespec.sample_data")}
+    assert not bad, (
+        "dbt.seeds must consume generated output, not import the generator: "
+        f"{sorted(bad)}"
+    )
+
+
 def test_core_relations_seam_is_dbt_free_and_usable() -> None:
     """The TableRenderer Protocol + LiteralRenderer live in core, no dbt needed.
 
