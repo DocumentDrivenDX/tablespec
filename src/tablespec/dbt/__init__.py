@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from tablespec.dbt.materialization import Materialization, MaterializationPolicy
 from tablespec.dbt.project import DbtProjectError, generate_dbt_dag_project
-from tablespec.dbt.registry import NodeRegistry, ResolvedNode
+from tablespec.dbt.registry import NodeRegistry, NodeRegistryError, ResolvedNode
 from tablespec.dbt.renderer import DbtRefRenderer, UnknownRelationError
 from tablespec.dbt.routing import RoutingPolicy
 from tablespec.dbt.single_table import generate_dbt_project
@@ -29,6 +29,7 @@ __all__ = [
     "Materialization",
     "MaterializationPolicy",
     "NodeRegistry",
+    "NodeRegistryError",
     "ResolvedNode",
     "RoutingPolicy",
     "UnknownRelationError",

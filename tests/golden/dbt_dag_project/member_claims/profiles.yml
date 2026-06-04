@@ -1,0 +1,9 @@
+tablespec_gold:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'gold.duckdb') }}"
+      threads: 1
+      settings:
+        TimeZone: 'UTC'

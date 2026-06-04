@@ -48,7 +48,10 @@ pyspark = pytest.importorskip("pyspark", reason="PySpark required for Spark base
 # ``filterwarnings = error`` policy the resulting ResourceWarning would be
 # escalated into a spurious failure. These are transport-cleanup artifacts, not
 # defects in the ingest logic under test, so suppress them for this module only.
+# This module REQUIRES a JVM-backed Delta Spark session; it is the source-of-truth
+# baseline. Marked spark_only so the JVM-free fast lane (``-m no_spark``) skips it.
 pytestmark = [
+    pytest.mark.spark_only,
     pytest.mark.filterwarnings("ignore::ResourceWarning"),
     pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning"),
 ]

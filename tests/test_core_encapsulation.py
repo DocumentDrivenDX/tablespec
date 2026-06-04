@@ -21,6 +21,10 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+import pytest
+
+pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
+
 SRC = Path(__file__).parent.parent / "src" / "tablespec"
 
 CORE_MODULES = [
@@ -73,3 +77,25 @@ def test_dbt_package_depends_only_on_core_seam() -> None:
     ingest = SRC / "schemas" / "ingest_generator.py"
     bad = {m for m in _imported_modules(ingest) if m.startswith("tablespec.dbt")}
     assert not bad, f"direct-artifact emitter imports dbt: {sorted(bad)}"
+
+
+def test_core_relations_seam_is_dbt_free_and_usable() -> None:
+    """The TableRenderer Protocol + LiteralRenderer live in core, no dbt needed.
+
+    Importing the core seam must not require dbt, and the default LiteralRenderer
+    must satisfy the Protocol both with and without a resolver (the direct-artifact
+    rendering behaviour the dbt DbtRefRenderer mirrors).
+    """
+    from tablespec.core.relations import (
+        LiteralRenderer,
+        RelationRef,
+        TableRenderer,
+    )
+
+    plain = LiteralRenderer()
+    assert plain.render("member") == "member"  # passthrough
+    qualified = LiteralRenderer(resolver=lambda n: f"cat.{n}")
+    assert qualified.render("member") == "cat.member"  # resolver applied
+    # Structural Protocol conformance (runtime_checkable).
+    assert isinstance(plain, TableRenderer)
+    assert RelationRef("member").kind == "table"  # advisory default

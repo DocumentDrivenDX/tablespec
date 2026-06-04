@@ -49,6 +49,10 @@ def _norm(name: str) -> str:
     return name.strip().lower()
 
 
+class NodeRegistryError(ValueError):
+    """Raised when the UMF set cannot be indexed unambiguously (name collision)."""
+
+
 @dataclass(frozen=True)
 class ResolvedNode:
     """A registry hit: the node id plus its role (for the renderer's routing)."""
@@ -188,7 +192,22 @@ class NodeRegistry:
 
     def _index(self, node: PlanNode, names: set[str]) -> None:
         for raw in names:
-            self._by_name[_norm(raw)] = ResolvedNode(
+            key = _norm(raw)
+            existing = self._by_name.get(key)
+            # FAIL CLOSED on a genuine collision: the SAME physical name already
+            # resolves to a DIFFERENT node. Silently overwriting would let one
+            # table's canonical_name/alias hijack another's relation reference
+            # (last-write-wins), routing edges to the wrong model. Re-indexing the
+            # SAME node under a name it already owns is fine (idempotent merge).
+            if existing is not None and existing.node_id != node.node_id:
+                msg = (
+                    f"Physical relation name {raw!r} is claimed by two different "
+                    f"nodes ({existing.node_id!r} and {node.node_id!r}). A "
+                    f"table_name / canonical_name / alias must be unique across the "
+                    f"UMF set so every reference resolves unambiguously."
+                )
+                raise NodeRegistryError(msg)
+            self._by_name[key] = ResolvedNode(
                 node.node_id, node.role, external=node.external
             )
             node.physical_names.add(raw)
@@ -418,4 +437,4 @@ class NodeRegistry:
         return list(self._umfs.values())
 
 
-__all__ = ["NodeRegistry", "ResolvedNode"]
+__all__ = ["NodeRegistry", "NodeRegistryError", "ResolvedNode"]

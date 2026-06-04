@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: ingested_member
+    description: "Member master (snapshot)"
+    columns:
+      - name: member_id
+        data_tests:
+          - not_null
+          - unique
+      - name: member_name
+      - name: state
+  - name: ingested_claims
+    description: "Healthcare claims (incremental, keyed)"
+    columns:
+      - name: claim_id
+        data_tests:
+          - not_null
+          - unique
+      - name: member_id
+      - name: claim_amount
+  - name: gold_member_claims
+    description: "GOLD - claims enriched with member attributes (direct N:1 join)"
+    columns:
+      - name: member_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('ingested_member')
+                field: member_id

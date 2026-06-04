@@ -84,6 +84,7 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "fast: marks tests that complete in <100ms with no I/O or external deps",
     "no_spark: marks tests that do not require PySpark",
+    "spark_only: marks tests that REQUIRE a JVM-backed Spark session (excluded from the no_spark fast lane)",
 ]
 filterwarnings = [
     "error",

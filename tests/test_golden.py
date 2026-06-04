@@ -22,6 +22,9 @@ from tablespec.schemas.generators import (
 )
 from tablespec.schemas.ingest_generator import generate_ingest_sql
 
+# Golden file tests are pure-Python text comparisons -- no Spark/JVM.
+pytestmark = [pytest.mark.no_spark]
+
 GOLDEN_DIR = Path(__file__).parent / "golden"
 
 

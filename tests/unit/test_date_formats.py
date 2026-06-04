@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-pytestmark = [pytest.mark.fast]
+pytestmark = [pytest.mark.fast, pytest.mark.no_spark]
 
 from tablespec.date_formats import (
     SUPPORTED_DATE_FORMATS,
@@ -64,7 +64,11 @@ class TestSupportedDateFormats:
     @pytest.mark.parametrize(
         "fmt",
         [f for f in SUPPORTED_DATE_FORMATS if "%-" not in f.strftime_format],
-        ids=[f.umf_format for f in SUPPORTED_DATE_FORMATS if "%-" not in f.strftime_format],
+        ids=[
+            f.umf_format
+            for f in SUPPORTED_DATE_FORMATS
+            if "%-" not in f.strftime_format
+        ],
     )
     def test_padded_formats_can_be_parsed(self, fmt: DateFormat):
         """Zero-padded formats can round-trip: format then parse.
@@ -98,7 +102,9 @@ class TestSupportedDateFormats:
                 assert parsed.hour == test_dt.hour
                 assert parsed.minute == test_dt.minute
         except ValueError as e:
-            pytest.fail(f"Could not parse '{formatted}' with format '{fmt.strftime_format}': {e}")
+            pytest.fail(
+                f"Could not parse '{formatted}' with format '{fmt.strftime_format}': {e}"
+            )
 
 
 class TestIsSupportedFormat:

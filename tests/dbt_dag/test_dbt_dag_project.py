@@ -29,6 +29,10 @@ from pathlib import Path
 import pytest
 import yaml
 
+# dbt(+duckdb) integration: no Spark/JVM required. Marked no_spark so the
+# fast/JVM-free lane can run it (it still skips if the dbt CLI is absent).
+pytestmark = [pytest.mark.no_spark]
+
 duckdb = pytest.importorskip("duckdb", reason="duckdb required for dbt dag tests")
 pytest.importorskip("dbt", reason="dbt-core required for dbt dag tests")
 
@@ -127,6 +131,37 @@ def test_ir_classification_and_edges() -> None:
     assert got["ingested_member"] == {"raw_member"}
 
 
+GOLDEN_DAG_DIR = (
+    Path(__file__).parent.parent / "golden" / "dbt_dag_project" / "member_claims"
+)
+
+
+def test_multi_table_project_matches_golden() -> None:
+    """The full generated multi-table dbt project is byte-identical to the golden."""
+    actual = generate_dbt_dag_project(_load_umfs())
+    expected = {
+        str(p.relative_to(GOLDEN_DAG_DIR)): p.read_text()
+        for p in GOLDEN_DAG_DIR.rglob("*")
+        if p.is_file()
+    }
+    assert set(actual) == set(expected), (
+        f"dbt dag project file set mismatch.\n  generated: {sorted(actual)}\n"
+        f"  expected:  {sorted(expected)}"
+    )
+    for rel, content in actual.items():
+        assert content == expected[rel], (
+            f"dbt dag project golden mismatch for '{rel}'.\n"
+            f"--- expected ---\n{expected[rel]}\n--- actual ---\n{content}"
+        )
+
+
+def test_multi_table_project_is_deterministic() -> None:
+    """Regenerating the same UMF set twice yields byte-identical files."""
+    first = generate_dbt_dag_project(_load_umfs())
+    second = generate_dbt_dag_project(_load_umfs())
+    assert first == second
+
+
 def test_gold_model_refs_are_static_literals() -> None:
     """Inter-table relations in the gold model are static ref()/source() Jinja."""
     files = generate_dbt_dag_project(_load_umfs())
@@ -204,6 +239,34 @@ def test_structural_tests_pass(built_project: Path) -> None:
     )
     assert result.returncode == 0, (
         f"structural dbt tests failed:\n{result.stdout}\n{result.stderr}"
+    )
+
+
+def test_relationships_test_is_executed_and_non_vacuous(built_project: Path) -> None:
+    """The generated FK ``relationships`` test actually RUNS and is non-vacuous.
+
+    The fixture intentionally contains one orphan claim (member_id=99, absent from
+    ``member``) to exercise the gold LEFT JOIN. The generated relationships test on
+    ``gold_member_claims.member_id`` -> ``ingested_member.member_id`` must:
+      * be COLLECTED and COMPILED by dbt (not silently dropped), and
+      * CORRECTLY FAIL with exactly the one orphan (proving it isn't vacuous -- a
+        broken test pointing at the wrong model/column would not report 1 result).
+    A relationships test that always passed (e.g. self-referential) would NOT catch
+    this, so this is a genuine wiring + semantics check.
+    """
+    db = built_project / "gold.duckdb"
+    result = _dbt(built_project, db, "test", "--select", "test_name:relationships")
+    # The orphan makes the FK test fail -> non-zero exit; that is the point.
+    assert result.returncode != 0, (
+        f"relationships test did not run or unexpectedly passed:\n{result.stdout}"
+    )
+    out = result.stdout.lower()
+    assert "relationships_gold_member_claims" in out, (
+        f"the FK relationships test was not collected:\n{result.stdout}"
+    )
+    # Exactly one referential violation (the single orphan member_id=99).
+    assert "got 1 result" in out, (
+        f"expected exactly one orphan FK violation:\n{result.stdout}"
     )
 
 

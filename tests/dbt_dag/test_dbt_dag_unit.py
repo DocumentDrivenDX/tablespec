@@ -20,6 +20,10 @@ from tablespec.dbt import (
 )
 from tablespec.models.umf import UMF
 
+# Pure-Python planner tests: no Spark, no dbt/duckdb invocation. Marked so the
+# fast lane runs them with no JVM.
+pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
+
 _NN = {"default": False}
 _NL = {"default": True}
 

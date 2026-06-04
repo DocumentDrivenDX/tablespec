@@ -27,7 +27,7 @@ from pathlib import Path
 
 from tablespec.core.ir import NodeRole
 from tablespec.dbt.materialization import Materialization, MaterializationPolicy
-from tablespec.dbt.registry import NodeRegistry
+from tablespec.dbt.registry import NodeRegistry, NodeRegistryError
 from tablespec.dbt.renderer import DbtRefRenderer
 from tablespec.dbt.routing import RoutingPolicy
 from tablespec.models.umf import UMF
@@ -331,7 +331,12 @@ def generate_dbt_dag_project(
     routing = routing or RoutingPolicy()
     policy = materialization or MaterializationPolicy()
 
-    registry = NodeRegistry(list(umfs))
+    try:
+        registry = NodeRegistry(list(umfs))
+    except NodeRegistryError as exc:
+        # A physical-name collision is a project-build failure -- surface it under
+        # the public DbtProjectError so callers handle one exception type.
+        raise DbtProjectError(str(exc)) from exc
 
     # FAIL CLOSED: a gold table that references a relation present in no UMF (and
     # not marked external) is an error -- never silently drop the dependency nor

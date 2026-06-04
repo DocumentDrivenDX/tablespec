@@ -200,6 +200,33 @@ class TestCastColumnSqlDuckdb:
             == "try_cast(flag as boolean)"
         )
 
+    def test_double_type_maps_to_double(self):
+        """A DOUBLE column casts to DOUBLE under try_cast (duckdb)."""
+        assert (
+            cast_column_sql("rate", "DOUBLE", dialect="duckdb")
+            == "try_cast(nullif(trim(regexp_replace(rate, '^\\$', '')), '') as DOUBLE)"
+        )
+
+    def test_timestamp_without_format_uses_try_cast(self):
+        """TIMESTAMP without a format casts through DuckDB's permissive parser."""
+        assert (
+            cast_column_sql("ts", "TIMESTAMP", dialect="duckdb")
+            == "try_cast(ts as timestamp)"
+        )
+
+
+class TestCastColumnSqlSparkDialectExtras:
+    """Spark-dialect SQL cast branches not covered elsewhere (no PySpark)."""
+
+    def test_double_type_maps_to_double(self):
+        assert (
+            cast_column_sql("rate", "DOUBLE")
+            == "cast(nullif(trim(regexp_replace(rate, '^\\\\$', '')), '') as DOUBLE)"
+        )
+
+    def test_timestamp_without_format(self):
+        assert cast_column_sql("ts", "TIMESTAMP") == "try_to_timestamp(ts)"
+
 
 class TestConvertUmfFormatToDuckdb:
     """UMF format -> DuckDB strptime %-code conversion (registry-driven)."""
@@ -243,6 +270,45 @@ class TestConvertUmfFormatToDuckdb:
         assert duckdb_covered == registry_formats
         assert spark_covered == registry_formats
         assert duckdb_covered == spark_covered
+
+
+class TestFormatConverterParity:
+    """Spot-check that the spark and duckdb converters agree on tricky formats.
+
+    Both are driven by the SAME SUPPORTED_DATE_FORMATS registry; this asserts that
+    for tricky registry formats (compact, ISO-T, 12-hour AM/PM, fractional seconds)
+    the duckdb strftime code actually round-trips a representative value via Python
+    ``strptime`` (the duckdb engine uses the identical C strftime codes), and that
+    the spark conversion produces the expected Java pattern. No JVM needed.
+    """
+
+    @pytest.mark.parametrize(
+        ("umf_format", "sample", "spark_expected"),
+        [
+            ("YYYYMMDD", "20260131", "yyyyMMdd"),
+            ("MMDDYYYY", "01312026", "MMddyyyy"),
+            ("YYYY-MM-DDTHH:MM:SS", "2026-01-31T12:30:45", "yyyy-MM-dd'T'HH:mm:ss"),
+            (
+                "MM/DD/YYYY hh:mm:ss A",
+                "01/31/2026 01:30:45 PM",
+                "MM/dd/yyyy hh:mm:ss a",
+            ),
+            (
+                "YYYY-MM-DD HH:MM:SS.SSSSSS",
+                "2026-01-31 12:30:45.123456",
+                "yyyy-MM-dd HH:mm:ss.SSSSSS",
+            ),
+        ],
+    )
+    def test_tricky_formats_parity(self, umf_format, sample, spark_expected):
+        from datetime import datetime
+
+        # Spark side: the converter yields the expected Java SimpleDateFormat pattern.
+        assert convert_umf_format_to_spark(umf_format) == spark_expected
+        # DuckDB side: the strftime code parses the representative sample value
+        # (DuckDB's try_strptime uses the identical C strftime codes).
+        duck = convert_umf_format_to_duckdb(umf_format)
+        assert datetime.strptime(sample, duck) is not None
 
 
 class TestConvertUmfFormatToSpark:

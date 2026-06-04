@@ -34,6 +34,10 @@ from typing import Any
 import pytest
 import yaml
 
+# dbt(+duckdb) parity: reproduces the Spark baseline goldens WITHOUT a JVM.
+# Marked no_spark so the JVM-free lane can run it (skips if the dbt CLI is absent).
+pytestmark = [pytest.mark.no_spark]
+
 duckdb = pytest.importorskip("duckdb", reason="duckdb required for dbt parity")
 pytest.importorskip("dbt", reason="dbt-core required for dbt parity")
 
