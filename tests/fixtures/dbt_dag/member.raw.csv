@@ -1,0 +1,4 @@
+member_id,member_name,state,_source_file,_load_ts
+1,Alice Smith,CA,member.csv,2026-01-01 00:00:00
+2,Bob Jones,NY,member.csv,2026-01-01 00:00:00
+3,Carol White,TX,member.csv,2026-01-01 00:00:00

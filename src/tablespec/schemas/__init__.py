@@ -1,6 +1,11 @@
-"""Schema generation utilities for UMF metadata."""
+"""Schema generation utilities for UMF metadata.
 
-from .dbt_generator import generate_dbt_project
+This package is part of the dbt-free CORE. It deliberately does NOT import
+``tablespec.dbt`` (the single-table ``generate_dbt_project`` lives there now and
+is re-exported at the top level), so importing core schema generators never pulls
+in the dbt implementation package. See ``tests/test_core_encapsulation.py``.
+"""
+
 from .generators import (
     generate_json_schema,
     generate_pyspark_schema,
@@ -17,7 +22,6 @@ from .sql_generator import SQLPlanGenerator, generate_sql_plan
 
 __all__ = [
     "build_ingest_select",
-    "generate_dbt_project",
     "generate_ingest_sql",
     "generate_json_schema",
     "generate_pyspark_schema",

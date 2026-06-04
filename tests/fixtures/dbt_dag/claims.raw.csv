@@ -1,0 +1,6 @@
+claim_id,member_id,claim_amount,_source_file,_load_ts
+100,1,250.50,claims.csv,2026-02-01 00:00:00
+101,1,75.00,claims.csv,2026-02-01 00:00:00
+102,2,500.00,claims.csv,2026-02-01 00:00:00
+103,3,12.25,claims.csv,2026-02-01 00:00:00
+104,99,999.99,claims.csv,2026-02-01 00:00:00

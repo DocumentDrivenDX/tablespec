@@ -15,6 +15,8 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
+from tablespec.core.relations import LiteralRenderer, TableRenderer
+
 from .relationship_resolver import RelationshipResolver
 
 if TYPE_CHECKING:
@@ -160,7 +162,14 @@ class SQLPlanGenerator:
             are replaced with the corresponding value.
         table_resolver: Optional callable that maps a table name to a resolved
             name (e.g. catalog-qualified path).  When ``None``, table names are
-            used as-is.
+            used as-is.  Mutually exclusive with *table_renderer* (it is a
+            shorthand for ``LiteralRenderer(resolver=table_resolver)``).
+        table_renderer: Optional :class:`~tablespec.core.relations.TableRenderer`.
+            This is the single relation-rendering seam: every site that inlines a
+            relation name routes it through ``self._renderer.render(name)``.  When
+            ``None``, a :class:`LiteralRenderer` wrapping *table_resolver* is used,
+            preserving the historical inline-the-name behaviour byte-for-byte.
+            Inject a ``DbtRefRenderer`` here to emit ``{{ ref() }}`` instead.
 
     """
 
@@ -168,9 +177,21 @@ class SQLPlanGenerator:
         self,
         template_vars: dict[str, str] | None = None,
         table_resolver: Callable[[str], str] | None = None,
+        *,
+        table_renderer: TableRenderer | None = None,
     ) -> None:
+        if table_renderer is not None and table_resolver is not None:
+            msg = "Pass either table_resolver or table_renderer, not both"
+            raise ValueError(msg)
         self.template_vars: dict[str, str] = template_vars or {}
         self.table_resolver = table_resolver
+        # The one relation-rendering seam. Defaults to the historical literal
+        # behaviour so existing artifacts/goldens are unchanged.
+        self._renderer: TableRenderer = (
+            table_renderer
+            if table_renderer is not None
+            else LiteralRenderer(resolver=table_resolver)
+        )
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # Instance state reset per ``generate_for_table`` call
@@ -247,20 +268,26 @@ class SQLPlanGenerator:
         cte_entries: list[str] = []
         last_name: str | None = None
         seen_names: set[str] = set()
+        # A comment block trailing one view's statement is actually the NEXT
+        # step's leading comment (views are joined with "\n\n"). Carry it forward
+        # so traceability comments survive WITHOUT leaving a stray ';' mid-CTE.
+        carried_comment = ""
 
         for i in range(1, len(parts), 2):
             name = parts[i]
             body = parts[i + 1] if i + 1 < len(parts) else ""
 
-            # Strip trailing semicolons and whitespace from the body
-            body = body.strip().rstrip(";").strip()
+            select_body, trailing_comment = self._split_cte_body(body)
+            if carried_comment:
+                select_body = f"{carried_comment}\n{select_body}"
+            carried_comment = trailing_comment
 
             # Avoid duplicate CTE names (diamond dependencies)
             if name in seen_names:
                 continue
             seen_names.add(name)
 
-            cte_entries.append(f"{name} AS (\n{body}\n)")
+            cte_entries.append(f"{name} AS (\n{select_body}\n)")
             last_name = name
 
         if not cte_entries or last_name is None:
@@ -269,6 +296,31 @@ class SQLPlanGenerator:
         cte_block = ",\n\n".join(cte_entries)
         result = f"{preamble.rstrip()}\nWITH\n{cte_block}\nSELECT * FROM {last_name};\n"
         return result
+
+    @staticmethod
+    def _split_cte_body(body: str) -> tuple[str, str]:
+        """Split one view body into ``(select_body, trailing_comment)``.
+
+        A views-mode body is a single ``CREATE OR REPLACE TEMPORARY VIEW ... AS``
+        statement -- one SELECT terminated by ``;`` -- optionally followed by the
+        *next* step's leading comment block (an artefact of joining views with
+        ``"\\n\\n"``). For a valid CTE we keep the SELECT (without its terminating
+        ``;``) and return the trailing comment separately so the caller can carry
+        it forward as the next CTE's leading comment (preserving traceability
+        without leaving a stray ``;`` mid-CTE).
+        """
+        text = body.strip()
+        semi = text.rfind(";")
+        if semi == -1:
+            return text, ""
+        tail = text[semi + 1 :].strip()
+        # Only the LAST ';' followed solely by comments/blank is the terminator.
+        if tail != "" and not all(
+            line.strip() == "" or line.lstrip().startswith("--")
+            for line in tail.splitlines()
+        ):
+            return text, ""
+        return text[:semi].strip(), tail
 
     # ------------------------------------------------------------------
     # Internal orchestration
@@ -374,10 +426,14 @@ class SQLPlanGenerator:
     # ------------------------------------------------------------------
 
     def _resolve_table_name(self, table_name: str) -> str:
-        """Resolve a table name via the configured *table_resolver*, or return it as-is."""
-        if self.table_resolver is not None:
-            return self.table_resolver(table_name)
-        return table_name
+        """Render a relation name via the configured :class:`TableRenderer`.
+
+        This is the single seam through which every external relation flows. The
+        default :class:`LiteralRenderer` reproduces the historical behaviour
+        (apply ``table_resolver`` if any, else identity); a ``DbtRefRenderer``
+        turns the same call into a ``{{ ref() }}`` / ``{{ source() }}`` literal.
+        """
+        return self._renderer.render(table_name)
 
     @staticmethod
     def _sanitize_alias(name: str) -> str:
@@ -1855,6 +1911,7 @@ def generate_sql_plan(
     *,
     template_vars: dict[str, str] | None = None,
     table_resolver: Callable[[str], str] | None = None,
+    table_renderer: TableRenderer | None = None,
     mode: Literal["views", "cte"] = "views",
 ) -> str:
     """Generate a SQL execution plan for a single target table.
@@ -1866,6 +1923,8 @@ def generate_sql_plan(
         related_umfs: Dict mapping table names to UMF models for source tables.
         template_vars: Optional template variable substitutions.
         table_resolver: Optional callable to resolve table names.
+        table_renderer: Optional :class:`TableRenderer` seam (mutually exclusive
+            with *table_resolver*); inject a ``DbtRefRenderer`` to emit refs.
         mode: Output format — ``"views"`` (default) or ``"cte"``.
 
     Returns:
@@ -1876,6 +1935,7 @@ def generate_sql_plan(
     generator = SQLPlanGenerator(
         template_vars=template_vars,
         table_resolver=table_resolver,
+        table_renderer=table_renderer,
     )
     return generator.generate_for_table(table_umf, related_umfs, mode=mode)
 
