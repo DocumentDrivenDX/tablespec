@@ -1,7 +1,15 @@
-.PHONY: help install install-dev install-spark setup-spark format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
+.PHONY: help install install-dev install-spark install-dbt setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
 TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py')
 TRACKED_TEST_FILES := $(shell git ls-files -- 'tests/**/*.py' ':(exclude)tests/golden/**/*.expected.py')
+
+# Shell snippet that resolves a PySpark-compatible JAVA_HOME and exports it, or
+# aborts the recipe if none can be found. Spark 4.0 needs JDK 17/21; newer JDKs
+# crash with "getSubject is not supported". scripts/setup_test_env.py prefers an
+# already-installed openjdk@17/@21, else falls back to the Coursier zulu:21 path.
+# Resolving inside the recipe (vs. a $(shell) variable) means a resolver failure
+# aborts the target instead of silently running tests on an incompatible JDK.
+EXPORT_SPARK_JAVA_HOME = JAVA_HOME="$$(uv run python scripts/setup_test_env.py)" && export JAVA_HOME
 
 # Default target
 help: ## Display this help message
@@ -18,8 +26,14 @@ install-dev: ## Install project with dev dependencies
 install-spark: ## Install with Spark extras and dev dependencies
 	uv sync --extra spark --group dev
 
+install-dbt: ## Install with dbt extras (dbt-core + dbt-duckdb) and dev dependencies
+	uv sync --extra dbt --group dev
+
 setup-spark: install-spark ## Download and configure local Spark 4.0 + JDK 21 into .local/
 	uv run python scripts/setup_spark.py
+
+spark-env: ## Print a Spark-compatible JAVA_HOME (resolves/provisions JDK 17 or 21)
+	@uv run python scripts/setup_test_env.py --export
 
 pre-commit-install: ## Install pre-commit hooks
 	uv run pre-commit install
@@ -41,20 +55,23 @@ type-check: ## Type check with pyright
 	uv run pyright
 
 # Testing
+# Test/coverage targets export a Spark-compatible JAVA_HOME (see
+# EXPORT_SPARK_JAVA_HOME) so PySpark-backed tests don't crash on an incompatible
+# default JDK. The `&&` chain ensures a failed resolve aborts the recipe.
 test: ## Run all tests
-	uv run pytest $(TRACKED_TEST_FILES)
+	$(EXPORT_SPARK_JAVA_HOME) && uv run pytest $(TRACKED_TEST_FILES)
 
 test-unit: ## Run unit tests only
-	uv run pytest tests/unit/
+	$(EXPORT_SPARK_JAVA_HOME) && uv run pytest tests/unit/
 
 test-integration: ## Run integration tests only
-	uv run pytest tests/integration/
+	$(EXPORT_SPARK_JAVA_HOME) && uv run pytest tests/integration/
 
 test-demo: ## Run demo script as acceptance test
-	uv run python examples/demo.py
+	$(EXPORT_SPARK_JAVA_HOME) && uv run python examples/demo.py
 
 coverage: ## Run tests with coverage report
-	uv run pytest --cov=src --cov-report=term-missing --cov-report=html
+	$(EXPORT_SPARK_JAVA_HOME) && uv run pytest --cov=src --cov-report=term-missing --cov-report=html
 
 # Documentation
 docs: ## Build API documentation
