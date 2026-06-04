@@ -1,0 +1,18 @@
+version: "1.0"
+table_name: parent
+description: Parent reference table (snapshot landing)
+primary_key:
+  - parent_id
+ingestion:
+  mode: snapshot
+  order_by:
+    - _load_ts
+columns:
+  - name: parent_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: parent_name
+    data_type: VARCHAR
+    nullable:
+      default: true

@@ -31,6 +31,7 @@ CORE_MODULES = [
     SRC / "core" / "__init__.py",
     SRC / "core" / "ir.py",
     SRC / "core" / "relations.py",
+    SRC / "core" / "schema_facts.py",
     SRC / "casting_utils.py",
     SRC / "date_formats.py",
     SRC / "schemas" / "__init__.py",

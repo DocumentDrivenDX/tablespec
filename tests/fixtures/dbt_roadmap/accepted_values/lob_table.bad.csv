@@ -1,0 +1,5 @@
+record_id,lob,note,_source_file,_load_ts
+1,MD,medicaid,lob.csv,2024-01-01T00:00:00
+2,MP,medicare,lob.csv,2024-01-01T00:00:00
+3,XX,out-of-set,lob.csv,2024-01-01T00:00:00
+4,ME,ok,lob.csv,2024-01-01T00:00:00

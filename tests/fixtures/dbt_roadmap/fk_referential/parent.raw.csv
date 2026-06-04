@@ -1,0 +1,4 @@
+parent_id,parent_name,_source_file,_load_ts
+1,Alpha,parent.csv,2024-01-01T00:00:00
+2,Beta,parent.csv,2024-01-01T00:00:00
+3,Gamma,parent.csv,2024-01-01T00:00:00

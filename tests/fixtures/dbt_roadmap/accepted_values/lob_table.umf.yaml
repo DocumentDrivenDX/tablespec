@@ -1,0 +1,34 @@
+version: "1.0"
+table_name: lob_table
+description: Table with a domain-enum (line-of-business) column for accepted_values
+primary_key:
+  - record_id
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: record_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: lob
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: note
+    data_type: VARCHAR
+    nullable:
+      default: true
+expectations:
+  expectations:
+    - type: expect_column_values_to_be_in_set
+      kwargs:
+        column: lob
+        value_set:
+          - MD
+          - MP
+          - ME
+      meta:
+        stage: ingested
+        severity: error

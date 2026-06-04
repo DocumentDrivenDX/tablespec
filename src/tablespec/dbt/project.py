@@ -26,10 +26,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from tablespec.core.ir import NodeRole
+from tablespec.core.schema_facts import (
+    ColumnTest,
+    accepted_values_tests,
+    relationship_tests,
+)
 from tablespec.dbt.materialization import Materialization, MaterializationPolicy
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError
 from tablespec.dbt.renderer import DbtRefRenderer
 from tablespec.dbt.routing import RoutingPolicy
+from tablespec.dbt.schema_tests import render_tests_for_column
 from tablespec.models.umf import UMF
 from tablespec.schemas.generators import _resolve_nullable
 from tablespec.schemas.ingest_generator import build_ingest_select
@@ -176,8 +182,38 @@ def _yaml_scalar(value: str) -> str:
     return f'"{escaped}"'
 
 
+def _registry_resolver(registry: NodeRegistry):
+    """A ``resolve_target`` for ``core.schema_facts`` backed by the registry.
+
+    Maps a logical referenced table name to the model node that will be emitted
+    for it (``ingested_<t>`` for a landing table, ``gold_<t>`` for a pure-gold
+    table), or ``None`` when the table is not in the rendered set -- so an
+    external / unknown FK target is SKIPPED rather than pointed at a missing
+    model.
+    """
+
+    def resolve(table: str) -> str | None:
+        resolved = registry.resolve(table)
+        return resolved.node_id if resolved is not None else None
+
+    return resolve
+
+
+def _tests_by_column(tests: list[ColumnTest]) -> dict[str, list[ColumnTest]]:
+    """Group schema-test facts by their source column (order preserved)."""
+    grouped: dict[str, list[ColumnTest]] = {}
+    for t in tests:
+        grouped.setdefault(t.column, []).append(t)
+    return grouped
+
+
 def _staging_schema_yml(umf: UMF) -> list[str]:
-    """schema.yml entry for an ``ingested_<t>`` model: not_null / unique tests."""
+    """schema.yml entry for an ``ingested_<t>`` model.
+
+    Emits ``not_null`` / ``unique`` per column, plus ``accepted_values`` for any
+    column carrying a set-membership expectation. (FK ``relationships`` are
+    emitted on the gold model that owns the FK, not the staging model.)
+    """
     umf_data = umf.model_dump(exclude_none=True)
     pk = umf_data.get("primary_key") or []
     unique_cols: set[str] = set()
@@ -189,6 +225,8 @@ def _staging_schema_yml(umf: UMF) -> list[str]:
         elif isinstance(uc, list) and len(uc) == 1:
             unique_cols.add(uc[0])
 
+    av_by_col = _tests_by_column(accepted_values_tests(umf_data))
+
     lines = [f"  - name: ingested_{umf.table_name}"]
     if umf.description:
         lines.append(f"    description: {_yaml_scalar(umf.description)}")
@@ -197,53 +235,47 @@ def _staging_schema_yml(umf: UMF) -> list[str]:
         name = col["name"]
         not_null = not _resolve_nullable(col.get("nullable"))
         is_unique = name in unique_cols
+        av_tests = av_by_col.get(name, [])
         lines.append(f"      - name: {name}")
-        if not_null or is_unique:
+        if not_null or is_unique or av_tests:
             lines.append("        data_tests:")
             if not_null:
                 lines.append("          - not_null")
             if is_unique:
                 lines.append("          - unique")
+            for t in av_tests:
+                # render_tests_for_column emits the ``data_tests:`` header; here
+                # the header is already present, so render the entry lines only.
+                lines.extend(render_tests_for_column([t])[1:])
     return lines
 
 
 def _gold_schema_yml(umf: UMF, registry: NodeRegistry) -> list[str]:
-    """schema.yml entry for a ``gold_<t>`` model: FK relationships tests.
+    """schema.yml entry for a ``gold_<t>`` model: FK relationships + accepted_values.
 
     A UMF ``foreign_keys`` entry ``column -> references_table.references_column``
     becomes a dbt ``relationships`` test on the gold model's column, pointing at
-    the referenced table's ingested staging model. Cross-pipeline / external FKs
-    are skipped (they are not model edges, per the design's "stays OUT" list).
+    the referenced table's emitted model (ingested staging for a landing table,
+    gold model for a pure-gold table). Cross-pipeline / external / unresolvable
+    FKs are skipped (they are not model edges). Set-membership expectations become
+    ``accepted_values`` tests on their column.
     """
     lines = [f"  - name: gold_{umf.table_name}"]
     if umf.description:
         lines.append(f"    description: {_yaml_scalar(umf.description)}")
 
-    fks = []
-    if umf.relationships and umf.relationships.foreign_keys:
-        fks = [
-            fk
-            for fk in umf.relationships.foreign_keys
-            if not fk.cross_pipeline
-            and registry.resolve(fk.references_table) is not None
-        ]
-    if not fks:
+    umf_data = umf.model_dump(exclude_none=True)
+    tests = relationship_tests(
+        umf_data, _registry_resolver(registry)
+    ) + accepted_values_tests(umf_data)
+    if not tests:
         return lines
 
+    grouped = _tests_by_column(tests)
     lines.append("    columns:")
-    for fk in sorted(fks, key=lambda f: f.column):
-        resolved = registry.resolve(fk.references_table)
-        # Point the relationship at the resolved node (ingested staging for a
-        # landing table, gold model for a pure-gold table). resolved is non-None
-        # here -- fks were filtered to registry-known, non-cross-pipeline refs.
-        assert resolved is not None
-        ref_node = resolved.node_id
-        lines.append(f"      - name: {fk.column}")
-        lines.append("        data_tests:")
-        lines.append("          - relationships:")
-        lines.append("              arguments:")
-        lines.append(f"                to: ref('{ref_node}')")
-        lines.append(f"                field: {fk.references_column}")
+    for column in sorted(grouped):
+        lines.append(f"      - name: {column}")
+        lines.extend(render_tests_for_column(grouped[column]))
     return lines
 
 

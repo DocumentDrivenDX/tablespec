@@ -30,6 +30,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from tablespec.core.schema_facts import (
+    accepted_values_tests,
+    relationship_tests,
+)
+from tablespec.dbt.schema_tests import render_tests_for_column
+from tablespec.models.umf import UMF
 from tablespec.schemas.generators import _resolve_nullable
 from tablespec.schemas.ingest_generator import (
     IngestSelect,
@@ -105,13 +111,42 @@ def _model_sql(table: str, ingest: IngestSelect) -> str:
     return f"{config}\n\n{body}\n"
 
 
-def _schema_yml(umf_data: dict[str, Any], table: str, ingest: IngestSelect) -> str:
-    """Render ``models/schema.yml`` with not_null / unique column tests.
+def _related_resolver(related: list[UMF] | None, self_table: str):
+    """A ``resolve_target`` for ``core.schema_facts`` over the single-table set.
 
-    * ``not_null`` is emitted for every non-nullable column (UMF ``nullable``).
-    * ``unique`` is emitted for single-column primary keys and any single-column
+    Each table in the single-table path is emitted as a model named after its own
+    ``table_name`` (no ``ingested_``/``gold_`` prefix). A FK target resolves to
+    that bare model name iff the referenced table is the table itself or appears
+    in ``related``; otherwise it is unresolvable and the test is SKIPPED (no
+    ``ref()`` to a missing model -- the AC1.2/AC1.5 skip-when-unresolvable rule).
+    """
+    known = {self_table}
+    for u in related or []:
+        known.add(u.table_name)
+
+    def resolve(table: str) -> str | None:
+        return table if table in known else None
+
+    return resolve
+
+
+def _schema_yml(
+    umf_data: dict[str, Any],
+    table: str,
+    ingest: IngestSelect,
+    related: list[UMF] | None,
+) -> str:
+    """Render ``models/schema.yml`` with column tests.
+
+    * ``not_null`` for every non-nullable column (UMF ``nullable``).
+    * ``unique`` for single-column primary keys and any single-column
       ``unique_constraints`` entry. (Composite uniqueness is left to the merge key
       and not asserted as a per-column test.)
+    * ``relationships`` for each non-cross-pipeline FK whose target resolves in the
+      ``related`` set (skip-when-unresolvable; composite FKs -> one test per
+      scalar column).
+    * ``accepted_values`` for each column carrying an
+      ``expect_column_values_to_be_in_set`` expectation.
     """
     cols: list[dict[str, Any]] = umf_data["columns"]
     pk = ingest.primary_key
@@ -128,6 +163,14 @@ def _schema_yml(umf_data: dict[str, Any], table: str, ingest: IngestSelect) -> s
         elif isinstance(uc, list) and len(uc) == 1:
             unique_cols.add(uc[0])
 
+    resolver = _related_resolver(related, table)
+    rel_by_col: dict[str, list] = {}
+    for t in relationship_tests(umf_data, resolver):
+        rel_by_col.setdefault(t.column, []).append(t)
+    av_by_col: dict[str, list] = {}
+    for t in accepted_values_tests(umf_data):
+        av_by_col.setdefault(t.column, []).append(t)
+
     lines: list[str] = [
         "version: 2",
         "",
@@ -143,13 +186,18 @@ def _schema_yml(umf_data: dict[str, Any], table: str, ingest: IngestSelect) -> s
         name = col["name"]
         not_null = not _resolve_nullable(col.get("nullable"))
         is_unique = name in unique_cols
+        extra = rel_by_col.get(name, []) + av_by_col.get(name, [])
         lines.append(f"      - name: {name}")
-        if not_null or is_unique:
+        if not_null or is_unique or extra:
             lines.append("        data_tests:")
             if not_null:
                 lines.append("          - not_null")
             if is_unique:
                 lines.append("          - unique")
+            for t in extra:
+                # The ``data_tests:`` header is already present; render the entry
+                # lines only (drop render_tests_for_column's header line).
+                lines.extend(render_tests_for_column([t])[1:])
 
     return "\n".join(lines) + "\n"
 
@@ -217,6 +265,7 @@ def generate_dbt_project(
     dialect: str = "duckdb",
     out_dir: str | Path | None = None,
     project_name: str = "tablespec_ingest",
+    related: list[UMF] | None = None,
 ) -> dict[str, str]:
     """Generate a dbt(+DuckDB) project for a UMF table's raw->ingest transform.
 
@@ -231,6 +280,11 @@ def generate_dbt_project(
         dialect: SQL dialect for the cast expressions; defaults to ``"duckdb"``.
         out_dir: If given, the returned files are also written under this directory.
         project_name: dbt project + profile name.
+        related: Optional sibling tables (as :class:`UMF`) emitted alongside this
+            one. A FK ``relationships`` test is emitted only when its target table
+            is this table or appears in ``related`` (skip-when-unresolvable); with
+            ``related=None`` only self-referential FKs resolve and all others are
+            skipped (never a ``ref()`` to a missing model).
 
     Returns:
     -------
@@ -244,7 +298,7 @@ def generate_dbt_project(
         "dbt_project.yml": _dbt_project_yml(project_name),
         "profiles.yml": _profiles_yml(project_name),
         "models/sources.yml": _sources_yml(table),
-        "models/schema.yml": _schema_yml(umf_data, table, ingest),
+        "models/schema.yml": _schema_yml(umf_data, table, ingest, related),
         f"models/{table}.sql": _model_sql(table, ingest),
     }
 
