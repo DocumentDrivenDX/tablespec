@@ -12,21 +12,70 @@ from typing import Any
 import pytest
 
 # ---------------------------------------------------------------------------
-# Set Spark/Java environment variables at module level so that module-level
-# ``try: import pyspark`` blocks in source code (e.g. casting_utils.py,
-# output_formatting.py) see the correct SPARK_HOME / JAVA_HOME *before*
-# pytest collects test files and triggers those imports.
+# Resolve a Spark-compatible JAVA_HOME for the LOCAL (non-Databricks) path.
+#
+# PySpark 4.0 is pip-bundled in the test environment and ships its own jars, so
+# NO separate SPARK_HOME / .local/spark installation is required: we only need a
+# working, Spark-compatible JDK (major 17 or 21 -- newer JDKs crash Spark with
+# "getSubject is not supported"). ``scripts/setup_test_env.resolve_java_home``
+# is the single source of truth for that resolution; it honours an
+# already-compatible ``$JAVA_HOME`` and otherwise probes common JDK locations.
+#
+# This runs at module import time so that module-level ``try: import pyspark``
+# blocks in source code see a usable JAVA_HOME *before* pytest collects tests.
+# On Databricks the runtime owns the JVM, so we leave the environment untouched.
 # ---------------------------------------------------------------------------
-if "DATABRICKS_RUNTIME_VERSION" not in os.environ and "SPARK_HOME" not in os.environ:
-    _project_root = Path(__file__).parent.parent
-    _local_spark = _project_root / ".local" / "spark-4.0.0-bin-hadoop3"
-    _local_java = _project_root / ".local" / "share" / "java"
 
-    if _local_spark.exists():
-        os.environ["SPARK_HOME"] = str(_local_spark)
-        os.environ["JAVA_HOME"] = str(_local_java)
-        os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
-        os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
+# Make scripts/setup_test_env importable (it lives under <root>/scripts).
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+
+
+def _resolve_spark_java_home() -> Path | None:
+    """Return a Spark-compatible JAVA_HOME, or None if none can be found.
+
+    Never provisions over the network (``--no-fallback`` semantics): the test
+    gate must SKIP -- not hang -- when no compatible JDK is installed.
+    """
+    try:
+        from setup_test_env import resolve_java_home  # type: ignore[import-not-found]
+    except Exception:
+        return None
+    try:
+        return resolve_java_home()
+    except Exception:
+        return None
+
+
+def _configure_local_spark_env() -> bool:
+    """Configure JAVA_HOME / PYSPARK_PYTHON for a local Spark run.
+
+    Returns True if a compatible JDK is available (env configured), False if no
+    compatible JDK could be resolved (callers should skip Spark tests).
+
+    Uses pip-bundled PySpark -- SPARK_HOME is intentionally NOT set. If the
+    caller already exported a Databricks SPARK_HOME we honour it untouched.
+    """
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+        return True
+
+    java_home = _resolve_spark_java_home()
+    if java_home is None:
+        return False
+
+    # Only override JAVA_HOME when it is unset or points at an incompatible JDK;
+    # resolve_java_home already preferred a compatible $JAVA_HOME if present.
+    os.environ["JAVA_HOME"] = str(java_home)
+    os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
+    os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
+    return True
+
+
+if "DATABRICKS_RUNTIME_VERSION" not in os.environ:
+    _configure_local_spark_env()
+
+# Ivy coordinate for Delta Lake matching the pinned Spark 4.0 line. Used by the
+# local ``spark_session`` fixture to obtain Delta jars without a separate install.
+_DELTA_PACKAGE = "io.delta:delta-spark_2.13:4.0.0"
 
 
 def pytest_addoption(parser):
@@ -61,26 +110,14 @@ def _setup_spark_environment_per_test(request):
     if request.node.get_closest_marker("no_spark"):
         return
 
-    # Skip if in Databricks
+    # Skip if in Databricks (the runtime owns the JVM/session).
     if "DATABRICKS_RUNTIME_VERSION" in os.environ:
         return
 
-    # Skip if SPARK_HOME is already set
-    if "SPARK_HOME" in os.environ:
-        return
-
-    project_root = Path(__file__).parent.parent
-    local_spark = project_root / ".local" / "spark-4.0.0-bin-hadoop3"
-    local_java = project_root / ".local" / "share" / "java"
-
-    if not local_spark.exists():
-        # Silently skip env setup -- spark_session fixture will pytest.skip if needed
-        return
-
-    os.environ["SPARK_HOME"] = str(local_spark)
-    os.environ["JAVA_HOME"] = str(local_java)
-    os.environ["PYSPARK_PYTHON"] = sys.executable
-    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+    # Resolve and export a Spark-compatible JAVA_HOME using pip-bundled PySpark.
+    # If no compatible JDK is available this is a no-op; the spark_session
+    # fixture will pytest.skip when a session is actually requested.
+    _configure_local_spark_env()
 
 
 @pytest.fixture(scope="session")
@@ -106,23 +143,20 @@ def spark_session():
     is_databricks = "DATABRICKS_RUNTIME_VERSION" in os.environ
 
     if not is_databricks:
-        # Local: ensure Spark/Java env is configured
-        project_root = Path(__file__).parent.parent
-        local_spark = project_root / ".local" / "spark-4.0.0-bin-hadoop3"
-        local_java = project_root / ".local" / "share" / "java"
-
-        if not local_spark.exists():
+        # Local: use pip-bundled PySpark (no SPARK_HOME). Only a Spark-compatible
+        # JDK is required; skip ONLY when none can be resolved.
+        if not _configure_local_spark_env():
             pytest.skip(
-                f"Local Spark installation not found at {local_spark}. "
-                "Run 'make setup-spark' first."
+                "No Spark-compatible JDK (major 17 or 21) found. Install "
+                "openjdk@17/@21, set TABLESPEC_JAVA_HOME, or run "
+                "'uv run python scripts/setup_spark.py'."
             )
 
-        os.environ.setdefault("SPARK_HOME", str(local_spark))
-        os.environ.setdefault("JAVA_HOME", str(local_java))
-        os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
-        os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
-
     # --- Create (or acquire) the session via the factory ---
+    # Locally, PySpark ships no Delta jars, so pull the matching Delta package
+    # via Ivy (``spark.jars.packages``); this makes the session genuinely
+    # Delta-capable without a separate Spark/Delta install. On Databricks the
+    # runtime already provides Delta, so no extra config is needed.
     custom_config = (
         None
         if is_databricks
@@ -134,13 +168,24 @@ def spark_session():
             "spark.executor.cores": "1",
             "spark.executor.instances": "1",
             "spark.ui.enabled": "false",
+            "spark.jars.packages": _DELTA_PACKAGE,
         }
     )
 
-    try:
+    if is_databricks:
+        # Databricks: acquiring the runtime session is environment-dependent
+        # (e.g. subprocess vs in-process); a failure here is not a code defect
+        # under test, so skip rather than fail.
+        try:
+            spark = create_delta_spark_session("tablespec-test", custom_config)
+        except Exception as e:
+            pytest.skip(f"Databricks Spark session unavailable: {e}")
+    else:
+        # Local: a compatible JDK was already resolved above, so PySpark + Delta
+        # MUST start. Do NOT swallow this into a skip -- the skip-only condition
+        # is "no compatible JDK", which was already handled. Any failure here is
+        # a real problem and must fail the test.
         spark = create_delta_spark_session("tablespec-test", custom_config)
-    except Exception as e:
-        pytest.skip(f"Spark not available: {e}")
 
     if is_databricks:
         # On Databricks the runtime owns the session -- never stop it.
