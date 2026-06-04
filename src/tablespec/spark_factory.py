@@ -200,22 +200,37 @@ class SparkSessionFactory:
                 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
         if is_databricks:
-            # In Databricks, use existing session or minimal config
-            session_logger.info("Detected Databricks environment - using existing session")
+            # In Databricks, always reuse the runtime's pre-existing session.
+            # Never create a new session — the runtime manages the connection.
+            session_logger.info("Detected Databricks environment - using runtime session")
 
-            # Get existing session if available
+            # 1. Try the active session (works when running in-process, e.g. pytest.main())
             try:
                 existing_session = SparkSession.getActiveSession()
                 if existing_session is not None:
-                    session_logger.info("Using existing Databricks Spark session")
+                    session_logger.info("Using active Databricks Spark session")
                     return existing_session
             except Exception:
                 pass
 
-            # Create new session with minimal config for Databricks
-            builder = SparkSession.builder  # type: ignore[attr-defined]
-            for key, value in config.items():
-                builder = builder.config(key, value)  # type: ignore[attr-defined]
+            # 2. Try getOrCreate() — on Databricks runtimes this is patched to
+            #    return the cluster's session. Also works if SPARK_REMOTE is set.
+            try:
+                spark_remote = os.environ.get("SPARK_REMOTE")
+                builder = SparkSession.builder  # type: ignore[attr-defined]
+                if spark_remote:
+                    session_logger.info(f"Using SPARK_REMOTE: {spark_remote}")
+                    builder = builder.remote(spark_remote)  # type: ignore[attr-defined]
+                spark = builder.getOrCreate()  # type: ignore[attr-defined]
+                session_logger.info("Databricks Spark session acquired via getOrCreate")
+                return spark
+            except Exception as e:
+                msg = (
+                    f"Failed to acquire Databricks Spark session: {e}. "
+                    "If running in a subprocess, use pytest.main() in-process "
+                    "or set the SPARK_REMOTE environment variable."
+                )
+                raise RuntimeError(msg) from e
 
         else:
             # Local/standalone environment - need full configuration

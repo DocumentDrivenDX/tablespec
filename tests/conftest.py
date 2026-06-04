@@ -74,57 +74,76 @@ def _setup_spark_environment_per_test(request):
 
 @pytest.fixture(scope="session")
 def spark_session():
-    """Create a Spark session for integration tests.
+    """Provide a Spark session for tests via the tablespec spark factory.
 
-    Uses file-based locking so only one Spark session is active at a time,
-    even when running tests in parallel with pytest-xdist.
+    The factory (tablespec.spark_factory) is the single entrypoint for Spark
+    session creation. It detects Databricks vs local environments automatically:
+    - On Databricks: returns the runtime's active session (never creates one).
+    - Locally: creates a session with Delta Lake, using file-based locking for
+      parallel safety.
 
-    The session is protected against accidental stops by test code.
+    On Databricks the session is never stopped (the runtime owns it).
+    Locally it is stopped on teardown.
     """
-    # Set up environment for the session
-    project_root = Path(__file__).parent.parent
-    local_spark = project_root / ".local" / "spark-4.0.0-bin-hadoop3"
-    local_java = project_root / ".local" / "share" / "java"
-
-    if not local_spark.exists():
-        pytest.skip(f"Local Spark installation not found at {local_spark}. Run 'make setup-spark' first.")
-
-    os.environ.setdefault("SPARK_HOME", str(local_spark))
-    os.environ.setdefault("JAVA_HOME", str(local_java))
-    os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
-    os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
-
     try:
         from tablespec.spark_factory import create_delta_spark_session
     except ImportError:
         pytest.skip("PySpark not available -- install with: uv sync --extra spark --group dev")
 
+    is_databricks = "DATABRICKS_RUNTIME_VERSION" in os.environ
+
+    if not is_databricks:
+        # Local: ensure Spark/Java env is configured
+        project_root = Path(__file__).parent.parent
+        local_spark = project_root / ".local" / "spark-4.0.0-bin-hadoop3"
+        local_java = project_root / ".local" / "share" / "java"
+
+        if not local_spark.exists():
+            pytest.skip(
+                f"Local Spark installation not found at {local_spark}. "
+                "Run 'make setup-spark' first."
+            )
+
+        os.environ.setdefault("SPARK_HOME", str(local_spark))
+        os.environ.setdefault("JAVA_HOME", str(local_java))
+        os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
+        os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
+
+    # --- Create (or acquire) the session via the factory ---
+    custom_config = (
+        None
+        if is_databricks
+        else {
+            "spark.master": "local[2]",
+            "spark.default.parallelism": "2",
+            "spark.dynamicAllocation.enabled": "false",
+            "spark.sql.shuffle.partitions": "2",
+            "spark.executor.cores": "1",
+            "spark.executor.instances": "1",
+            "spark.ui.enabled": "false",
+        }
+    )
+
+    try:
+        spark = create_delta_spark_session("tablespec-test", custom_config)
+    except Exception as e:
+        pytest.skip(f"Spark not available: {e}")
+
+    if is_databricks:
+        # On Databricks the runtime owns the session -- never stop it.
+        yield spark
+        return
+
+    # Local: protect against accidental stops during tests, then clean up.
     import fcntl
 
     lock_file = Path(tempfile.gettempdir()) / "tablespec_spark_test.lock"
     lock_file.parent.mkdir(parents=True, exist_ok=True)
-
     lock_fd = open(lock_file, "w")  # noqa: SIM115 -- lock must be held for entire session
+
     try:
         fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
 
-        try:
-            spark = create_delta_spark_session(
-                "tablespec-test",
-                {
-                    "spark.master": "local[2]",
-                    "spark.default.parallelism": "2",
-                    "spark.dynamicAllocation.enabled": "false",
-                    "spark.sql.shuffle.partitions": "2",
-                    "spark.executor.cores": "1",
-                    "spark.executor.instances": "1",
-                    "spark.ui.enabled": "false",
-                },
-            )
-        except Exception as e:
-            pytest.skip(f"Spark not available: {e}")
-
-        # Protect against accidental stops during tests
         original_stop = spark.stop
 
         def protected_stop():

@@ -149,6 +149,89 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 <!-- END BEADS INTEGRATION -->
 
+## Running Tests on Databricks
+
+### Architecture: Single Spark Entrypoint
+
+`tablespec.spark_factory.create_delta_spark_session()` is the **single entrypoint** for all
+Spark session creation. It detects the environment automatically:
+- On Databricks: returns the runtime's active SparkSession (never creates one).
+- Locally: creates a session with Delta Lake config.
+
+The `spark_session` pytest fixture in `tests/conftest.py` delegates to this factory.
+Do NOT add separate Databricks detection logic anywhere else.
+
+### Critical: Run pytest IN-PROCESS (not as subprocess)
+
+On Databricks, the SparkSession lives in the notebook kernel process. A subprocess
+(e.g. `subprocess.run(["python", "-m", "pytest", ...])`) **cannot** access it because
+Spark Connect URLs aren't inherited. Always use `pytest.main([...])` in-process.
+
+### Critical: Do NOT use `uv run pytest` on Databricks
+
+The Databricks runtime provides PySpark via Spark Connect in the system Python environment.
+`uv run` creates an isolated `.venv` that **cannot access the runtime's PySpark** — all
+Spark-dependent tests will fail with `ModuleNotFoundError` or Spark Connect URL errors.
+
+**Correct pattern (in a notebook cell):**
+```python
+# Cell 1: %pip triggers interpreter restart → .pth files processed → no sys.path hacking
+%pip install -e /Workspace/Users/erik.labianca@synaptiq.ai/tablespec --quiet
+%pip install ipytest pytest-cov pytest-mock anyio hypothesis --quiet
+
+# Cell 2: Configure ipytest (notebook-friendly pytest wrapper)
+import ipytest, os, sys
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+sys.dont_write_bytecode = True
+ipytest.autoconfig(addopts=["-v", "--tb=short", "-p", "no:cacheprovider"],
+                   run_in_thread=False, raise_on_error=True)
+
+# Cell 3: Run tests in-process (factory's getActiveSession() finds runtime session)
+ipytest.run("tests/integration/")
+```
+
+**Wrong patterns:**
+```bash
+# DO NOT — subprocess can't access Spark Connect session
+python -m pytest tests/
+
+# DO NOT — creates isolated venv without pyspark
+uv run pytest tests/
+```
+
+### Workspace filesystem limitations
+
+- **No `__pycache__` support**: The workspace filesystem (`/Workspace/...`) does not support
+  creating `__pycache__` directories. Always set `PYTHONDONTWRITEBYTECODE=1` and use
+  `-p no:cacheprovider` with pytest.
+- **No `.venv` on workspace FS**: If you must use uv for non-Spark work, point the venv to
+  local disk: `UV_PROJECT_ENVIRONMENT=/tmp/tablespec-venv`
+
+### Makefile targets
+
+- `make test-databricks` — integration tests only
+- `make test-databricks-all` — full suite (skips modules requiring local Spark install)
+
+### Runner notebook
+
+`scripts/run_integration_tests_databricks` — attach to any cluster, run cells in order.
+Uses `pytest.main()` in-process.
+
+### What's skip-aware on Databricks
+
+- `tests/conftest.py` `spark_session` fixture calls `create_delta_spark_session()` which
+  auto-detects Databricks and returns the active runtime session.
+- `tests/integration/test_demo.py` is skipped — it spawns a subprocess that can't access
+  Spark Connect (legitimate limitation of subprocess execution model).
+- Tests requiring `tablespec.session` or monkeypatching `pyspark.sql.functions` may need
+  the `spark` extra installed (`pip install tablespec[spark]`) even on Databricks if they
+  import internal modules that aren't satisfied by the runtime's pyspark alone.
+
+### Building wheels
+
+- `uv build` works on Databricks (no Spark dependency for building).
+- Version override: `UV_DYNAMIC_VERSIONING_BYPASS=X.Y.Z uv build` (workspace FS has no git tags).
+
 ## File Reading Discipline
 
 - Never read files larger than 200 lines at once.
