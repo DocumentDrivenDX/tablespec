@@ -1,0 +1,4 @@
+claim_id,member_id,_source_file,_load_ts
+100,1,claims.csv,2026-02-01 00:00:00
+101,2,claims.csv,2026-02-01 00:00:00
+102,1,claims.csv,2026-02-01 00:00:00

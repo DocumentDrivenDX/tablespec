@@ -1,0 +1,24 @@
+version: "1.0"
+table_name: summary
+description: GOLD (downstream) - derives from the upstream gold 'enriched'
+primary_key:
+  - claim_id
+metadata:
+  base_table: enriched
+columns:
+  - name: claim_id
+    data_type: INTEGER
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: who
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: enriched
+          column: member_name
+          priority: 1

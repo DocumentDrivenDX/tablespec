@@ -95,10 +95,20 @@ def test_renderer_fails_closed_on_unknown_relation() -> None:
 
 
 def test_generate_fails_closed_on_dangling_reference() -> None:
-    """A gold model referencing a table NOT in the UMF set fails loudly."""
+    """A gold model referencing a table NOT in the UMF set fails loudly.
+
+    The failure must surface as the PUBLIC ``DbtProjectError`` (callers handle one
+    exception type) AND the message must name the exact offending edge
+    ``g -> 'ghost'`` so the operator knows which reference to fix -- a bare "build
+    failed" is not actionable. Asserting the precise edge also proves the
+    dangling-ref path fired (not some unrelated error coincidentally raised).
+    """
     # 'g' references 'ghost' which is not provided.
-    with pytest.raises((UnknownRelationError, DbtProjectError)):
+    with pytest.raises(DbtProjectError) as exc:
         generate_dbt_dag_project([_claims(), _gold_referencing("ghost")])
+    assert "g -> 'ghost'" in str(exc.value), (
+        f"dangling-ref error must name the offending edge, got: {exc.value}"
+    )
 
 
 def test_qualified_name_does_not_collide_with_local_table() -> None:

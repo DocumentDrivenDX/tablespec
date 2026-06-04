@@ -1,0 +1,79 @@
+version: "1.0"
+table_name: enriched
+description: >-
+  GOLD exercising three non-trivial ref branches: a QUALIFIED-LOCAL canonical bind
+  (mart.member -> ingested_member), an ALIAS-resolved ref (prov -> ingested_provider),
+  and an EXTERNAL qualified source (extpipe.refs -> source('external', ...)).
+primary_key:
+  - claim_id
+metadata:
+  base_table: claims
+columns:
+  - name: claim_id
+    data_type: INTEGER
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: member_name
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: mart.member
+          column: member_name
+          priority: 1
+  - name: provider_name
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: prov
+          column: provider_name
+          priority: 1
+  - name: ext_v
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: extpipe.refs
+          column: v
+          priority: 1
+relationships:
+  outgoing:
+    - target_table: mart.member
+      source_column: member_id
+      target_column: member_id
+      type: foreign_to_primary
+      confidence: 1.0
+      cardinality:
+        type: many_to_one
+        notation: "1:1"
+        source_multiplicity: "*"
+        target_multiplicity: "1"
+    - target_table: prov
+      source_column: provider_id
+      target_column: provider_id
+      type: foreign_to_primary
+      confidence: 1.0
+      cardinality:
+        type: many_to_one
+        notation: "1:1"
+        source_multiplicity: "*"
+        target_multiplicity: "1"
+    - target_table: extpipe.refs
+      source_column: ref_id
+      target_column: ref_id
+      type: foreign_to_primary
+      confidence: 1.0
+      cardinality:
+        type: many_to_one
+        notation: "1:1"
+        source_multiplicity: "*"
+        target_multiplicity: "1"

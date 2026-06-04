@@ -1,0 +1,3 @@
+member_id,member_name,_source_file,_load_ts
+1,Alice Smith,member.csv,2026-01-01 00:00:00
+2,Bob Jones,member.csv,2026-01-01 00:00:00

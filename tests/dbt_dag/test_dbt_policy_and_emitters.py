@@ -215,8 +215,11 @@ def test_single_schema_yml_list_unique_constraint():
         dialect="duckdb",
     )
     schema = files["models/schema.yml"]
-    # single-column list unique constraint -> a unique test on that column
-    assert "- unique" in schema
+    # single-column list unique constraint -> a unique test on THAT column (label),
+    # not just somewhere in the file.
+    assert _col_tests(schema, "t", "label") == ["unique"]
+    # the non-constrained 'id' column carries no unique test
+    assert "unique" not in _col_tests(schema, "t", "id")
 
 
 def test_single_schema_yml_string_unique_constraint():
@@ -224,7 +227,10 @@ def test_single_schema_yml_string_unique_constraint():
         _single_umf_data(mode="snapshot", primary_key=[], unique_constraints=["label"]),
         dialect="duckdb",
     )
-    assert "- unique" in files["models/schema.yml"]
+    schema = files["models/schema.yml"]
+    # string-form unique constraint -> a unique test on THAT column (label).
+    assert _col_tests(schema, "t", "label") == ["unique"]
+    assert "unique" not in _col_tests(schema, "t", "id")
 
 
 def test_single_composite_pk_emits_no_unique_test():
@@ -288,6 +294,12 @@ def test_dag_keyless_incremental_staging_appends():
     staging = files["models/staging/ingested_events.sql"]
     assert "materialized='incremental'" in staging
     assert "blind append" in staging
+    # Non-vacuous config assertions: keyless append must NOT emit a merge strategy
+    # nor a unique_key (it relies on dbt's DEFAULT append), and must NOT build the
+    # dedup window that only the merge path uses.
+    assert "incremental_strategy='merge'" not in staging
+    assert "unique_key" not in staging
+    assert "row_number() OVER (PARTITION BY" not in staging
 
 
 def test_dag_prod_routing_emits_database():
@@ -482,7 +494,14 @@ def test_dag_staging_schema_unique_constraints():
     )
     files = generate_dbt_dag_project([t])
     schema = files["models/schema.yml"]
-    # both single-column unique constraints surface a `unique` test
+    # Pin each unique test to its INTENDED column (not a bare count, which would
+    # pass even if both `unique` tests landed on the wrong column). 'code' is also
+    # non-nullable so it additionally carries not_null.
+    assert sorted(_col_tests(schema, "ingested_dim", "code")) == ["not_null", "unique"]
+    assert _col_tests(schema, "ingested_dim", "alt_code") == ["unique"]
+    # 'label' is neither a key nor a unique constraint -> no unique test.
+    assert "unique" not in _col_tests(schema, "ingested_dim", "label")
+    # And exactly two unique tests overall (no spurious extras).
     assert schema.count("- unique") == 2
 
 

@@ -1,0 +1,3 @@
+provider_id,provider_name,_source_file,_load_ts
+10,Mercy Clinic,provider.csv,2026-01-01 00:00:00
+20,Hill Hospital,provider.csv,2026-01-01 00:00:00

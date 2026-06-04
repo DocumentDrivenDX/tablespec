@@ -237,6 +237,20 @@ class NodeRegistry:
         external_by_table: dict[str, set[str]] = {}
         staging_tables: set[str] = set()
         for umf in umfs:
+            # FAIL CLOSED on a duplicate table_name BEFORE registering it. Two
+            # UMFs with the same table_name produce identical node ids
+            # (``ingested_<t>`` / ``gold_<t>``), so the ``_index`` collision guard
+            # -- which only fires when the SAME physical name maps to DIFFERENT
+            # node ids -- never trips: the second silently overwrites the first in
+            # ``self._umfs`` (last-write-wins), dropping a whole table's spec.
+            table_key = _norm(umf.table_name)
+            if table_key in {_norm(t) for t in self._umfs}:
+                msg = (
+                    f"Duplicate table_name {umf.table_name!r} in the UMF set. "
+                    f"Every table_name must be unique so its ingested_/gold_ node "
+                    f"is unambiguous; a repeat silently clobbers the prior table."
+                )
+                raise NodeRegistryError(msg)
             self._umfs[umf.table_name] = umf
             external_by_table[umf.table_name] = self._external_ref_names(umf)
             refs = self._table_referenced_tables(umf)
@@ -300,6 +314,11 @@ class NodeRegistry:
             self._index(ingested_node, self._physical_aliases(umf))
 
         # Pass 3: gold nodes + their inter-table edges (gold -> ingested_<ref>).
+        # external_source_refs maps a sanitized dbt source id back to the ORIGINAL
+        # ref that first claimed it, so two DISTINCT external relations that
+        # sanitize to the same id (e.g. ``a.b__c`` and ``a.b.c`` -> ``a__b__c``)
+        # fail closed instead of being silently conflated into one source node.
+        external_source_refs: dict[str, str] = {}
         for umf in umfs:
             if umf.table_name not in self._gold_tables:
                 continue
@@ -326,6 +345,40 @@ class NodeRegistry:
                         # cross_pipeline FK): a source('external', ...) leaf, not a
                         # local model. Register it so the renderer routes it.
                         ext_id = self._external_source_id(ref)
+                        # FAIL CLOSED on a sanitized-id collision: two DIFFERENT
+                        # external refs must not share one dbt source id (which
+                        # ``LogicalPlan.add`` would silently merge, conflating two
+                        # distinct cross-pipeline relations into one source).
+                        prior = external_source_refs.get(ext_id)
+                        if prior is not None and _norm(prior) != _norm(ref):
+                            msg = (
+                                f"External relation references {prior!r} and "
+                                f"{ref!r} both sanitize to the same dbt source id "
+                                f"{ext_id!r}; external source identifiers must be "
+                                f"unique. Rename one reference so the sanitized "
+                                f"ids differ."
+                            )
+                            raise NodeRegistryError(msg)
+                        # FAIL CLOSED when the sanitized external id collides with a
+                        # LOCAL plan node id (a ``raw_<t>`` / ``ingested_<t>`` /
+                        # ``gold_<t>``). e.g. local table ``base`` owns ``raw_base``
+                        # while a bare cross-pipeline external ref ``raw_base`` also
+                        # sanitizes to ``raw_base``. ``LogicalPlan.add`` would merge
+                        # the external node INTO the local one (OR-ing external=True),
+                        # silently turning the local landing source external. ``prior
+                        # is None`` here means this id was not previously claimed as an
+                        # external source, so an existing same-id node must be local.
+                        if prior is None and ext_id in self.plan.nodes:
+                            existing = self.plan.nodes[ext_id]
+                            msg = (
+                                f"External relation reference {ref!r} sanitizes to "
+                                f"dbt source id {ext_id!r}, which already names a "
+                                f"local {existing.role.value} node. External source "
+                                f"identifiers must not collide with local model / "
+                                f"source ids; rename the external reference."
+                            )
+                            raise NodeRegistryError(msg)
+                        external_source_refs[ext_id] = ref
                         ext_node = PlanNode(
                             node_id=ext_id,
                             role=NodeRole.SOURCE,

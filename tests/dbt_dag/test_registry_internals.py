@@ -243,6 +243,187 @@ def test_collision_surfaces_as_dbt_project_error():
         generate_dbt_dag_project([a, b])
 
 
+def test_duplicate_table_name_fails_closed():
+    """Two UMFs sharing a table_name is an ambiguous set -> RAISES.
+
+    Regression for the silent last-write-wins gap: identical table_names produce
+    identical node ids (``ingested_dup``), so the ``_index`` collision guard --
+    which only fires when ONE physical name maps to TWO different node ids -- never
+    trips. The second UMF would silently clobber the first in ``self._umfs``,
+    dropping a whole table's spec. The build must fail closed instead.
+    """
+    first = _staging("dup")
+    # A genuinely-different second 'dup' (extra column) -- without the guard the
+    # registry would keep ONLY this one and drop ``first`` with no error.
+    second = UMF(
+        version="1.0",
+        table_name="dup",
+        primary_key=["dup_id"],
+        ingestion={"mode": "snapshot"},
+        columns=[
+            {"name": "dup_id", "data_type": "INTEGER", "nullable": _NN},
+            {"name": "extra", "data_type": "VARCHAR", "nullable": _NL},
+        ],
+    )
+    with pytest.raises(NodeRegistryError, match=r"Duplicate table_name 'dup'"):
+        NodeRegistry([first, second])
+
+
+def test_duplicate_table_name_surfaces_as_dbt_project_error():
+    """generate_dbt_dag_project wraps a duplicate table_name as DbtProjectError."""
+    with pytest.raises(DbtProjectError, match=r"Duplicate table_name 'dup'"):
+        generate_dbt_dag_project([_staging("dup"), _staging("dup")])
+
+
+def _gold_external(name: str, ref: str) -> UMF:
+    """A gold table whose one derived column references an external *ref*."""
+    return UMF(
+        version="1.0",
+        table_name=name,
+        primary_key=["id"],
+        metadata={"base_table": "base"},
+        columns=[
+            {
+                "name": "id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+            {
+                "name": "x",
+                "data_type": "VARCHAR",
+                "nullable": _NL,
+                "derivation": {
+                    "strategy": "survivorship",
+                    "candidates": [{"table": ref, "column": "v", "priority": 1}],
+                },
+            },
+        ],
+    )
+
+
+def test_external_sanitized_id_collision_fails_closed():
+    """Two DISTINCT external refs sanitizing to one dbt source id -> RAISES.
+
+    ``a.b__c`` and ``a.b.c`` are different cross-pipeline relations, yet both
+    sanitize (``.replace('.', '__')``) to the SAME source id ``a__b__c``.
+    ``LogicalPlan.add`` merges same-id nodes, so without a guard the two distinct
+    relations are silently conflated into ONE ``source('external', 'a__b__c')``
+    -- a wrong-data edge. The registry must detect the clash and fail closed.
+    """
+    with pytest.raises(NodeRegistryError, match=r"sanitize.*'a__b__c'"):
+        NodeRegistry(
+            [
+                _staging("base"),
+                _gold_external("g1", "a.b__c"),
+                _gold_external("g2", "a.b.c"),
+            ]
+        )
+
+
+def test_external_sanitized_collision_surfaces_as_dbt_project_error():
+    """The sanitized-id clash is wrapped as the public DbtProjectError."""
+    with pytest.raises(DbtProjectError, match=r"sanitize.*'a__b__c'"):
+        generate_dbt_dag_project(
+            [
+                _staging("base"),
+                _gold_external("g1", "a.b__c"),
+                _gold_external("g2", "a.b.c"),
+            ]
+        )
+
+
+def test_distinct_external_refs_without_collision_coexist():
+    """Two external refs with DIFFERENT sanitized ids both register (no false clash).
+
+    Guards against an over-eager collision check: ``a.b`` -> ``a__b`` and
+    ``c.d`` -> ``c__d`` are distinct ids and must BOTH yield external source nodes.
+    """
+    reg = NodeRegistry(
+        [_staging("base"), _gold_external("g1", "a.b"), _gold_external("g2", "c.d")]
+    )
+    ext_ids = sorted(n.node_id for n in reg.plan.nodes.values() if n.external)
+    assert ext_ids == ["a__b", "c__d"]
+    assert reg.dangling_refs == set()
+
+
+def _gold_bare_external(name: str, ref: str) -> UMF:
+    """A gold table whose derived col references a BARE *ref* marked cross_pipeline.
+
+    A bare (unqualified) reference only routes external when THIS table's own
+    cross_pipeline FK points at it; that is the path that can yield an external
+    source id WITHOUT a namespace separator (so it can collide with a local id).
+    """
+    return UMF(
+        version="1.0",
+        table_name=name,
+        primary_key=["id"],
+        metadata={"base_table": "base"},
+        columns=[
+            {
+                "name": "id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+            {
+                "name": "x",
+                "data_type": "VARCHAR",
+                "nullable": _NL,
+                "derivation": {
+                    "strategy": "survivorship",
+                    "candidates": [{"table": ref, "column": "v", "priority": 1}],
+                },
+            },
+        ],
+        relationships={
+            "foreign_keys": [
+                {
+                    "column": "x",
+                    "references_table": ref,
+                    "references_column": "v",
+                    "cross_pipeline": True,
+                }
+            ]
+        },
+    )
+
+
+def test_external_id_colliding_with_local_node_fails_closed():
+    """A bare external ref sanitizing to a LOCAL node id -> RAISES (no conflation).
+
+    Local table ``base`` owns the plan node id ``raw_base``. A bare cross-pipeline
+    external ref ``raw_base`` also sanitizes to ``raw_base``; ``LogicalPlan.add``
+    merges same-id nodes (OR-ing ``external=True``), which would silently turn the
+    LOCAL landing source into an external one and re-route the local pipeline's
+    raw read to a phantom cross-pipeline source. The registry must fail closed.
+    """
+    reg_ok_msg = r"already names a local source node"
+    with pytest.raises(NodeRegistryError, match=reg_ok_msg):
+        NodeRegistry([_staging("base"), _gold_bare_external("g", "raw_base")])
+
+
+def test_same_external_ref_in_two_golds_is_idempotent():
+    """The SAME external ref used by two gold tables is one shared source, not a clash.
+
+    Re-claiming an external id with the IDENTICAL original ref is a legitimate
+    shared cross-pipeline source -- it must merge into one node, never raise.
+    """
+    reg = NodeRegistry(
+        [
+            _staging("base"),
+            _gold_external("g1", "ext.shared"),
+            _gold_external("g2", "ext.shared"),
+        ]
+    )
+    ext = [n for n in reg.plan.nodes.values() if n.external]
+    assert len(ext) == 1
+    assert ext[0].node_id == "ext__shared"
+    # Both gold models depend on the one shared external source.
+    assert reg.plan.nodes["gold_g1"].depends_on >= {"ext__shared"}
+    assert reg.plan.nodes["gold_g2"].depends_on >= {"ext__shared"}
+
+
 def test_gold_ref_binds_via_referenced_table_alias():
     """A gold candidate naming another table's ALIAS binds to that table's node.
 

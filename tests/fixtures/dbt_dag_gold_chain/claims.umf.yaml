@@ -1,0 +1,35 @@
+version: "1.0"
+table_name: claims
+description: Healthcare claims (snapshot)
+primary_key:
+  - claim_id
+ingestion:
+  mode: snapshot
+  order_by:
+    - _load_ts
+columns:
+  - name: claim_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: member_id
+    data_type: INTEGER
+    nullable:
+      default: true
+relationships:
+  foreign_keys:
+    - column: member_id
+      references_table: member
+      references_column: member_id
+      type: foreign_key
+  outgoing:
+    - target_table: member
+      source_column: member_id
+      target_column: member_id
+      type: foreign_to_primary
+      confidence: 1.0
+      cardinality:
+        type: many_to_one
+        notation: "1:1"
+        source_multiplicity: "*"
+        target_multiplicity: "1"
