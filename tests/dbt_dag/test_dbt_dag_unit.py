@@ -128,6 +128,320 @@ def test_external_qualified_reference_routes_to_external_source() -> None:
     assert "      - name: otherpipe__refdata" in files["models/sources.yml"]
 
 
+def test_qualified_ref_binds_to_known_local_table() -> None:
+    """A qualified ref that resolves to a known local table binds to its node.
+
+    Must-fix: qualification ALONE must not force-external. ``mart.member`` is a
+    qualified name, but a local table whose canonical_name IS ``mart.member``
+    owns that physical name -- the ref must bind to ``ingested_member``, never
+    become a phantom ``source('external', ...)``.
+    """
+    member = UMF(
+        version="1.0",
+        table_name="member",
+        canonical_name="mart.member",
+        primary_key=["member_id"],
+        ingestion={"mode": "snapshot"},
+        columns=[
+            {"name": "member_id", "data_type": "INTEGER", "nullable": _NN},
+            {"name": "member_name", "data_type": "VARCHAR", "nullable": _NL},
+        ],
+    )
+    reg = NodeRegistry([member, _claims(), _gold_referencing("mart.member")])
+    # The qualified ref resolved locally -> NOT dangling, NOT external.
+    assert reg.dangling_refs == set()
+    gold = reg.plan.nodes["gold_g"]
+    assert "ingested_member" in gold.depends_on
+    # No external source node was invented.
+    assert not any(n.external for n in reg.plan.nodes.values())
+    # The renderer resolves the qualified literal to the bound ingested model.
+    renderer = DbtRefRenderer(reg)
+    assert renderer.render("mart.member") == "{{ ref('ingested_member') }}"
+
+
+def test_qualified_self_reference_is_not_a_self_dependency() -> None:
+    """A candidate naming the table's own qualified canonical_name is not an edge.
+
+    Regression: with qualified-ref binding enabled, a derivation candidate equal
+    to the table's OWN (qualified) canonical_name must be recognized as a
+    self-reference, never bound back to ``gold_<t>`` as a self-dependency (a
+    1-cycle) nor routed external.
+    """
+    g = UMF(
+        version="1.0",
+        table_name="g",
+        canonical_name="mart.g",
+        primary_key=["id"],
+        metadata={"base_table": "claims"},
+        columns=[
+            {
+                "name": "id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+            {
+                "name": "self_col",
+                "data_type": "VARCHAR",
+                "nullable": _NL,
+                "derivation": {
+                    "strategy": "survivorship",
+                    # References its OWN qualified canonical_name.
+                    "candidates": [{"table": "mart.g", "column": "x", "priority": 1}],
+                },
+            },
+        ],
+    )
+    reg = NodeRegistry([_claims(), g])
+    gold = reg.plan.nodes["gold_g"]
+    assert "gold_g" not in gold.depends_on  # no self-dependency
+    assert reg.dangling_refs == set()
+    assert not any(n.external for n in reg.plan.nodes.values())
+    assert reg.plan.detect_cycle() is None
+
+
+def test_external_routing_is_scoped_per_table() -> None:
+    """A bare unknown ref fails closed even when ANOTHER table marks it external.
+
+    Regression: ``external_names`` must be scoped to the referencing table's own
+    cross_pipeline FKs. Table ``a`` declares a cross_pipeline FK to ``refdata``;
+    unrelated gold table ``b`` derives from a bare ``refdata`` it does NOT mark
+    external -- that must be a DANGLING (fail-closed) ref, not a phantom external.
+    """
+    a = UMF(
+        version="1.0",
+        table_name="a",
+        primary_key=["id"],
+        metadata={"base_table": "claims"},
+        columns=[
+            {
+                "name": "id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+            {
+                "name": "rd",
+                "data_type": "VARCHAR",
+                "nullable": _NL,
+                "derivation": {
+                    "strategy": "survivorship",
+                    "candidates": [{"table": "refdata", "column": "v", "priority": 1}],
+                },
+            },
+        ],
+        relationships={
+            "foreign_keys": [
+                {
+                    "column": "rd",
+                    "references_table": "refdata",
+                    "references_column": "v",
+                    "cross_pipeline": True,
+                }
+            ]
+        },
+    )
+    b = _gold_referencing("refdata")  # bare 'refdata', NO external marking on b
+    reg = NodeRegistry([_claims(), a, b])
+    # 'a' resolves refdata as external (its own cross_pipeline FK); 'b' does not.
+    assert ("g", "refdata") in reg.dangling_refs
+    with pytest.raises(DbtProjectError):
+        generate_dbt_dag_project([_claims(), a, b])
+
+
+def test_base_table_metadata_creates_edge() -> None:
+    """metadata.base_table is a rendered relation -> an IR edge (must-fix 2).
+
+    ``_gold_referencing`` sets ``metadata.base_table='claims'``; the gold node
+    must depend on ``ingested_claims`` even though no derivation candidate names
+    ``claims`` directly (the base view selects from it).
+    """
+    reg = NodeRegistry([_member(), _claims(), _gold_referencing("member")])
+    gold = reg.plan.nodes["gold_g"]
+    assert "ingested_claims" in gold.depends_on  # from metadata.base_table
+    assert "ingested_member" in gold.depends_on  # from the derivation candidate
+
+
+def test_inferred_base_table_hub_creates_edge() -> None:
+    """An INFERRED (hub_score) base table that is NOT a candidate still gets an edge.
+
+    Regression: with no explicit ``metadata.base_table``, the RelationshipResolver
+    can pick a hub by ``hub_score`` that has outgoing relationships to the
+    contributors but contributes no columns itself. The generator renders it as the
+    base ``FROM`` relation, so the IR must carry that edge -- reusing the resolver
+    keeps the edge set a faithful superset without missing the non-candidate hub.
+    """
+    card = {
+        "type": "many_to_one",
+        "notation": "1:1",
+        "source_multiplicity": "*",
+        "target_multiplicity": "1",
+    }
+    summary = {
+        "hub_score": 99.0,
+        "total_relationships": 1,
+        "total_incoming": 0,
+        "total_outgoing": 1,
+    }
+    hub = UMF(
+        version="1.0",
+        table_name="hub",
+        primary_key=["id"],
+        ingestion={"mode": "snapshot"},
+        columns=[
+            {"name": "id", "data_type": "INTEGER", "nullable": _NN},
+            {"name": "dim_id", "data_type": "INTEGER", "nullable": _NL},
+        ],
+        relationships={
+            "summary": summary,
+            "outgoing": [
+                {
+                    "target_table": "dim",
+                    "source_column": "dim_id",
+                    "target_column": "dim_id",
+                    "type": "foreign_to_primary",
+                    "confidence": 1.0,
+                    "cardinality": card,
+                }
+            ],
+        },
+    )
+    dim = UMF(
+        version="1.0",
+        table_name="dim",
+        primary_key=["dim_id"],
+        ingestion={"mode": "snapshot"},
+        columns=[
+            {"name": "dim_id", "data_type": "INTEGER", "nullable": _NN},
+            {"name": "dim_val", "data_type": "VARCHAR", "nullable": _NL},
+        ],
+    )
+    # Gold derives ONLY from 'dim'; 'hub' is the resolver's inferred base but is
+    # NOT a derivation candidate. No explicit metadata.base_table.
+    gold = UMF(
+        version="1.0",
+        table_name="g",
+        primary_key=["id"],
+        columns=[
+            {
+                "name": "id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+            {
+                "name": "dv",
+                "data_type": "VARCHAR",
+                "nullable": _NL,
+                "derivation": {
+                    "strategy": "survivorship",
+                    "candidates": [
+                        {"table": "dim", "column": "dim_val", "priority": 1}
+                    ],
+                },
+            },
+        ],
+    )
+    reg = NodeRegistry([hub, dim, gold])
+    gnode = reg.plan.nodes["gold_g"]
+    assert "ingested_hub" in gnode.depends_on  # inferred base (non-candidate)
+    assert "ingested_dim" in gnode.depends_on  # derivation candidate
+    assert reg.dangling_refs == set()
+
+
+def test_join_via_lookup_table_creates_edge() -> None:
+    """join_via.lookup_table is an INNER JOIN relation -> an IR edge (must-fix 2)."""
+    lookup = UMF(
+        version="1.0",
+        table_name="datawarehouse",
+        primary_key=["member_id"],
+        ingestion={"mode": "snapshot"},
+        columns=[
+            {"name": "member_id", "data_type": "INTEGER", "nullable": _NN},
+            {"name": "insurance_policy", "data_type": "VARCHAR", "nullable": _NL},
+        ],
+    )
+    gold = UMF(
+        version="1.0",
+        table_name="g2",
+        primary_key=["claim_id"],
+        metadata={"base_table": "claims"},
+        columns=[
+            {
+                "name": "claim_id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+            {
+                "name": "policy",
+                "data_type": "VARCHAR",
+                "nullable": _NL,
+                "derivation": {
+                    "strategy": "survivorship",
+                    "candidates": [
+                        {
+                            "table": "member",
+                            "column": "insurance_policy",
+                            "priority": 1,
+                            "join_via": {
+                                "lookup_table": "datawarehouse",
+                                "source_key": "client_member_id",
+                                "lookup_key": "member_id",
+                                "target_key": "insurance_policy",
+                            },
+                        }
+                    ],
+                },
+            },
+        ],
+    )
+    reg = NodeRegistry([_member(), _claims(), lookup, gold])
+    g = reg.plan.nodes["gold_g2"]
+    # The lookup table is its own inter-table edge, distinct from the candidate.
+    assert "ingested_datawarehouse" in g.depends_on
+    assert "ingested_member" in g.depends_on
+    assert "ingested_claims" in g.depends_on
+
+
+def test_union_sources_metadata_creates_edges() -> None:
+    """metadata.source_tables (union_sources) each become an IR edge (must-fix 2)."""
+    src_a = UMF(
+        version="1.0",
+        table_name="src_a",
+        primary_key=["member_id"],
+        ingestion={"mode": "snapshot"},
+        columns=[{"name": "member_id", "data_type": "INTEGER", "nullable": _NN}],
+    )
+    src_b = UMF(
+        version="1.0",
+        table_name="src_b",
+        primary_key=["member_id"],
+        ingestion={"mode": "snapshot"},
+        columns=[{"name": "member_id", "data_type": "INTEGER", "nullable": _NN}],
+    )
+    universe = UMF(
+        version="1.0",
+        table_name="universe",
+        primary_key=["member_id"],
+        metadata={
+            "base_table_strategy": "union_sources",
+            "source_tables": ["src_a", "src_b"],
+        },
+        columns=[
+            {
+                "name": "member_id",
+                "data_type": "INTEGER",
+                "nullable": _NN,
+                "derivation": {"strategy": "primary_key"},
+            },
+        ],
+    )
+    reg = NodeRegistry([src_a, src_b, universe])
+    g = reg.plan.nodes["gold_universe"]
+    assert {"ingested_src_a", "ingested_src_b"} <= g.depends_on
+
+
 def test_cycle_detection_raises() -> None:
     """A dependency cycle in the IR is reported as a DbtProjectError."""
     # Two gold tables that reference each other -> cycle in the model graph.

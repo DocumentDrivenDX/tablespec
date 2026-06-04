@@ -81,30 +81,110 @@ class NodeRegistry:
     def _table_referenced_tables(self, umf: UMF) -> set[str]:
         """Names of OTHER tables this table's derivations reference.
 
+        This is the SAME relation enumeration the ``SQLPlanGenerator`` /
+        ``RelationshipResolver`` use to decide what the rendered plan inlines, so
+        the IR edge set is a superset-faithful model of the rendered refs. It
+        unions every relation literal the generator can emit:
+
+          * derivation-candidate source tables (``col.derivation.candidates[].table``),
+          * an explicit ``metadata.base_table`` (the plan's hub view),
+          * ``metadata.source_tables`` for the ``union_sources`` base strategy
+            (each contributes a join into ``member_universe``), and
+          * ``join_via.lookup_table`` pre-aggregation lookups (an INNER JOIN
+            relation the plan inlines, distinct from the candidate's own table).
+
         Qualification is PRESERVED: a same-pipeline reference stays bare (e.g.
         ``member``) and a cross-pipeline reference stays qualified (e.g.
-        ``other.member``). Pass 3 uses the qualification to route cross-pipeline
-        refs to external sources rather than mis-binding them to a local table.
+        ``other.member``). Pass 3 first tries to bind any ref (bare OR qualified)
+        to a known local table; only a genuinely-absent ref that is explicitly
+        external routes to a ``source('external', ...)`` leaf.
+
+        Faithfulness notes (matched against the generator's actual render sites):
+
+          * An *inferred* base table (no explicit ``metadata.base_table``; the
+            ``RelationshipResolver`` picks a hub by ``hub_score`` / relationship
+            count) need NOT be a derivation candidate -- the resolver can select a
+            table that has outgoing relationships to the contributors but supplies
+            no columns. That hub is still rendered as the base ``FROM`` relation,
+            so it is enumerated separately in ``_build`` (Pass 1b) by reusing the
+            resolver itself; see :meth:`_inferred_base_table`.
+          * A *qualified* aggregate candidate is the one render site that strips
+            qualification: the pre-aggregation path uses the BARE name. That
+            combination (a qualified ``pipeline.table`` candidate carrying an
+            aggregate expression) is not produced by any current UMF; were it
+            introduced, the bare form would need binding here. It is intentionally
+            NOT auto-bound, because doing so could silently re-route a genuine
+            cross-pipeline qualified reference into the local pipeline (the exact
+            anti-pattern the qualification-preserving routing guards against).
         """
         refs: set[str] = set()
-        self_names = {umf.table_name.lower()}
+        # A "self name" is any literal that addresses THIS table: its table_name,
+        # its (possibly-qualified) canonical_name, and its declared aliases. We
+        # compare both the FULL normalized literal and -- for an unqualified self
+        # name only -- its bare form, so a ref equal to a QUALIFIED canonical_name
+        # (e.g. ``mart.member`` for the table whose canonical_name is that) is
+        # recognized as a self-reference and never becomes a self-dependency.
+        self_full = {_norm(umf.table_name)}
+        self_bare = {_bare(umf.table_name).lower()}
         if umf.canonical_name:
-            self_names.add(umf.canonical_name.lower())
+            self_full.add(_norm(umf.canonical_name))
+            if _namespace(umf.canonical_name) is None:
+                self_bare.add(umf.canonical_name.lower())
+        for alias in umf.aliases or []:
+            self_full.add(_norm(alias))
+            if _namespace(alias) is None:
+                self_bare.add(alias.lower())
+
+        def _add(name: str | None) -> None:
+            if not name:
+                return
+            bare = _bare(name)
+            # "intermediate" / "member_universe" are in-model pseudo-tables (the
+            # generator's own base/step views), never an inter-table edge.
+            if bare.lower() in {"intermediate", "member_universe"}:
+                return
+            # A self-reference is not an inter-table edge. Match the full literal
+            # (covers a qualified canonical_name self-ref) OR, for an unqualified
+            # ref, its bare form against the bare self names.
+            if _norm(name) in self_full:
+                return
+            if _namespace(name) is None and bare.lower() in self_bare:
+                return
+            refs.add(name)
+
+        # 1. Derivation-candidate source tables + their join_via lookup tables.
         for col in umf.columns:
             if not col.derivation or not col.derivation.candidates:
                 continue
             for cand in col.derivation.candidates:
-                if not cand.table:
-                    continue
-                bare = _bare(cand.table)
-                # "intermediate" / "member_universe" are in-model pseudo-tables,
-                # never an inter-table edge.
-                if bare.lower() in {"intermediate", "member_universe"}:
-                    continue
-                if _namespace(cand.table) is None and bare.lower() in self_names:
-                    continue
-                refs.add(cand.table)
+                _add(cand.table)
+                if cand.join_via:
+                    _add(cand.join_via.lookup_table)
+
+        # 2. Base-table / union-source relations from metadata.
+        if umf.metadata:
+            _add(getattr(umf.metadata, "base_table", None))
+            if umf.metadata.base_table_strategy == "union_sources":
+                for src in umf.metadata.source_tables or []:
+                    _add(src)
+
         return refs
+
+    def _inferred_base_table(self, umf: UMF) -> str | None:
+        """The base table the ``RelationshipResolver`` would render for *umf*.
+
+        Reuses the resolver (the authoritative enumeration) so the IR does not
+        duplicate hub-inference logic. Returns the resolved ``base_table`` or
+        ``None`` when the resolver cannot place one (e.g. no relationships).
+        """
+        from tablespec.schemas.relationship_resolver import RelationshipResolver
+
+        resolver = RelationshipResolver(dict(self._umfs))
+        try:
+            plan = resolver.resolve_plan(umf)
+        except Exception:  # noqa: BLE001 - inference is best-effort; never block build
+            return None
+        return plan.base_table
 
     def _index(self, node: PlanNode, names: set[str]) -> None:
         for raw in names:
@@ -131,11 +211,15 @@ class NodeRegistry:
     def _build(self, umfs: list[UMF]) -> None:
         # Pass 1: register tables + classify gold vs staging.
         ref_map: dict[str, set[str]] = {}
+        # external_by_table is SCOPED per referencing table: a bare ref is external
+        # only when THIS table's own cross_pipeline FK marks it. A different
+        # table's cross_pipeline FK must NOT make an unrelated table's bare unknown
+        # ref fail-open -- that would mask a genuine dangling reference.
+        external_by_table: dict[str, set[str]] = {}
         staging_tables: set[str] = set()
-        external_names: set[str] = set()
         for umf in umfs:
             self._umfs[umf.table_name] = umf
-            external_names |= self._external_ref_names(umf)
+            external_by_table[umf.table_name] = self._external_ref_names(umf)
             refs = self._table_referenced_tables(umf)
             ref_map[umf.table_name] = refs
             if refs:
@@ -146,6 +230,29 @@ class NodeRegistry:
                 # table (has cross-table refs) is derived -- no raw landing.
                 staging_tables.add(umf.table_name)
         self._staging_tables = staging_tables
+
+        # Pass 1b: augment each gold table's ref set with its INFERRED base table.
+        # When a gold table has no explicit ``metadata.base_table`` / union sources,
+        # the RelationshipResolver picks a hub (by ``hub_score`` / relationship
+        # count). That hub is rendered as the base ``FROM`` relation but need not be
+        # a derivation candidate (it can be a table with outgoing relationships TO
+        # the contributors). Reuse the SAME resolver so the IR edge set stays a
+        # faithful superset of the rendered refs -- no duplicated inference logic.
+        # This only ADDS an edge to an already-gold table; it never reclassifies.
+        for t in sorted(self._gold_tables):
+            umf = self._umfs[t]
+            has_explicit_base = bool(
+                umf.metadata
+                and (
+                    getattr(umf.metadata, "base_table", None)
+                    or umf.metadata.base_table_strategy == "union_sources"
+                )
+            )
+            if has_explicit_base:
+                continue
+            inferred = self._inferred_base_table(umf)
+            if inferred and inferred.lower() != t.lower():
+                ref_map[t].add(inferred)
 
         # Pass 2: create source + ingested nodes (only for real landing tables).
         for umf in umfs:
@@ -181,10 +288,20 @@ class NodeRegistry:
             gold_id = f"gold_{t}"
             deps: set[str] = set()
             for ref in sorted(ref_map[t]):
-                is_qualified = _namespace(ref) is not None
-                is_external = is_qualified or _bare(ref).lower() in external_names
-                ref_umf = None if is_qualified else self._lookup_umf(ref)
+                # Always attempt to bind the ref -- bare OR qualified -- to a known
+                # local table. A qualified name can legitimately resolve when a
+                # UMF's table_name / canonical_name / alias is itself qualified
+                # (e.g. ``mart.member``); such a name must bind to that table's
+                # ingested_/gold_ node, NOT become a phantom external source.
+                ref_umf = self._lookup_umf(ref)
                 if ref_umf is None:
+                    # Genuinely absent from the UMF set. It is external ONLY when
+                    # explicitly marked so: a qualified-and-unknown cross-pipeline
+                    # reference, or a relation a cross_pipeline FK points at.
+                    is_qualified = _namespace(ref) is not None
+                    is_external = (
+                        is_qualified or _bare(ref).lower() in external_by_table[t]
+                    )
                     if is_external:
                         # Explicitly external (qualified cross-pipeline ref or a
                         # cross_pipeline FK): a source('external', ...) leaf, not a
@@ -208,9 +325,21 @@ class NodeRegistry:
                 # A reference to a staging table -> its ingested model; a reference
                 # to another (pure-)gold table -> that gold model.
                 if ref_umf.table_name in staging_tables:
-                    deps.add(f"ingested_{ref_umf.table_name}")
+                    target_id = f"ingested_{ref_umf.table_name}"
+                    target_role = NodeRole.INGESTED
                 else:
-                    deps.add(f"gold_{ref_umf.table_name}")
+                    target_id = f"gold_{ref_umf.table_name}"
+                    target_role = NodeRole.GOLD
+                deps.add(target_id)
+                # Ensure the EXACT literal the generator emits resolves to the
+                # bound node. The referenced table's own physical aliases are
+                # already indexed (Pass 2 for ingested; below for gold), but a
+                # qualified ref literal (e.g. ``mart.member``) that bound via a
+                # qualified canonical_name/alias must ALSO resolve under its own
+                # spelling so the renderer never falls through to fail-closed.
+                self._by_name.setdefault(
+                    _norm(ref), ResolvedNode(target_id, target_role, external=False)
+                )
             gold_node = PlanNode(
                 node_id=gold_id,
                 role=NodeRole.GOLD,
