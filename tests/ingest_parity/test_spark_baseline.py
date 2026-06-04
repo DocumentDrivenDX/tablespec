@@ -59,9 +59,18 @@ GOLDEN_DIR = Path(__file__).parent.parent / "golden" / "ingest_parity"
 # Ivy coordinate for Delta matching the pinned Spark 4.0 line.
 _DELTA_PACKAGE = "io.delta:delta-spark_2.13:4.0.0"
 
-# Fixtures whose raw input arrives in two batches: an initial load, then an
-# upsert batch. These exercise the dedup-latest window + MERGE path.
-_TWO_BATCH = {"claims_incremental_pk", "messy_incremental_pk"}
+# Fixtures whose raw input arrives in two batches: an initial load, then a
+# second batch. For incremental+pk these exercise the dedup-latest window +
+# MERGE upsert path (including a within-batch2 duplicate key, so dedup runs on
+# the MERGE batch and not only on the initial load). For the keyless
+# incremental fixture (events) the second batch exercises the blind-INSERT
+# append branch, capturing the duplicate-row accumulation semantics in the
+# golden (a row identical to batch1 is re-ingested and appears twice).
+_TWO_BATCH = {
+    "claims_incremental_pk",
+    "messy_incremental_pk",
+    "events_incremental_nopk",
+}
 
 
 def _discover_fixtures() -> list[str]:

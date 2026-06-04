@@ -1,5 +1,0 @@
-event_type,payload,occurred_at,amount,_source_file,_load_ts
-click,"{""x"":1}",2024-04-01 10:00:00,$1.50,ev.csv,2024-04-01 10:00:00
-view,"{""x"":2}",2024-04-01 10:05:00,,ev.csv,2024-04-01 10:05:00
-click,"{""x"":3}",bad-timestamp,$2.00,ev.csv,2024-04-01 10:10:00
-purchase,,2024-04-01 11:00:00,$99.99,ev.csv,2024-04-01 11:00:00

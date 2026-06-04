@@ -13,8 +13,10 @@ from tablespec.casting_utils import (
     COMMON_TIMESTAMP_FORMATS,
     build_flexible_formats,
     cast_column_sql,
+    convert_umf_format_to_duckdb,
     convert_umf_format_to_spark,
 )
+from tablespec.date_formats import SUPPORTED_DATE_FORMATS
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
@@ -82,6 +84,111 @@ class TestCastColumnSql:
         """Unknown target types raise ValueError."""
         with pytest.raises(ValueError, match="Unsupported target_type"):
             cast_column_sql("col", "GEOGRAPHY")
+
+    def test_unsupported_dialect_raises(self):
+        """An unknown dialect raises ValueError."""
+        with pytest.raises(ValueError, match="Unsupported dialect"):
+            cast_column_sql("col", "INTEGER", dialect="postgres")
+
+
+class TestCastColumnSqlDuckdb:
+    """DuckDB-dialect SQL cast expression generation (no PySpark)."""
+
+    def test_string_types_passthrough_identical(self):
+        """String-family types pass through identically in both dialects."""
+        for t in ("VARCHAR", "TEXT", "CHAR", "STRING"):
+            assert cast_column_sql("col", t, dialect="duckdb") == "col"
+
+    def test_integer_uses_try_cast_and_single_backslash(self):
+        """INTEGER uses try_cast and a single-backslash currency strip for DuckDB."""
+        assert (
+            cast_column_sql("age", "INTEGER", dialect="duckdb")
+            == "try_cast(nullif(trim(regexp_replace(age, '^\\$', '')), '') as INT)"
+        )
+
+    def test_decimal_uses_precision_and_scale(self):
+        """DECIMAL honours precision/scale under try_cast."""
+        assert (
+            cast_column_sql("amt", "DECIMAL", precision=18, scale=2, dialect="duckdb")
+            == "try_cast(nullif(trim(regexp_replace(amt, '^\\$', '')), '') "
+            "as DECIMAL(18,2))"
+        )
+
+    def test_float_maps_to_double(self):
+        """FLOAT casts to DOUBLE under try_cast."""
+        assert cast_column_sql("rate", "FLOAT", dialect="duckdb").endswith("as DOUBLE)")
+
+    def test_date_with_format_uses_try_strptime(self):
+        """DATE uses try_strptime with strftime codes, cast to date."""
+        assert (
+            cast_column_sql("d", "DATE", "YYYYMMDD", dialect="duckdb")
+            == "cast(try_strptime(d, '%Y%m%d') as date)"
+        )
+
+    def test_timestamp_with_format_uses_try_strptime(self):
+        """TIMESTAMP keeps the full timestamp via try_strptime."""
+        assert (
+            cast_column_sql("ts", "TIMESTAMP", "YYYY-MM-DD HH:MM:SS", dialect="duckdb")
+            == "try_strptime(ts, '%Y-%m-%d %H:%M:%S')"
+        )
+
+    def test_date_without_format_uses_try_cast(self):
+        """DATE without a format casts through DuckDB's TIMESTAMP parser."""
+        assert (
+            cast_column_sql("d", "DATE", dialect="duckdb")
+            == "cast(try_cast(d as timestamp) as date)"
+        )
+
+    def test_boolean_uses_try_cast(self):
+        """BOOLEAN uses try_cast for NULL-on-failure parity with Spark."""
+        assert (
+            cast_column_sql("flag", "BOOLEAN", dialect="duckdb")
+            == "try_cast(flag as boolean)"
+        )
+
+
+class TestConvertUmfFormatToDuckdb:
+    """UMF format -> DuckDB strptime %-code conversion (registry-driven)."""
+
+    def test_iso_date(self):
+        assert convert_umf_format_to_duckdb("YYYY-MM-DD") == "%Y-%m-%d"
+
+    def test_us_date_slashes(self):
+        assert convert_umf_format_to_duckdb("MM/DD/YYYY") == "%m/%d/%Y"
+
+    def test_compact_date(self):
+        assert convert_umf_format_to_duckdb("YYYYMMDD") == "%Y%m%d"
+
+    def test_iso_datetime(self):
+        assert (
+            convert_umf_format_to_duckdb("YYYY-MM-DD HH:MM:SS") == "%Y-%m-%d %H:%M:%S"
+        )
+
+    def test_unsupported_format_raises(self):
+        with pytest.raises(ValueError, match="Unsupported UMF date/timestamp format"):
+            convert_umf_format_to_duckdb("NOT-A-FORMAT")
+
+    def test_registry_parity_identical_format_set(self):
+        """Both converters MUST cover the identical set of registry formats.
+
+        This is the guardrail for the agreed single-registry design: the Spark and
+        DuckDB date converters are driven by the SAME SUPPORTED_DATE_FORMATS, so
+        neither dialect may silently accept or reject a format the other does not.
+        """
+        registry_formats = {f.umf_format for f in SUPPORTED_DATE_FORMATS}
+
+        duckdb_covered: set[str] = set()
+        spark_covered: set[str] = set()
+        for fmt in registry_formats:
+            # Every registry format must convert cleanly in both dialects.
+            assert convert_umf_format_to_duckdb(fmt)
+            duckdb_covered.add(fmt)
+            assert convert_umf_format_to_spark(fmt)
+            spark_covered.add(fmt)
+
+        assert duckdb_covered == registry_formats
+        assert spark_covered == registry_formats
+        assert duckdb_covered == spark_covered
 
 
 class TestConvertUmfFormatToSpark:

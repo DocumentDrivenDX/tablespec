@@ -18,6 +18,7 @@ to a ``.sql`` file, code-reviewed, and run independently of this library.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from tablespec.casting_utils import cast_column_sql
@@ -59,7 +60,7 @@ def _typed_type(col: dict[str, Any]) -> str:
     return _SPARK_TYPE.get(dt, "STRING")
 
 
-def _cast_for(col: dict[str, Any]) -> str:
+def _cast_for(col: dict[str, Any], *, dialect: str = "spark") -> str:
     """Canonical SQL cast expression for one column."""
     return cast_column_sql(
         col["name"],
@@ -67,6 +68,110 @@ def _cast_for(col: dict[str, Any]) -> str:
         col.get("format"),
         precision=col.get("precision"),
         scale=col.get("scale"),
+        dialect=dialect,
+    )
+
+
+@dataclass(frozen=True)
+class IngestSelect:
+    """The dialect-agnostic core of a raw->ingest transform.
+
+    This is the single shared seam between the two emitters
+    (:func:`generate_ingest_sql` for the committed Databricks artifact and
+    ``generate_dbt_project`` for dbt): both build their cast SELECT + dedup window
+    from here and differ only in packaging + write strategy.
+
+    Attributes:
+    ----------
+        columns: ordered output column names (UMF column order).
+        mode: ``"incremental"`` or ``"snapshot"``.
+        primary_key: declared primary key columns (may be empty).
+        order_by: provenance ordering columns for dedup-latest (newest wins).
+        dialect: ``"spark"`` or ``"duckdb"`` (selects the cast SQL flavour).
+        select_block: aligned ``<cast> AS <name>`` lines, one per column, with the
+            8-space indentation the artifact/dbt model bodies expect.
+    """
+
+    columns: list[str]
+    mode: str
+    primary_key: list[str]
+    order_by: list[str]
+    dialect: str
+    select_block: str
+
+    @property
+    def has_dedup(self) -> bool:
+        """True when a dedup-latest window applies (incremental + primary key)."""
+        return self.mode == "incremental" and bool(self.primary_key)
+
+    def dedup_window_sql(self, source: str) -> str:
+        """Return a ``SELECT * ... WHERE _rn = 1`` dedup-latest subquery over *source*.
+
+        Partitions by the primary key and keeps the newest row per key (``order_by``
+        DESC). Shared by both emitters so Spark and dbt dedup identically.
+
+        Determinism note: the winner is well-defined only when ``order_by`` is
+        unique within each key partition. If two rows share the same key AND the
+        same ``order_by`` value, ``row_number()`` may pick either, and the two
+        engines could disagree. The pipeline contract is therefore that the
+        ``order_by`` provenance (``_load_ts`` by default) is strictly increasing per
+        ingest, which the fixtures uphold. (A stricter cross-engine tie-break is
+        intentionally NOT added here: it would change the committed byte-for-byte
+        ingest_sql goldens, and the ``order_by``-unique contract makes it moot.)
+        """
+        partition = ", ".join(self.primary_key)
+        order_clause = ", ".join(f"{c} DESC" for c in self.order_by)
+        return (
+            "        SELECT * FROM (\n"
+            "            SELECT *, row_number() OVER "
+            f"(PARTITION BY {partition} ORDER BY {order_clause}) AS _rn\n"
+            f"            FROM {source}\n"
+            "        ) WHERE _rn = 1"
+        )
+
+
+def build_ingest_select(
+    umf_data: dict[str, Any],
+    *,
+    dialect: str = "spark",
+) -> IngestSelect:
+    """Build the shared cast SELECT + dedup metadata for a UMF table.
+
+    Extracted from :func:`generate_ingest_sql` so both the committed Databricks
+    artifact and the dbt project emit the exact same cast logic and dedup window
+    from one place. The two emitters then differ only in packaging and write
+    strategy.
+
+    Args:
+    ----
+        umf_data: UMF table data (e.g. ``umf.model_dump(exclude_none=True)``).
+        dialect: ``"spark"`` (default) or ``"duckdb"``.
+
+    Returns:
+    -------
+        An :class:`IngestSelect` carrying the aligned cast ``select_block`` and the
+        mode/key/order metadata needed to build the write step.
+
+    """
+    cols: list[dict[str, Any]] = umf_data["columns"]
+    pk: list[str] = umf_data.get("primary_key") or []
+    ingestion = umf_data.get("ingestion") or {}
+    mode = ingestion.get("mode", "incremental")  # snapshot | incremental
+    order_by = ingestion.get("order_by") or _DEFAULT_ORDER_BY
+
+    cast_pad = max((len(_cast_for(c, dialect=dialect)) for c in cols), default=0)
+    select_block = ",\n".join(
+        f"        {_cast_for(c, dialect=dialect):<{cast_pad}} AS {c['name']}"
+        for c in cols
+    )
+
+    return IngestSelect(
+        columns=[c["name"] for c in cols],
+        mode=mode,
+        primary_key=pk,
+        order_by=order_by,
+        dialect=dialect,
+        select_block=select_block,
     )
 
 
@@ -104,10 +209,12 @@ def generate_ingest_sql(
     raw = raw_table or f"raw_{name}"
     ingested = ingested_table or f"ingested_{name}"
     cols: list[dict[str, Any]] = umf_data["columns"]
-    pk: list[str] = umf_data.get("primary_key") or []
-    ingestion = umf_data.get("ingestion") or {}
-    mode = ingestion.get("mode", "incremental")  # snapshot | incremental
-    order_by = ingestion.get("order_by") or _DEFAULT_ORDER_BY
+
+    # Shared cast SELECT + dedup metadata (the single seam reused by dbt).
+    ingest = build_ingest_select(umf_data, dialect="spark")
+    pk = ingest.primary_key
+    mode = ingest.mode
+    order_by = ingest.order_by
 
     pad = max((len(c["name"]) for c in cols), default=0)
 
@@ -124,11 +231,7 @@ def generate_ingest_sql(
     ing_ddl = _create_table(ingested, ing_body, umf_data.get("description"))
 
     # --- 3. cast + write transform ---
-    cast_pad = max((len(_cast_for(c)) for c in cols), default=0)
-    select_block = ",\n".join(
-        f"        {_cast_for(c):<{cast_pad}} AS {c['name']}" for c in cols
-    )
-    transform = _build_transform(raw, ingested, select_block, mode, pk, order_by)
+    transform = _build_transform(raw, ingested, ingest)
 
     header = (
         "-- ============================================================================\n"
@@ -148,26 +251,16 @@ def generate_ingest_sql(
     )
 
 
-def _build_transform(
-    raw: str,
-    ingested: str,
-    select_block: str,
-    mode: str,
-    pk: list[str],
-    order_by: list[str],
-) -> str:
+def _build_transform(raw: str, ingested: str, ingest: IngestSelect) -> str:
     """Build the part-3 transform statement for the given mode + key."""
+    select_block = ingest.select_block
+    mode = ingest.mode
+    pk = ingest.primary_key
+    order_by = ingest.order_by
+
     if mode == "incremental" and pk:
-        partition = ", ".join(pk)
-        order_clause = ", ".join(f"{c} DESC" for c in order_by)
         on = " AND ".join(f"tgt.{k} = src.{k}" for k in pk)
-        source = (
-            "        SELECT * FROM (\n"
-            "            SELECT *, row_number() OVER "
-            f"(PARTITION BY {partition} ORDER BY {order_clause}) AS _rn\n"
-            f"            FROM {raw}\n"
-            "        ) WHERE _rn = 1"
-        )
+        source = ingest.dedup_window_sql(raw)
         return (
             f"MERGE INTO {ingested} AS tgt\n"
             "USING (\n"

@@ -1,0 +1,20 @@
+table_name: events
+description: Raw event stream with no natural key
+ingestion:
+  mode: incremental
+columns:
+  - name: event_type
+    data_type: VARCHAR
+    nullable: true
+  - name: payload
+    data_type: TEXT
+    nullable: true
+  - name: occurred_at
+    data_type: TIMESTAMP
+    format: YYYY-MM-DD HH:MM:SS
+    nullable: true
+  - name: amount
+    data_type: DECIMAL
+    precision: 10
+    scale: 2
+    nullable: true

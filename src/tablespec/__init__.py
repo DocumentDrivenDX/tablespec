@@ -52,6 +52,8 @@ from tablespec.prompts import (
 )
 from tablespec.schemas import (
     SQLPlanGenerator,
+    build_ingest_select,
+    generate_dbt_project,
     generate_ingest_sql,
     generate_json_schema,
     generate_pyspark_schema,
@@ -93,6 +95,8 @@ __all__ = [
     "save_umf_to_yaml",
     # -- Schema Generation --
     "SQLPlanGenerator",
+    "build_ingest_select",
+    "generate_dbt_project",
     "generate_ingest_sql",
     "generate_json_schema",
     "generate_pyspark_schema",

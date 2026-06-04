@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: claims
+    description: "Healthcare claims"
+    columns:
+      - name: claim_id
+        data_tests:
+          - not_null
+          - unique
+      - name: claim_amount
+      - name: service_date
+      - name: submitted_at
+      - name: member_id
+      - name: is_paid

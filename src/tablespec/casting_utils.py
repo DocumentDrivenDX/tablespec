@@ -321,6 +321,54 @@ def convert_umf_format_to_spark(umf_format: str) -> str:
     return result
 
 
+def convert_umf_format_to_duckdb(umf_format: str) -> str:
+    """Convert a UMF date/timestamp format to a DuckDB strptime ``%``-code string.
+
+    DuckDB's ``try_strptime`` / ``strftime`` use C ``strftime`` format codes
+    (``%Y``, ``%m``, ``%d`` ...), which is exactly the ``strftime_format`` already
+    recorded for every entry in :data:`SUPPORTED_DATE_FORMATS`. This function is the
+    DuckDB sibling of :func:`convert_umf_format_to_spark`: both are driven by the
+    SAME registry, so the two engines parse the identical set of UMF formats.
+
+    Args:
+    ----
+        umf_format: UMF format string (e.g. ``"MM/DD/YYYY"``, ``"YYYYMMDD"``).
+
+    Returns:
+    -------
+        The DuckDB/strftime ``%``-code pattern (e.g. ``"%m/%d/%Y"``, ``"%Y%m%d"``).
+
+    Raises:
+    ------
+        ValueError: If *umf_format* is not in the supported registry.
+
+    Examples:
+    --------
+        >>> convert_umf_format_to_duckdb("MM/DD/YYYY")
+        '%m/%d/%Y'
+        >>> convert_umf_format_to_duckdb("YYYY-MM-DD HH:MM:SS")
+        '%Y-%m-%d %H:%M:%S'
+
+    """
+    fmt = _DUCKDB_FORMAT_BY_UMF.get(umf_format)
+    if fmt is None:
+        supported = ", ".join(sorted(_DUCKDB_FORMAT_BY_UMF))
+        msg = (
+            f"Unsupported UMF date/timestamp format for DuckDB: '{umf_format}'. "
+            f"Supported formats: {supported}"
+        )
+        raise ValueError(msg)
+    return fmt
+
+
+# Registry-driven lookup for the DuckDB converter. Built from the SAME
+# SUPPORTED_DATE_FORMATS source as the Spark path so the two dialects can never
+# drift in which UMF formats they accept (enforced by a parity unit test).
+_DUCKDB_FORMAT_BY_UMF: dict[str, str] = {
+    f.umf_format: f.strftime_format for f in SUPPORTED_DATE_FORMATS
+}
+
+
 def cast_column_sql(
     column: str,
     target_type: str,
@@ -328,14 +376,24 @@ def cast_column_sql(
     *,
     precision: int | None = None,
     scale: int | None = None,
+    dialect: str = "spark",
 ) -> str:
-    """Return a Spark SQL expression that casts *column* to *target_type*.
+    """Return a SQL expression that casts *column* to *target_type*.
 
     SQL counterpart of :func:`cast_column_with_format`: it emits the same casting
-    logic as a plain Spark SQL string so it can be embedded in a committed,
-    independently-runnable ingest artifact -- no PySpark at runtime. Both functions
-    share :func:`convert_umf_format_to_spark`, so the date/timestamp formats are
-    guaranteed identical.
+    logic as a plain SQL string so it can be embedded in a committed,
+    independently-runnable ingest artifact -- no PySpark at runtime. The Spark and
+    DuckDB dialects share a single registry for date/timestamp formats
+    (:func:`convert_umf_format_to_spark` / :func:`convert_umf_format_to_duckdb`),
+    and emit identical SQL wherever the two engines agree.
+
+    The cast contract is NULL-on-failure for malformed input, realised as:
+
+    * Spark: ANSI casting disabled, so plain ``cast(...)`` yields NULL; dates use
+      ``try_to_timestamp``.
+    * DuckDB: there is no session ANSI toggle, so ``try_cast(...)`` is emitted for
+      numerics/booleans and ``try_strptime(...)`` for dates -- producing the same
+      NULL-on-failure behaviour the Spark baseline relies on.
 
     Args:
     ----
@@ -344,11 +402,13 @@ def cast_column_sql(
         format: Optional UMF date/timestamp format (e.g. "YYYYMMDD").
         precision: DECIMAL precision (defaults to 10, matching the runtime caster).
         scale: DECIMAL scale (defaults to 2, matching the runtime caster).
+        dialect: ``"spark"`` (default) or ``"duckdb"``.
 
     Returns:
     -------
-        A Spark SQL expression string,
-        e.g. ``cast(try_to_timestamp(d, 'yyyyMMdd') as date)``.
+        A SQL expression string,
+        e.g. ``cast(try_to_timestamp(d, 'yyyyMMdd') as date)`` (spark) or
+        ``cast(try_strptime(d, '%Y%m%d') as date)`` (duckdb).
 
     Examples:
     --------
@@ -356,28 +416,53 @@ def cast_column_sql(
         "cast(try_to_timestamp(birth_date, 'MM/dd/yyyy') as date)"
         >>> cast_column_sql("age", "INTEGER")
         "cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
+        >>> cast_column_sql("age", "INTEGER", dialect="duckdb")
+        "try_cast(nullif(trim(regexp_replace(age, '^\\$', '')), '') as INT)"
 
     """
+    if dialect not in ("spark", "duckdb"):
+        msg = f"Unsupported dialect: {dialect!r} (expected 'spark' or 'duckdb')"
+        raise ValueError(msg)
+    is_duck = dialect == "duckdb"
     t = target_type.upper()
 
     # String types: raw landing data is already a string -- passthrough.
+    # Identical across both dialects.
     if t in ("STRING", "VARCHAR", "TEXT", "CHAR"):
         return column
 
     # Numerics: strip a leading "$", trim, and treat empty/whitespace strings as
-    # NULL (Spark's cast fails on "") before casting -- mirrors cast_column_with_format.
+    # NULL (cast fails on "") before casting -- mirrors cast_column_with_format.
+    # The cleaning + nullif logic is identical; only the regex backslash escaping
+    # and the cast keyword differ between dialects.
     if t in ("INTEGER", "DECIMAL", "DOUBLE", "FLOAT"):
-        cleaned = f"nullif(trim(regexp_replace({column}, '^\\\\$', '')), '')"
+        # Spark SQL needs a doubled backslash ('^\\$'); DuckDB regexp_replace
+        # treats '\\' as a literal backslash, so it needs a single one ('^\$').
+        dollar_re = "'^\\$'" if is_duck else "'^\\\\$'"
+        cleaned = f"nullif(trim(regexp_replace({column}, {dollar_re}, '')), '')"
         if t == "INTEGER":
             sql_type = "INT"
         elif t == "DECIMAL":
             sql_type = f"DECIMAL({precision or 10},{scale if scale is not None else 2})"
         else:  # DOUBLE, FLOAT -> double (runtime maps FLOAT to DoubleType)
             sql_type = "DOUBLE"
-        return f"cast({cleaned} as {sql_type})"
+        cast_kw = "try_cast" if is_duck else "cast"
+        return f"{cast_kw}({cleaned} as {sql_type})"
 
-    # Date/time: try_to_timestamp yields graceful NULL-on-failure (Spark 4.0+).
+    # Date/time: graceful NULL-on-failure parsing.
+    #   spark  -> try_to_timestamp(col[, javaFmt])  (Spark 4.0+)
+    #   duckdb -> try_strptime(col, strftimeFmt)     (NULL when unparseable)
     if t in ("DATE", "DATETIME", "TIMESTAMP"):
+        if is_duck:
+            if format:
+                duck_format = convert_umf_format_to_duckdb(format)
+                expr = f"try_strptime({column}, '{duck_format}')"
+            else:
+                # No declared format: cast through DuckDB's permissive TIMESTAMP
+                # parser, which returns NULL on failure under try_cast.
+                expr = f"try_cast({column} as timestamp)"
+            return f"cast({expr} as date)" if t == "DATE" else expr
+
         if format:
             spark_format = convert_umf_format_to_spark(format)
             expr = f"try_to_timestamp({column}, '{spark_format}')"
@@ -386,7 +471,13 @@ def cast_column_sql(
         return f"cast({expr} as date)" if t == "DATE" else expr
 
     if t == "BOOLEAN":
-        return f"cast({column} as boolean)"
+        # DuckDB cast aborts on malformed booleans; try_cast keeps NULL-on-failure
+        # parity with the ANSI-disabled Spark baseline.
+        return (
+            f"try_cast({column} as boolean)"
+            if is_duck
+            else f"cast({column} as boolean)"
+        )
 
     msg = f"Unsupported target_type for SQL cast: {target_type}"
     raise ValueError(msg)

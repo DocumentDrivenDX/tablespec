@@ -1,0 +1,5 @@
+row_id,nopad_date,ampm_ts,rate_dbl,amount_dec,qty_int,_source_file,_load_ts
+R1,1/5/2024,3/7/2024 1:05 PM,1.5E3,12.349,$42,np.csv,2024-01-01 00:00:00
+R2,12/31/2024,12/31/2024 11:59 PM,2.5e-2,12.3495,100,np.csv,2024-01-01 00:00:01
+R3,3/9/2024,3/9/2024 12:00 AM,0.0,1000.125,0,np.csv,2024-01-01 00:00:02
+R4,garbage,not a date,notnum,notdec,notint,np.csv,2024-01-01 00:00:03

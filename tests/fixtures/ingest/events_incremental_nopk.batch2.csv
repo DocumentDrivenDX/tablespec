@@ -1,0 +1,3 @@
+event_type,payload,occurred_at,amount,_source_file,_load_ts
+click,"{""x"":1}",2024-04-01 10:00:00,$1.50,ev2.csv,2024-04-02 09:00:00
+scroll,"{""x"":4}",2024-04-02 09:30:00,$3.25,ev2.csv,2024-04-02 09:30:00

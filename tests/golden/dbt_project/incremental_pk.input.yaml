@@ -1,0 +1,31 @@
+table_name: claims
+description: Healthcare claims
+primary_key:
+  - claim_id
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: claim_id
+    data_type: VARCHAR
+    nullable: false
+  - name: claim_amount
+    data_type: DECIMAL
+    precision: 18
+    scale: 2
+    nullable: true
+  - name: service_date
+    data_type: DATE
+    format: YYYYMMDD
+    nullable: true
+  - name: submitted_at
+    data_type: DATETIME
+    format: MM/DD/YYYY HH:MM:SS
+    nullable: true
+  - name: member_id
+    data_type: VARCHAR
+    nullable: true
+  - name: is_paid
+    data_type: BOOLEAN
+    nullable: true

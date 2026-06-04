@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tablespec.schemas.dbt_generator import generate_dbt_project
 from tablespec.schemas.generators import (
     generate_json_schema,
     generate_pyspark_schema,
@@ -84,6 +85,59 @@ def test_ingest_sql_golden(name: str, input_path: Path, expected_path: Path) -> 
         f"--- expected ---\n{expected}\n"
         f"--- actual ---\n{actual}"
     )
+
+
+# --- dbt project golden tests ---
+#
+# Each case is a single ``<name>.input.yaml`` under tests/golden/dbt_project/.
+# The expected project files live beside it under ``<name>/<relative_path>`` (the
+# same relative paths generate_dbt_project returns, e.g. ``models/<table>.sql``).
+# The test asserts the generated file set and every file's bytes match.
+
+DBT_PROJECT_DIR = GOLDEN_DIR / "dbt_project"
+
+
+def _discover_dbt_cases() -> list[tuple[str, Path, Path]]:
+    if not DBT_PROJECT_DIR.exists():
+        return []
+    cases = []
+    for input_file in sorted(DBT_PROJECT_DIR.glob("*.input.yaml")):
+        name = input_file.name.replace(".input.yaml", "")
+        expected_dir = DBT_PROJECT_DIR / name
+        if expected_dir.is_dir():
+            cases.append((name, input_file, expected_dir))
+    return cases
+
+
+dbt_project_cases = _discover_dbt_cases()
+
+
+@pytest.mark.parametrize(
+    "name,input_path,expected_dir",
+    dbt_project_cases,
+    ids=[c[0] for c in dbt_project_cases],
+)
+def test_dbt_project_golden(name: str, input_path: Path, expected_dir: Path) -> None:
+    """Verify generated dbt(+duckdb) project files match the golden files."""
+    umf_data = yaml.safe_load(input_path.read_text())
+    actual_files = generate_dbt_project(umf_data, dialect="duckdb")
+
+    expected_files = {
+        str(p.relative_to(expected_dir)): p.read_text()
+        for p in expected_dir.rglob("*")
+        if p.is_file()
+    }
+
+    assert set(actual_files) == set(expected_files), (
+        f"dbt project file set mismatch for '{name}'.\n"
+        f"  generated: {sorted(actual_files)}\n"
+        f"  expected:  {sorted(expected_files)}"
+    )
+    for rel, content in actual_files.items():
+        assert content == expected_files[rel], (
+            f"dbt project golden mismatch for '{name}' file '{rel}'.\n"
+            f"--- expected ---\n{expected_files[rel]}\n--- actual ---\n{content}"
+        )
 
 
 # --- PySpark schema golden tests ---

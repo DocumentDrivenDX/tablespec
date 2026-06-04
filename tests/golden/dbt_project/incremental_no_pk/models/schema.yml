@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: events
+    description: "Raw event stream with no natural key"
+    columns:
+      - name: event_type
+      - name: payload
+      - name: occurred_at
+      - name: amount

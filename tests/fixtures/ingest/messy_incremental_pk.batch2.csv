@@ -1,3 +1,4 @@
 record_key,label,count_int,amount_dec,rate_dbl,flag,as_of_date,updated_ts,_source_file,_load_ts
 K1,first-final,12,$14.000,0.40,true,01/15/2024,01/15/2024 12:00:00,m2.csv,2024-01-15 12:00:00
 K4,brand new,99,$1000.125,1.5,false,02/01/2024,02/01/2024 06:30:00,m2.csv,2024-02-01 06:30:00
+K4,brand newer,100,$1001.250,1.6,true,02/02/2024,02/02/2024 07:45:00,m2.csv,2024-02-02 07:45:00

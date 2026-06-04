@@ -1,0 +1,27 @@
+table_name: nopad_formats
+description: Exercises no-padding date / 12-hour AM-PM datetime / exponent + rounding numerics (Spark<->DuckDB parity)
+ingestion:
+  mode: snapshot
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  - name: nopad_date
+    data_type: DATE
+    format: M/D/YYYY
+    nullable: true
+  - name: ampm_ts
+    data_type: DATETIME
+    format: M/D/YYYY h:mm A
+    nullable: true
+  - name: rate_dbl
+    data_type: DOUBLE
+    nullable: true
+  - name: amount_dec
+    data_type: DECIMAL
+    precision: 14
+    scale: 3
+    nullable: true
+  - name: qty_int
+    data_type: INTEGER
+    nullable: true
