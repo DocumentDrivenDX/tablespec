@@ -55,12 +55,20 @@ SUPPORTED_DATE_FORMATS: tuple[DateFormat, ...] = (
     # US date formats (MM/DD/YYYY family)
     DateFormat("MM/DD/YYYY", "%m/%d/%Y", FormatType.DATE, "US date with slashes"),
     DateFormat("MM-DD-YYYY", "%m-%d-%Y", FormatType.DATE, "US date with dashes"),
-    DateFormat("M/D/YYYY", "%-m/%-d/%Y", FormatType.DATE, "US date without zero padding"),
     DateFormat(
-        "M/d/YYYY", "%-m/%-d/%Y", FormatType.DATE, "US date without zero padding (mixed case)"
+        "M/D/YYYY", "%-m/%-d/%Y", FormatType.DATE, "US date without zero padding"
     ),
     DateFormat(
-        "M/d/yyyy", "%-m/%-d/%Y", FormatType.DATE, "US date without zero padding (lowercase year)"
+        "M/d/YYYY",
+        "%-m/%-d/%Y",
+        FormatType.DATE,
+        "US date without zero padding (mixed case)",
+    ),
+    DateFormat(
+        "M/d/yyyy",
+        "%-m/%-d/%Y",
+        FormatType.DATE,
+        "US date without zero padding (lowercase year)",
     ),
     # NOTE: European date formats (DD/MM/YYYY, DD-MM-YYYY) intentionally excluded
     # to avoid ambiguity with US formats. For US healthcare data, MM/DD/YYYY
@@ -160,16 +168,40 @@ SUPPORTED_DATE_FORMATS: tuple[DateFormat, ...] = (
         FormatType.DATETIME,
         "ISO 8601 datetime with lowercase minutes/seconds",
     ),
+    # Fractional-second datetime formats. Both map to the portable strftime %f
+    # (microseconds) so this strftime_format stays Python-parseable. The WIDTH
+    # difference that matters for cross-engine parity -- Spark ".SSS" accepts only
+    # 1-3 fractional digits and NULLs a 4+/6-digit fraction, while ".SSSSSS" accepts
+    # 1-6, whereas DuckDB %f greedily consumes 1-6 -- is enforced for DuckDB by the
+    # padding pre-filter (which derives the fractional digit cap from the UMF S-run,
+    # not from %f), so DuckDB NULLs exactly what Spark NULLs. See
+    # casting_utils._duckdb_padding_prefilter_regex.
+    DateFormat(
+        "YYYY-MM-DD HH:MM:SS.SSSSSS",
+        "%Y-%m-%d %H:%M:%S.%f",
+        FormatType.DATETIME,
+        "ISO 8601 datetime with microseconds",
+    ),
+    DateFormat(
+        "YYYY-MM-DD HH:MM:SS.SSS",
+        "%Y-%m-%d %H:%M:%S.%f",
+        FormatType.DATETIME,
+        "ISO 8601 datetime with milliseconds",
+    ),
     # Time only formats
     DateFormat("HH:MM:SS", "%H:%M:%S", FormatType.TIME, "24-hour time with seconds"),
     DateFormat("HH:MM", "%H:%M", FormatType.TIME, "24-hour time without seconds"),
     DateFormat("hh:mm:ss A", "%I:%M:%S %p", FormatType.TIME, "12-hour time with AM/PM"),
     DateFormat("hh:mm A", "%I:%M %p", FormatType.TIME, "12-hour time with AM/PM"),
-    DateFormat("h:mm a", "%-I:%M %p", FormatType.TIME, "12-hour time no padding with am/pm"),
+    DateFormat(
+        "h:mm a", "%-I:%M %p", FormatType.TIME, "12-hour time no padding with am/pm"
+    ),
 )
 
 # Build lookup dictionaries for fast access
-_FORMAT_BY_UMF: dict[str, DateFormat] = {fmt.umf_format: fmt for fmt in SUPPORTED_DATE_FORMATS}
+_FORMAT_BY_UMF: dict[str, DateFormat] = {
+    fmt.umf_format: fmt for fmt in SUPPORTED_DATE_FORMATS
+}
 
 # Case-insensitive lookup (normalize common variations)
 _FORMAT_BY_UMF_NORMALIZED: dict[str, DateFormat] = {}

@@ -369,6 +369,103 @@ _DUCKDB_FORMAT_BY_UMF: dict[str, str] = {
 }
 
 
+def _is_registry_format(umf_format: str) -> bool:
+    """True iff *umf_format* is in the shared cross-engine date/time registry."""
+    return umf_format in _DUCKDB_FORMAT_BY_UMF
+
+
+# strftime directive -> structural regex fragment for the DuckDB padding pre-filter.
+# DuckDB's try_strptime is uniformly lenient: %m/%d/%H/%M/%S accept BOTH "6" and
+# "06", and %Y accepts a short year. Spark's to_timestamp is strict about
+# zero-padded fields: with format "MM/dd/yyyy", Spark NULLs "6/3/2026" but DuckDB
+# would silently parse it. To keep the byte-identical canonical-form contract for
+# malformed input, we gate the DuckDB parse behind a regex that demands the SAME
+# field widths Spark requires, so a value Spark would NULL also NULLs in DuckDB.
+#
+# Zero-padded directives require EXACTLY two digits (Spark MM/dd/HH/mm/ss/hh);
+# their non-padding %-X variants accept one or two (Spark M/d/H/h, which also
+# tolerate a leading zero). %Y is four digits, %y is two, %f defaults to 1-6
+# fractional digits (the cap is narrowed per-format via fractional_cap; see
+# _duckdb_padding_prefilter_regex), and %p is the case-insensitive AM/PM marker.
+_DUCKDB_DIRECTIVE_REGEX: dict[str, str] = {
+    "%Y": r"\d{4}",
+    "%y": r"\d{2}",
+    "%m": r"\d{2}",
+    "%d": r"\d{2}",
+    "%H": r"\d{2}",
+    "%I": r"\d{2}",
+    "%M": r"\d{2}",
+    "%S": r"\d{2}",
+    "%-m": r"\d{1,2}",
+    "%-d": r"\d{1,2}",
+    "%-H": r"\d{1,2}",
+    "%-I": r"\d{1,2}",
+    "%f": r"\d{1,6}",
+    # AM/PM marker, case-INSENSITIVE: both Spark's DateTimeFormatter
+    # (parseCaseInsensitive) and DuckDB's %p accept mixed case ("Pm", "pM"), so the
+    # pre-filter must too or it would over-strictly NULL values both engines parse.
+    "%p": r"[AaPp][Mm]",
+}
+
+
+def _fractional_digit_cap(umf_format: str | None) -> int:
+    """Max fractional-second digits Spark accepts for *umf_format* (the ``S`` run).
+
+    Spark's ``to_timestamp`` accepts at most as many fractional digits as the
+    pattern declares: ``.SSS`` parses 1-3 digits and NULLs 4+, ``.SSSSSS`` parses
+    1-6. DuckDB's portable ``%f`` strftime would otherwise greedily consume up to 6
+    regardless, so the pre-filter uses this cap (derived from the UMF ``S``-run,
+    since both widths share the ``%f`` directive) to NULL exactly what Spark NULLs.
+    Defaults to 6 when no fractional component is present.
+    """
+    if not umf_format:
+        return 6
+    match = re.search(r"\.(S+)", umf_format)
+    return len(match.group(1)) if match else 6
+
+
+def _duckdb_padding_prefilter_regex(
+    strftime_format: str, *, fractional_cap: int = 6
+) -> str:
+    """Build a structural regex mirroring Spark's zero-padding strictness.
+
+    Walks a DuckDB/strftime ``%``-code pattern (the value stored in
+    :data:`SUPPORTED_DATE_FORMATS`) and replaces each directive with a digit-width
+    fragment matching what Spark's ``to_timestamp`` accepts, escaping every literal
+    in between. The result is anchored implicitly by DuckDB ``regexp_full_match``.
+
+    ``%f`` is special-cased: both ``.SSS`` and ``.SSSSSS`` map to the portable
+    ``%f`` strftime, so the per-format fractional width is supplied separately via
+    *fractional_cap* (see :func:`_fractional_digit_cap`) to reproduce Spark's
+    narrower millisecond acceptance.
+
+    This is intentionally structural, not semantic: it enforces field widths
+    (so "6/3/2026" is rejected against ``%m/%d/%Y``) but leaves value-range checks
+    (month 13, day 30) to ``try_strptime`` itself, which NULLs them in both engines.
+    """
+    # Longer directives first so "%-m" is matched before "%m"/"%-"/"%".
+    directives = sorted(_DUCKDB_DIRECTIVE_REGEX, key=len, reverse=True)
+    parts: list[str] = []
+    idx = 0
+    n = len(strftime_format)
+    while idx < n:
+        matched = False
+        for directive in directives:
+            if strftime_format.startswith(directive, idx):
+                if directive == "%f":
+                    parts.append(rf"\d{{1,{fractional_cap}}}")
+                else:
+                    parts.append(_DUCKDB_DIRECTIVE_REGEX[directive])
+                idx += len(directive)
+                matched = True
+                break
+        if matched:
+            continue
+        parts.append(re.escape(strftime_format[idx]))
+        idx += 1
+    return "".join(parts)
+
+
 def cast_column_sql(
     column: str,
     target_type: str,
@@ -453,10 +550,40 @@ def cast_column_sql(
     #   spark  -> try_to_timestamp(col[, javaFmt])  (Spark 4.0+)
     #   duckdb -> try_strptime(col, strftimeFmt)     (NULL when unparseable)
     if t in ("DATE", "DATETIME", "TIMESTAMP"):
+        # Single-registry guard for the ingest seam. convert_umf_format_to_spark is
+        # a permissive string transformer (it happily rewrites e.g. 2-digit-year
+        # "MM/DD/YY" -> "MM/dd/yy"), but DuckDB and Spark do NOT agree on every such
+        # format: Spark's "yy" always resolves to 20xx while DuckDB's %y pivots at
+        # 1969, so the SAME 2-digit-year input would yield DIFFERENT centuries and
+        # silently break the byte-identical canonical-form contract. To keep the two
+        # ingest emitters symmetric, BOTH dialects accept only formats proven in the
+        # shared SUPPORTED_DATE_FORMATS registry and otherwise raise the same error
+        # (rather than one crashing while the other emits a divergent cast).
+        if format and not _is_registry_format(format):
+            supported = ", ".join(sorted(_DUCKDB_FORMAT_BY_UMF))
+            msg = (
+                f"Unsupported UMF date/timestamp format for cross-engine ingest: "
+                f"'{format}'. Only registry formats parse identically in Spark and "
+                f"DuckDB. Supported formats: {supported}"
+            )
+            raise ValueError(msg)
         if is_duck:
             if format:
                 duck_format = convert_umf_format_to_duckdb(format)
-                expr = f"try_strptime({column}, '{duck_format}')"
+                # Gate try_strptime behind a Spark-equivalent padding regex so a
+                # malformed-padding value Spark would NULL (e.g. "6/3/2026" under
+                # MM/DD/YYYY) also NULLs in DuckDB, preserving byte-identical
+                # canonical output. The fractional cap is taken from the UMF S-run
+                # so ".SSS" rejects 4+ fractional digits exactly as Spark does.
+                # See _duckdb_padding_prefilter_regex.
+                prefilter = _duckdb_padding_prefilter_regex(
+                    duck_format, fractional_cap=_fractional_digit_cap(format)
+                )
+                strptime = f"try_strptime({column}, '{duck_format}')"
+                expr = (
+                    f"case when regexp_full_match({column}, '{prefilter}') "
+                    f"then {strptime} end"
+                )
             else:
                 # No declared format: cast through DuckDB's permissive TIMESTAMP
                 # parser, which returns NULL on failure under try_cast.

@@ -90,6 +90,24 @@ class TestCastColumnSql:
         with pytest.raises(ValueError, match="Unsupported dialect"):
             cast_column_sql("col", "INTEGER", dialect="postgres")
 
+    @pytest.mark.parametrize("dialect", ["spark", "duckdb"])
+    @pytest.mark.parametrize("fmt", ["MM/DD/YY", "M/D/YY", "YY-MM-DD"])
+    def test_two_digit_year_rejected_symmetrically(self, dialect, fmt):
+        """2-digit-year formats raise in BOTH dialects (no silent century divergence).
+
+        Spark's ``yy`` always resolves to 20xx, DuckDB's ``%y`` pivots at 1969, so a
+        2-digit year is intentionally NOT in the shared registry; both ingest
+        emitters reject it identically rather than producing divergent output.
+        """
+        with pytest.raises(ValueError, match="cross-engine ingest"):
+            cast_column_sql("d", "DATE", fmt, dialect=dialect)
+
+    @pytest.mark.parametrize("dialect", ["spark", "duckdb"])
+    def test_unregistered_date_format_rejected(self, dialect):
+        """A date format outside the shared registry is rejected in both dialects."""
+        with pytest.raises(ValueError, match="cross-engine ingest"):
+            cast_column_sql("d", "DATE", "DD.MM.YYYY", dialect=dialect)
+
 
 class TestCastColumnSqlDuckdb:
     """DuckDB-dialect SQL cast expression generation (no PySpark)."""
@@ -119,18 +137,54 @@ class TestCastColumnSqlDuckdb:
         assert cast_column_sql("rate", "FLOAT", dialect="duckdb").endswith("as DOUBLE)")
 
     def test_date_with_format_uses_try_strptime(self):
-        """DATE uses try_strptime with strftime codes, cast to date."""
+        """DATE uses try_strptime with strftime codes, gated by a padding regex.
+
+        The ``regexp_full_match`` guard reproduces Spark's zero-padding strictness
+        so a malformed-padding value Spark would NULL also NULLs in DuckDB.
+        """
         assert (
             cast_column_sql("d", "DATE", "YYYYMMDD", dialect="duckdb")
-            == "cast(try_strptime(d, '%Y%m%d') as date)"
+            == "cast(case when regexp_full_match(d, '\\d{4}\\d{2}\\d{2}') "
+            "then try_strptime(d, '%Y%m%d') end as date)"
         )
 
     def test_timestamp_with_format_uses_try_strptime(self):
-        """TIMESTAMP keeps the full timestamp via try_strptime."""
+        """TIMESTAMP keeps the full timestamp via try_strptime, padding-gated."""
         assert (
             cast_column_sql("ts", "TIMESTAMP", "YYYY-MM-DD HH:MM:SS", dialect="duckdb")
-            == "try_strptime(ts, '%Y-%m-%d %H:%M:%S')"
+            == "case when regexp_full_match(ts, '\\d{4}\\-\\d{2}\\-\\d{2}\\ "
+            "\\d{2}:\\d{2}:\\d{2}') then try_strptime(ts, '%Y-%m-%d %H:%M:%S') end"
         )
+
+    def test_padded_date_format_rejects_unpadded_input(self):
+        """The duckdb padding regex demands the exact field widths Spark requires."""
+        from tablespec.casting_utils import _duckdb_padding_prefilter_regex
+
+        assert _duckdb_padding_prefilter_regex("%m/%d/%Y") == r"\d{2}/\d{2}/\d{4}"
+        # non-padding directives accept one or two digits (Spark M/d leniency)
+        assert _duckdb_padding_prefilter_regex("%-m/%-d/%Y") == r"\d{1,2}/\d{1,2}/\d{4}"
+        # fractional seconds: %f defaults to 1-6 digits, but the cap is overridable
+        # so the millisecond (.SSS) format narrows to 1-3 (matching Spark).
+        assert (
+            _duckdb_padding_prefilter_regex("%H:%M:%S.%f")
+            == r"\d{2}:\d{2}:\d{2}\.\d{1,6}"
+        )
+        assert (
+            _duckdb_padding_prefilter_regex("%H:%M:%S.%f", fractional_cap=3)
+            == r"\d{2}:\d{2}:\d{2}\.\d{1,3}"
+        )
+        # AM/PM marker is case-insensitive (Spark + DuckDB both accept "Pm"); the
+        # space between %M and %p is escaped by re.escape.
+        assert _duckdb_padding_prefilter_regex("%I:%M %p") == r"\d{2}:\d{2}\ [AaPp][Mm]"
+
+    def test_fractional_digit_cap_from_umf_s_run(self):
+        """The fractional cap is the length of the UMF ``.S`` run."""
+        from tablespec.casting_utils import _fractional_digit_cap
+
+        assert _fractional_digit_cap("YYYY-MM-DD HH:MM:SS.SSS") == 3
+        assert _fractional_digit_cap("YYYY-MM-DD HH:MM:SS.SSSSSS") == 6
+        assert _fractional_digit_cap("YYYY-MM-DD HH:MM:SS") == 6  # no fraction
+        assert _fractional_digit_cap(None) == 6
 
     def test_date_without_format_uses_try_cast(self):
         """DATE without a format casts through DuckDB's TIMESTAMP parser."""

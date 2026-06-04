@@ -1,0 +1,33 @@
+table_name: parity_hardening
+description: >-
+  Build-review must-fix hardening: padded date/datetime formats prove DuckDB NULLs
+  the same malformed-padding input Spark NULLs (regexp_full_match gate), and
+  fractional-second datetimes prove the .SSSSSS/.SSS registry additions parse
+  byte-identically across Spark and DuckDB.
+ingestion:
+  mode: snapshot
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  # Zero-padded US date: Spark's MM/dd is strict (2 digits each); the DuckDB
+  # padding pre-filter must reject 1-digit fields so both engines NULL them.
+  - name: padded_date
+    data_type: DATE
+    format: MM/DD/YYYY
+    nullable: true
+  # Zero-padded compact date: Spark yyyyMMdd needs exactly 8 digits.
+  - name: compact_date
+    data_type: DATE
+    format: YYYYMMDD
+    nullable: true
+  # Microsecond datetime (.SSSSSS -> DuckDB %f), new registry entry.
+  - name: micros_ts
+    data_type: DATETIME
+    format: YYYY-MM-DD HH:MM:SS.SSSSSS
+    nullable: true
+  # Millisecond datetime (.SSS -> DuckDB %f), new registry entry.
+  - name: millis_ts
+    data_type: DATETIME
+    format: YYYY-MM-DD HH:MM:SS.SSS
+    nullable: true
