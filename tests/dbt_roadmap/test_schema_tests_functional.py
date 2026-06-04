@@ -105,6 +105,14 @@ def test_schema_tests_relationships_single_table_resolved() -> None:
     args = _relationship_args(_column_tests(models["child"], "parent_id"))
     assert args == [{"to": "ref('parent')", "field": "parent_id"}]
 
+    # AC1.2: the referenced parent MUST be emitted as a real model (and a schema
+    # entry + source), otherwise ref('parent') dangles and dbt silently drops the
+    # relationships test. Guarding this here makes removing the parent-model
+    # emission a functional failure too, not only an e2e one.
+    assert "models/parent.sql" in files, sorted(files)
+    assert "parent" in models, "parent model missing from schema.yml"
+    assert "      - name: raw_parent" in files["models/sources.yml"]
+
 
 def test_schema_tests_relationships_single_table_missing_target_skipped() -> None:
     """AC1.2/AC1.5 (skip-when-unresolvable): no ``related`` -> FK target absent ->
@@ -200,4 +208,6 @@ def test_schema_tests_accepted_values_on_dag_gold() -> None:
     assert _relationship_args(tests) == [
         {"to": "ref('ingested_parent')", "field": "parent_id"}
     ]
-    assert _accepted_values_args(tests) == [{"values": ["1", "2", "3"]}]
+    # AC1.6 type fidelity: an INTEGER value_set [1, 2, 3] round-trips as numbers,
+    # NOT coerced to the strings ["1", "2", "3"].
+    assert _accepted_values_args(tests) == [{"values": [1, 2, 3]}]

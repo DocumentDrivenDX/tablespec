@@ -134,18 +134,17 @@ def _model_sql(table: str, ingest: IngestSelect) -> str:
     return f"{config}\n\n{body}\n"
 
 
-def _related_resolver(related: list[UMF] | None, self_table: str):
-    """A ``resolve_target`` for ``core.schema_facts`` over the single-table set.
+def _emitted_resolver(emitted_tables: list[str]):
+    """A ``resolve_target`` for ``core.schema_facts`` over the emitted model set.
 
     Each table in the single-table path is emitted as a model named after its own
     ``table_name`` (no ``ingested_``/``gold_`` prefix). A FK target resolves to
-    that bare model name iff the referenced table is the table itself or appears
-    in ``related``; otherwise it is unresolvable and the test is SKIPPED (no
-    ``ref()`` to a missing model -- the AC1.2/AC1.5 skip-when-unresolvable rule).
+    that bare model name iff the referenced table is one of the EMITTED models
+    (the primary table or a ``related`` sibling, both of which get a ``.sql``);
+    otherwise it is unresolvable and the test is SKIPPED -- never a ``ref()`` to a
+    model dbt does not build (the AC1.2/AC1.5 skip-when-unresolvable rule).
     """
-    known = {self_table}
-    for u in related or []:
-        known.add(u.table_name)
+    known = set(emitted_tables)
 
     def resolve(table: str) -> str | None:
         return table if table in known else None
@@ -153,15 +152,15 @@ def _related_resolver(related: list[UMF] | None, self_table: str):
     return resolve
 
 
-def _schema_yml(
+def _model_schema_block(
     umf_data: dict[str, Any],
     table: str,
     ingest: IngestSelect,
-    related: list[UMF] | None,
+    resolver,
     *,
     dialect: str,
-) -> str:
-    """Render ``models/schema.yml`` with the model contract + column tests.
+) -> list[str]:
+    """Render the ``models:`` entry lines for ONE table (contract + tests).
 
     The model declares an ENFORCED data contract: every column carries a
     ``data_type`` (the adapter SQL type for its UMF type) and, when non-nullable,
@@ -171,9 +170,9 @@ def _schema_yml(
     * ``unique`` for single-column primary keys and any single-column
       ``unique_constraints`` entry. (Composite uniqueness is left to the merge key
       and not asserted as a per-column test.)
-    * ``relationships`` for each non-cross-pipeline FK whose target resolves in the
-      ``related`` set (skip-when-unresolvable; composite FKs -> one test per
-      scalar column).
+    * ``relationships`` for each non-cross-pipeline FK whose target resolves via
+      ``resolver`` (skip-when-unresolvable; composite FKs -> one test per scalar
+      column).
     * ``accepted_values`` for each column carrying an
       ``expect_column_values_to_be_in_set`` expectation.
 
@@ -196,7 +195,6 @@ def _schema_yml(
         elif isinstance(uc, list) and len(uc) == 1:
             unique_cols.add(uc[0])
 
-    resolver = _related_resolver(related, table)
     rel_by_col: dict[str, list] = {}
     for t in relationship_tests(umf_data, resolver):
         rel_by_col.setdefault(t.column, []).append(t)
@@ -206,12 +204,7 @@ def _schema_yml(
 
     contracts = {c.name: c for c in column_contracts(umf_data)}
 
-    lines: list[str] = [
-        "version: 2",
-        "",
-        "models:",
-        f"  - name: {table}",
-    ]
+    lines: list[str] = [f"  - name: {table}"]
     description = umf_data.get("description")
     if description:
         lines.append(f"    description: {_yaml_scalar(description)}")
@@ -238,20 +231,44 @@ def _schema_yml(
                 # lines only (drop render_tests_for_column's header line).
                 lines.extend(render_tests_for_column([t])[1:])
 
+    return lines
+
+
+def _schema_yml(
+    tables: list[tuple[dict[str, Any], str, IngestSelect]],
+    resolver,
+    *,
+    dialect: str,
+) -> str:
+    """Render ``models/schema.yml`` for every emitted table.
+
+    Each table (the primary plus any ``related`` siblings) gets its own ``models:``
+    entry so a relationships ``ref('<parent>')`` resolves to a model dbt actually
+    builds -- without the parent model, dbt drops the relationships test silently
+    (a dangling-ref defect), so the FK is only really enforced when every FK target
+    is also emitted here.
+    """
+    blocks: list[str] = ["version: 2", "", "models:"]
+    for umf_data, table, ingest in tables:
+        blocks.extend(
+            _model_schema_block(umf_data, table, ingest, resolver, dialect=dialect)
+        )
+    return "\n".join(blocks) + "\n"
+
+
+def _sources_yml(tables: list[str]) -> str:
+    """Render ``models/sources.yml`` declaring each raw landing table as a source."""
+    lines = [
+        "version: 2",
+        "",
+        "sources:",
+        "  - name: raw",
+        "    schema: main",
+        "    tables:",
+    ]
+    for table in tables:
+        lines.append(f"      - name: raw_{table}")
     return "\n".join(lines) + "\n"
-
-
-def _sources_yml(table: str) -> str:
-    """Render ``models/sources.yml`` declaring the raw landing table as a source."""
-    return (
-        "version: 2\n"
-        "\n"
-        "sources:\n"
-        "  - name: raw\n"
-        "    schema: main\n"
-        "    tables:\n"
-        f"      - name: raw_{table}\n"
-    )
 
 
 def _dbt_project_yml(project_name: str) -> str:
@@ -319,29 +336,52 @@ def generate_dbt_project(
         dialect: SQL dialect for the cast expressions; defaults to ``"duckdb"``.
         out_dir: If given, the returned files are also written under this directory.
         project_name: dbt project + profile name.
-        related: Optional sibling tables (as :class:`UMF`) emitted alongside this
-            one. A FK ``relationships`` test is emitted only when its target table
-            is this table or appears in ``related`` (skip-when-unresolvable); with
-            ``related=None`` only self-referential FKs resolve and all others are
-            skipped (never a ``ref()`` to a missing model).
+        related: Optional sibling tables (as :class:`UMF`). Each is emitted as its
+            OWN ingest model (``.sql`` + raw ``source`` + ``schema.yml`` contract),
+            exactly like the primary table -- ``related`` means "also ingest these
+            tables into the same project", NOT merely FK context. This is required
+            for referential integrity: a FK ``relationships`` test is emitted only
+            when its target table is this table or one of the emitted ``related``
+            models (skip-when-unresolvable), and dbt enforces the FK only when the
+            referenced model actually exists. With ``related=None`` only
+            self-referential FKs resolve; every other FK is skipped (never a
+            ``ref()`` to a model dbt does not build, which dbt would silently drop).
+            Because each ``related`` table becomes a real ingest model, building the
+            project requires a ``raw_<table>`` landing table for every emitted table.
 
     Returns:
     -------
         A mapping of ``{relative_path: file_contents}`` for the whole project.
 
     """
-    table = umf_data["table_name"]
-    ingest = build_ingest_select(umf_data, dialect=dialect)
+    # Emit the primary table PLUS every related sibling as its own model, so a FK
+    # ``relationships`` test that resolves to ``ref('<parent>')`` points at a model
+    # dbt actually builds. Emitting only the child (with the parent merely known to
+    # the resolver) leaves a dangling ref that dbt drops the relationships test for
+    # -- silently disabling referential-integrity enforcement (AC1.2/AC1.3).
+    related_umfs = list(related or [])
+    emitted: list[tuple[dict[str, Any], str, IngestSelect]] = []
+    seen: set[str] = set()
+    for u in [umf_data, *(r.model_dump(exclude_none=True) for r in related_umfs)]:
+        t = u["table_name"]
+        if t in seen:
+            continue
+        seen.add(t)
+        emitted.append((u, t, build_ingest_select(u, dialect=dialect)))
+
+    # One resolver shared across every emitted model: a FK target resolves iff its
+    # referenced table is one of the emitted tables (skip-when-unresolvable).
+    emitted_tables = [t for _, t, _ in emitted]
+    resolver = _emitted_resolver(emitted_tables)
 
     files: dict[str, str] = {
         "dbt_project.yml": _dbt_project_yml(project_name),
         "profiles.yml": _profiles_yml(project_name),
-        "models/sources.yml": _sources_yml(table),
-        "models/schema.yml": _schema_yml(
-            umf_data, table, ingest, related, dialect=dialect
-        ),
-        f"models/{table}.sql": _model_sql(table, ingest),
+        "models/sources.yml": _sources_yml(emitted_tables),
+        "models/schema.yml": _schema_yml(emitted, resolver, dialect=dialect),
     }
+    for _, t, ing in emitted:
+        files[f"models/{t}.sql"] = _model_sql(t, ing)
 
     if out_dir is not None:
         base = Path(out_dir)

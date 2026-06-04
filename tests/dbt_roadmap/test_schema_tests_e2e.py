@@ -160,6 +160,125 @@ def test_relationships_orphan_fails() -> None:
 
 
 # ---------------------------------------------------------------------------
+# AC1.2 / AC1.3 / AC1.4 / AC1.8 / AC1.9 single-table relationships e2e
+#
+# This drives the SINGLE-TABLE emitter (generate_dbt_project + related=[parent]),
+# NOT generate_dbt_dag_project. It exposes the dangling-ref defect: if the parent
+# model is not emitted, dbt silently DROPS the relationships test and an orphan FK
+# wrongly PASSES. The orphan case below is therefore a genuine (non-vacuous)
+# should-fail negative for the single-table relationships path.
+# ---------------------------------------------------------------------------
+
+
+def _build_fk_single_table_project(child_csv: Path) -> Path:
+    """Generate the fk_referential project via the SINGLE-TABLE emitter.
+
+    ``generate_dbt_project(child, related=[parent])`` MUST emit BOTH the child
+    model AND the parent model so ``ref('parent')`` resolves; the test loads raw
+    data for both and lets dbt build + test referential integrity.
+    """
+    child = _umf(FK_DIR / "child.umf.yaml")
+    parent = _umf(FK_DIR / "parent.umf.yaml")
+    project = Path(tempfile.mkdtemp(prefix="tablespec_fk_single_"))
+    files = generate_dbt_project(
+        child.model_dump(exclude_none=True), related=[parent], out_dir=project
+    )
+    # Guard: the parent model file MUST be emitted (no dangling ref).
+    assert "models/parent.sql" in files, (
+        f"parent model not emitted; relationships ref('parent') would dangle: "
+        f"{sorted(files)}"
+    )
+    db = project / "ingest.duckdb"
+    _load_raw(db, "parent", ["parent_id", "parent_name"], FK_DIR / "parent.raw.csv")
+    _load_raw(db, "child", ["child_id", "parent_id"], child_csv)
+    return project
+
+
+def test_relationships_single_table_valid_passes() -> None:
+    """AC1.2/AC1.4/AC1.9: single-table FK valid set (incl NULL FK) -> PASSES."""
+    _require_dbt()
+    project = _build_fk_single_table_project(FK_DIR / "child.valid.csv")
+    try:
+        db = project / "ingest.duckdb"
+        built = _dbt(project, db, "build")
+        assert built.returncode == 0, (
+            f"single-table dbt build failed:\n{built.stdout}\n{built.stderr}"
+        )
+        results = _run_results(project)
+        rel = _result_for(results, "relationships_child_parent_id")
+        assert rel["status"] == "pass", f"single-table relationships should pass: {rel}"
+        assert rel.get("failures", 0) == 0
+        # AC1.4: the NULL nullable-FK row survives and is NOT reported as orphan.
+        con = _connect(db)
+        try:
+            n_null = con.execute(
+                "SELECT count(*) FROM child WHERE parent_id IS NULL"
+            ).fetchone()[0]
+        finally:
+            con.close()
+        assert n_null == 1, "the NULL nullable-FK row must survive into the model"
+    finally:
+        shutil.rmtree(project, ignore_errors=True)
+
+
+def test_relationships_single_table_orphan_fails() -> None:
+    """AC1.2/AC1.8 (NEGATIVE): single-table orphan FK -> relationships test FAILS.
+
+    Non-vacuous: if the single-table emitter stopped emitting the parent model (or
+    the relationships test), dbt would drop the test and this orphan would wrongly
+    PASS -- so this asserts a real should-fail on the single-table path.
+    """
+    _require_dbt()
+    project = _build_fk_single_table_project(FK_DIR / "child.orphan.csv")
+    try:
+        db = project / "ingest.duckdb"
+        built = _dbt(project, db, "build")
+        assert built.returncode != 0, (
+            f"single-table dbt build MUST fail on orphan FK but succeeded:\n"
+            f"{built.stdout}"
+        )
+        results = _run_results(project)
+        rel = _result_for(results, "relationships_child_parent_id")
+        assert rel["status"] == "fail", f"relationships should FAIL on orphan: {rel}"
+        assert rel.get("failures", 0) >= 1, f"expected >=1 orphan failure: {rel}"
+    finally:
+        shutil.rmtree(project, ignore_errors=True)
+
+
+def test_relationships_single_table_parse_accepts() -> None:
+    """AC1.3 (real dbt): `dbt parse` accepts the single-table schema.yml and the
+    relationships test resolves to the emitted parent model (no dangling ref)."""
+    _require_dbt()
+    child = _umf(FK_DIR / "child.umf.yaml")
+    parent = _umf(FK_DIR / "parent.umf.yaml")
+    project = Path(tempfile.mkdtemp(prefix="tablespec_fk_single_parse_"))
+    try:
+        generate_dbt_project(
+            child.model_dump(exclude_none=True), related=[parent], out_dir=project
+        )
+        db = project / "ingest.duckdb"
+        parsed = _dbt(project, db, "parse")
+        assert parsed.returncode == 0, (
+            f"dbt parse failed:\n{parsed.stdout}\n{parsed.stderr}"
+        )
+        # The relationships test node must depend on the emitted `parent` model
+        # (proves dbt resolved the ref, not a dangling/dropped test).
+        manifest = json.loads((project / "target" / "manifest.json").read_text())
+        rel_nodes = {
+            uid: node
+            for uid, node in manifest["nodes"].items()
+            if "relationships_child_parent_id" in uid
+        }
+        assert rel_nodes, "single-table relationships test node missing from manifest"
+        (node,) = rel_nodes.values()
+        dep_models = {m.split(".")[-1] for m in node["depends_on"]["nodes"]}
+        assert "parent" in dep_models, dep_models
+        assert "child" in dep_models, dep_models
+    finally:
+        shutil.rmtree(project, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
 # AC1.10 accepted_values PASS vs FAIL
 # ---------------------------------------------------------------------------
 
@@ -204,6 +323,67 @@ def test_accepted_values_bad_fails() -> None:
         results = _run_results(project)
         av = _result_for(results, "accepted_values_lob_table_lob")
         assert av["status"] == "fail", f"accepted_values should FAIL: {av}"
+        assert av.get("failures", 0) >= 1, f"expected >=1 out-of-set failure: {av}"
+    finally:
+        shutil.rmtree(project, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# AC1.6 type fidelity: an INTEGER accepted_values domain emitted as UNQUOTED
+# numbers must still pass/fail correctly against an INTEGER warehouse column.
+# This proves the type-faithful emission ([1, 2, 3], not ["1","2","3"]) works
+# end-to-end on a real duckdb INTEGER column.
+# ---------------------------------------------------------------------------
+
+
+def _build_tier_project(csv: Path) -> Path:
+    umf = _umf(AV_DIR / "tier_table.umf.yaml")
+    project = Path(tempfile.mkdtemp(prefix="tablespec_tier_"))
+    files = generate_dbt_project(umf.model_dump(exclude_none=True), out_dir=project)
+    # Guard the type-faithful emission at the source: unquoted ints in the set.
+    assert "values: [1, 2, 3]" in files["models/schema.yml"], files["models/schema.yml"]
+    db = project / "ingest.duckdb"
+    _load_raw(db, "tier_table", ["record_id", "tier"], csv)
+    return project
+
+
+def test_accepted_values_integer_valid_passes() -> None:
+    """AC1.6: an in-set INTEGER domain ([1,2,3]) PASSES against an INTEGER column."""
+    _require_dbt()
+    project = _build_tier_project(AV_DIR / "tier_table.valid.csv")
+    try:
+        db = project / "ingest.duckdb"
+        built = _dbt(project, db, "build")
+        assert built.returncode == 0, (
+            f"dbt build failed:\n{built.stdout}\n{built.stderr}"
+        )
+        results = _run_results(project)
+        av = _result_for(results, "accepted_values_tier_table_tier")
+        assert av["status"] == "pass", f"integer accepted_values should pass: {av}"
+        assert av.get("failures", 0) == 0
+    finally:
+        shutil.rmtree(project, ignore_errors=True)
+
+
+def test_accepted_values_integer_bad_fails() -> None:
+    """AC1.6/AC1.10 (NEGATIVE): an out-of-set INTEGER value (9) FAILS.
+
+    Non-vacuous proof that the unquoted numeric emission is compared correctly:
+    if the set were emitted as strings, duckdb would still coerce, so this also
+    guards that an out-of-range number is genuinely rejected.
+    """
+    _require_dbt()
+    project = _build_tier_project(AV_DIR / "tier_table.bad.csv")
+    try:
+        db = project / "ingest.duckdb"
+        built = _dbt(project, db, "build")
+        assert built.returncode != 0, (
+            f"dbt build MUST fail on the out-of-set integer but succeeded:\n"
+            f"{built.stdout}"
+        )
+        results = _run_results(project)
+        av = _result_for(results, "accepted_values_tier_table_tier")
+        assert av["status"] == "fail", f"integer accepted_values should FAIL: {av}"
         assert av.get("failures", 0) >= 1, f"expected >=1 out-of-set failure: {av}"
     finally:
         shutil.rmtree(project, ignore_errors=True)

@@ -45,8 +45,11 @@ class ColumnTest:
     # relationship:
     to_model: str | None = None
     to_field: str | None = None
-    # accepted_values:
-    values: tuple[str, ...] | None = None
+    # accepted_values: the original value_set scalars, preserving each element's
+    # JSON/UMF type (int / float / bool / str). The backend renders types
+    # faithfully -- an INTEGER domain emits an unquoted numeric set so the test
+    # compares like-typed values against the warehouse column.
+    values: tuple[Any, ...] | None = None
 
     @classmethod
     def relationship(cls, column: str, *, to_model: str, to_field: str) -> ColumnTest:
@@ -60,11 +63,16 @@ class ColumnTest:
 
     @classmethod
     def accepted_values(cls, column: str, *, values: list[Any]) -> ColumnTest:
-        """A set-membership/domain enum: *column* values must be in ``values``."""
+        """A set-membership/domain enum: *column* values must be in ``values``.
+
+        The element types are preserved (not coerced to ``str``) so an INTEGER
+        domain like ``[1, 2, 3]`` round-trips as numbers; the backend decides how
+        to render each scalar for its dialect.
+        """
         return cls(
             column=column,
             kind="accepted_values",
-            values=tuple(str(v) for v in values),
+            values=tuple(values),
         )
 
 

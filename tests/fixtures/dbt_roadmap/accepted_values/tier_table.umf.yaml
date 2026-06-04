@@ -1,0 +1,30 @@
+version: "1.0"
+table_name: tier_table
+description: Table with an INTEGER domain-enum column for accepted_values type fidelity
+primary_key:
+  - record_id
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: record_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: tier
+    data_type: INTEGER
+    nullable:
+      default: false
+expectations:
+  expectations:
+    - type: expect_column_values_to_be_in_set
+      kwargs:
+        column: tier
+        value_set:
+          - 1
+          - 2
+          - 3
+      meta:
+        stage: ingested
+        severity: error

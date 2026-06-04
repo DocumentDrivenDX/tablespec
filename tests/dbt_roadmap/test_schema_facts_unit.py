@@ -153,7 +153,8 @@ def test_accepted_values_first_set_wins_per_column() -> None:
     assert out == [ColumnTest.accepted_values("lob", values=["A"])]
 
 
-def test_accepted_values_coerces_to_str() -> None:
+def test_accepted_values_preserves_element_types() -> None:
+    """AC1.6 type fidelity: an INTEGER value_set round-trips as ints, NOT strings."""
     data = {
         "expectations": {
             "expectations": [
@@ -164,7 +165,7 @@ def test_accepted_values_coerces_to_str() -> None:
             ]
         }
     }
-    assert accepted_values_tests(data)[0].values == ("1", "2", "3")
+    assert accepted_values_tests(data)[0].values == (1, 2, 3)
 
 
 def test_column_tests_merges_and_sorts() -> None:

@@ -35,12 +35,25 @@ _TEST_INDENT = "          "  # 10 spaces: ``          - relationships:``
 _ARG_INDENT = "              "  # 14 spaces: under ``arguments:``
 
 
-def _yaml_inline_list(values: tuple[str, ...]) -> str:
-    """Render a string value_set as an inline YAML flow list of quoted scalars."""
-    quoted = ", ".join(
-        '"' + v.replace("\\", "\\\\").replace('"', '\\"') + '"' for v in values
-    )
-    return f"[{quoted}]"
+def _yaml_scalar(value: object) -> str:
+    """Render one value_set element as a type-faithful inline YAML scalar.
+
+    Numbers and booleans emit unquoted (``1``, ``2.5``, ``true``) so an INTEGER /
+    DECIMAL / BOOLEAN domain compares like-typed against the warehouse column;
+    strings emit double-quoted. ``bool`` is checked before ``int`` because
+    ``bool`` is a subclass of ``int`` in Python.
+    """
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return repr(value)
+    text = str(value)
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _yaml_inline_list(values: tuple[object, ...]) -> str:
+    """Render a value_set as an inline YAML flow list, preserving element types."""
+    return "[" + ", ".join(_yaml_scalar(v) for v in values) + "]"
 
 
 def render_relationship(test: ColumnTest) -> list[str]:
