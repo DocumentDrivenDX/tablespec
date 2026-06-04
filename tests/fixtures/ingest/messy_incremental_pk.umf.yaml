@@ -1,0 +1,37 @@
+table_name: messy_records
+description: Messy mixed-type records needing normalization, with dedup + upsert
+primary_key:
+  - record_key
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: record_key
+    data_type: VARCHAR
+    nullable: false
+  - name: label
+    data_type: TEXT
+    nullable: true
+  - name: count_int
+    data_type: INTEGER
+    nullable: true
+  - name: amount_dec
+    data_type: DECIMAL
+    precision: 14
+    scale: 3
+    nullable: true
+  - name: rate_dbl
+    data_type: DOUBLE
+    nullable: true
+  - name: flag
+    data_type: BOOLEAN
+    nullable: true
+  - name: as_of_date
+    data_type: DATE
+    format: MM/DD/YYYY
+    nullable: true
+  - name: updated_ts
+    data_type: DATETIME
+    format: MM/DD/YYYY HH:MM:SS
+    nullable: true

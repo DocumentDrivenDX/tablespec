@@ -1,0 +1,5 @@
+record_key,label,count_int,amount_dec,rate_dbl,flag,as_of_date,updated_ts,_source_file,_load_ts
+K1,first,10,$12.500,0.25,true,01/10/2024,01/10/2024 08:00:00,m1.csv,2024-01-10 08:00:00
+K1,first-newer,11,$13.250,0.30,false,01/11/2024,01/11/2024 09:00:00,m1.csv,2024-01-11 09:00:00
+K2,,,,,,,,m1.csv,2024-01-12 10:00:00
+K3,garbage nums,notint,notdec,notdbl,notbool,notdate,notts,m1.csv,2024-01-13 11:00:00

@@ -1,0 +1,58 @@
+{
+  "columns": [
+    "row_id",
+    "descr",
+    "qty",
+    "ratio",
+    "score",
+    "weight",
+    "active"
+  ],
+  "rows": [
+    [
+      "r1",
+      "hello world",
+      "42",
+      "3.1416",
+      "2.5",
+      "1234.56",
+      "true"
+    ],
+    [
+      "r2",
+      "with, comma",
+      "-7",
+      "0.0001",
+      "-0.5",
+      "0.0",
+      "false"
+    ],
+    [
+      "r3",
+      "NULL",
+      "0",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NULL"
+    ],
+    [
+      "r4",
+      "unparseable nums",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NULL",
+      "true"
+    ],
+    [
+      "r5",
+      "trailing spaces",
+      "10",
+      "1.2300",
+      "1000.0",
+      "9.99",
+      "false"
+    ]
+  ]
+}

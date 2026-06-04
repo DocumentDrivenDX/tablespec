@@ -1,0 +1,39 @@
+{
+  "columns": [
+    "member_id",
+    "full_name",
+    "birth_date",
+    "enrolled",
+    "monthly_premium"
+  ],
+  "rows": [
+    [
+      "M1",
+      "Alice Adams",
+      "1985-03-20",
+      "true",
+      "120.00"
+    ],
+    [
+      "M2",
+      "Bob Brown",
+      "1990-11-01",
+      "false",
+      "0.00"
+    ],
+    [
+      "M3",
+      "Carol Clark",
+      "NULL",
+      "true",
+      "NULL"
+    ],
+    [
+      "M4",
+      "Dan Davis",
+      "2000-02-29",
+      "false",
+      "75.50"
+    ]
+  ]
+}

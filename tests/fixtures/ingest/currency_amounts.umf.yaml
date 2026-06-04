@@ -1,0 +1,21 @@
+table_name: currency_amounts
+description: Currency strings and numeric normalization
+ingestion:
+  mode: snapshot
+columns:
+  - name: account_id
+    data_type: VARCHAR
+    nullable: false
+  - name: balance
+    data_type: DECIMAL
+    precision: 18
+    scale: 2
+    nullable: true
+  - name: credit_limit
+    data_type: DECIMAL
+    precision: 12
+    scale: 2
+    nullable: true
+  - name: interest_rate
+    data_type: DOUBLE
+    nullable: true

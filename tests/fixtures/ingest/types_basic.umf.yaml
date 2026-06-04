@@ -1,0 +1,28 @@
+table_name: types_basic
+description: Basic scalar type coverage (passthrough, numeric, boolean)
+ingestion:
+  mode: snapshot
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  - name: descr
+    data_type: TEXT
+    nullable: true
+  - name: qty
+    data_type: INTEGER
+    nullable: true
+  - name: ratio
+    data_type: DECIMAL
+    precision: 9
+    scale: 4
+    nullable: true
+  - name: score
+    data_type: FLOAT
+    nullable: true
+  - name: weight
+    data_type: DOUBLE
+    nullable: true
+  - name: active
+    data_type: BOOLEAN
+    nullable: true

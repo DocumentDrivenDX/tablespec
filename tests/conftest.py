@@ -29,6 +29,16 @@ if "DATABRICKS_RUNTIME_VERSION" not in os.environ and "SPARK_HOME" not in os.env
         os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
 
 
+def pytest_addoption(parser):
+    """Register custom CLI options."""
+    parser.addoption(
+        "--update-golden",
+        action="store_true",
+        default=False,
+        help="(Re)write golden baseline files (ingest parity) instead of asserting.",
+    )
+
+
 def pytest_configure(config):
     """Register custom markers."""
     config.addinivalue_line(
@@ -39,6 +49,7 @@ def pytest_configure(config):
 # ---------------------------------------------------------------------------
 # Spark environment setup (autouse) and session-scoped spark_session fixture
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _setup_spark_environment_per_test(request):
@@ -87,7 +98,9 @@ def spark_session():
     local_java = project_root / ".local" / "share" / "java"
 
     if not local_spark.exists():
-        pytest.skip(f"Local Spark installation not found at {local_spark}. Run 'make setup-spark' first.")
+        pytest.skip(
+            f"Local Spark installation not found at {local_spark}. Run 'make setup-spark' first."
+        )
 
     os.environ.setdefault("SPARK_HOME", str(local_spark))
     os.environ.setdefault("JAVA_HOME", str(local_java))
@@ -97,7 +110,9 @@ def spark_session():
     try:
         from tablespec.spark_factory import create_delta_spark_session
     except ImportError:
-        pytest.skip("PySpark not available -- install with: uv sync --extra spark --group dev")
+        pytest.skip(
+            "PySpark not available -- install with: uv sync --extra spark --group dev"
+        )
 
     import fcntl
 
@@ -129,6 +144,7 @@ def spark_session():
 
         def protected_stop():
             import logging
+
             logging.getLogger(__name__).warning(
                 "spark.stop() called during tests -- ignoring to preserve session"
             )
@@ -206,7 +222,9 @@ class FixtureDataLoader:
                 if key not in actual:
                     pytest.fail(f"Missing key in actual data: {current_path}")
 
-                FixtureDataLoader.compare_json_structure(actual[key], expected_value, current_path)
+                FixtureDataLoader.compare_json_structure(
+                    actual[key], expected_value, current_path
+                )
 
         elif isinstance(expected, list) and isinstance(actual, list):
             if len(actual) != len(expected):
@@ -214,8 +232,12 @@ class FixtureDataLoader:
                     f"List length mismatch at {path}: expected {len(expected)}, got {len(actual)}"
                 )
 
-            for i, (actual_item, expected_item) in enumerate(zip(actual, expected, strict=False)):
-                FixtureDataLoader.compare_json_structure(actual_item, expected_item, f"{path}[{i}]")
+            for i, (actual_item, expected_item) in enumerate(
+                zip(actual, expected, strict=False)
+            ):
+                FixtureDataLoader.compare_json_structure(
+                    actual_item, expected_item, f"{path}[{i}]"
+                )
 
         elif actual != expected:
             pytest.fail(f"Value mismatch at {path}: expected {expected}, got {actual}")
@@ -230,6 +252,7 @@ def fixture_loader():
 # ---------------------------------------------------------------------------
 # GX Test Harness (FEAT-016)
 # ---------------------------------------------------------------------------
+
 
 class GXTestResult:
     """Structured result from running GX expectations via the test harness.
@@ -292,9 +315,7 @@ class _ColumnResults:
     def __getitem__(self, key: str | None) -> Any:
         if key not in self._results:
             available = sorted(str(k) for k in self._results)
-            raise KeyError(
-                f"No result for column '{key}'. Available: {available}"
-            )
+            raise KeyError(f"No result for column '{key}'. Available: {available}")
         return self._results[key]
 
 
@@ -368,14 +389,20 @@ class GXTestHarness:
             "expect_column_values_to_be_in_set",
             "expect_column_values_to_be_unique",
         }
-        return all(exp.get("type", exp.get("expectation_type", "")) in supported for exp in expectations)
+        return all(
+            exp.get("type", exp.get("expectation_type", "")) in supported
+            for exp in expectations
+        )
 
     @staticmethod
     def _execute_locally(
         expectations: list[dict[str, Any]],
         data: list[dict[str, Any]],
     ) -> Any:
-        from tablespec.validation.gx_executor import ExpectationResult, SuiteExecutionResult
+        from tablespec.validation.gx_executor import (
+            ExpectationResult,
+            SuiteExecutionResult,
+        )
 
         results: list[ExpectationResult] = []
 
@@ -386,7 +413,11 @@ class GXTestHarness:
 
             if exp_type == "expect_column_to_exist":
                 success = all(column in row for row in data)
-                results.append(ExpectationResult(expectation_type=exp_type, column=column, success=success))
+                results.append(
+                    ExpectationResult(
+                        expectation_type=exp_type, column=column, success=success
+                    )
+                )
                 continue
 
             values = [row.get(column) for row in data]

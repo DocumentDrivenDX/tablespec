@@ -1,0 +1,18 @@
+table_name: provider_directory
+description: Full provider directory snapshot (drop/reload, no key)
+ingestion:
+  mode: snapshot
+columns:
+  - name: provider_npi
+    data_type: VARCHAR
+    nullable: false
+  - name: provider_name
+    data_type: VARCHAR
+    nullable: true
+  - name: enrolled_date
+    data_type: DATE
+    format: MM/DD/YYYY
+    nullable: true
+  - name: is_active
+    data_type: BOOLEAN
+    nullable: true

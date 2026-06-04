@@ -1,0 +1,26 @@
+table_name: dates_formats
+description: Date and timestamp parsing across explicit and implicit formats
+ingestion:
+  mode: snapshot
+columns:
+  - name: event_id
+    data_type: VARCHAR
+    nullable: false
+  - name: compact_date
+    data_type: DATE
+    format: YYYYMMDD
+    nullable: true
+  - name: us_date
+    data_type: DATE
+    format: MM/DD/YYYY
+    nullable: true
+  - name: us_datetime
+    data_type: DATETIME
+    format: MM/DD/YYYY HH:MM:SS
+    nullable: true
+  - name: iso_date_noformat
+    data_type: DATE
+    nullable: true
+  - name: iso_ts_noformat
+    data_type: TIMESTAMP
+    nullable: true

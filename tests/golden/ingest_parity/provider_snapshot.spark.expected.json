@@ -1,0 +1,34 @@
+{
+  "columns": [
+    "provider_npi",
+    "provider_name",
+    "enrolled_date",
+    "is_active"
+  ],
+  "rows": [
+    [
+      "1000000001",
+      "Acme Clinic",
+      "2020-01-15",
+      "true"
+    ],
+    [
+      "1000000002",
+      "Smith, Jones & Co",
+      "2018-06-30",
+      "false"
+    ],
+    [
+      "1000000003",
+      "Lone Provider",
+      "NULL",
+      "true"
+    ],
+    [
+      "1000000004",
+      "Inactive Group",
+      "2021-12-01",
+      "false"
+    ]
+  ]
+}

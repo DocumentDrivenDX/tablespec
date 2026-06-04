@@ -1,0 +1,5 @@
+member_id,full_name,birth_date,enrolled,monthly_premium,_source_file,_load_ts
+M1,Alice Adams,19850320,true,$120.00,mem.csv,2024-06-01 00:00:00
+M2,Bob Brown,19901101,false,$0.00,mem.csv,2024-06-01 00:00:00
+M3,Carol Clark,baddate,1,,mem.csv,2024-06-01 00:00:00
+M4,Dan Davis,20000229,no,$75.50,mem.csv,2024-06-01 00:00:00

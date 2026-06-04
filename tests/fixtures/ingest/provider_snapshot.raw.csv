@@ -1,0 +1,5 @@
+provider_npi,provider_name,enrolled_date,is_active,_source_file,_load_ts
+1000000001,Acme Clinic,01/15/2020,true,prov.csv,2024-05-01 00:00:00
+1000000002,"Smith, Jones & Co",06/30/2018,false,prov.csv,2024-05-01 00:00:00
+1000000003,Lone Provider,notadate,t,prov.csv,2024-05-01 00:00:00
+1000000004,Inactive Group,12/01/2021,0,prov.csv,2024-05-01 00:00:00

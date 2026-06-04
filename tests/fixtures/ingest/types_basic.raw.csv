@@ -1,0 +1,6 @@
+row_id,descr,qty,ratio,score,weight,active,_source_file,_load_ts
+r1,hello world,42,3.1416,2.5,1234.56,true,f1.csv,2024-01-01 00:00:00
+r2,"with, comma",-7,0.0001,-0.5,0,false,f1.csv,2024-01-01 00:00:01
+r3,,0,,,,,f1.csv,2024-01-01 00:00:02
+r4,unparseable nums,abc,xyz,notnum,,True,f1.csv,2024-01-01 00:00:03
+r5,trailing spaces,10,1.2300,1000.0,9.99,FALSE,f1.csv,2024-01-01 00:00:04
