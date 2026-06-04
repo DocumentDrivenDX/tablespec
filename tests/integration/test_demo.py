@@ -3,6 +3,11 @@
 The demo script exercises the entire tablespec public API end-to-end,
 including PySpark features when available. A non-zero exit code means
 something in the package is broken.
+
+On Databricks serverless, the Spark sections (8-11) are gracefully skipped
+by the demo itself because the factory (single entrypoint) detects that the
+Spark Connect socket is unreachable from a subprocess. The demo still exits 0
+and reports all checks passed for the non-Spark sections.
 """
 
 import subprocess

@@ -89,6 +89,17 @@ clean: ## Remove build artifacts and cache files
 build: ## Build the package
 	uv build
 
+# Databricks targets
+test-databricks: ## Run integration tests on Databricks (requires DATABRICKS_RUNTIME_VERSION)
+	@if [ -z "$DATABRICKS_RUNTIME_VERSION" ]; then echo "ERROR: Not running on Databricks"; exit 1; fi
+	PYTHONDONTWRITEBYTECODE=1 python -m pytest tests/integration/ -v --tb=short -p no:cacheprovider
+
+test-databricks-all: ## Run full test suite on Databricks (skips local-spark-only tests)
+	@if [ -z "$DATABRICKS_RUNTIME_VERSION" ]; then echo "ERROR: Not running on Databricks"; exit 1; fi
+	PYTHONDONTWRITEBYTECODE=1 python -m pytest tests/ -v --tb=short -p no:cacheprovider \
+		--ignore=tests/unit/test_quality_executor_selection.py \
+		--ignore=tests/unit/test_baseline_service.py
+
 # Convenience targets
 check: lint type-check test ## Run all checks (lint, type-check, test)
 
