@@ -1,0 +1,33 @@
+version: "1.0"
+table_name: events
+description: Raw event stream with no natural key (append)
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: event_type
+    data_type: VARCHAR
+    nullable:
+      default: true
+  - name: severity
+    data_type: VARCHAR
+    nullable:
+      default: true
+  - name: amount
+    data_type: DECIMAL
+    precision: 10
+    scale: 2
+    nullable:
+      default: true
+expectations:
+  expectations:
+    - type: expect_column_values_to_be_in_set
+      kwargs:
+        column: severity
+        value_set:
+          - LOW
+          - HIGH
+      meta:
+        stage: ingested
+        severity: warning

@@ -30,6 +30,7 @@ SRC = Path(__file__).parent.parent / "src" / "tablespec"
 CORE_MODULES = [
     SRC / "core" / "__init__.py",
     SRC / "core" / "ir.py",
+    SRC / "core" / "registry.py",
     SRC / "core" / "relations.py",
     SRC / "core" / "schema_facts.py",
     SRC / "core" / "selection.py",
@@ -40,6 +41,29 @@ CORE_MODULES = [
     SRC / "schemas" / "ingest_generator.py",
     SRC / "schemas" / "relationship_resolver.py",
     SRC / "schemas" / "sql_generator.py",
+]
+
+# Every module under the LDP implementation package (the PROTOTYPE sibling emitter).
+LDP_MODULES = [
+    SRC / "ldp" / "__init__.py",
+    SRC / "ldp" / "expectations.py",
+    SRC / "ldp" / "project.py",
+    SRC / "ldp" / "renderer.py",
+]
+
+# Every module under the dbt implementation package.
+DBT_MODULES = [
+    SRC / "dbt" / "__init__.py",
+    SRC / "dbt" / "contracts.py",
+    SRC / "dbt" / "materialization.py",
+    SRC / "dbt" / "project.py",
+    SRC / "dbt" / "registry.py",
+    SRC / "dbt" / "renderer.py",
+    SRC / "dbt" / "routing.py",
+    SRC / "dbt" / "schema_tests.py",
+    SRC / "dbt" / "seeds.py",
+    SRC / "dbt" / "selection.py",
+    SRC / "dbt" / "single_table.py",
 ]
 
 
@@ -69,6 +93,103 @@ def test_core_modules_do_not_import_dbt() -> None:
             offenders[str(path.relative_to(SRC))] = bad
     assert not offenders, (
         "CORE modules must not import tablespec.dbt (encapsulation breach):\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
+    )
+
+
+def test_core_modules_do_not_import_ldp() -> None:
+    """The CORE seam must not import the PROTOTYPE LDP package either.
+
+    LDP is a backend (a sibling of dbt) fed BY the core; nothing in core may depend
+    on it, exactly as for dbt. ``core.registry`` (the IR builder both backends
+    consume) is the shared seam -- it must not reach back into either emitter.
+    """
+    offenders: dict[str, set[str]] = {}
+    for path in CORE_MODULES:
+        assert path.exists(), f"core module missing: {path}"
+        bad = {m for m in _imported_modules(path) if m.startswith("tablespec.ldp")}
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    assert not offenders, (
+        "CORE modules must not import tablespec.ldp (encapsulation breach):\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
+    )
+
+
+def test_dbt_and_ldp_never_import_each_other() -> None:
+    """The two backends are independent siblings on the shared core.
+
+    No module under ``tablespec.dbt`` may import ``tablespec.ldp`` and no module
+    under ``tablespec.ldp`` may import ``tablespec.dbt``. Both depend only on the
+    core seam (``tablespec.core`` + the shared cast/ingest/sql generators).
+    """
+    offenders: dict[str, set[str]] = {}
+    for path in DBT_MODULES:
+        assert path.exists(), f"dbt module missing: {path}"
+        bad = {m for m in _imported_modules(path) if m.startswith("tablespec.ldp")}
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    for path in LDP_MODULES:
+        assert path.exists(), f"ldp module missing: {path}"
+        bad = {m for m in _imported_modules(path) if m.startswith("tablespec.dbt")}
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    assert not offenders, (
+        "tablespec.dbt and tablespec.ldp must never import each other "
+        "(sibling-independence breach):\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
+    )
+
+
+def test_ldp_feeds_only_on_core_seam() -> None:
+    """``tablespec.ldp`` imports only the core seam + UMF model + shared generators.
+
+    It must reach the logical-plan registry / IR / cast layer / SQL generator
+    through ``tablespec.core`` and ``tablespec.schemas`` -- never through
+    ``tablespec.dbt``. (Guards the prototype from accidentally coupling to the dbt
+    emitter when both could resolve the same name.)
+    """
+    allowed_prefixes = (
+        "tablespec.core",
+        "tablespec.schemas",
+        "tablespec.models",
+        "tablespec.ldp",
+    )
+    offenders: dict[str, set[str]] = {}
+    for path in LDP_MODULES:
+        imported = {m for m in _imported_modules(path) if m.startswith("tablespec.")}
+        bad = {m for m in imported if not m.startswith(allowed_prefixes)}
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    assert not offenders, (
+        "tablespec.ldp must be fed only by the core seam (tablespec.core / "
+        "tablespec.schemas / tablespec.models):\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
+    )
+
+
+def test_ldp_package_imports_no_databricks_runtime() -> None:
+    """Generating an LDP project needs no Databricks/Spark runtime import.
+
+    The emitter is pure text generation; it must not import ``pyspark`` /
+    ``databricks`` (LDP runs only on Databricks, but GENERATING the project must
+    work in any environment).
+    """
+    offenders: dict[str, set[str]] = {}
+    for path in LDP_MODULES:
+        imported = _imported_modules(path)
+        bad = {
+            m
+            for m in imported
+            if m == "pyspark"
+            or m.startswith("pyspark.")
+            or m == "databricks"
+            or m.startswith("databricks.")
+        }
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    assert not offenders, (
+        "tablespec.ldp must not import a Databricks/Spark runtime to GENERATE SQL:\n"
         + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
     )
 

@@ -1,0 +1,47 @@
+version: "1.0"
+table_name: claims
+description: Healthcare claims (incremental upsert on claim_id)
+primary_key:
+  - claim_id
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: claim_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: member_id
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: claim_amount
+    data_type: DECIMAL
+    precision: 18
+    scale: 2
+    nullable:
+      default: true
+  - name: status
+    data_type: VARCHAR
+    nullable:
+      default: true
+relationships:
+  foreign_keys:
+    - column: member_id
+      references_table: member
+      references_column: member_id
+      type: foreign_key
+expectations:
+  expectations:
+    - type: expect_column_values_to_be_in_set
+      kwargs:
+        column: status
+        value_set:
+          - PAID
+          - DENIED
+          - PENDING
+      meta:
+        stage: ingested
+        severity: error
+        blocking: true

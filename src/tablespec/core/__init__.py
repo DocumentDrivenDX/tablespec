@@ -28,6 +28,11 @@ from tablespec.core.ir import (
     NodeRole,
     PlanNode,
 )
+from tablespec.core.registry import (
+    NodeRegistry,
+    NodeRegistryError,
+    ResolvedNode,
+)
 from tablespec.core.relations import (
     LiteralRenderer,
     RelationRef,
@@ -38,8 +43,11 @@ __all__ = [
     "LiteralRenderer",
     "LogicalEdge",
     "LogicalPlan",
+    "NodeRegistry",
+    "NodeRegistryError",
     "NodeRole",
     "PlanNode",
     "RelationRef",
+    "ResolvedNode",
     "TableRenderer",
 ]
