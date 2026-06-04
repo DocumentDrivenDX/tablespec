@@ -88,6 +88,30 @@ def test_changeset_one_edited_table(tmp_path: Path) -> None:
     assert "member_claims" not in cs.affected
 
 
+@pytest.mark.parametrize(
+    ("field", "mutate"),
+    [
+        ("primary_key", lambda d: d.update(primary_key=["claim_id", "member_id"])),
+        ("ingestion.mode", lambda d: d["ingestion"].update(mode="snapshot")),
+        ("ingestion.order_by", lambda d: d["ingestion"].update(order_by=["_source_file"])),
+    ],
+)
+def test_changeset_detects_structural_field_change(tmp_path: Path, field, mutate) -> None:
+    """Regression: structural fields UMFDiff does NOT diff (primary_key, ingestion,
+    ...) still mark a table modified, so CI never under-selects a model whose merge
+    key or materialization changed (would otherwise silently skip the rebuild).
+    """
+    old_dir = _copy_snapshot(tmp_path / "old")
+    new_dir = _copy_snapshot(tmp_path / "new")
+    path = new_dir / "claims.umf.yaml"
+    data = yaml.safe_load(path.read_text())
+    mutate(data)
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+
+    cs = change_set(old_dir, new_dir)
+    assert "claims" in cs.modified, f"{field} change must mark claims modified"
+
+
 def test_changeset_unchanged_is_empty(tmp_path: Path) -> None:
     """AC3.2 (set): OLD == NEW -> an empty ChangeSet (nothing selected)."""
     old_dir = _copy_snapshot(tmp_path / "old")

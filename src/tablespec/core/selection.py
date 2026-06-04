@@ -77,17 +77,37 @@ class ChangeSet:
 
 
 def _table_diff_is_nonempty(old_umf: UMF, new_umf: UMF) -> bool:
-    """``True`` iff the per-table :class:`UMFDiff` finds any real change.
+    """``True`` iff anything that changes a table's generated output differs.
 
-    Wraps the existing per-table diff (the only diff the codebase has): a table is
-    *modified* iff it carries at least one column, validation-rule, or table-level
-    metadata change.
+    Wraps the per-table :class:`UMFDiff` (columns, validation rules, table-level
+    metadata) AND explicitly compares the structural, table-level fields that
+    ``UMFDiff`` does NOT cover but which still change the emitted dbt/LDP model:
+    ``primary_key`` and ``ingestion`` (materialization + MERGE/APPLY CHANGES keys),
+    ``unique_constraints``, ``relationships`` (FK ``relationships`` tests), plus
+    ``table_type``/``context_column`` (model shape / conditional expectations).
+
+    A CI selection MUST NOT *under*-select: missing one of these would silently
+    skip rebuilding a model whose merge key, materialization, or FK tests actually
+    changed. Over-selecting (an extra rebuild on a cosmetic change) is the safe
+    failure mode, so any difference in a generation-relevant field counts. This
+    list must track the fields the backends read; see ``tablespec.dbt``/``ldp``.
     """
     diff = UMFDiff(old_umf, new_umf)
-    return bool(
+    if (
         diff.get_column_changes()
         or diff.get_validation_changes()
         or diff.get_metadata_changes()
+    ):
+        return True
+
+    # Structural fields UMFDiff ignores but the generators read.
+    return (
+        old_umf.primary_key != new_umf.primary_key
+        or old_umf.unique_constraints != new_umf.unique_constraints
+        or old_umf.ingestion != new_umf.ingestion
+        or old_umf.relationships != new_umf.relationships
+        or old_umf.table_type != new_umf.table_type
+        or old_umf.context_column != new_umf.context_column
     )
 
 
