@@ -3,13 +3,23 @@ version: 2
 models:
   - name: claims
     description: "Healthcare claims"
+    config:
+      contract:
+        enforced: true
     columns:
       - name: claim_id
+        data_type: VARCHAR
+        constraints:
+          - type: not_null
         data_tests:
-          - not_null
           - unique
       - name: claim_amount
+        data_type: DECIMAL(18,2)
       - name: service_date
+        data_type: DATE
       - name: submitted_at
+        data_type: TIMESTAMP
       - name: member_id
+        data_type: VARCHAR
       - name: is_paid
+        data_type: BOOLEAN

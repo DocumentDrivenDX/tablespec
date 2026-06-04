@@ -33,16 +33,28 @@ _NN = {"default": False}
 _NL = {"default": True}
 
 
-def _col_tests(schema_yaml: str, model: str, column: str) -> list:
-    """Parse schema.yml and return the data_tests attached to model.column."""
+def _col(schema_yaml: str, model: str, column: str) -> dict:
+    """Parse schema.yml and return the raw column dict for model.column."""
     doc = yaml.safe_load(schema_yaml)
     for m in doc["models"]:
         if m["name"] != model:
             continue
         for c in m.get("columns") or []:
             if c["name"] == column:
-                return c.get("data_tests") or []
-    return []
+                return c
+    return {}
+
+
+def _col_tests(schema_yaml: str, model: str, column: str) -> list:
+    """Parse schema.yml and return the data_tests attached to model.column."""
+    return _col(schema_yaml, model, column).get("data_tests") or []
+
+
+def _col_constraint_types(schema_yaml: str, model: str, column: str) -> list:
+    """Return the contract constraint *types* attached to model.column."""
+    return [
+        c["type"] for c in _col(schema_yaml, model, column).get("constraints") or []
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -199,9 +211,12 @@ def test_single_schema_yml_not_null_and_unique():
         _single_umf_data(mode="incremental", primary_key=["id"]), dialect="duckdb"
     )
     schema = files["models/schema.yml"]
-    # id: non-nullable + single PK -> not_null AND unique on THAT column
-    assert sorted(_col_tests(schema, "t", "id")) == ["not_null", "unique"]
-    # label: nullable, not a key -> NO tests attached
+    # id: non-nullable + single PK -> not_null is now a CONTRACT constraint, and
+    # unique remains a generic data_test, both on THAT column.
+    assert _col_constraint_types(schema, "t", "id") == ["not_null"]
+    assert _col_tests(schema, "t", "id") == ["unique"]
+    # label: nullable, not a key -> NO constraint and NO data_tests attached
+    assert _col_constraint_types(schema, "t", "label") == []
     assert _col_tests(schema, "t", "label") == []
     # description rendered as a quoted scalar
     assert "single-table fixture" in schema
@@ -496,8 +511,9 @@ def test_dag_staging_schema_unique_constraints():
     schema = files["models/schema.yml"]
     # Pin each unique test to its INTENDED column (not a bare count, which would
     # pass even if both `unique` tests landed on the wrong column). 'code' is also
-    # non-nullable so it additionally carries not_null.
-    assert sorted(_col_tests(schema, "ingested_dim", "code")) == ["not_null", "unique"]
+    # non-nullable so it additionally carries the not_null CONTRACT constraint.
+    assert _col_tests(schema, "ingested_dim", "code") == ["unique"]
+    assert _col_constraint_types(schema, "ingested_dim", "code") == ["not_null"]
     assert _col_tests(schema, "ingested_dim", "alt_code") == ["unique"]
     # 'label' is neither a key nor a unique constraint -> no unique test.
     assert "unique" not in _col_tests(schema, "ingested_dim", "label")

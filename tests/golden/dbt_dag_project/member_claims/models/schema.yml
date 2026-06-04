@@ -3,22 +3,36 @@ version: 2
 models:
   - name: ingested_member
     description: "Member master (snapshot)"
+    config:
+      contract:
+        enforced: true
     columns:
       - name: member_id
+        data_type: INTEGER
+        constraints:
+          - type: not_null
         data_tests:
-          - not_null
           - unique
       - name: member_name
+        data_type: VARCHAR
       - name: state
+        data_type: VARCHAR
   - name: ingested_claims
     description: "Healthcare claims (incremental, keyed)"
+    config:
+      contract:
+        enforced: true
     columns:
       - name: claim_id
+        data_type: INTEGER
+        constraints:
+          - type: not_null
         data_tests:
-          - not_null
           - unique
       - name: member_id
+        data_type: INTEGER
       - name: claim_amount
+        data_type: DECIMAL(18,2)
   - name: gold_member_claims
     description: "GOLD - claims enriched with member attributes (direct N:1 join)"
     columns:

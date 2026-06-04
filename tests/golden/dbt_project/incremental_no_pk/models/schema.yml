@@ -3,8 +3,15 @@ version: 2
 models:
   - name: events
     description: "Raw event stream with no natural key"
+    config:
+      contract:
+        enforced: true
     columns:
       - name: event_type
+        data_type: VARCHAR
       - name: payload
+        data_type: VARCHAR
       - name: occurred_at
+        data_type: TIMESTAMP
       - name: amount
+        data_type: DECIMAL(10,2)

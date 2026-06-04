@@ -74,6 +74,87 @@ class ColumnTest:
 ResolveTarget = Callable[[str], str | None]
 
 
+@dataclass(frozen=True)
+class ColumnContract:
+    """An engine-agnostic *data contract* for one column.
+
+    This is the neutral value object a backend turns into a dbt model contract
+    (``config(contract={enforced: true})`` + per-column ``data_type`` +
+    ``constraints:``). It carries the column's logical UMF type plus the
+    precision/scale/length needed to render a concrete adapter SQL type, and a
+    ``not_null`` flag derived from UMF nullability.
+
+    The CORE never mentions any dbt or SQL-dialect type name -- it hands back the
+    *logical* UMF ``data_type`` (e.g. ``"INTEGER"``, ``"DECIMAL"``, ``"VARCHAR"``)
+    and the modifiers, and the backend maps those to its adapter's SQL types.
+
+    Attributes:
+    ----------
+        name: the column name.
+        data_type: the UMF logical type (``VARCHAR``/``DECIMAL``/``INTEGER``/
+            ``DATE``/``DATETIME``/``TIMESTAMP``/``BOOLEAN``/``TEXT``/``CHAR``/
+            ``FLOAT``), upper-cased.
+        not_null: ``True`` when the column is non-nullable in every context (so a
+            ``not_null`` constraint applies); ``False`` for a nullable column.
+        length: VARCHAR/CHAR length modifier (UMF ``length``), or ``None``.
+        precision: DECIMAL precision (UMF ``precision``), or ``None``.
+        scale: DECIMAL scale (UMF ``scale``), or ``None``.
+    """
+
+    name: str
+    data_type: str
+    not_null: bool
+    length: int | None = None
+    precision: int | None = None
+    scale: int | None = None
+
+
+def _column_not_null(col: dict[str, Any]) -> bool:
+    """Resolve a column's not-null contract from its UMF ``nullable``.
+
+    Mirrors :func:`tablespec.schemas.generators._resolve_nullable` (a column is
+    nullable when missing, when ``True``, or when every context allows null), and
+    inverts it: the contract is ``not_null`` only when the column is required in
+    at least one context. The derivation is duplicated here (rather than imported
+    from ``schemas.generators``) to keep ``tablespec.core`` self-contained.
+    """
+    nullable = col.get("nullable")
+    if nullable is None:
+        return False
+    if isinstance(nullable, bool):
+        return not nullable
+    if isinstance(nullable, dict):
+        # not_null iff at least one context forbids null (matches is_required()).
+        return not (all(nullable.values()) if nullable else True)
+    return False
+
+
+def column_contracts(umf_data: dict[str, Any]) -> list[ColumnContract]:
+    """Derive a :class:`ColumnContract` for every column, in UMF column order.
+
+    Reuses the same type/precision/scale/length information ``generate_sql_ddl``
+    derives (UMF ``data_type`` + ``length``/``precision``/``scale``) so the
+    contract types are consistent with the SQL DDL. The backend maps the logical
+    UMF type to its adapter SQL type.
+    """
+    out: list[ColumnContract] = []
+    for col in umf_data.get("columns") or []:
+        name = col.get("name")
+        if not name:
+            continue
+        out.append(
+            ColumnContract(
+                name=name,
+                data_type=str(col.get("data_type", "VARCHAR")).upper(),
+                not_null=_column_not_null(col),
+                length=col.get("length"),
+                precision=col.get("precision"),
+                scale=col.get("scale"),
+            )
+        )
+    return out
+
+
 def _iter_foreign_keys(umf_data: dict[str, Any]) -> list[dict[str, Any]]:
     """Return the table's foreign_keys as plain dicts (model_dump form)."""
     rels = umf_data.get("relationships") or {}
@@ -176,9 +257,11 @@ def column_tests(
 
 
 __all__ = [
+    "ColumnContract",
     "ColumnTest",
     "ResolveTarget",
     "accepted_values_tests",
+    "column_contracts",
     "column_tests",
     "relationship_tests",
 ]

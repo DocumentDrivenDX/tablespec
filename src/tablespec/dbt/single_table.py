@@ -32,11 +32,15 @@ from typing import Any
 
 from tablespec.core.schema_facts import (
     accepted_values_tests,
+    column_contracts,
     relationship_tests,
+)
+from tablespec.dbt.contracts import (
+    render_column_contract,
+    render_contract_config_arg,
 )
 from tablespec.dbt.schema_tests import render_tests_for_column
 from tablespec.models.umf import UMF
-from tablespec.schemas.generators import _resolve_nullable
 from tablespec.schemas.ingest_generator import (
     IngestSelect,
     build_ingest_select,
@@ -46,8 +50,17 @@ from tablespec.schemas.ingest_generator import (
 def _model_config(ingest: IngestSelect) -> str:
     """Render the dbt ``{{ config(...) }}`` block for the table's write strategy.
 
-    dbt owns the write -- this config is the entire write contract.
+    dbt owns the write -- this config is the entire write contract. The block also
+    opts the model into an ENFORCED data contract (``contract={'enforced': True}``)
+    so the adapter validates the materialized relation against the per-column
+    ``data_type`` + ``constraints:`` declared in ``schema.yml``.
+
+    An incremental model with an enforced contract MUST pin ``on_schema_change``
+    (dbt rejects the default ``ignore``); we use ``'fail'`` so a column-set drift
+    in the SELECT surfaces loudly rather than silently mutating the relation.
     """
+    contract = render_contract_config_arg()
+    on_change = "        on_schema_change='fail',"
     if ingest.mode == "incremental" and ingest.primary_key:
         # Upsert: dbt emits a MERGE on the unique key.
         keys = ", ".join(f'"{k}"' for k in ingest.primary_key)
@@ -57,15 +70,25 @@ def _model_config(ingest: IngestSelect) -> str:
             "        materialized='incremental',\n"
             "        incremental_strategy='merge',\n"
             f"        unique_key=[{keys}],\n"
+            f"{on_change}\n"
+            f"{contract}\n"
             "    )\n"
             "}}"
         )
     if ingest.mode == "incremental":
         # Keyless append: dbt's default incremental strategy blindly inserts the
         # batch; duplicate rows accumulate on re-ingest (matches the Spark baseline).
-        return "{{\n    config(\n        materialized='incremental',\n    )\n}}"
+        return (
+            "{{\n"
+            "    config(\n"
+            "        materialized='incremental',\n"
+            f"{on_change}\n"
+            f"{contract}\n"
+            "    )\n"
+            "}}"
+        )
     # snapshot -> full drop/reload as a plain table rebuild (NOT dbt's SCD2 snapshot).
-    return "{{\n    config(\n        materialized='table',\n    )\n}}"
+    return f"{{{{\n    config(\n        materialized='table',\n{contract}\n    )\n}}}}"
 
 
 def _model_sql(table: str, ingest: IngestSelect) -> str:
@@ -135,10 +158,16 @@ def _schema_yml(
     table: str,
     ingest: IngestSelect,
     related: list[UMF] | None,
+    *,
+    dialect: str,
 ) -> str:
-    """Render ``models/schema.yml`` with column tests.
+    """Render ``models/schema.yml`` with the model contract + column tests.
 
-    * ``not_null`` for every non-nullable column (UMF ``nullable``).
+    The model declares an ENFORCED data contract: every column carries a
+    ``data_type`` (the adapter SQL type for its UMF type) and, when non-nullable,
+    a ``not_null`` ``constraints:`` entry -- both enforced by the adapter at
+    ``dbt build``. On top of the contract, columns carry generic ``data_tests:``:
+
     * ``unique`` for single-column primary keys and any single-column
       ``unique_constraints`` entry. (Composite uniqueness is left to the merge key
       and not asserted as a per-column test.)
@@ -147,6 +176,10 @@ def _schema_yml(
       scalar column).
     * ``accepted_values`` for each column carrying an
       ``expect_column_values_to_be_in_set`` expectation.
+
+    The ``not_null`` rule is expressed once -- as the contract constraint -- not
+    also as a generic ``not_null`` data test (the adapter enforces the constraint
+    at build; a duplicate generic test would be redundant).
     """
     cols: list[dict[str, Any]] = umf_data["columns"]
     pk = ingest.primary_key
@@ -171,6 +204,8 @@ def _schema_yml(
     for t in accepted_values_tests(umf_data):
         av_by_col.setdefault(t.column, []).append(t)
 
+    contracts = {c.name: c for c in column_contracts(umf_data)}
+
     lines: list[str] = [
         "version: 2",
         "",
@@ -180,18 +215,22 @@ def _schema_yml(
     description = umf_data.get("description")
     if description:
         lines.append(f"    description: {_yaml_scalar(description)}")
+    lines.append("    config:")
+    lines.append("      contract:")
+    lines.append("        enforced: true")
     lines.append("    columns:")
 
     for col in cols:
         name = col["name"]
-        not_null = not _resolve_nullable(col.get("nullable"))
         is_unique = name in unique_cols
         extra = rel_by_col.get(name, []) + av_by_col.get(name, [])
-        lines.append(f"      - name: {name}")
-        if not_null or is_unique or extra:
+        # Contract: data_type (+ not_null constraint) for the column.
+        contract = contracts[name]
+        lines.extend(render_column_contract(contract, dialect=dialect))
+        # Generic data tests layered on top of the contract (unique / relationships
+        # / accepted_values). not_null is the contract constraint, not a data test.
+        if is_unique or extra:
             lines.append("        data_tests:")
-            if not_null:
-                lines.append("          - not_null")
             if is_unique:
                 lines.append("          - unique")
             for t in extra:
@@ -298,7 +337,9 @@ def generate_dbt_project(
         "dbt_project.yml": _dbt_project_yml(project_name),
         "profiles.yml": _profiles_yml(project_name),
         "models/sources.yml": _sources_yml(table),
-        "models/schema.yml": _schema_yml(umf_data, table, ingest, related),
+        "models/schema.yml": _schema_yml(
+            umf_data, table, ingest, related, dialect=dialect
+        ),
         f"models/{table}.sql": _model_sql(table, ingest),
     }
 

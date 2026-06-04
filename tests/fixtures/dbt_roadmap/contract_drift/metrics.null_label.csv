@@ -1,0 +1,4 @@
+metric_id,amount,as_of_date,label
+1,100.50,20240101,alpha
+2,250.00,20240102,
+3,300.00,20240103,gamma

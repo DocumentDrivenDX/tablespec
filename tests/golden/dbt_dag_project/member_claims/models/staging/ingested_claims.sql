@@ -3,6 +3,8 @@
         materialized='incremental',
         incremental_strategy='merge',
         unique_key=["claim_id"],
+        on_schema_change='fail',
+        contract={'enforced': True},
     )
 }}
 

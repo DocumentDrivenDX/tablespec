@@ -3,10 +3,17 @@ version: 2
 models:
   - name: provider_directory
     description: "Full provider directory snapshot"
+    config:
+      contract:
+        enforced: true
     columns:
       - name: provider_npi
-        data_tests:
-          - not_null
+        data_type: VARCHAR
+        constraints:
+          - type: not_null
       - name: provider_name
+        data_type: VARCHAR
       - name: enrolled_date
+        data_type: DATE
       - name: is_active
+        data_type: BOOLEAN

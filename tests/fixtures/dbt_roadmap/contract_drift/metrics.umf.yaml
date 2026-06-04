@@ -1,0 +1,30 @@
+version: "1.0"
+table_name: metrics
+description: A table with INTEGER/DECIMAL/DATE columns + a not-null column to drive the model-contract e2e (matching, type-drift, and not-null negative paths).
+primary_key:
+  - metric_id
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: metric_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: amount
+    data_type: DECIMAL
+    precision: 18
+    scale: 2
+    nullable:
+      default: true
+  - name: as_of_date
+    data_type: DATE
+    format: YYYYMMDD
+    nullable:
+      default: true
+  - name: label
+    data_type: VARCHAR
+    length: 32
+    nullable:
+      default: false

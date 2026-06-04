@@ -29,7 +29,12 @@ from tablespec.core.ir import NodeRole
 from tablespec.core.schema_facts import (
     ColumnTest,
     accepted_values_tests,
+    column_contracts,
     relationship_tests,
+)
+from tablespec.dbt.contracts import (
+    render_column_contract,
+    render_contract_config_arg,
 )
 from tablespec.dbt.materialization import Materialization, MaterializationPolicy
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError
@@ -37,7 +42,6 @@ from tablespec.dbt.renderer import DbtRefRenderer
 from tablespec.dbt.routing import RoutingPolicy
 from tablespec.dbt.schema_tests import render_tests_for_column
 from tablespec.models.umf import UMF
-from tablespec.schemas.generators import _resolve_nullable
 from tablespec.schemas.ingest_generator import build_ingest_select
 from tablespec.schemas.sql_generator import SQLPlanGenerator
 
@@ -51,8 +55,16 @@ class DbtProjectError(ValueError):
 # ---------------------------------------------------------------------------
 
 
-def _config_block(mat: Materialization) -> str:
-    """Render the dbt ``{{ config(...) }}`` block for a materialization."""
+def _config_block(mat: Materialization, *, contract: bool = False) -> str:
+    """Render the dbt ``{{ config(...) }}`` block for a materialization.
+
+    When ``contract`` is set, the block opts the model into an ENFORCED data
+    contract (``contract={'enforced': True}``) so the adapter validates the
+    materialized relation against the per-column ``data_type`` + ``constraints:``
+    declared in ``schema.yml``. Only the typed-cast staging models pass
+    ``contract=True``; gold models (whose SELECT shape is derived, not a 1:1 cast)
+    keep their existing config.
+    """
     lines = ["{{", "    config("]
     lines.append(f"        materialized='{mat.strategy}',")
     if mat.incremental_strategy:
@@ -60,6 +72,12 @@ def _config_block(mat: Materialization) -> str:
     if mat.unique_key:
         keys = ", ".join(f'"{k}"' for k in mat.unique_key)
         lines.append(f"        unique_key=[{keys}],")
+    if contract:
+        # An incremental model with an enforced contract MUST pin on_schema_change
+        # (dbt rejects the default 'ignore'); 'fail' surfaces a column-set drift.
+        if mat.strategy == "incremental":
+            lines.append("        on_schema_change='fail',")
+        lines.append(render_contract_config_arg())
     lines.append("    )")
     lines.append("}}")
     return "\n".join(lines)
@@ -81,7 +99,7 @@ def _staging_model_sql(
     umf_data = umf.model_dump(exclude_none=True)
     ingest = build_ingest_select(umf_data, dialect=dialect)
     source = routing.source_literal(f"raw_{umf.table_name}")
-    config = _config_block(mat)
+    config = _config_block(mat, contract=True)
 
     if ingest.has_dedup:
         body = (
@@ -207,12 +225,17 @@ def _tests_by_column(tests: list[ColumnTest]) -> dict[str, list[ColumnTest]]:
     return grouped
 
 
-def _staging_schema_yml(umf: UMF) -> list[str]:
+def _staging_schema_yml(umf: UMF, *, dialect: str) -> list[str]:
     """schema.yml entry for an ``ingested_<t>`` model.
 
-    Emits ``not_null`` / ``unique`` per column, plus ``accepted_values`` for any
-    column carrying a set-membership expectation. (FK ``relationships`` are
-    emitted on the gold model that owns the FK, not the staging model.)
+    The staging model declares an ENFORCED data contract: each column carries a
+    ``data_type`` (the adapter SQL type for its UMF type) and, when non-nullable, a
+    ``not_null`` ``constraints:`` entry -- both enforced by the adapter at
+    ``dbt build`` over the typed-cast SELECT. On top of the contract, columns carry
+    generic ``data_tests:``: ``unique`` per single-column PK / unique-constraint and
+    ``accepted_values`` for set-membership expectations. (FK ``relationships`` are
+    emitted on the gold model that owns the FK, not the staging model. ``not_null``
+    is the contract constraint, not a duplicate generic test.)
     """
     umf_data = umf.model_dump(exclude_none=True)
     pk = umf_data.get("primary_key") or []
@@ -226,21 +249,22 @@ def _staging_schema_yml(umf: UMF) -> list[str]:
             unique_cols.add(uc[0])
 
     av_by_col = _tests_by_column(accepted_values_tests(umf_data))
+    contracts = {c.name: c for c in column_contracts(umf_data)}
 
     lines = [f"  - name: ingested_{umf.table_name}"]
     if umf.description:
         lines.append(f"    description: {_yaml_scalar(umf.description)}")
+    lines.append("    config:")
+    lines.append("      contract:")
+    lines.append("        enforced: true")
     lines.append("    columns:")
     for col in umf_data["columns"]:
         name = col["name"]
-        not_null = not _resolve_nullable(col.get("nullable"))
         is_unique = name in unique_cols
         av_tests = av_by_col.get(name, [])
-        lines.append(f"      - name: {name}")
-        if not_null or is_unique or av_tests:
+        lines.extend(render_column_contract(contracts[name], dialect=dialect))
+        if is_unique or av_tests:
             lines.append("        data_tests:")
-            if not_null:
-                lines.append("          - not_null")
             if is_unique:
                 lines.append("          - unique")
             for t in av_tests:
@@ -279,12 +303,12 @@ def _gold_schema_yml(umf: UMF, registry: NodeRegistry) -> list[str]:
     return lines
 
 
-def _schema_yml(registry: NodeRegistry) -> str:
+def _schema_yml(registry: NodeRegistry, *, dialect: str) -> str:
     """Assemble the project-wide schema.yml for all staging + gold models."""
     lines = ["version: 2", "", "models:"]
     for umf in registry.all_umfs():
         if umf.table_name in registry.staging_tables:
-            lines.extend(_staging_schema_yml(umf))
+            lines.extend(_staging_schema_yml(umf, dialect=dialect))
     for umf in registry.all_umfs():
         if umf.table_name in registry.gold_tables:
             lines.extend(_gold_schema_yml(umf, registry))
@@ -393,7 +417,7 @@ def generate_dbt_dag_project(
         "dbt_project.yml": _dbt_project_yml(project_name),
         "profiles.yml": _profiles_yml(project_name),
         "models/sources.yml": _sources_yml(registry, routing),
-        "models/schema.yml": _schema_yml(registry),
+        "models/schema.yml": _schema_yml(registry, dialect=dialect),
     }
 
     # Staging models (one per real landing table; pure-gold tables have none).
