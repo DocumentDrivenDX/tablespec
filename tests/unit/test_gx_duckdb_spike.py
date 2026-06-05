@@ -41,13 +41,24 @@ pytestmark = [
 class TestGxDuckdbSqlAlchemy:
     """Attempt to use GX's SqlAlchemy execution engine with DuckDB.
 
-    FINDING: GX 1.15.1 hits an IndexError in
-    ``SqlAlchemyExecutionEngine.resolve_metric_bundle`` when DuckDB is the
-    backend.  The bundled SQL query returns an empty result set, causing
-    ``res[0]`` to fail.  This appears to be a dialect-compatibility gap in
-    GX rather than a duckdb-engine bug.
+    FINDING: GX 1.15.1 hits an ``IndexError: list index out of range`` in
+    ``SqlAlchemyExecutionEngine.resolve_metric_bundle`` (sqlalchemy_execution_engine.py:1022)
+    when DuckDB is the backend.  The bundled SQL query returns an empty
+    result set, so ``res[0]`` fails and is re-raised as a
+    ``MetricResolutionError``.  GX captures that exception in the validation
+    result rather than propagating it, so ``validate(...).success`` is
+    ``False`` with ``exception_info`` recording ``"list index out of range"``.
+    This is a dialect-compatibility gap inside Great Expectations (not a
+    duckdb-engine bug) and is out of scope for this project to patch.
 
-    These tests are marked ``xfail`` to document the current state.
+    Rather than a perpetual ``strict=True`` xfail placeholder, the test below
+    pins the gap with a positive assertion: ``success is False`` plus the
+    captured exception substring.  It stays green while the gap exists and
+    will fail intentionally (flagging that this documentation is stale) if a
+    future GX/duckdb-engine upgrade closes the gap.
+
+    Verified reproducing on: great_expectations 1.15.1, duckdb 1.5.0,
+    sqlalchemy 2.0.48.
     """
 
     @pytest.fixture()
@@ -92,23 +103,46 @@ class TestGxDuckdbSqlAlchemy:
             connection_string=connection_string,
             create_temp_table=False,
         )
-        asset = datasource.add_table_asset(
-            name="sample_data", table_name="sample_data"
-        )
+        asset = datasource.add_table_asset(name="sample_data", table_name="sample_data")
         batch_def = asset.add_batch_definition_whole_table("full_table")
         return batch_def.get_batch()
 
-    @pytest.mark.xfail(
-        reason="GX SqlAlchemy engine MetricResolutionError with DuckDB dialect",
-        strict=True,
-    )
-    def test_sqla_not_null(self, gx_sqla_batch):
+    def test_sqla_duckdb_dialect_gap_is_pinned(self, gx_sqla_batch):
+        """Pin the documented GX-SqlAlchemy/DuckDB dialect gap.
+
+        GX's ``SqlAlchemyExecutionEngine.resolve_metric_bundle`` raises
+        ``IndexError: list index out of range`` for the DuckDB dialect, which
+        GX captures (rather than propagating).  The validation therefore
+        reports ``success is False`` with the exception recorded in
+        ``exception_info``.
+
+        This is a pinned-failure test: it documents an upstream GX limitation
+        that is out of scope to fix here.  If a future GX upgrade closes the
+        gap, ``success`` becomes ``True`` / the exception disappears and this
+        test fails -- a signal to remove this pin and re-enable the SqlAlchemy
+        path (see the working Pandas fallback below).
+        """
         import great_expectations as gx
 
         result = gx_sqla_batch.validate(
             gx.expectations.ExpectColumnValuesToNotBeNull(column="id")
         )
-        assert result.success is True
+
+        # The metric resolution fails for the DuckDB dialect, so the
+        # expectation cannot succeed.
+        assert result.success is False
+
+        # GX captures the underlying IndexError in exception_info.
+        exception_messages = [
+            info.get("exception_message", "")
+            for info in (result.exception_info or {}).values()
+            if isinstance(info, dict)
+        ]
+        assert any("index out of range" in message for message in exception_messages), (
+            "Expected the GX-DuckDB 'list index out of range' dialect gap, "
+            f"but got exception_info={result.exception_info!r}. If GX/duckdb-engine "
+            "fixed this, remove this pin and re-enable the SqlAlchemy datasource path."
+        )
 
 
 # ---------------------------------------------------------------------------
