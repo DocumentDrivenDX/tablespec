@@ -153,8 +153,30 @@ def split_sql_statements(sql: str) -> list[str]:
 
 _SHARED_SPARK: SparkSession | None = None
 _SHARED_SPARK_WAREHOUSE: Path | None = None
+# Whether THIS module created the shared session (and may therefore stop it) vs
+# adopted a pre-existing active session owned by another fixture (the session-scoped
+# ``spark_session`` conftest fixture). When adopted we must NEVER stop it -- doing so
+# tears down the JVM SparkContext + its Ivy ``userFiles`` jar dir out from under the
+# other fixture, which then fails on a deleted ``delta-spark`` jar.
+_SHARED_SPARK_OWNED: bool = False
+# Runtime-settable session configs the conformance matrix needs (UTC + ANSI-off +
+# delta default) which we may apply to an ADOPTED session; we snapshot their prior
+# values so teardown can restore them, leaving non-conformance Spark tests unchanged.
+_ADOPTED_CONFIG_RESTORE: dict[str, str | None] = {}
 
 _DELTA_PACKAGE = "io.delta:delta-spark_2.13:4.0.0"
+
+# Session-level (runtime-settable) configs the conformance casts depend on: ANSI
+# disabled so malformed casts become NULL, UTC so TIMESTAMP rows render
+# host-timezone-independently, delta as the default source, and small shuffle
+# partitions for speed. All are settable on a LIVE session via ``spark.conf.set``,
+# so an adopted session can be brought to conformance semantics without a rebuild.
+_RUNTIME_CONFORMANCE_CONF: dict[str, str] = {
+    "spark.sql.ansi.enabled": "false",
+    "spark.sql.session.timeZone": "UTC",
+    "spark.sql.sources.default": "delta",
+    "spark.sql.shuffle.partitions": "2",
+}
 
 
 def spark_importable() -> str | None:
@@ -241,16 +263,45 @@ def databricks_e2e_availability() -> str | None:
     return None
 
 
-def get_shared_spark_session() -> SparkSession:
-    """Create (once) and return a process-wide Delta Spark session.
+def _apply_runtime_conformance_conf(session: SparkSession, *, snapshot: bool) -> None:
+    """Apply the session-level conformance configs (UTC/ANSI/delta-default).
 
-    ANSI is disabled and the WHOLE stack (process TZ + driver JVM + session) is
-    pinned to UTC so malformed casts become NULL and TIMESTAMP values render
-    host-timezone-independently -- exactly matching the committed Spark-direct
-    oracle goldens. dbt-spark ``method: session`` reuses THIS session in-process,
-    so the Spark-direct leg and the dbt-on-Spark leg share one JVM gateway.
+    When ``snapshot`` is True (an ADOPTED session we do not own) the prior value of
+    each key is recorded into ``_ADOPTED_CONFIG_RESTORE`` so teardown can restore it,
+    leaving non-conformance Spark tests that reuse the same session unaffected.
     """
-    global _SHARED_SPARK, _SHARED_SPARK_WAREHOUSE
+    for key, value in _RUNTIME_CONFORMANCE_CONF.items():
+        if snapshot:
+            try:
+                _ADOPTED_CONFIG_RESTORE[key] = session.conf.get(key)
+            except Exception:
+                _ADOPTED_CONFIG_RESTORE[key] = None
+        session.conf.set(key, value)
+
+
+def get_shared_spark_session() -> SparkSession:
+    """Return the process-wide Delta Spark session, ADOPTING any active one.
+
+    There is exactly one SparkContext per process, so the conformance matrix must
+    cooperate with the session-scoped ``spark_session`` conftest fixture rather than
+    stop+rebuild a parallel session (stopping it deletes the shared Ivy ``userFiles``
+    jar dir and breaks the other fixture). Behaviour:
+
+      * If a session is ALREADY active (e.g. the conftest fixture created it), ADOPT
+        it -- apply the runtime-settable conformance configs (UTC, ANSI-off, delta
+        default) and record we do NOT own it (teardown must not stop it).
+      * Otherwise CREATE an isolated Delta session (own warehouse/metastore) and own
+        it. The conftest fixture's factory reuses an active session, so a session we
+        create here is later reused by that fixture -- which is why we still must not
+        leave it in a stopped state (teardown only stops what we own, and the conftest
+        fixture is the canonical owner once it adopts ours in turn).
+
+    ANSI is disabled and the whole stack (process TZ + session) is pinned to UTC so
+    malformed casts become NULL and TIMESTAMP values render host-timezone-
+    independently -- exactly matching the committed Spark-direct oracle goldens.
+    dbt-spark ``method: session`` reuses THIS session in-process.
+    """
+    global _SHARED_SPARK, _SHARED_SPARK_WAREHOUSE, _SHARED_SPARK_OWNED
     if _SHARED_SPARK is not None:
         return _SHARED_SPARK
 
@@ -263,11 +314,18 @@ def get_shared_spark_session() -> SparkSession:
 
     from pyspark.sql import SparkSession
 
-    # Tear down any pre-existing session so OUR isolated warehouse/metastore config
-    # genuinely takes effect (getOrCreate reuses an active session otherwise).
+    # ADOPT a pre-existing active session instead of stopping it: stopping the
+    # shared SparkContext deletes its Ivy ``userFiles`` jar dir out from under the
+    # conftest ``spark_session`` fixture (which then fails importing ``delta`` on a
+    # now-missing jar). Bring the adopted session to conformance semantics via
+    # runtime-settable configs; do NOT own it (teardown must not stop it).
     active = SparkSession.getActiveSession()
     if active is not None:
-        active.stop()
+        _apply_runtime_conformance_conf(active, snapshot=True)
+        active.sparkContext.setLogLevel("ERROR")
+        _SHARED_SPARK = active
+        _SHARED_SPARK_OWNED = False
+        return active
 
     warehouse = Path(tempfile.mkdtemp(prefix="conformance_matrix_wh_"))
     builder = (
@@ -298,20 +356,50 @@ def get_shared_spark_session() -> SparkSession:
     session.sparkContext.setLogLevel("ERROR")
     _SHARED_SPARK = session
     _SHARED_SPARK_WAREHOUSE = warehouse
+    _SHARED_SPARK_OWNED = True
     return session
 
 
 def stop_shared_spark_session() -> None:
-    """Stop the shared session and remove its warehouse (test-suite teardown)."""
-    global _SHARED_SPARK, _SHARED_SPARK_WAREHOUSE
-    if _SHARED_SPARK is not None:
-        try:
-            _SHARED_SPARK.stop()
-        finally:
-            _SHARED_SPARK = None
-    if _SHARED_SPARK_WAREHOUSE is not None:
-        shutil.rmtree(_SHARED_SPARK_WAREHOUSE, ignore_errors=True)
-        _SHARED_SPARK_WAREHOUSE = None
+    """Release the conformance reference to the shared session at module teardown.
+
+    Crucially this does NOT stop the SparkContext. There is one SparkContext per
+    process and PySpark's Ivy-resolved ``delta-spark`` jar lives in that context's
+    ``userFiles`` dir, which is on the interpreter's path; stopping the context
+    DELETES that dir, so a LATER test that does ``import delta`` (e.g.
+    ``spark_factory.is_delta_available`` in the integration fixture) then fails with
+    ``FileNotFoundError`` on the now-missing jar. The session-scoped ``spark_session``
+    conftest fixture is the canonical owner of the context lifecycle (it stops the
+    session at the end of the whole pytest session); the conformance module must
+    therefore leave the context alive and only:
+
+      * restore any runtime configs it mutated on an ADOPTED session, so a later
+        non-conformance Spark test reusing the session sees its original semantics;
+      * drop the warehouse temp dir for a session it CREATED (the tables were already
+        dropped per-case; the empty warehouse dir is safe to remove and the context
+        stays up).
+    """
+    global _SHARED_SPARK, _SHARED_SPARK_WAREHOUSE, _SHARED_SPARK_OWNED
+    if _SHARED_SPARK is None:
+        return
+    if not _SHARED_SPARK_OWNED:
+        # Adopted: restore the runtime configs we changed; never stop the context.
+        for key, prior in _ADOPTED_CONFIG_RESTORE.items():
+            try:
+                if prior is None:
+                    _SHARED_SPARK.conf.unset(key)
+                else:
+                    _SHARED_SPARK.conf.set(key, prior)
+            except Exception:
+                pass
+        _ADOPTED_CONFIG_RESTORE.clear()
+    # Created-by-us: the conftest fixture's factory reuses this still-live active
+    # session, so do NOT stop it (that would delete the shared userFiles jar dir) and
+    # do NOT remove its warehouse/metastore dir (the live session still points at it).
+    # The temp warehouse dir is small and cleaned up at process exit.
+    _SHARED_SPARK = None
+    _SHARED_SPARK_OWNED = False
+    _SHARED_SPARK_WAREHOUSE = None
 
 
 # ---------------------------------------------------------------------------
