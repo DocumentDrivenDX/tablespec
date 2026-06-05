@@ -126,6 +126,16 @@ _AGGREGATE_FUNCTIONS = [
     "AVG(",
 ]
 
+# Internal name of the UNION-of-sources base view for the union_sources strategy.
+# It must NOT collide with the target table name: when a gold target is itself
+# named ``member_universe`` (as the survivorship corpus is), reusing that literal
+# name made the union base view and the final-assembly view share a name. The CTE
+# conversion dedups CTE names, so the SECOND (the final assembly carrying the
+# survivorship COALESCE) was dropped and the model ended at the last join step --
+# the declared survivorship column was never produced. A distinct internal name
+# keeps the final assembly as the terminal CTE.
+_UNION_UNIVERSE_VIEW = "union_universe"
+
 
 def _parse_table_ref(name: str) -> tuple[str | None, str]:
     """Split a possibly-qualified table name into (namespace, bare_name).
@@ -359,7 +369,7 @@ class SQLPlanGenerator:
 
         # Header
         if base_table_strategy == "union_sources":
-            header_base = "member_universe (UNION of source tables)"
+            header_base = f"{_UNION_UNIVERSE_VIEW} (UNION of source tables)"
         elif base_table_strategy == "unpivot":
             header_base = f"{base_table} (UNPIVOT)"
         else:
@@ -418,7 +428,9 @@ class SQLPlanGenerator:
 
         # Final assembly
         effective_base = (
-            "member_universe" if base_table_strategy == "union_sources" else base_table
+            _UNION_UNIVERSE_VIEW
+            if base_table_strategy == "union_sources"
+            else base_table
         )
         sections.append(
             self._generate_final_assembly(
@@ -714,14 +726,14 @@ UNPIVOT EXCLUDE NULLS (
         self._accumulated_columns[pk_col] = "base"
 
         return f"""-- ============================================================================
--- STEP 0: Create member_universe from UNION of {len(union_sources)} source tables
+-- STEP 0: Create {_UNION_UNIVERSE_VIEW} from UNION of {len(union_sources)} source tables
 -- ============================================================================
-CREATE OR REPLACE TEMPORARY VIEW member_universe AS
+CREATE OR REPLACE TEMPORARY VIEW {_UNION_UNIVERSE_VIEW} AS
 {union_sql};
 
--- Create base view from member_universe
+-- Create base view from {_UNION_UNIVERSE_VIEW}
 CREATE OR REPLACE TEMPORARY VIEW disposition_base AS
-SELECT {pk_col} FROM member_universe;"""
+SELECT {pk_col} FROM {_UNION_UNIVERSE_VIEW};"""
 
     # ------------------------------------------------------------------
     # Derived columns helpers
@@ -771,7 +783,12 @@ SELECT {pk_col} FROM member_universe;"""
             for cand in col.derivation.candidates:
                 if cand.expression and (
                     cand.table
-                    in (table_umf.table_name, "intermediate", "member_universe")
+                    in (
+                        table_umf.table_name,
+                        "intermediate",
+                        "member_universe",
+                        _UNION_UNIVERSE_VIEW,
+                    )
                 ):
                     return self._substitute_template_vars(cand.expression)
         return None

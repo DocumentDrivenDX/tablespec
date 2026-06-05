@@ -230,18 +230,19 @@ cases:
 
   - id: gold_survivorship_priority
     kind: gold
-    pending: true
-    # KNOWN DIVERGENCE surfaced by the executed matrix (Phase 3): the generated
-    # gold model stops at the per-source join CTEs (system_a__phone,
-    # system_b__phone_number) and never emits the priority-COALESCE final assembly
-    # that would produce the declared `phone` survivorship column -- so the
-    # contract/schema selecting `phone` fails (column not found). The
-    # union_sources + priority-COALESCE survivorship final-assembly is not emitted
-    # for this shape; a generator fix is required before it executes to a stable
-    # golden. Gated -> skipped visibly, never silently passed.
-    divergence: >-
-      priority-COALESCE survivorship final assembly is not emitted; declared
-      `phone` column is never produced by the gold model
+    # FIXED (was a KNOWN DIVERGENCE): the generated gold model appeared to stop at
+    # the per-source join CTEs (system_a__phone, system_b__phone_number) and never
+    # produce the declared `phone` survivorship column (column-not-found on duckdb;
+    # all-NULL on spark). Root cause was a CTE-name collision: the union base view
+    # AND the final-assembly view were BOTH named after the target table
+    # (member_universe), and the views->CTE conversion dedups CTE names, so the
+    # SECOND (the final assembly carrying the priority-COALESCE) was dropped and the
+    # model ended at the last join step. The union base view is now named
+    # ``union_universe`` (distinct from any target table), so the final assembly is
+    # the terminal CTE and the priority-sorted COALESCE(system_a.phone,
+    # system_b.phone_number) `phone` column is produced identically on both
+    # backends.
+    golden: tests/golden/ingest_parity/gold_survivorship_priority.spark.expected.json
     dir: tests/conformance/corpus/gold/gold_survivorship_priority
     generator: _generate_member_universe_view
     ts_precision: 0
