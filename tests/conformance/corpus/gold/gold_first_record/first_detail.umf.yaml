@@ -1,0 +1,40 @@
+version: "1.0"
+table_name: first_detail
+description: >-
+  GOLD - first record per parent from the 1:N detail table. The one_to_many
+  cardinality drives the first_record strategy (ROW_NUMBER partitioned dedup).
+primary_key:
+  - parent_id
+metadata:
+  base_table: hub
+columns:
+  - name: parent_id
+    data_type: INTEGER
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: detail_value
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: detail
+          column: detail_value
+          priority: 1
+      survivorship:
+        strategy: single_source
+        explanation: First record from detail
+relationships:
+  outgoing:
+    - target_table: detail
+      source_column: parent_id
+      target_column: parent_id
+      type: foreign_to_primary
+      confidence: 0.9
+      cardinality:
+        type: one_to_many
+        notation: "1:N"
+        source_multiplicity: "1"
+        target_multiplicity: "*"

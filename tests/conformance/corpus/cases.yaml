@@ -1,0 +1,233 @@
+# Unified conformance corpus manifest (Phase 2).
+#
+# Each case is a declarative record consumed by tests/conformance/corpus/registry.py.
+# A case ties together: the UMF spec, the ordered raw CSV batch(es), the committed
+# canonical golden (the SparkDirect oracle output -- "the previous implementation"),
+# the timestamp precision the golden was rendered at, and a tag list.
+#
+# Paths are relative to the repo root.
+#
+# Tag taxonomy (docs/helix/03-test/conformance-acceptance.md Section 4.2):
+#   types     - scalar type coverage (passthrough, numeric, boolean)
+#   decimal   - decimal precision / scale / overflow boundaries
+#   datetime  - date/timestamp format parsing
+#   tz        - timezone-aware + sub-second timestamp behavior
+#   incremental - incremental (merge / append) ingestion
+#   snapshot  - full-snapshot ingestion
+#   pk / nopk - has / lacks a primary key (dedup vs blind-append)
+#   multibatch - 3+ batches / out-of-order _load_ts
+#   gold      - cross-table gold derivation (join/pivot/unpivot/window/etc)
+#
+# ts_precision: fractional-second digits the golden is rendered at and every
+#   engine leg must canonicalize at. The existing second-resolution ingest corpus
+#   pins 0 (its goldens are byte-for-byte unchanged); the new sub-second/tz case
+#   uses microsecond (6). See canonical.DEFAULT_TS_PRECISION.
+
+version: 1
+
+# Where ingest fixture files (UMF, CSV, golden) live. Existing fixtures remain
+# under tests/fixtures/ingest with goldens under tests/golden/ingest_parity; new
+# cases live under this corpus directory.
+defaults:
+  ts_precision: 0
+
+cases:
+  # --------------------------------------------------------------------------
+  # Existing ingest corpus (migrated in place; goldens unchanged byte-for-byte).
+  # --------------------------------------------------------------------------
+  - id: types_basic
+    kind: ingest
+    umf: tests/fixtures/ingest/types_basic.umf.yaml
+    batches: [tests/fixtures/ingest/types_basic.raw.csv]
+    golden: tests/golden/ingest_parity/types_basic.spark.expected.json
+    ts_precision: 0
+    tags: [types, snapshot, nopk]
+
+  - id: currency_amounts
+    kind: ingest
+    umf: tests/fixtures/ingest/currency_amounts.umf.yaml
+    batches: [tests/fixtures/ingest/currency_amounts.raw.csv]
+    golden: tests/golden/ingest_parity/currency_amounts.spark.expected.json
+    ts_precision: 0
+    tags: [decimal, snapshot, nopk]
+
+  - id: dates_formats
+    kind: ingest
+    umf: tests/fixtures/ingest/dates_formats.umf.yaml
+    batches: [tests/fixtures/ingest/dates_formats.raw.csv]
+    golden: tests/golden/ingest_parity/dates_formats.spark.expected.json
+    ts_precision: 0
+    tags: [datetime, snapshot, nopk]
+
+  - id: nopad_formats
+    kind: ingest
+    umf: tests/fixtures/ingest/nopad_formats.umf.yaml
+    batches: [tests/fixtures/ingest/nopad_formats.raw.csv]
+    golden: tests/golden/ingest_parity/nopad_formats.spark.expected.json
+    ts_precision: 0
+    tags: [datetime, decimal, snapshot, nopk]
+
+  - id: parity_hardening
+    kind: ingest
+    umf: tests/fixtures/ingest/parity_hardening.umf.yaml
+    batches: [tests/fixtures/ingest/parity_hardening.raw.csv]
+    golden: tests/golden/ingest_parity/parity_hardening.spark.expected.json
+    # Sub-second formats are in this fixture but the golden is still SECOND
+    # resolution; the dedicated micro/null parity tests in test_dbt_duckdb_parity
+    # assert the sub-second behavior below the canonical granularity.
+    ts_precision: 0
+    tags: [datetime, snapshot, nopk]
+
+  - id: provider_snapshot
+    kind: ingest
+    umf: tests/fixtures/ingest/provider_snapshot.umf.yaml
+    batches: [tests/fixtures/ingest/provider_snapshot.raw.csv]
+    golden: tests/golden/ingest_parity/provider_snapshot.spark.expected.json
+    ts_precision: 0
+    tags: [snapshot, nopk]
+
+  - id: members_snapshot_pk
+    kind: ingest
+    umf: tests/fixtures/ingest/members_snapshot_pk.umf.yaml
+    batches: [tests/fixtures/ingest/members_snapshot_pk.raw.csv]
+    golden: tests/golden/ingest_parity/members_snapshot_pk.spark.expected.json
+    ts_precision: 0
+    tags: [snapshot, pk, decimal, datetime]
+
+  - id: claims_incremental_pk
+    kind: ingest
+    umf: tests/fixtures/ingest/claims_incremental_pk.umf.yaml
+    batches:
+      - tests/fixtures/ingest/claims_incremental_pk.batch1.csv
+      - tests/fixtures/ingest/claims_incremental_pk.batch2.csv
+    golden: tests/golden/ingest_parity/claims_incremental_pk.spark.expected.json
+    ts_precision: 0
+    tags: [incremental, pk, decimal, datetime]
+
+  - id: messy_incremental_pk
+    kind: ingest
+    umf: tests/fixtures/ingest/messy_incremental_pk.umf.yaml
+    batches:
+      - tests/fixtures/ingest/messy_incremental_pk.batch1.csv
+      - tests/fixtures/ingest/messy_incremental_pk.batch2.csv
+    golden: tests/golden/ingest_parity/messy_incremental_pk.spark.expected.json
+    ts_precision: 0
+    tags: [incremental, pk, decimal, datetime]
+
+  - id: events_incremental_nopk
+    kind: ingest
+    umf: tests/fixtures/ingest/events_incremental_nopk.umf.yaml
+    batches:
+      - tests/fixtures/ingest/events_incremental_nopk.batch1.csv
+      - tests/fixtures/ingest/events_incremental_nopk.batch2.csv
+    golden: tests/golden/ingest_parity/events_incremental_nopk.spark.expected.json
+    ts_precision: 0
+    tags: [incremental, nopk, decimal, datetime]
+
+  # --------------------------------------------------------------------------
+  # NEW ingest cases (Phase 1 deliverable; goldens regenerated by the oracle).
+  # --------------------------------------------------------------------------
+  - id: decimal_boundaries
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/decimal_boundaries.umf.yaml
+    batches: [tests/conformance/corpus/ingest/decimal_boundaries.raw.csv]
+    golden: tests/golden/ingest_parity/decimal_boundaries.spark.expected.json
+    ts_precision: 0
+    tags: [decimal, snapshot, nopk]
+
+  - id: tz_subsecond_timestamps
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/tz_subsecond_timestamps.umf.yaml
+    batches: [tests/conformance/corpus/ingest/tz_subsecond_timestamps.raw.csv]
+    golden: tests/golden/ingest_parity/tz_subsecond_timestamps.spark.expected.json
+    # Microsecond precision so the .SSS/.SSSSSS fractional values are visible in
+    # the golden (this is the case the configurable precision exists for).
+    ts_precision: 6
+    tags: [datetime, tz, snapshot, nopk]
+
+  - id: multibatch_ooo_tiebreak
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/multibatch_ooo_tiebreak.umf.yaml
+    # 3 batches with OUT-OF-ORDER _load_ts across batches but UNIQUE _load_ts per
+    # key. Rescoped per acceptance must-fix: NO exact-tie deterministic tie-break
+    # and NO tombstone/delete-marker (neither exists in the previous
+    # implementation); only out-of-order-but-unique _load_ts is exercised.
+    batches:
+      - tests/conformance/corpus/ingest/multibatch_ooo_tiebreak.batch1.csv
+      - tests/conformance/corpus/ingest/multibatch_ooo_tiebreak.batch2.csv
+      - tests/conformance/corpus/ingest/multibatch_ooo_tiebreak.batch3.csv
+    golden: tests/golden/ingest_parity/multibatch_ooo_tiebreak.spark.expected.json
+    ts_precision: 0
+    tags: [incremental, pk, multibatch]
+
+  # --------------------------------------------------------------------------
+  # NEW gold-derivation cases (executed via generate_sql_plan on BOTH backends).
+  # The golden is the SparkDirect oracle output for the gold model. The orphan-FK
+  # negative for gold_fk_integrity is a dbt relationships schema-test assertion,
+  # not a canonical-row comparison (see acceptance doc Section 4.3 #10).
+  #
+  # These cases are DECLARED in the corpus now (id, generator path, source UMFs +
+  # CSVs committed under their dir) so the taxonomy and the SQLPlanGeneratorGold
+  # contract are pinned. They are marked ``pending: true``: their canonical
+  # goldens are produced by the executed-gold phase (running the generated gold
+  # SQL on BOTH the Spark session AND DuckDB via the dbt-generated gold project,
+  # per acceptance doc Section 5.C). Phase 2 does NOT fabricate a golden it cannot
+  # yet execute -- the corpus-validation test asserts each pending gold dir holds
+  # its source fixtures, and the registry exposes ``pending`` so the executed-gold
+  # runner picks them up and writes the golden under ``--update-golden``.
+  # --------------------------------------------------------------------------
+  - id: gold_join
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_join
+    generator: _generate_join_step
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_pivot
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_pivot
+    generator: _generate_pivot_join
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_unpivot
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_unpivot
+    generator: _generate_unpivot_base_view
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_window_aggregation
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_window_aggregation
+    generator: _generate_pre_aggregation_views
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_survivorship_priority
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_survivorship_priority
+    generator: _generate_member_universe_view
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_first_record
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_first_record
+    generator: _generate_first_record_join
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_fk_integrity
+    kind: gold
+    pending: true
+    dir: tests/conformance/corpus/gold/gold_fk_integrity
+    generator: relationships_schema_test
+    ts_precision: 0
+    tags: [gold]

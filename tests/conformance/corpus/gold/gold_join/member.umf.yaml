@@ -1,0 +1,14 @@
+version: "1.0"
+table_name: member
+description: Member master (snapshot source for gold_join)
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: member_name
+    data_type: VARCHAR
+    nullable:
+      default: true

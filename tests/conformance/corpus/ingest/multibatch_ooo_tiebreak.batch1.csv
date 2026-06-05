@@ -1,0 +1,6 @@
+entity_key,state,revision,amount,_source_file,_load_ts
+K1,created,1,10.00,b1.csv,2024-01-01 08:00:00
+K1,updated,2,20.00,b1.csv,2024-01-01 12:00:00
+K1,early-listed-but-stale,3,30.00,b1.csv,2024-01-01 06:00:00
+K2,seed,1,5.00,b1.csv,2024-01-01 09:00:00
+K3,seed,1,7.00,b1.csv,2024-01-01 09:30:00

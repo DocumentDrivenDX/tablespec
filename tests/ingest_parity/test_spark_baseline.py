@@ -40,6 +40,8 @@ import yaml
 
 from tablespec.schemas.ingest_generator import generate_ingest_sql
 
+from tests.conformance.corpus.registry import Case, ingest_cases
+
 from .canonical import to_json
 
 pyspark = pytest.importorskip("pyspark", reason="PySpark required for Spark baseline")
@@ -56,28 +58,14 @@ pytestmark = [
     pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning"),
 ]
 
-FIXTURE_DIR = Path(__file__).parent.parent / "fixtures" / "ingest"
-GOLDEN_DIR = Path(__file__).parent.parent / "golden" / "ingest_parity"
-
 # Ivy coordinate for Delta matching the pinned Spark 4.0 line.
 _DELTA_PACKAGE = "io.delta:delta-spark_2.13:4.0.0"
 
-# Fixtures whose raw input arrives in two batches: an initial load, then a
-# second batch. For incremental+pk these exercise the dedup-latest window +
-# MERGE upsert path (including a within-batch2 duplicate key, so dedup runs on
-# the MERGE batch and not only on the initial load). For the keyless
-# incremental fixture (events) the second batch exercises the blind-INSERT
-# append branch, capturing the duplicate-row accumulation semantics in the
-# golden (a row identical to batch1 is re-ingested and appears twice).
-_TWO_BATCH = {
-    "claims_incremental_pk",
-    "messy_incremental_pk",
-    "events_incremental_nopk",
-}
-
-
-def _discover_fixtures() -> list[str]:
-    return sorted(p.name[: -len(".umf.yaml")] for p in FIXTURE_DIR.glob("*.umf.yaml"))
+# The fixture corpus (UMF + ordered raw batches + per-case ts_precision + the
+# committed golden) is now declared in tests/conformance/corpus/cases.yaml and
+# loaded via the registry. Multi-batch cases simply list >1 batch there; the
+# dedup-latest window + MERGE upsert (incremental+pk) or blind-INSERT append
+# (keyless incremental) is exercised by replaying the batches in order.
 
 
 @pytest.fixture(scope="session")
@@ -199,17 +187,25 @@ def _decimal_scales(umf: dict[str, Any]) -> dict[str, int | None]:
     return scales
 
 
-def _collect_canonical(spark, umf: dict[str, Any], ingested_table: str) -> str:
+def _collect_canonical(
+    spark, umf: dict[str, Any], ingested_table: str, ts_precision: int
+) -> str:
     columns = [c["name"] for c in umf["columns"]]
     rows = [r.asDict() for r in spark.table(ingested_table).collect()]
-    return to_json(rows, columns, _decimal_scales(umf))
+    # Each corpus case pins its own ts_precision: the second-resolution fixtures
+    # pin 0 (their committed goldens stay byte-for-byte); the sub-second/tz case
+    # pins 6 (microsecond) so fractional-second values are visible in the golden.
+    return to_json(rows, columns, _decimal_scales(umf), ts_precision=ts_precision)
+
+
+_INGEST_CASES = ingest_cases()
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("fixture", _discover_fixtures())
-def test_spark_ingest_baseline(spark, fixture: str, request) -> None:
-    umf_path = FIXTURE_DIR / f"{fixture}.umf.yaml"
-    umf = yaml.safe_load(umf_path.read_text())
+@pytest.mark.parametrize("case", _INGEST_CASES, ids=[c.id for c in _INGEST_CASES])
+def test_spark_ingest_baseline(spark, case: Case, request) -> None:
+    assert case.umf is not None and case.golden is not None
+    umf = yaml.safe_load(case.umf.read_text())
     table = umf["table_name"]
     raw_table = f"raw_{table}"
     ingested_table = f"ingested_{table}"
@@ -227,32 +223,24 @@ def test_spark_ingest_baseline(spark, fixture: str, request) -> None:
     for stmt in create_stmts:
         spark.sql(stmt)
 
-    if fixture in _TWO_BATCH:
-        batches = [
-            FIXTURE_DIR / f"{fixture}.batch1.csv",
-            FIXTURE_DIR / f"{fixture}.batch2.csv",
-        ]
-    else:
-        batches = [FIXTURE_DIR / f"{fixture}.raw.csv"]
-
-    for batch in batches:
+    for batch in case.batches:
         assert batch.exists(), f"missing raw batch: {batch}"
         _load_raw(spark, umf, batch, raw_table)
         spark.sql(transform_stmt)
 
-    actual = _collect_canonical(spark, umf, ingested_table)
+    actual = _collect_canonical(spark, umf, ingested_table, case.ts_precision)
 
-    golden = GOLDEN_DIR / f"{fixture}.spark.expected.json"
+    golden = case.golden
     if request.config.getoption("--update-golden", default=False):
         golden.parent.mkdir(parents=True, exist_ok=True)
         golden.write_text(actual)
 
     assert golden.exists(), (
-        f"golden missing for '{fixture}': {golden}. Regenerate with --update-golden."
+        f"golden missing for '{case.id}': {golden}. Regenerate with --update-golden."
     )
     expected = golden.read_text()
     assert actual == expected, (
-        f"Spark baseline mismatch for '{fixture}'.\n"
+        f"Spark baseline mismatch for '{case.id}'.\n"
         f"--- expected ---\n{expected}\n--- actual ---\n{actual}"
     )
 

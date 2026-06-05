@@ -43,15 +43,9 @@ pytest.importorskip("dbt", reason="dbt-core required for dbt parity")
 
 from tablespec.schemas.dbt_generator import generate_dbt_project  # noqa: E402
 
+from tests.conformance.corpus.registry import Case, ingest_cases  # noqa: E402
+
 from .canonical import to_json  # noqa: E402
-from .test_spark_baseline import _TWO_BATCH  # noqa: E402
-
-FIXTURE_DIR = Path(__file__).parent.parent / "fixtures" / "ingest"
-GOLDEN_DIR = Path(__file__).parent.parent / "golden" / "ingest_parity"
-
-
-def _discover_fixtures() -> list[str]:
-    return sorted(p.name[: -len(".umf.yaml")] for p in FIXTURE_DIR.glob("*.umf.yaml"))
 
 
 def _connect(db_path: Path):
@@ -59,15 +53,6 @@ def _connect(db_path: Path):
     con = duckdb.connect(str(db_path))
     con.execute("SET TimeZone='UTC'")
     return con
-
-
-def _batches_for(fixture: str) -> list[Path]:
-    if fixture in _TWO_BATCH:
-        return [
-            FIXTURE_DIR / f"{fixture}.batch1.csv",
-            FIXTURE_DIR / f"{fixture}.batch2.csv",
-        ]
-    return [FIXTURE_DIR / f"{fixture}.raw.csv"]
 
 
 def _load_raw(db_path: Path, umf: dict[str, Any], csv_path: Path) -> None:
@@ -105,7 +90,7 @@ def _decimal_scales(umf: dict[str, Any]) -> dict[str, int | None]:
     return scales
 
 
-def _collect_canonical(db_path: Path, umf: dict[str, Any]) -> str:
+def _collect_canonical(db_path: Path, umf: dict[str, Any], ts_precision: int) -> str:
     table = umf["table_name"]
     columns = [c["name"] for c in umf["columns"]]
     con = _connect(db_path)
@@ -115,7 +100,9 @@ def _collect_canonical(db_path: Path, umf: dict[str, Any]) -> str:
     finally:
         con.close()
     rows = [dict(zip(columns, rec, strict=True)) for rec in records]
-    return to_json(rows, columns, _decimal_scales(umf))
+    # Match the Spark baseline: each case canonicalizes at its own pinned
+    # ts_precision (0 for the second-resolution corpus, 6 for the sub-second case).
+    return to_json(rows, columns, _decimal_scales(umf), ts_precision=ts_precision)
 
 
 def _run_dbt(project: Path, db_path: Path) -> None:
@@ -141,34 +128,37 @@ def _run_dbt(project: Path, db_path: Path) -> None:
         )
 
 
+_INGEST_CASES = ingest_cases()
+
+
 @pytest.mark.slow
-@pytest.mark.parametrize("fixture", _discover_fixtures())
-def test_dbt_duckdb_parity(fixture: str) -> None:
+@pytest.mark.parametrize("case", _INGEST_CASES, ids=[c.id for c in _INGEST_CASES])
+def test_dbt_duckdb_parity(case: Case) -> None:
     if shutil.which("dbt") is None:
         pytest.skip("dbt CLI not on PATH")
 
-    umf_path = FIXTURE_DIR / f"{fixture}.umf.yaml"
-    umf = yaml.safe_load(umf_path.read_text())
+    assert case.umf is not None and case.golden is not None
+    umf = yaml.safe_load(case.umf.read_text())
 
-    project = Path(tempfile.mkdtemp(prefix=f"tablespec_dbt_{fixture}_"))
+    project = Path(tempfile.mkdtemp(prefix=f"tablespec_dbt_{case.id}_"))
     try:
         generate_dbt_project(umf, dialect="duckdb", out_dir=project)
         db_path = project / "ingest.duckdb"
 
-        for batch in _batches_for(fixture):
+        for batch in case.batches:
             assert batch.exists(), f"missing raw batch: {batch}"
             _load_raw(db_path, umf, batch)
             _run_dbt(project, db_path)
 
-        actual = _collect_canonical(db_path, umf)
+        actual = _collect_canonical(db_path, umf, case.ts_precision)
     finally:
         shutil.rmtree(project, ignore_errors=True)
 
-    golden = GOLDEN_DIR / f"{fixture}.spark.expected.json"
-    assert golden.exists(), f"Spark golden missing for '{fixture}': {golden}"
+    golden = case.golden
+    assert golden.exists(), f"Spark golden missing for '{case.id}': {golden}"
     expected = golden.read_text()
     assert actual == expected, (
-        f"dbt/duckdb parity mismatch for '{fixture}' (must match the Spark golden).\n"
+        f"dbt/duckdb parity mismatch for '{case.id}' (must match the Spark golden).\n"
         f"--- expected (spark golden) ---\n{expected}\n--- actual (dbt/duckdb) ---\n{actual}"
     )
 

@@ -1,0 +1,36 @@
+table_name: tz_subsecond_timestamps
+description: >-
+  Sub-second timestamp coverage rendered at MICROSECOND canonical precision so
+  fractional-second divergence between engines is visible (not hidden by the
+  second-resolution default). Uses the registry .SSSSSS (microsecond) and .SSS
+  (millisecond) formats, which parse byte-identically in Spark and DuckDB. The
+  session is pinned to UTC on every engine, so the typed timestamps land as naive
+  wall-clock values; the canonical renderer therefore emits NO tz suffix for them.
+  NOTE: the cross-engine ingest cast registry has no timezone-offset format (only
+  UTC-pinned naive timestamps parse identically in Spark and DuckDB), so a
+  tz-aware typed column is not expressible at the ingest seam. The explicit-TZ
+  rendering contract (tz-aware -> trailing Z, naive -> no suffix, the two never
+  byte-equal) is asserted directly on canonical.render_value in
+  tests/ingest_parity/test_canonical_precision.py; this corpus case pins the
+  sub-second microsecond rendering + the .SSS width boundary (Spark NULLs 4+
+  fractional digits) into an executed cross-engine golden.
+ingestion:
+  mode: snapshot
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  - name: micros_ts
+    data_type: TIMESTAMP
+    format: YYYY-MM-DD HH:MM:SS.SSSSSS
+    nullable: true
+  - name: millis_ts
+    data_type: TIMESTAMP
+    format: YYYY-MM-DD HH:MM:SS.SSS
+    nullable: true
+  # Plain second-resolution timestamp: renders with .000000 at microsecond
+  # precision, proving whole-second values carry the explicit fractional zeros.
+  - name: whole_ts
+    data_type: TIMESTAMP
+    format: YYYY-MM-DD HH:MM:SS
+    nullable: true

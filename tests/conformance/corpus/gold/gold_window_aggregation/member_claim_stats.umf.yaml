@@ -1,0 +1,50 @@
+version: "1.0"
+table_name: member_claim_stats
+description: >-
+  GOLD - per-member claim aggregation built over the union_sources member
+  universe. claim_count is a GROUP BY COUNT pre-aggregation; latest_claim_status
+  is a window pre-aggregation (the status of the most recent claim, ordered by
+  service_date DESC). Exercises _generate_pre_aggregation_views (window + grouped
+  aggregation).
+primary_key:
+  - member_id
+metadata:
+  base_table_strategy: union_sources
+  source_tables:
+    - member
+    - claims
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: claim_count
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: claims
+          column: claim_id
+          expression: COUNT(*)
+          priority: 1
+      survivorship:
+        strategy: single_source
+        explanation: Count of claims per member
+  - name: latest_claim_status
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: claims
+          column: status
+          expression: MAX_BY(status, service_date)
+          order_by:
+            - service_date DESC
+          priority: 1
+      survivorship:
+        strategy: single_source
+        explanation: Status of the most recent claim (window over service_date)

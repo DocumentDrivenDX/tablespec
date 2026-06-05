@@ -1,0 +1,44 @@
+version: "1.0"
+table_name: long_scores
+description: >-
+  GOLD - UNPIVOT the wide per-quarter score columns into a long (member, quarter,
+  score) shape. Exercises _generate_unpivot_base_view (UNPIVOT EXCLUDE NULLS).
+metadata:
+  base_table: wide_scores
+  base_table_strategy: unpivot
+  unpivot_columns:
+    - q1
+    - q2
+    - q3
+  unpivot_value_column: score
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: wide_scores
+          column: member_id
+          priority: 1
+  - name: source_column
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: wide_scores
+          column: source_column
+          priority: 1
+  - name: score
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: wide_scores
+          column: score
+          priority: 1

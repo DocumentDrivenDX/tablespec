@@ -119,7 +119,10 @@ def test_dbt_runs_on_local_spark_session() -> None:
         assert dict(out.dtypes)["occurred_at"] == "timestamp"
 
         rows = [r.asDict() for r in out.collect()]
-        actual = to_json(rows, columns, _decimal_scales(umf))
+        # events_incremental_nopk is a SECOND-resolution corpus case (ts_precision=0
+        # in cases.yaml); pin it so this leg compares to the same committed golden
+        # the Spark-direct oracle produced (canonical default is now microsecond).
+        actual = to_json(rows, columns, _decimal_scales(umf), ts_precision=0)
     finally:
         if spark is not None:
             spark.stop()

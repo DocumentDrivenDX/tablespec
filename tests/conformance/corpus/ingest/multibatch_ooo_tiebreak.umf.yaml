@@ -1,0 +1,38 @@
+table_name: multibatch_ooo
+description: >-
+  Incremental upsert across 3+ batches whose _load_ts values arrive OUT OF ORDER.
+  _load_ts is UNIQUE per key, so the per-batch dedup-latest window (max _load_ts
+  within a batch wins) is fully determined with NO tie-break. Two distinct
+  out-of-order behaviors of the EXISTING oracle are pinned, exactly as the
+  previous implementation produces them (the generator's MERGE is
+  `WHEN MATCHED THEN UPDATE SET *` with NO cross-batch _load_ts guard):
+    (1) WITHIN a batch, the dedup window orders by _load_ts DESC, so a row listed
+        LAST but carrying a smaller _load_ts loses to the max-_load_ts row (K1 in
+        batch1, K3 in batch2) -- out-of-order rows in a batch are reconciled.
+    (2) ACROSS batches the last batch that touches a key WINS unconditionally,
+        even when it carries an EARLIER _load_ts than a value already merged (K2:
+        batch3's 07:00 row overwrites batch1's 09:00 row). The pipeline dedups
+        per batch, NOT across the merged history.
+  Rescoped per the acceptance must-fix: NO exact-tie deterministic tie-break and
+  NO tombstone/delete-marker rows (neither exists in the previous implementation).
+primary_key:
+  - entity_key
+ingestion:
+  mode: incremental
+  order_by:
+    - _load_ts
+columns:
+  - name: entity_key
+    data_type: VARCHAR
+    nullable: false
+  - name: state
+    data_type: VARCHAR
+    nullable: true
+  - name: revision
+    data_type: INTEGER
+    nullable: true
+  - name: amount
+    data_type: DECIMAL
+    precision: 12
+    scale: 2
+    nullable: true
