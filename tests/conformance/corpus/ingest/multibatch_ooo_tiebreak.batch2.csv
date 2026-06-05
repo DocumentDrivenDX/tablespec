@@ -1,0 +1,4 @@
+entity_key,state,revision,amount,_source_file,_load_ts
+K3,revised-late,5,70.00,b2.csv,2024-01-02 15:00:00
+K3,revised-early-listed,4,60.00,b2.csv,2024-01-02 10:00:00
+K4,new-in-b2,1,40.00,b2.csv,2024-01-02 11:00:00

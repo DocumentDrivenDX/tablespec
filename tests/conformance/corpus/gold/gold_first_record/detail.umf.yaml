@@ -1,0 +1,19 @@
+version: "1.0"
+table_name: detail
+description: Detail table (many rows per parent) - source for gold_first_record
+primary_key:
+  - parent_id
+columns:
+  - name: parent_id
+    data_type: INTEGER
+    nullable:
+      default: false
+  - name: detail_value
+    data_type: VARCHAR
+    nullable:
+      default: true
+  - name: updated_date
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: true

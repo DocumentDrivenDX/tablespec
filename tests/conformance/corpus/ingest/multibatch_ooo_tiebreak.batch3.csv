@@ -1,0 +1,3 @@
+entity_key,state,revision,amount,_source_file,_load_ts
+K2,overwritten-by-older-load-ts,9,55.00,b3.csv,2024-01-01 07:00:00
+K5,arrived-last,1,80.00,b3.csv,2024-01-03 16:00:00

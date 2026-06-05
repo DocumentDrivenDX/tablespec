@@ -1,0 +1,22 @@
+version: "1.0"
+table_name: wide_scores
+description: Wide per-quarter scores (one column per quarter) - source for gold_unpivot
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: q1
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: q2
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: q3
+    data_type: INTEGER
+    nullable:
+      default: true

@@ -1,0 +1,4 @@
+claim_id,member_id,service_date,status
+C1,M1,2024-01-01,OPEN
+C2,M1,2024-03-01,CLOSED
+C3,M2,2024-02-01,OPEN

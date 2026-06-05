@@ -1,0 +1,31 @@
+table_name: decimal_boundaries
+description: >-
+  DECIMAL precision/scale boundary coverage: largest-representable value at the
+  declared precision, rounding at the scale boundary (HALF_UP), and OVERFLOW
+  inputs that exceed the integer-part width. With ANSI casting disabled (the
+  ingest contract) an out-of-precision DECIMAL cast yields NULL rather than
+  aborting; this case pins that NULL-on-overflow behavior so every engine agrees.
+ingestion:
+  mode: snapshot
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  # precision 5, scale 2 -> 3 integer digits, max magnitude 999.99.
+  - name: small_dec
+    data_type: DECIMAL
+    precision: 5
+    scale: 2
+    nullable: true
+  # precision 38, scale 0 -> the largest practical integer DECIMAL.
+  - name: big_int_dec
+    data_type: DECIMAL
+    precision: 38
+    scale: 0
+    nullable: true
+  # precision 10, scale 4 -> 6 integer digits, rounds inputs to 4 fractional.
+  - name: round_dec
+    data_type: DECIMAL
+    precision: 10
+    scale: 4
+    nullable: true

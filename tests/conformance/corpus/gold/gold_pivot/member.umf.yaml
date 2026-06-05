@@ -1,0 +1,22 @@
+version: "1.0"
+table_name: member
+description: Member hub (1) - source for gold_pivot
+primary_key:
+  - member_id
+relationships:
+  outgoing:
+    - target_table: diagnosis
+      source_column: member_id
+      target_column: member_id
+      type: foreign_to_primary
+      confidence: 0.9
+      cardinality:
+        type: one_to_many
+        notation: "1:N"
+        source_multiplicity: "1"
+        target_multiplicity: "*"
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false

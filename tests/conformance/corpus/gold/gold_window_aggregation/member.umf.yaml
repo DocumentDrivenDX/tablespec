@@ -1,0 +1,10 @@
+version: "1.0"
+table_name: member
+description: Member roster (union source) - gold_window_aggregation
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false

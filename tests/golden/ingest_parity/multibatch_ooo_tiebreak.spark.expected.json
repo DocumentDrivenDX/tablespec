@@ -1,0 +1,40 @@
+{
+  "columns": [
+    "entity_key",
+    "state",
+    "revision",
+    "amount"
+  ],
+  "rows": [
+    [
+      "K1",
+      "updated",
+      "2",
+      "20.00"
+    ],
+    [
+      "K2",
+      "overwritten-by-older-load-ts",
+      "9",
+      "55.00"
+    ],
+    [
+      "K3",
+      "revised-late",
+      "5",
+      "70.00"
+    ],
+    [
+      "K4",
+      "new-in-b2",
+      "1",
+      "40.00"
+    ],
+    [
+      "K5",
+      "arrived-last",
+      "1",
+      "80.00"
+    ]
+  ]
+}

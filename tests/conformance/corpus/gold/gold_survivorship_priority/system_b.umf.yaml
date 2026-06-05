@@ -1,0 +1,14 @@
+version: "1.0"
+table_name: system_b
+description: Member roster from system B (fallback source) - gold_survivorship
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: phone_number
+    data_type: VARCHAR
+    nullable:
+      default: true

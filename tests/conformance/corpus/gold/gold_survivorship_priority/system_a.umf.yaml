@@ -1,0 +1,14 @@
+version: "1.0"
+table_name: system_a
+description: Member roster from system A (priority source) - gold_survivorship
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: phone
+    data_type: VARCHAR
+    nullable:
+      default: true

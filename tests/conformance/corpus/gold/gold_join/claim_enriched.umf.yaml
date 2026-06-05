@@ -1,0 +1,51 @@
+version: "1.0"
+table_name: claim_enriched
+description: GOLD - claims enriched with member_name via the claims->member FK join
+primary_key:
+  - claim_id
+metadata:
+  base_table: claims
+columns:
+  - name: claim_id
+    data_type: INTEGER
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: member_id
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: claims
+          column: member_id
+          priority: 1
+  - name: member_name
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: member
+          column: member_name
+          priority: 1
+relationships:
+  foreign_keys:
+    - column: member_id
+      references_table: member
+      references_column: member_id
+      type: foreign_key
+  outgoing:
+    - target_table: member
+      source_column: member_id
+      target_column: member_id
+      type: foreign_to_primary
+      confidence: 1.0
+      cardinality:
+        type: many_to_one
+        notation: "1:1"
+        source_multiplicity: "*"
+        target_multiplicity: "1"

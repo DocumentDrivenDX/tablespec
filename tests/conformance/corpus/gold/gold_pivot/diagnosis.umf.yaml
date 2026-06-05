@@ -1,0 +1,14 @@
+version: "1.0"
+table_name: diagnosis
+description: Diagnosis rows (N per member) - source for gold_pivot
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: Code
+    data_type: VARCHAR
+    nullable:
+      default: true

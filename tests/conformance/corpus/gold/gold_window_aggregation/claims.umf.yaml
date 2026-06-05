@@ -1,0 +1,23 @@
+version: "1.0"
+table_name: claims
+description: Claims (aggregated/windowed per member) - gold_window_aggregation
+primary_key:
+  - claim_id
+columns:
+  - name: claim_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: true
+  - name: service_date
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: true
+  - name: status
+    data_type: VARCHAR
+    nullable:
+      default: true

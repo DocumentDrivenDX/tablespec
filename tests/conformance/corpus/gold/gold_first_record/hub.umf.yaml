@@ -1,0 +1,22 @@
+version: "1.0"
+table_name: hub
+description: Hub table (one parent per key) - source for gold_first_record
+primary_key:
+  - parent_id
+relationships:
+  outgoing:
+    - target_table: detail
+      source_column: parent_id
+      target_column: parent_id
+      type: foreign_to_primary
+      confidence: 0.9
+      cardinality:
+        type: one_to_many
+        notation: "1:N"
+        source_multiplicity: "1"
+        target_multiplicity: "*"
+columns:
+  - name: parent_id
+    data_type: INTEGER
+    nullable:
+      default: false
