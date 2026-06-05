@@ -1,0 +1,22 @@
+{
+  "columns": [
+    "member_id",
+    "diagnosis_1",
+    "diagnosis_2",
+    "diagnosis_3"
+  ],
+  "rows": [
+    [
+      "M1",
+      "A01",
+      "B02",
+      "C03"
+    ],
+    [
+      "M2",
+      "D04",
+      "NULL",
+      "NULL"
+    ]
+  ]
+}

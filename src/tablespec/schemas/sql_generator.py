@@ -201,6 +201,12 @@ class SQLPlanGenerator:
         self._required_columns: dict[str, set[str]] = {}
         self._accumulated_columns: dict[str, str] = {}
         self._join_sequence: list[dict[str, Any]] = []
+        # Maps (source_table, target_column_name) -> the pivoted column alias the
+        # pivot CTE actually emits (e.g. ("diagnosis", "diagnosis_1") ->
+        # "diagnosis__diagnosis_1"). The final-assembly column mapping consults
+        # this so a target column derived from a pivot source references the
+        # pivoted output column rather than the raw source column.
+        self._pivot_column_map: dict[tuple[str, str], str] = {}
 
     # ------------------------------------------------------------------
     # Public API
@@ -336,6 +342,7 @@ class SQLPlanGenerator:
         self._agg_view_source_columns = {}
         self._required_columns = self._build_required_columns_map(table_umf)
         self._accumulated_columns = {}
+        self._pivot_column_map = {}
 
         sections: list[str] = []
 
@@ -1286,12 +1293,17 @@ FROM {prev_view} base
         pivot_agg_selections: list[str] = []
         pivot_column_names: list[str] = []
         for i in range(1, max_records + 1):
-            col_alias = f"{target_table}__{prefix}{i}"
+            target_col_name = f"{prefix}{i}"
+            col_alias = f"{target_table}__{target_col_name}"
             pivot_agg_selections.append(
                 f"MAX(CASE WHEN rn = {i} THEN {value_column} END) AS {col_alias}"
             )
             pivot_column_names.append(col_alias)
             self._accumulated_columns[col_alias] = target_table
+            # Record so the final-assembly mapping points the target column
+            # (e.g. diagnosis_1) at the pivoted output (diagnosis__diagnosis_1)
+            # rather than the raw source column.
+            self._pivot_column_map[(target_table, target_col_name)] = col_alias
 
         pivot_agg_str = ",\n  ".join(pivot_agg_selections)
 
@@ -1300,7 +1312,7 @@ FROM {prev_view} base
             for col in sorted(self._accumulated_columns.keys())
             if col not in pivot_column_names
         ]
-        pivot_column_selections = [f"pivot.{col}" for col in pivot_column_names]
+        pivot_column_selections = [f"pivoted.{col}" for col in pivot_column_names]
 
         all_selections = base_column_selections + pivot_column_selections
         column_list = ",\n  ".join(all_selections)
@@ -1315,7 +1327,7 @@ WITH ranked AS (
   SELECT
     {target_col},
     {value_column},
-    ROW_NUMBER() OVER (PARTITION BY {target_col} ORDER BY {value_column}) as rn
+    ROW_NUMBER() OVER (PARTITION BY {target_col} ORDER BY {value_column} ASC NULLS LAST) as rn
   FROM {resolved_table}{where_clause}
 )
 SELECT
@@ -1329,8 +1341,8 @@ CREATE OR REPLACE TEMPORARY VIEW disposition_step_{step} AS
 SELECT
   {column_list}
 FROM {prev_view} base
-LEFT JOIN {target_table}_pivoted pivot
-  ON base.{source_col} = pivot.{target_col};"""
+LEFT JOIN {target_table}_pivoted pivoted
+  ON base.{source_col} = pivoted.{target_col};"""
 
     def _generate_first_record_join(
         self, step: int, join_info: dict[str, Any], prev_view: str
@@ -1721,6 +1733,14 @@ FROM {final_view} base;"""
 
         if not table:
             return "NULL"
+
+        # Pivoted source: the pivot CTE emits one numbered column per target
+        # column (e.g. diagnosis_1 -> diagnosis__diagnosis_1), so a target column
+        # derived from a pivot source references that pivoted output, NOT the raw
+        # source column (which the pivot CTE does not project).
+        pivoted_alias = self._pivot_column_map.get((table, target_col_name))
+        if pivoted_alias is not None:
+            return f"base.{pivoted_alias}"
 
         table_alias = self._sanitize_alias(table_instance if table_instance else table)
 

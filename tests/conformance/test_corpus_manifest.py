@@ -115,14 +115,28 @@ def test_gold_case_sources_present(case: Case) -> None:
     assert umfs, f"gold case {case.id} has no source/target UMFs"
     csvs = sorted(case.gold_dir.glob("*.csv"))
     assert csvs, f"gold case {case.id} has no source CSVs"
-    # Gold goldens are produced by the executed-gold phase; assert the case is
-    # explicitly declared pending rather than silently lacking a golden.
-    assert case.pending, (
-        f"gold case {case.id} is not marked pending but has no executed golden yet"
-    )
-    assert case.golden is None, (
-        f"pending gold case {case.id} should not pin a golden until executed"
-    )
+    # A gold case is in exactly one of two valid states:
+    #   * PENDING: its executed golden has not been produced yet, so it must NOT
+    #     pin a golden (the executed-gold phase writes it under --update-golden);
+    #   * EXECUTED/PROMOTED: a generator fix made it run byte-stably on both
+    #     backends, so it pins a committed golden that exists on disk and is no
+    #     longer pending.
+    # (A case may be neither pending nor golden only when it is gated by a
+    # ``divergence`` reason -- a known defect that cannot yet execute.)
+    if case.pending:
+        assert case.golden is None, (
+            f"pending gold case {case.id} should not pin a golden until executed"
+        )
+    elif case.divergence is None:
+        assert case.golden is not None and case.golden.exists(), (
+            f"executed gold case {case.id} must pin a committed golden that exists "
+            f"on disk (got {case.golden}); regenerate via the SQLPlanGeneratorGold "
+            f"spark oracle under --update-golden"
+        )
+        payload = json.loads(case.golden.read_text())
+        assert set(payload) >= {"columns", "rows"}, (
+            f"gold golden for {case.id} is not canonical JSON with columns/rows"
+        )
 
 
 def _load_gold_umfs(case: Case) -> tuple[UMF, dict[str, UMF]]:

@@ -186,17 +186,14 @@ cases:
 
   - id: gold_pivot
     kind: gold
-    pending: true
-    # KNOWN DIVERGENCE surfaced by the executed matrix (Phase 3): the generated
-    # gold model (a) joins the pivot CTE under the alias `pivot`, a RESERVED word
-    # in DuckDB (parse error; Spark accepts it) and (b) the final-assembly column
-    # mapping references diagnosis__Code instead of the pivoted
-    # diagnosis__diagnosis_1..3 the pivot CTE actually produces. A generator fix is
-    # required before this case can execute to a byte-stable golden; gated here so
-    # it is SKIPPED VISIBLY, never silently passed.
-    divergence: >-
-      generator emits a DuckDB-reserved `pivot` alias and a final-assembly column
-      map (diagnosis__Code) that does not match the pivoted output columns
+    # FIXED (was a KNOWN DIVERGENCE): the generator previously (a) joined the pivot
+    # CTE under the alias `pivot`, a RESERVED word in DuckDB (parse error; Spark
+    # accepts it) and (b) mapped the final-assembly columns to diagnosis__Code
+    # instead of the pivoted diagnosis__diagnosis_1..3 the pivot CTE emits. The
+    # generator now aliases the join `pivoted` and maps each target column to its
+    # pivoted output, so the case executes byte-stably on BOTH backends and the
+    # committed golden (the Spark-backend oracle output) is enforced.
+    golden: tests/golden/ingest_parity/gold_pivot.spark.expected.json
     dir: tests/conformance/corpus/gold/gold_pivot
     generator: _generate_pivot_join
     ts_precision: 0

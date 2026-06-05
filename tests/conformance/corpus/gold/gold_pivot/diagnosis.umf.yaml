@@ -1,8 +1,11 @@
 version: "1.0"
 table_name: diagnosis
 description: Diagnosis rows (N per member) - source for gold_pivot
-primary_key:
-  - member_id
+# No single-column primary key: diagnosis is a 1:N detail table (multiple rows
+# per member_id), so member_id is a FOREIGN key, not a unique key. Declaring it
+# as the PK would make the ingest staging model dedup to one row per member and
+# collapse the N diagnoses BEFORE the pivot (defeating the pivot case). The
+# pivot's ROW_NUMBER must see all N rows per member.
 columns:
   - name: member_id
     data_type: VARCHAR
