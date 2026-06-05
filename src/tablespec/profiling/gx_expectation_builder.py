@@ -31,7 +31,6 @@ Strictness levels control how tight the bounds are:
 from __future__ import annotations
 
 import logging
-import math
 import re
 from typing import Any, Literal
 
@@ -166,7 +165,6 @@ class ProfileToGxMapper:
     ) -> list[dict[str, Any]]:
         """Build all expectations for a single column."""
         expectations: list[dict[str, Any]] = []
-        col = cp.column_name
 
         # 1. Completeness → not-null
         expectations.extend(self._completeness_expectations(cp))
@@ -433,7 +431,7 @@ class ProfileToGxMapper:
 
         # Allow wide tolerance — we just want to catch dramatic shifts
         skew_tolerance = max(abs(cp.skewness) * 0.5, 1.0)
-        kurt_tolerance = max(abs(cp.kurtosis) * 0.5, 2.0)
+        max(abs(cp.kurtosis) * 0.5, 2.0)
 
         return [{
             "type": "expect_column_skewness_to_be_between",

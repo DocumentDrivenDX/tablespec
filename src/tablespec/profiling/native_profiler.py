@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from tablespec.profiling.types import ColumnProfile, DataFrameProfile
 
@@ -261,7 +261,8 @@ class NativeSparkProfiler:
                 "min": len_row["min_len"],
                 "max": len_row["max_len"],
                 "mean": round(mean_len),
-                "p50": median_len[0] if median_len else None,
+                # median_len is guaranteed truthy by the enclosing guard above.
+                "p50": median_len[0],
             }
 
         # Pattern detection — sample a few values and infer structural patterns
@@ -349,7 +350,7 @@ class NativeSparkProfiler:
             .collect()
         )
 
-        total = sum(row["cnt"] for row in top_rows) if top_rows else 1
+        sum(row["cnt"] for row in top_rows) if top_rows else 1
         num_records = df.count()
         if top_rows:
             profile.top_values = [
