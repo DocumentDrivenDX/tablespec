@@ -49,6 +49,15 @@ class Case:
             SKIPPED VISIBLY -- never silently passed -- pending a generator/corpus
             fix. Distinct from ``pending`` (which is merely "golden not yet
             written"): a divergence case fails to EXECUTE, not just to compare.
+        executed_via: when set, the name of a DEDICATED executed tier that
+            promotes this case instead of the row-parity matrix golden. Used by
+            cases whose contract is genuinely NOT a canonical-row comparison
+            (e.g. ``gold_fk_integrity``, whose orphan-FK enforcement is a dbt
+            ``relationships`` schema-test asserted PASS-on-clean / FAIL-on-orphan
+            by ``test_fk_orphan_enforcement.py``). Such a case is fully PROMOTED
+            (``pending=False``) yet legitimately pins NO row golden; the named
+            tier is its executed proof. The row matrix SKIPS it with an explicit
+            reason so it is never silently green there.
     """
 
     id: str
@@ -62,6 +71,7 @@ class Case:
     generator: str | None = None
     pending: bool = False
     divergence: str | None = None
+    executed_via: str | None = None
 
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags
@@ -133,6 +143,7 @@ def load_corpus() -> Corpus:
                     golden=(_resolve(raw["golden"]) if raw.get("golden") else None),
                     pending=bool(raw.get("pending", False)),
                     divergence=raw.get("divergence"),
+                    executed_via=raw.get("executed_via"),
                 )
             )
         else:  # pragma: no cover - manifest guard

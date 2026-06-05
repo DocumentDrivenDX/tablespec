@@ -62,6 +62,17 @@ def _model_config(ingest: IngestSelect) -> str:
     """
     contract = render_contract_config_arg()
     on_change = "        on_schema_change='fail',"
+    # dbt-spark / dbt-databricks REJECT incremental_strategy='merge' unless the
+    # relation's file_format is one of delta/iceberg/hudi (the default 'parquet'
+    # raises "You can only choose this strategy when file_format is set to 'delta'
+    # ..."). Spark's default is parquet, so an incremental+merge model never
+    # materializes there and every downstream test (incl. the FK relationships
+    # test) is SKIPPED. The Databricks runtime these casts target runs on Delta, so
+    # pin file_format='delta' for the spark/databricks dialects. DuckDB has no
+    # file_format concept (and ignores it), so the key is omitted for duckdb to keep
+    # the emitted config minimal/portable.
+    spark_family = ingest.dialect in ("spark", "databricks")
+    file_format = "        file_format='delta',\n" if spark_family else ""
     if ingest.mode == "incremental" and ingest.primary_key:
         # Upsert: dbt emits a MERGE on the unique key.
         keys = ", ".join(f'"{k}"' for k in ingest.primary_key)
@@ -70,6 +81,7 @@ def _model_config(ingest: IngestSelect) -> str:
             "    config(\n"
             "        materialized='incremental',\n"
             "        incremental_strategy='merge',\n"
+            f"{file_format}"
             f"        unique_key=[{keys}],\n"
             f"{on_change}\n"
             f"{contract}\n"

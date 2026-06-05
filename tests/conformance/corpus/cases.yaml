@@ -347,7 +347,30 @@ cases:
 
   - id: gold_fk_integrity
     kind: gold
-    pending: true
+    # PROMOTED (was pending): orphan-FK referential integrity is NOT a
+    # canonical-row comparison -- generate_sql_plan uses FK metadata only for join
+    # planning and never emits an orphan check, so this case pins NO row golden and
+    # the row-parity matrix SKIPS it with an explicit reason (never silently green).
+    # It is instead EXECUTED at the dbt ``relationships`` schema-test tier
+    # (test_fk_orphan_enforcement.py): generate_dbt_project emits the
+    # ``relationships`` test for claims.member_id -> member.member_id (plus the
+    # referenced member model so the ref resolves), and ``dbt build`` is asserted --
+    # via the relationships node's status + failures in run_results.json -- to PASS
+    # on claims.clean.csv and FAIL (exactly one orphan) on claims.orphan.csv. That
+    # runs on BOTH backends: DuckDB (full PK + NOT-NULL contract, CLI dbt) AND the
+    # local Delta Spark session (in-process dbtRunner).
+    #
+    # FIXED (real dbt-emitter bug surfaced by promotion): an incremental ``merge``
+    # model emitted no file_format, so dbt-spark REJECTED the merge strategy
+    # (parquet default) and SKIPPED every downstream test incl. the FK test. The
+    # spark/databricks dialects now pin file_format='delta' on the merge config
+    # (the Databricks runtime these casts target IS Delta); duckdb is unaffected.
+    # The spark leg additionally relaxes ONLY the NOT-NULL column contract (a
+    # documented local managed-Delta ``ALTER ... SET NOT NULL`` limitation, covered
+    # on the real runtime by the dbt-databricks compile + LDP e2e tiers); the FK
+    # relationships test -- the unit under test -- is dialect-agnostic and runs
+    # unchanged on both backends.
+    executed_via: test_fk_orphan_enforcement
     dir: tests/conformance/corpus/gold/gold_fk_integrity
     generator: relationships_schema_test
     ts_precision: 0

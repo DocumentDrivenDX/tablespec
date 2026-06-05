@@ -6,6 +6,7 @@
     config(
         materialized='incremental',
         incremental_strategy='merge',
+        file_format='delta',
         unique_key=["claim_id"],
         on_schema_change='fail',
         contract={'enforced': True},

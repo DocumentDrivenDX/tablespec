@@ -115,17 +115,25 @@ def test_gold_case_sources_present(case: Case) -> None:
     assert umfs, f"gold case {case.id} has no source/target UMFs"
     csvs = sorted(case.gold_dir.glob("*.csv"))
     assert csvs, f"gold case {case.id} has no source CSVs"
-    # A gold case is in exactly one of two valid states:
+    # A gold case is in exactly one of these valid states:
     #   * PENDING: its executed golden has not been produced yet, so it must NOT
     #     pin a golden (the executed-gold phase writes it under --update-golden);
-    #   * EXECUTED/PROMOTED: a generator fix made it run byte-stably on both
-    #     backends, so it pins a committed golden that exists on disk and is no
-    #     longer pending.
-    # (A case may be neither pending nor golden only when it is gated by a
-    # ``divergence`` reason -- a known defect that cannot yet execute.)
+    #   * EXECUTED/PROMOTED (row): a generator fix made it run byte-stably on both
+    #     backends, so it pins a committed row golden that exists on disk;
+    #   * EXECUTED/PROMOTED (dedicated tier): its contract is genuinely NOT a
+    #     canonical-row comparison (``executed_via`` names the tier that proves it,
+    #     e.g. the orphan-FK dbt relationships tier), so it is promoted yet pins NO
+    #     row golden;
+    #   * DIVERGENCE-gated: a known defect that cannot yet execute (``divergence``).
     if case.pending:
         assert case.golden is None, (
             f"pending gold case {case.id} should not pin a golden until executed"
+        )
+    elif case.executed_via is not None:
+        # Promoted via a dedicated executed tier (no row golden, by design).
+        assert case.golden is None, (
+            f"gold case {case.id} is promoted via the {case.executed_via!r} tier "
+            f"and must NOT pin a row golden (it is not a row comparison)"
         )
     elif case.divergence is None:
         assert case.golden is not None and case.golden.exists(), (
