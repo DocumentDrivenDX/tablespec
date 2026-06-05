@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,6 +11,11 @@ from typer.testing import CliRunner
 from tablespec.cli import app
 
 pytestmark = pytest.mark.no_spark
+
+def _strip_ansi(text: str) -> str:
+    """Strip ANSI escape codes from Rich CLI output."""
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
 
 runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 
@@ -496,7 +502,7 @@ class TestBatchConvertAdditional:
             app,
             ["batch-convert", str(source_dir), str(dest_dir), "--format", "split"],
         )
-        assert "1 converted" in result.output or "FAIL" in result.output
+        assert "1 converted" in _strip_ansi(result.output) or "FAIL" in _strip_ansi(result.output)
 
     @patch("tablespec.cli.UMFLoader")
     def test_batch_convert_error_count(self, mock_loader_cls, tmp_path):

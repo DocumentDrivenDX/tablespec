@@ -37,7 +37,7 @@ from tablespec.models import (
     load_umf_from_yaml,
     save_umf_to_yaml,
 )
-from tablespec.profiling import ColumnProfile, DataFrameProfile, DeequToUmfMapper
+from tablespec.profiling import ColumnProfile, DataFrameProfile, ProfileToGxMapper
 from tablespec.prompts import (
     generate_column_validation_prompt,
     generate_documentation_prompt,
@@ -117,7 +117,7 @@ __all__ = [
     # -- Profiling --
     "ColumnProfile",
     "DataFrameProfile",
-    "DeequToUmfMapper",
+    "ProfileToGxMapper",
     # -- LLM Prompt Generation --
     "generate_column_validation_prompt",
     "generate_documentation_prompt",

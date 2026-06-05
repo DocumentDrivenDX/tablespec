@@ -340,7 +340,7 @@ class BaselineExpectationGenerator:
                                 },
                             }
                         )
-            # If nullable is True (bool from DeequToUmfMapper), column IS nullable — no not-null expectation needed
+            # If nullable is True (bool), column IS nullable — no not-null expectation needed
 
         # 2. Length constraints
         max_length = column.get("max_length") or column.get("length")

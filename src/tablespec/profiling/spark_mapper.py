@@ -16,21 +16,59 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# Canonical Spark type class name → valid UMF data_type mapping.
+# UMF model accepts: VARCHAR, DECIMAL, INTEGER, DATE, DATETIME, TIMESTAMP,
+#                    BOOLEAN, TEXT, CHAR, FLOAT
+# This mapping is intentionally conservative — unknown types fall back to VARCHAR.
+SPARK_TO_UMF_TYPE: dict[str, str] = {
+    "StringType": "VARCHAR",
+    "IntegerType": "INTEGER",
+    "LongType": "INTEGER",  # No LONG in UMF; INTEGER covers all integral types
+    "ShortType": "INTEGER",
+    "ByteType": "INTEGER",
+    "DoubleType": "FLOAT",  # UMF uses FLOAT for all IEEE 754 types
+    "FloatType": "FLOAT",
+    "BooleanType": "BOOLEAN",
+    "DateType": "DATE",
+    "TimestampType": "TIMESTAMP",
+    "TimestampNTZType": "TIMESTAMP",
+    "DecimalType": "DECIMAL",
+}
+
+# SQL/warehouse type name → UMF data_type mapping.
+# Useful when importing from dbt catalog.json, information_schema, or DESCRIBE output.
+SQL_TO_UMF_TYPE: dict[str, str] = {
+    "STRING": "VARCHAR",
+    "VARCHAR": "VARCHAR",
+    "CHAR": "CHAR",
+    "TEXT": "TEXT",
+    "INT": "INTEGER",
+    "INTEGER": "INTEGER",
+    "BIGINT": "INTEGER",
+    "SMALLINT": "INTEGER",
+    "TINYINT": "INTEGER",
+    "LONG": "INTEGER",
+    "FLOAT": "FLOAT",
+    "DOUBLE": "FLOAT",
+    "REAL": "FLOAT",
+    "DECIMAL": "DECIMAL",
+    "NUMERIC": "DECIMAL",
+    "NUMBER": "DECIMAL",
+    "BOOLEAN": "BOOLEAN",
+    "BOOL": "BOOLEAN",
+    "DATE": "DATE",
+    "DATETIME": "DATETIME",
+    "TIMESTAMP": "TIMESTAMP",
+    "TIMESTAMP_NTZ": "TIMESTAMP",
+    "TIMESTAMP_LTZ": "TIMESTAMP",
+}
+
+
 class SparkToUmfMapper:
     """Maps Spark DataFrame schema to UMF base schema."""
 
-    # Spark type → UMF data_type mapping
-    TYPE_MAPPING: ClassVar[dict[str, str]] = {
-        "StringType": "STRING",
-        "IntegerType": "INTEGER",
-        "LongType": "LONG",
-        "DoubleType": "DOUBLE",
-        "FloatType": "FLOAT",
-        "BooleanType": "BOOLEAN",
-        "DateType": "DATE",
-        "TimestampType": "TIMESTAMP",
-        "DecimalType": "DECIMAL",
-    }
+    # Preserve class-level attribute for backward compatibility
+    TYPE_MAPPING: ClassVar[dict[str, str]] = SPARK_TO_UMF_TYPE
 
     def map_dataframe_to_umf(
         self,
@@ -105,9 +143,9 @@ class SparkToUmfMapper:
 
         """
         type_name = type(spark_type).__name__
-        umf_type = self.TYPE_MAPPING.get(type_name, "STRING")
+        umf_type = self.TYPE_MAPPING.get(type_name, "VARCHAR")
 
-        if umf_type == "STRING":
-            logger.debug(f"Unmapped Spark type {type_name}, defaulting to STRING")
+        if umf_type == "VARCHAR" and type_name != "StringType":
+            logger.debug(f"Unmapped Spark type {type_name}, defaulting to VARCHAR")
 
         return umf_type

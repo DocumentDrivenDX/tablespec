@@ -10,6 +10,12 @@ from tablespec.cli import app
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
+def _strip_ansi(text: str) -> str:
+    """Strip ANSI escape codes from Rich CLI output."""
+    import re
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
 runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 
 
@@ -70,7 +76,7 @@ class TestValidationRemove:
         )
         assert result.exit_code == 0
         assert "Removed" in result.output
-        assert "1 expectation" in result.output
+        assert "1 expectation" in _strip_ansi(result.output)
 
         data = _load_umf(umf_file)
         exps = data["expectations"]["expectations"]
@@ -92,7 +98,7 @@ class TestValidationRemove:
             ],
         )
         assert result.exit_code == 0
-        assert "2 expectation" in result.output
+        assert "2 expectation" in _strip_ansi(result.output)
 
         data = _load_umf(umf_file)
         exps = data["expectations"]["expectations"]

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -26,6 +26,28 @@ class ColumnProfile:
     distinct_values: list[Any] | None = None
     string_length_min: int | None = None
     string_length_max: int | None = None
+
+    # --- Extended distribution fields (native profiler) ---
+    quantiles: dict[str, float] | None = None
+    """Percentile values, e.g. {"p5": 1.2, "p25": 5.0, "p50": 10.0, "p75": 18.0, "p95": 42.0}"""
+
+    skewness: float | None = None
+    """Distribution skewness (0 = symmetric, positive = right-tailed)."""
+
+    kurtosis: float | None = None
+    """Distribution kurtosis (3 = normal, >3 = heavy-tailed)."""
+
+    sample_values: list[Any] | None = None
+    """Representative sample values for high-cardinality columns."""
+
+    value_pattern: str | None = None
+    """Detected structural pattern, e.g. 'NNN-NNN-NNNN' for phone numbers."""
+
+    top_values: list[dict[str, Any]] | None = None
+    """Top-N most frequent values with counts: [{"value": "X", "count": N, "fraction": 0.12}, ...]"""
+
+    value_lengths: dict[str, int] | None = None
+    """Distribution of string lengths: {"min": 5, "max": 40, "mean": 18, "p50": 17}"""
 
 
 @dataclass

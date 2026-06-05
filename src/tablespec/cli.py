@@ -21,6 +21,8 @@ Examples:
 from pathlib import Path
 
 from pydantic import ValidationError
+import os
+
 from rich.console import Console
 from rich.table import Table as RichTable
 import typer
@@ -48,7 +50,7 @@ app = typer.Typer(
     name="tablespec",
     help="Work with UMF (Universal Metadata Format) table schemas",
 )
-console = Console()
+console = Console(no_color=bool(os.environ.get("NO_COLOR")))
 
 # Module-level validation context (process lifetime caching) - only when validator is available
 _validation_context = ValidationContext() if _HAS_VALIDATOR else None
