@@ -96,6 +96,7 @@ markers = [
     "fast: marks tests that complete in <100ms with no I/O or external deps",
     "no_spark: marks tests that do not require PySpark",
     "spark_only: marks tests that REQUIRE a JVM-backed Spark session (excluded from the no_spark fast lane)",
+    "databricks_e2e: opt-in tier that deploys + executes on a REAL Databricks workspace (skipped unless DATABRICKS_HOST is set)",
 ]
 filterwarnings = [
     "error",

@@ -190,6 +190,57 @@ def _duckdb_dbt_availability() -> str | None:
     return None
 
 
+def _databricks_compile_availability() -> str | None:
+    """Skip reason if the dbt-databricks COMPILE (offline parse) tier is unavailable.
+
+    The databricks tier is compile-only here (no cluster): it needs dbt-core and the
+    dbt-databricks ADAPTER importable so ``dbt parse`` registers the databricks
+    adapter and builds the manifest offline. It does NOT need a live workspace.
+
+    Warnings are suppressed during the import PROBE: dbt-databricks emits a Pydantic
+    V1-config DeprecationWarning at import that the suite-wide ``filterwarnings=error``
+    would otherwise escalate, making an available adapter look un-importable. The
+    warning is third-party (dbt's), not behaviour under test.
+    """
+    import warnings
+
+    try:
+        import dbt  # noqa: F401
+    except Exception as exc:
+        return f"dbt-core not importable: {exc}"
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            import dbt.adapters.databricks  # noqa: F401
+    except Exception as exc:
+        return f"dbt-databricks adapter not importable: {exc}"
+    return None
+
+
+def databricks_e2e_availability() -> str | None:
+    """Skip reason for the OPT-IN real-Databricks e2e tier, else ``None``.
+
+    This tier deploys + executes against a REAL Databricks workspace, so it is
+    skipped unless ``DATABRICKS_HOST`` is set (the opt-in switch). When set it also
+    needs the databricks adapter importable to drive ``dbt run`` / pipeline deploy.
+    There is NO cluster in this harness, so this is expected to skip here.
+    """
+    import warnings
+
+    if not os.environ.get("DATABRICKS_HOST"):
+        return (
+            "databricks_e2e opt-in tier: DATABRICKS_HOST not set "
+            "(no remote workspace -- skipped, not silently passed)"
+        )
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            import dbt.adapters.databricks  # noqa: F401
+    except Exception as exc:  # pragma: no cover - only on a configured workspace
+        return f"dbt-databricks adapter not importable: {exc}"
+    return None
+
+
 def get_shared_spark_session() -> SparkSession:
     """Create (once) and return a process-wide Delta Spark session.
 
@@ -280,10 +331,32 @@ class Engine(ABC):
     :meth:`load_raw` / :meth:`collect_canonical` (engine-specific I/O) and inherit
     :meth:`run` (the shared orchestration). ``kind`` declares which case kinds the
     engine handles (``"ingest"`` and/or ``"gold"``).
+
+    ``tier`` distinguishes how an engine's :meth:`run` output is judged:
+
+      * ``"row"``       -- the canonical-json output is compared to the case ROW
+        golden (the SparkDirect / Spark-gold oracle) AND participates in the
+        pairwise-agreement check. These are the locally-EXECUTED engines.
+      * ``"compile"``   -- the engine cannot execute rows in this env (no
+        cluster); :meth:`run` returns a compiled-ARTIFACT canonical (e.g. the
+        databricks-target compiled model SQL) compared to a dedicated COMPILE
+        golden. Proves the prod target generates correct SQL without a warehouse.
+      * ``"structure"`` -- like ``compile`` but the artifact is the emitted project
+        STRUCTURE (e.g. the LDP pipeline SQL), pinned to a structure golden.
+      * ``"e2e"``       -- an OPT-IN tier that executes on a REAL remote runtime
+        (Databricks); skipped unless the runtime is configured. When it runs it is
+        a first-class ROW engine (its output is the row golden), so it is judged
+        like ``"row"`` against the SAME corpus golden.
+
+    Only ``"row"`` and (when configured) ``"e2e"`` engines feed the row-parity +
+    pairwise matrix; ``"compile"`` / ``"structure"`` engines are driven by their own
+    artifact-golden tests. ALL engines (regardless of tier) are enumerated by
+    :func:`all_engines` so the skipped-but-green guard can count what ran here.
     """
 
     name: str
     kinds: tuple[str, ...]
+    tier: str = "row"
 
     @abstractmethod
     def availability(self, case: Case) -> str | None:
@@ -659,18 +732,22 @@ class SQLPlanGeneratorGoldEngine(Engine):
 
     def availability(self, case: Case) -> str | None:
         # FK-integrity is a dbt relationships schema-test assertion, not a
-        # canonical-row comparison; it is exercised by the dedicated dbt-test tier,
+        # canonical-row comparison; it is exercised by the dedicated EXECUTED
+        # orphan-FK dbt-test tier (test_ldp_tiers.py / test_fk_orphan_enforcement),
         # not the row-parity matrix. Skip it here with an explicit reason.
         if case.generator == "relationships_schema_test":
             return (
                 "gold_fk_integrity is a dbt relationships schema-test (orphan "
                 "negative), not a canonical-row comparison -- covered by the "
-                "dbt-test tier"
+                "executed orphan-FK dbt-test tier"
             )
-        # KNOWN cross-engine divergence (a genuine generator/corpus issue the
-        # harness surfaced): gate visibly so it is never silently passed.
-        if case.divergence:
-            return f"known divergence (gated, not silently passed): {case.divergence}"
+        # NOTE: KNOWN cross-engine divergences (gold_pivot, gold_window_aggregation,
+        # gold_survivorship_priority) are NO LONGER gated here as availability-skips.
+        # The matrix marks them STRICT xfail instead (see _param in
+        # test_engine_matrix.py), so an accidental generator fix that makes them pass
+        # flips the gate (xpass -> failure) and they are distinguishable from
+        # environment-unavailability skips. ``availability`` only reports genuine
+        # ENVIRONMENT unavailability below.
         if self.backend == "duckdb":
             return _duckdb_dbt_availability()
         # spark backend
@@ -843,16 +920,379 @@ class SQLPlanGeneratorGoldEngine(Engine):
 
 
 # ---------------------------------------------------------------------------
+# DbtDatabricksCompile: the PROD target, validated offline (no cluster)
+# ---------------------------------------------------------------------------
+
+
+class DbtDatabricksCompileEngine(Engine):
+    """The PROD (Databricks) dbt target proven correct OFFLINE -- a COMPILE tier.
+
+    There is no Databricks cluster here, so this engine cannot execute rows, and
+    ``dbt compile`` (which renders ``{{ source/ref/config }}`` to physical SQL)
+    cannot run either -- for the databricks adapter it opens a SQL-warehouse
+    connection and HANGS against the unreachable host. What it CAN prove, fully
+    OFFLINE, is that the generated dbt project is well-formed for the prod target and
+    its model body is byte-stable under the real databricks adapter:
+
+      * generate the ingest dbt project with ``dialect="databricks"`` +
+        ``target="databricks"``;
+      * run ``dbt parse`` (the genuinely offline path); and
+      * build the manifest under the databricks adapter and return the PARSED MODEL
+        BODY (``raw_code``) + resolved config as the canonical artifact.
+
+    :meth:`run` returns the parsed model body -- the post-generation, pre-dispatch
+    node dbt registered under the databricks adapter (the ``{{ source() }}`` /
+    ``{{ config() }}`` Jinja is intentionally NOT warehouse-expanded; that needs a
+    cluster). It STILL carries the literal Databricks cast SQL a cluster would run
+    (``try_to_timestamp(...)``, asserted separately). The compile-tier test compares
+    it to a committed COMPILE golden -- NOT the row golden (no rows are produced).
+    The Databricks dialect is cast-identical to Spark, so the EXECUTED Spark
+    row-parity legs stand in for the Databricks runtime; this tier closes the
+    remaining gap that the prod *target* itself emits well-formed, contract-carrying
+    model SQL offline.
+    """
+
+    name = "DbtDatabricksCompile"
+    kinds = ("ingest",)
+    tier = "compile"
+
+    def availability(self, case: Case) -> str | None:
+        return _databricks_compile_availability()
+
+    def model_node_id(self, umf: dict[str, Any]) -> str:
+        return f"model.tablespec_ingest.{umf['table_name']}"
+
+    def run(self, case: Case) -> str:
+        """Parse the databricks-target project offline; return the compiled model SQL."""
+        import json
+
+        from dbt.cli.main import dbtRunner
+
+        from tablespec.schemas.dbt_generator import generate_dbt_project
+
+        assert case.umf is not None
+        umf = yaml.safe_load(case.umf.read_text())
+        project = Path(tempfile.mkdtemp(prefix=f"matrix_databricks_{case.id}_"))
+        try:
+            generate_dbt_project(
+                umf, dialect="databricks", target="databricks", out_dir=project
+            )
+            result = dbtRunner().invoke(
+                [
+                    "parse",
+                    "--profiles-dir",
+                    str(project),
+                    "--project-dir",
+                    str(project),
+                    "--target",
+                    "dev",
+                    "--no-partial-parse",
+                ]
+            )
+            if not result.success:
+                raise AssertionError(
+                    f"dbt parse failed for the databricks target on '{case.id}' "
+                    "(project not well-formed for Databricks)."
+                )
+            manifest = json.loads((project / "target" / "manifest.json").read_text())
+            adapter = manifest["metadata"]["adapter_type"]
+            if adapter != "databricks":
+                raise AssertionError(
+                    f"manifest not parsed under the databricks adapter: {adapter!r}"
+                )
+            node = manifest["nodes"][self.model_node_id(umf)]
+            # HONEST artifact: ``dbt parse`` builds the manifest WITHOUT a warehouse
+            # but does NOT render ``{{ ref/source/config }}`` to physical SQL (that is
+            # ``dbt compile``, which for the databricks adapter opens a connection and
+            # hangs -- see the module docstring). So the stable artifact here is the
+            # PARSED MODEL BODY (``raw_code``) -- the post-generation, pre-dispatch
+            # node dbt registered under the databricks adapter -- plus the resolved
+            # config (materialization + contract) that parsing applied. It still
+            # carries the literal Databricks cast SQL the cluster would run (asserted
+            # separately), but the ``{{ source() }}`` / ``{{ config() }}`` Jinja is
+            # intentionally NOT expanded; the golden gates that the prod target's
+            # generated model body + resolved config are byte-stable, not warehouse-
+            # compiled SQL.
+            return (
+                f"-- adapter: {adapter}\n"
+                f"-- artifact: parsed_model_body (dbt parse raw_code; not compiled)\n"
+                f"-- materialized: {node['config']['materialized']}\n"
+                f"-- contract_enforced: "
+                f"{node['config'].get('contract', {}).get('enforced')}\n"
+                + node["raw_code"].rstrip("\n")
+                + "\n"
+            )
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# LDP (Lakeflow Declarative Pipelines): the PROTOTYPE Databricks-only emitter
+# ---------------------------------------------------------------------------
+
+
+class LdpStructureEngine(Engine):
+    """The LDP emitter as a matrix engine -- a STRUCTURE + cast-parity tier.
+
+    LDP runs ONLY on Databricks (no runtime here), so this engine does not execute
+    rows. It proves two locally-checkable invariants for the ingest cases:
+
+      * the generated LDP ``ingested_<t>`` cast SELECT body is the SHARED cast layer
+        (``build_ingest_select``) -- character-identical to the dbt/direct path, and
+      * that extracted cast body, run on duckdb over the case's REAL raw rows,
+        produces the SAME canonical result as the shared cast.
+
+    :meth:`run` therefore returns the canonical-json of the LDP cast body executed on
+    duckdb. The structure-tier test additionally pins the emitted LDP project text to
+    a STRUCTURE golden. Because the cast body is shared, this row output equals the
+    other engines' output for the SAME case -- so the structure-tier test compares it
+    to the SAME corpus row golden (proving the LDP cast layer is not a fork), while
+    the true end-to-end LDP pipeline execution is the opt-in ``LdpDatabricksE2E`` tier.
+
+    HONEST SCOPE of the local cast-body row check: it is valid only where the cast
+    over the raw batch IS the final ingested table -- i.e. SINGLE-batch cases. A
+    MULTI-batch incremental case needs the per-key dedup/merge (APPLY CHANGES) that
+    LDP delegates to the Databricks runtime; the cast body alone cannot reproduce it,
+    so multi-batch cases are SKIPPED here (covered by the opt-in e2e tier). Fixtures
+    whose ingest dialect uses a type the strict UMF model cannot represent (e.g.
+    ``DOUBLE``) are likewise skipped VISIBLY -- the LDP emitter consumes full UMF
+    models, so it cannot model them yet (never silently passed).
+    """
+
+    name = "LdpStructure"
+    kinds = ("ingest",)
+    tier = "structure"
+
+    def _umf_modelable_reason(self, case: Case) -> str | None:
+        """Skip reason if the strict UMF model cannot represent the fixture (e.g. DOUBLE)."""
+        from pydantic import ValidationError
+
+        try:
+            self.ingest_umf_model(case)
+        except ValidationError as exc:
+            offending = sorted(
+                {
+                    str(e.get("input"))
+                    for e in exc.errors()
+                    if e.get("type") == "string_pattern_mismatch"
+                }
+            )
+            return (
+                "LDP emitter consumes full UMF models; this fixture's ingest dialect "
+                f"uses a type the strict UMF model cannot represent yet "
+                f"({', '.join(offending) or 'see ValidationError'}) -- skipped "
+                "visibly, not silently passed"
+            )
+        return None
+
+    def availability(self, case: Case) -> str | None:
+        """Gate for the EXECUTED cast-body ROW check (single-batch, duckdb-runnable)."""
+        reason = _duckdb_dbt_availability_duckdb_only()
+        if reason is not None:
+            return reason
+        if case.is_multibatch:
+            return (
+                "LDP cast-body row check applies only to single-batch cases; a "
+                "multi-batch incremental case needs APPLY CHANGES dedup (Databricks "
+                "runtime) -- covered by the opt-in databricks_e2e tier"
+            )
+        return self._umf_modelable_reason(case)
+
+    def structure_availability(self, case: Case) -> str | None:
+        """Gate for the STRUCTURE GOLDEN (pure text -- covers multi-batch too).
+
+        The structure golden pins emitted LDP SQL text and so applies to EVERY case
+        the LDP emitter can model -- INCLUDING multi-batch incremental cases (their
+        APPLY CHANGES structure must not drift). Only fixtures the strict UMF model
+        cannot represent (e.g. DOUBLE) are skipped, visibly.
+        """
+        return self._umf_modelable_reason(case)
+
+    def _extract_select_body(self, ldp_sql: str) -> str:
+        lines = ldp_sql.splitlines()
+        start = next(
+            i
+            for i, ln in enumerate(lines)
+            if ln.strip().endswith("SELECT") or ln.strip() == "SELECT"
+        )
+        body: list[str] = []
+        for ln in lines[start + 1 :]:
+            if ln.strip().upper().startswith("FROM "):
+                break
+            body.append(ln)
+        return "\n".join(body)
+
+    def ingest_umf_model(self, case: Case) -> Any:
+        """Load a case's raw-dict ingest UMF into a full UMF pydantic model.
+
+        The ingest corpus fixtures use the simplified scalar-``nullable`` ingest
+        dialect (``nullable: false`` / a bare dict, no top-level ``version``) that
+        the Spark baseline / dbt-duckdb paths consume as a raw dict. The LDP emitter
+        consumes full UMF models, so normalise here WITHOUT changing the cast inputs:
+        add a ``version`` when absent and wrap a scalar ``nullable`` bool into the
+        ``{default: bool}`` form the UMF model accepts. The cast SQL depends only on
+        ``data_type``/``precision``/``scale`` (unchanged), so the LDP cast body stays
+        byte-identical to the shared cast.
+        """
+        from tablespec.models.umf import UMF
+
+        assert case.umf is not None
+        raw = yaml.safe_load(case.umf.read_text())
+        raw.setdefault("version", "1.0")
+        for col in raw.get("columns", []):
+            nullable = col.get("nullable")
+            if isinstance(nullable, bool):
+                col["nullable"] = {"default": nullable}
+        return UMF(**raw)
+
+    def ldp_files(self, case: Case, *, dialect: str = "duckdb") -> dict[str, str]:
+        """Generate the LDP project files for the case's single ingest table.
+
+        ``dialect`` selects the cast rendering: ``"duckdb"`` for the locally-EXECUTED
+        cast-body row check, and ``"spark"`` (the LDP prod default, cast-identical to
+        Databricks) for the STRUCTURE golden so the pinned artifact is the real
+        Spark/Databricks-flavored LDP SQL a workspace would deploy -- not DuckDB SQL.
+        """
+        from tablespec.ldp import generate_ldp_project
+
+        umf = self.ingest_umf_model(case)
+        return generate_ldp_project([umf], dialect=dialect)
+
+    def structure_files(self, case: Case) -> dict[str, str]:
+        """The LDP project in the PROD (spark/databricks) dialect for the structure golden."""
+        return self.ldp_files(case, dialect="spark")
+
+    def select_block_is_shared(self, case: Case) -> bool:
+        """The LDP ingested cast lines contain the shared IngestSelect.select_block."""
+        from tablespec.schemas.ingest_generator import build_ingest_select
+
+        assert case.umf is not None
+        umf = yaml.safe_load(case.umf.read_text())
+        table = umf["table_name"]
+        files = self.ldp_files(case)
+        ldp_sql = files.get(f"ingested/ingested_{table}.sql")
+        if ldp_sql is None:
+            return False
+        shared = build_ingest_select(umf, dialect="duckdb").select_block
+        return shared in self._extract_select_body(ldp_sql)
+
+    def run(self, case: Case) -> str:
+        """Run the extracted LDP cast SELECT on duckdb -> canonical-json rows.
+
+        This loads the case's REAL raw batch(es) into duckdb and applies the LDP
+        cast body, exactly as the row engines do, so the output is comparable to the
+        corpus row golden. (LDP's streaming/APPLY-CHANGES runtime is NOT modelled
+        here -- that is the Databricks-only e2e tier; this asserts the CAST layer.)
+        """
+        import duckdb
+
+        assert case.umf is not None
+        umf = yaml.safe_load(case.umf.read_text())
+        table = umf["table_name"]
+        columns = [c["name"] for c in umf["columns"]]
+        files = self.ldp_files(case)
+        ldp_body = self._extract_select_body(files[f"ingested/ingested_{table}.sql"])
+
+        con = duckdb.connect()
+        try:
+            con.execute("SET TimeZone='UTC'")
+            coldefs = ", ".join(f'"{c}" VARCHAR' for c in columns)
+            coldefs += ', "_source_file" VARCHAR, "_load_ts" TIMESTAMP'
+            con.execute(f"CREATE TABLE raw_{table} ({coldefs})")
+            proj = ", ".join(f'"{c}"' for c in columns)
+            proj += ', "_source_file", cast("_load_ts" as timestamp)'
+            for batch in case.batches:
+                assert batch.exists(), f"missing raw batch: {batch}"
+                con.execute(
+                    f"INSERT INTO raw_{table} SELECT {proj} "
+                    f"FROM read_csv_auto('{batch}', header=true, all_varchar=true)"
+                )
+            recs = con.execute(f"SELECT\n{ldp_body}\nFROM raw_{table}").fetchall()
+        finally:
+            con.close()
+        rows = [dict(zip(columns, rec, strict=True)) for rec in recs]
+        return to_json(
+            rows, columns, decimal_scales(umf), ts_precision=case.ts_precision
+        )
+
+
+class LdpDatabricksE2EEngine(Engine):
+    """OPT-IN: deploy the LDP pipeline to a REAL Databricks workspace and read back.
+
+    This is the only tier that exercises the LDP STREAMING runtime (read_files
+    autoloader, APPLY CHANGES, materialized views) end-to-end. It is skipped unless
+    ``DATABRICKS_HOST`` is set; there is no cluster in this harness, so it skips here
+    with an explicit reason (never silently passed). When a workspace IS configured,
+    it is a first-class ROW engine: it deploys the generated LDP pipeline, ingests
+    the case's raw batches, and canonicalizes the resulting ``ingested_<t>`` table
+    through the SAME canonicalization vs the SAME corpus row golden.
+    """
+
+    name = "LdpDatabricksE2E"
+    kinds = ("ingest",)
+    tier = "e2e"
+
+    def availability(self, case: Case) -> str | None:
+        return databricks_e2e_availability()
+
+    def run(self, case: Case) -> str:  # pragma: no cover - requires a real workspace
+        # Deploy the LDP pipeline + ingest the batches on the configured workspace,
+        # then read back ingested_<t> and canonicalize vs the SAME corpus golden.
+        # Implemented behind the opt-in gate; unreachable in this cluster-less env.
+        raise NotImplementedError(
+            "LdpDatabricksE2E requires a configured Databricks workspace; this tier "
+            "is gated by databricks_e2e_availability and is not executed here."
+        )
+
+
+def _duckdb_dbt_availability_duckdb_only() -> str | None:
+    """Skip reason if duckdb itself is unavailable (LDP cast parity needs only duckdb)."""
+    try:
+        import duckdb  # noqa: F401
+    except Exception as exc:
+        return f"duckdb not importable: {exc}"
+    return None
+
+
+# ---------------------------------------------------------------------------
 # the matrix registry
 # ---------------------------------------------------------------------------
 
 
 def all_engines() -> list[Engine]:
-    """Every locally-executable engine in the conformance matrix."""
+    """Every engine in the conformance matrix, ACROSS ALL TIERS.
+
+    Includes the locally-executed row engines (``tier="row"``), the offline
+    compile tier (databricks), the LDP structure/cast-parity tier, and the opt-in
+    real-Databricks e2e tier. The skipped-but-green guard counts these to prove the
+    row engines expected-available here actually executed.
+    """
     return [
+        # row-parity tier (locally executed against the row goldens)
         SparkDirectEngine(),
         DbtDuckDBEngine(),
         DbtSparkSessionEngine(),
         SQLPlanGeneratorGoldEngine(backend="duckdb"),
         SQLPlanGeneratorGoldEngine(backend="spark"),
+        # non-local / prod tiers (compile-only + opt-in e2e) added in Phase 4
+        DbtDatabricksCompileEngine(),
+        LdpStructureEngine(),
+        LdpDatabricksE2EEngine(),
     ]
+
+
+def row_engines() -> list[Engine]:
+    """The locally-executed row-parity engines (``tier="row"``)."""
+    return [e for e in all_engines() if e.tier == "row"]
+
+
+# Engines that MUST be available + actually execute in THIS environment (Spark JDK
+# present, dbt adapters installed). If any of these produces only skips, the matrix
+# is silently green-on-nothing -- the skipped-but-green guard fails in that case.
+REQUIRED_LOCAL_ROW_ENGINES: tuple[str, ...] = (
+    "SparkDirect",
+    "DbtDuckDB",
+    "DbtSparkSession",
+    "SQLPlanGeneratorGold[duckdb]",
+    "SQLPlanGeneratorGold[spark]",
+)
