@@ -39,6 +39,7 @@ from tablespec.dbt.contracts import (
     render_column_contract,
     render_contract_config_arg,
 )
+from tablespec.dbt.profiles import render_profiles_yml as _render_profiles_yml
 from tablespec.dbt.schema_tests import render_tests_for_column
 from tablespec.models.umf import UMF
 from tablespec.schemas.ingest_generator import (
@@ -286,26 +287,17 @@ def _dbt_project_yml(project_name: str) -> str:
     )
 
 
-def _profiles_yml(project_name: str) -> str:
-    """Render a DuckDB ``profiles.yml`` template.
+def _profiles_yml(project_name: str, *, target: str = "duckdb") -> str:
+    """Render a ``profiles.yml`` template for *target*.
 
-    The ``path`` is a placeholder; runners (and the parity test) override it via the
-    ``DBT_DUCKDB_PATH`` env var or by writing a concrete profiles.yml.
-
-    The session is pinned to UTC so TIMESTAMP rendering is host-timezone independent
-    and matches the Spark baseline (which also pins the whole stack to UTC). Without
-    this, no-format / timezone-bearing timestamp parsing could differ across hosts.
+    Delegates to the shared :func:`render_profiles_yml`. The DuckDB ``path`` is a
+    placeholder runners override via ``DBT_DUCKDB_PATH``; the session is pinned to
+    UTC so TIMESTAMP rendering is host-timezone independent and matches the Spark
+    baseline. The ``spark`` (local session) and ``databricks`` (compile-only)
+    targets are also selectable for the conformance harness.
     """
-    return (
-        f"{project_name}:\n"
-        "  target: dev\n"
-        "  outputs:\n"
-        "    dev:\n"
-        "      type: duckdb\n"
-        "      path: \"{{ env_var('DBT_DUCKDB_PATH', 'ingest.duckdb') }}\"\n"
-        "      threads: 1\n"
-        "      settings:\n"
-        "        TimeZone: 'UTC'\n"
+    return _render_profiles_yml(
+        project_name, target=target, duckdb_path_default="ingest.duckdb"
     )
 
 
@@ -319,6 +311,7 @@ def generate_dbt_project(
     umf_data: dict[str, Any],
     *,
     dialect: str = "duckdb",
+    target: str | None = None,
     out_dir: str | Path | None = None,
     project_name: str = "tablespec_ingest",
     related: list[UMF] | None = None,
@@ -333,7 +326,11 @@ def generate_dbt_project(
     Args:
     ----
         umf_data: UMF table data (e.g. ``umf.model_dump(exclude_none=True)``).
-        dialect: SQL dialect for the cast expressions; defaults to ``"duckdb"``.
+        dialect: SQL dialect for the cast expressions; defaults to ``"duckdb"``
+            (also ``"spark"`` / ``"databricks"``).
+        target: profiles.yml adapter target (``"duckdb"`` | ``"spark"`` |
+            ``"databricks"``). Defaults to mirror *dialect* (the spark/databricks
+            dialects are cast-equivalent and each has a same-named adapter target).
         out_dir: If given, the returned files are also written under this directory.
         project_name: dbt project + profile name.
         related: Optional sibling tables (as :class:`UMF`). Each is emitted as its
@@ -374,9 +371,10 @@ def generate_dbt_project(
     emitted_tables = [t for _, t, _ in emitted]
     resolver = _emitted_resolver(emitted_tables)
 
+    profile_target = target if target is not None else dialect
     files: dict[str, str] = {
         "dbt_project.yml": _dbt_project_yml(project_name),
-        "profiles.yml": _profiles_yml(project_name),
+        "profiles.yml": _profiles_yml(project_name, target=profile_target),
         "models/sources.yml": _sources_yml(emitted_tables),
         "models/schema.yml": _schema_yml(emitted, resolver, dialect=dialect),
     }

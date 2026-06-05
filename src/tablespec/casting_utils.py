@@ -499,7 +499,13 @@ def cast_column_sql(
         format: Optional UMF date/timestamp format (e.g. "YYYYMMDD").
         precision: DECIMAL precision (defaults to 10, matching the runtime caster).
         scale: DECIMAL scale (defaults to 2, matching the runtime caster).
-        dialect: ``"spark"`` (default) or ``"duckdb"``.
+        dialect: ``"spark"`` (default), ``"databricks"``, or ``"duckdb"``.
+            ``"databricks"`` is an explicit, separately-selectable dialect that
+            renders byte-for-byte identical SQL to ``"spark"`` -- Databricks SQL is
+            Spark SQL for our casts (``try_to_timestamp`` + Java date tokens), so a
+            Databricks dbt target reuses the Spark rendering. It exists as a named
+            dialect purely so a Databricks compile/run target can be selected
+            explicitly rather than masquerading as plain Spark.
 
     Returns:
     -------
@@ -517,9 +523,16 @@ def cast_column_sql(
         "try_cast(nullif(trim(regexp_replace(age, '^\\$', '')), '') as INT)"
 
     """
-    if dialect not in ("spark", "duckdb"):
-        msg = f"Unsupported dialect: {dialect!r} (expected 'spark' or 'duckdb')"
+    if dialect not in ("spark", "databricks", "duckdb"):
+        msg = (
+            f"Unsupported dialect: {dialect!r} "
+            "(expected 'spark', 'databricks', or 'duckdb')"
+        )
         raise ValueError(msg)
+    # Databricks SQL == Spark SQL for our casts: try_to_timestamp + Java date
+    # tokens. We keep 'databricks' as a distinct, explicitly-selectable named
+    # dialect but render it through the identical Spark code path below, so the two
+    # never drift. Everything past this point only distinguishes duckdb vs not.
     is_duck = dialect == "duckdb"
     t = target_type.upper()
 

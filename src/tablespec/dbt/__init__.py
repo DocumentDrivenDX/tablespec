@@ -17,6 +17,7 @@ this package never requires dbt to be installed.
 from __future__ import annotations
 
 from tablespec.dbt.materialization import Materialization, MaterializationPolicy
+from tablespec.dbt.profiles import PROFILE_TARGETS, render_profiles_yml
 from tablespec.dbt.project import DbtProjectError, generate_dbt_dag_project
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError, ResolvedNode
 from tablespec.dbt.renderer import DbtRefRenderer, UnknownRelationError
@@ -37,6 +38,7 @@ from tablespec.dbt.single_table import generate_dbt_project
 
 __all__ = [
     "EMPTY_SELECTION",
+    "PROFILE_TARGETS",
     "DbtProjectError",
     "DbtRefRenderer",
     "Materialization",
@@ -51,6 +53,7 @@ __all__ = [
     "emit_seeds",
     "generate_dbt_dag_project",
     "generate_dbt_project",
+    "render_profiles_yml",
     "render_seeds_config",
     "seed_column_types",
     "select_expression",

@@ -67,9 +67,13 @@ _SPARK_TYPE: dict[str, str] = {
     "TIMESTAMP": "TIMESTAMP",
 }
 
+# Databricks SQL types == Spark SQL types, so the Databricks dialect reuses the
+# Spark contract type map (kept as a distinct, explicitly-selectable key so a
+# Databricks target renders its contract under its own name without drifting).
 _TYPE_BY_DIALECT: dict[str, dict[str, str]] = {
     "duckdb": _DUCKDB_TYPE,
     "spark": _SPARK_TYPE,
+    "databricks": _SPARK_TYPE,
 }
 
 
@@ -82,7 +86,10 @@ def contract_sql_type(contract: ColumnContract, *, dialect: str = "duckdb") -> s
     base type.
     """
     if dialect not in _TYPE_BY_DIALECT:
-        msg = f"Unsupported contract dialect: {dialect!r} (expected 'duckdb'/'spark')"
+        msg = (
+            f"Unsupported contract dialect: {dialect!r} "
+            "(expected 'duckdb'/'spark'/'databricks')"
+        )
         raise ValueError(msg)
     table = _TYPE_BY_DIALECT[dialect]
     dt = contract.data_type.upper()

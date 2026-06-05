@@ -37,6 +37,7 @@ from tablespec.dbt.contracts import (
     render_contract_config_arg,
 )
 from tablespec.dbt.materialization import Materialization, MaterializationPolicy
+from tablespec.dbt.profiles import PROFILE_TARGETS, render_profiles_yml
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError
 from tablespec.dbt.renderer import DbtRefRenderer
 from tablespec.dbt.routing import RoutingPolicy
@@ -334,17 +335,14 @@ def _dbt_project_yml(project_name: str) -> str:
     )
 
 
-def _profiles_yml(project_name: str) -> str:
-    return (
-        f"{project_name}:\n"
-        "  target: dev\n"
-        "  outputs:\n"
-        "    dev:\n"
-        "      type: duckdb\n"
-        "      path: \"{{ env_var('DBT_DUCKDB_PATH', 'gold.duckdb') }}\"\n"
-        "      threads: 1\n"
-        "      settings:\n"
-        "        TimeZone: 'UTC'\n"
+def _profiles_yml(project_name: str, *, target: str = "duckdb") -> str:
+    """Render profiles.yml for *target* (duckdb | spark | databricks).
+
+    Delegates to the shared :func:`render_profiles_yml`; the three adapters all
+    execute the SAME generated models (Databricks SQL == Spark SQL for our casts).
+    """
+    return render_profiles_yml(
+        project_name, target=target, duckdb_path_default="gold.duckdb"
     )
 
 
@@ -357,6 +355,7 @@ def generate_dbt_dag_project(
     umfs: list[UMF],
     *,
     dialect: str = "duckdb",
+    target: str | None = None,
     out_dir: str | Path | None = None,
     project_name: str = "tablespec_gold",
     routing: RoutingPolicy | None = None,
@@ -371,7 +370,13 @@ def generate_dbt_dag_project(
 
     Args:
         umfs: the table set (UMF models).
-        dialect: cast dialect for staging models (``"duckdb"`` default).
+        dialect: cast dialect for staging models (``"duckdb"`` default; also
+            ``"spark"`` / ``"databricks"``).
+        target: profiles.yml adapter target (``"duckdb"`` | ``"spark"`` |
+            ``"databricks"``). Defaults to mirror *dialect*, mapping the
+            cast-equivalent ``"databricks"`` dialect onto the databricks target and
+            ``"spark"`` onto the local session target. Pass explicitly to decouple
+            (e.g. dialect=``"spark"`` cast SQL run against a databricks target).
         out_dir: if given, files are also written under this directory.
         project_name: dbt project + profile name.
         routing: source/model :class:`RoutingPolicy` (dev/prod placement).
@@ -386,6 +391,9 @@ def generate_dbt_dag_project(
     """
     routing = routing or RoutingPolicy()
     policy = materialization or MaterializationPolicy()
+    # Default the profile target to the cast dialect (databricks/spark dialects are
+    # cast-identical and each has a real adapter target of the same name).
+    profile_target = target if target is not None else dialect
 
     try:
         registry = NodeRegistry(list(umfs))
@@ -415,7 +423,7 @@ def generate_dbt_dag_project(
 
     files: dict[str, str] = {
         "dbt_project.yml": _dbt_project_yml(project_name),
-        "profiles.yml": _profiles_yml(project_name),
+        "profiles.yml": _profiles_yml(project_name, target=profile_target),
         "models/sources.yml": _sources_yml(registry, routing),
         "models/schema.yml": _schema_yml(registry, dialect=dialect),
     }
@@ -456,4 +464,4 @@ def generate_dbt_dag_project(
     return files
 
 
-__all__ = ["DbtProjectError", "generate_dbt_dag_project"]
+__all__ = ["PROFILE_TARGETS", "DbtProjectError", "generate_dbt_dag_project"]
