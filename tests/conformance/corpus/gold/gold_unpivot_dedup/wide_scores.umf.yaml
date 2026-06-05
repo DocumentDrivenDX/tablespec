@@ -1,0 +1,29 @@
+version: "1.0"
+table_name: wide_scores
+description: >-
+  Wide per-quarter scores with TWO snapshots per member (different meta_load_dt)
+  and NO primary_key -- so the ingested staging model BLIND-APPENDS both snapshots
+  (no upstream dedup). The gold dedup-latest branch must then keep ALL quarters of
+  the LATEST snapshot per member. Source for gold_unpivot_dedup.
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: q1
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: q2
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: q3
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: meta_load_dt
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: false

@@ -1,0 +1,51 @@
+version: "1.0"
+table_name: long_scores
+description: >-
+  GOLD - dedup-latest then UNPIVOT. Exercises the dedup_strategy=="latest" branch
+  of _generate_unpivot_base_view: pick the LATEST snapshot per primary_key
+  (ORDER BY meta_load_dt DESC), THEN unpivot ALL its quarter columns into a long
+  (member, quarter, score) shape. The previous generator deduped AFTER the unpivot
+  partitioned by PK ONLY, collapsing q1/q2/q3 to a single arbitrary quarter; the
+  fix dedups the WIDE row first so all quarters of the latest snapshot survive.
+primary_key:
+  - member_id
+metadata:
+  base_table: wide_scores
+  base_table_strategy: unpivot
+  dedup_strategy: latest
+  unpivot_columns:
+    - q1
+    - q2
+    - q3
+  unpivot_value_column: score
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: wide_scores
+          column: member_id
+          priority: 1
+  - name: source_column
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: wide_scores
+          column: source_column
+          priority: 1
+  - name: score
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: wide_scores
+          column: score
+          priority: 1

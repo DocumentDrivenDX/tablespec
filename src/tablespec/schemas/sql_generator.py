@@ -624,35 +624,46 @@ FROM {resolved_table};"""
         self._accumulated_columns[value_column] = "base"
         self._accumulated_columns["source_column"] = "base"
 
-        # Optional dedup with ROW_NUMBER
+        # Optional dedup with ROW_NUMBER.
+        #
+        # CORRECTNESS: dedup the WIDE row BEFORE the UNPIVOT, not after. Deduping
+        # AFTER the unpivot with ``PARTITION BY <pk>`` keeps exactly ONE unpivoted
+        # row per key -- collapsing q1/q2/q3 to a single arbitrary quarter instead
+        # of all quarters of the latest snapshot. Picking the latest WIDE row first
+        # (PARTITION BY <pk> over the order column) and unpivoting THAT preserves
+        # every quarter of the winning snapshot. The deduped CTE also lists its
+        # columns explicitly (no ``SELECT * EXCEPT (rn)`` / ``EXCLUDE (rn)``), which
+        # is the dialect-portable form (DuckDB ``EXCLUDE`` vs Spark ``EXCEPT``) the
+        # generator prefers everywhere else.
         dedup_strategy = metadata.dedup_strategy
         if dedup_strategy == "latest" and table_umf.primary_key:
             partition_cols = self._build_unpivot_dedup_partition(table_umf)
-            cte_in_clause = ",\n      ".join(columns)
+            wide_cols = ",\n    ".join(base_columns)
             return f"""-- ============================================================================
 -- STEP 0: Create base view from {base_table} with UNPIVOT (dedup: latest per PK)
 -- ============================================================================
 CREATE OR REPLACE TEMPORARY VIEW disposition_base AS
-WITH unpivoted AS (
-  SELECT *
-  FROM {resolved_table}
-  UNPIVOT EXCLUDE NULLS (
-    {value_column} FOR source_column IN (
-      {cte_in_clause}
-    )
-  )
-),
-ranked AS (
+WITH ranked AS (
   SELECT *,
     ROW_NUMBER() OVER (
       PARTITION BY {partition_cols}
       ORDER BY meta_load_dt DESC
     ) AS rn
-  FROM unpivoted
+  FROM {resolved_table}
+),
+deduped AS (
+  SELECT
+    {wide_cols}
+  FROM ranked
+  WHERE rn = 1
 )
-SELECT * EXCEPT (rn)
-FROM ranked
-WHERE rn = 1;"""
+SELECT *
+FROM deduped
+UNPIVOT EXCLUDE NULLS (
+  {value_column} FOR source_column IN (
+    {in_clause}
+  )
+);"""
 
         return f"""-- ============================================================================
 -- STEP 0: Create base view from {base_table} with UNPIVOT

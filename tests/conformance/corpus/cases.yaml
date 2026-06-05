@@ -233,8 +233,40 @@ cases:
 
   - id: gold_unpivot
     kind: gold
-    pending: true
+    # PROMOTED (was pending): the UNPIVOT base-view path executes byte-stably on
+    # BOTH backends. ``UNPIVOT EXCLUDE NULLS (score FOR source_column IN (q1,q2,q3))``
+    # is accepted verbatim by DuckDB AND Spark and both EXCLUDE the NULL q2 cell for
+    # M2 (no row emitted), so the committed Spark-oracle golden -- (M1,q1,10),
+    # (M1,q2,20),(M1,q3,30),(M2,q1,5),(M2,q3,15) -- is enforced identically on both.
+    # The dedup-latest branch contrast lives in the sibling ``gold_unpivot_dedup``
+    # case (one golden per case; the no-dedup and dedup-latest branches cannot share
+    # one golden).
+    golden: tests/golden/ingest_parity/gold_unpivot.spark.expected.json
     dir: tests/conformance/corpus/gold/gold_unpivot
+    generator: _generate_unpivot_base_view
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_unpivot_dedup
+    kind: gold
+    # dedup-latest variant of the UNPIVOT path (sibling of gold_unpivot). Exercises
+    # the ``dedup_strategy == "latest"`` branch of _generate_unpivot_base_view: the
+    # wide source carries TWO snapshots per member (distinct meta_load_dt) and NO
+    # primary_key, so the staging model blind-appends both; the gold model keeps the
+    # LATEST snapshot per member and unpivots ALL its quarters.
+    #
+    # FIXED (real generator correctness bug surfaced by promotion): the dedup branch
+    # previously UNPIVOTed FIRST and then ranked ``PARTITION BY <pk>`` -- so
+    # ``WHERE rn = 1`` kept exactly ONE unpivoted row per member, collapsing q1/q2/q3
+    # to a single arbitrary quarter (M1 => only (q1,100)) on BOTH backends. The branch
+    # now dedups the WIDE row first (rank the snapshots, keep the latest, THEN unpivot)
+    # so every quarter of the winning snapshot survives: M1 (latest 2024-02-01) =>
+    # (q1,100),(q2,200),(q3,300); M2 => (q1,5),(q3,15); M3 (latest 2024-04-01) =>
+    # (q1,7),(q3,9) -- q2 NULLs excluded. It also lists the deduped columns explicitly
+    # instead of ``SELECT * EXCEPT (rn)`` (the dialect-portable form: DuckDB EXCLUDE vs
+    # Spark EXCEPT), so the model runs byte-stably on both backends.
+    golden: tests/golden/ingest_parity/gold_unpivot_dedup.spark.expected.json
+    dir: tests/conformance/corpus/gold/gold_unpivot_dedup
     generator: _generate_unpivot_base_view
     ts_precision: 0
     tags: [gold]
