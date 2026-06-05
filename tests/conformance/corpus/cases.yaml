@@ -312,6 +312,39 @@ cases:
     ts_precision: 0
     tags: [gold]
 
+  - id: gold_survivorship_max_across_sources
+    kind: gold
+    # PROMOTED (executed on duckdb + spark). The max_across_sources survivorship
+    # branch: the member universe is the UNION of system_a + system_b keyed by
+    # member_id, and the surviving ``score`` is
+    # ``COALESCE(GREATEST(system_a.score, system_b.score_b), -1)`` -- the GREATEST
+    # branch of _generate_greatest_mapping (sql_generator.py ~1840/1974) plus the
+    # COALESCE(...,default_value) fallback. Sibling of gold_survivorship_priority
+    # (which exercises the priority-COALESCE branch); one golden per case, so the
+    # GREATEST contrast lives in its own case.
+    #
+    # The GREATEST/default contract is made OBSERVABLE and NON-VACUOUS on BOTH
+    # backends by the corpus:
+    #   * M1 (a=10, b=20)     -> GREATEST(10,20)=20                 (plain max)
+    #   * M2 (a=NULL, b=5)    -> COALESCE(GREATEST(NULL,5),-1)=5    (one candidate
+    #       NULL + a real value + default => the real max wins over the default,
+    #       proving COALESCE keeps GREATEST's non-null result, NOT the default)
+    #   * M3 (a=7, no b row)  -> GREATEST(7)=7                      (member only in A)
+    #   * M4 (a=NULL, b=NULL) -> COALESCE(GREATEST(NULL,NULL),-1)=-1 (NULL in BOTH
+    #       sources + default => the bare DEFAULT literal wins, proving the COALESCE
+    #       default-fallback branch)
+    # GREATEST is a high cross-backend divergence risk (NULL handling + numeric type
+    # coercion differ between DuckDB and Spark in general). VERIFIED on both: each
+    # backend's GREATEST SKIPS NULL args (GREATEST(10,NULL)=10) and returns NULL only
+    # when ALL args are NULL, so COALESCE(...,-1) yields -1 ONLY for M4 -- identically
+    # on duckdb + spark. The matrix pins the Spark-oracle golden and asserts DuckDB
+    # agrees byte-for-byte.
+    golden: tests/golden/ingest_parity/gold_survivorship_max_across_sources.spark.expected.json
+    dir: tests/conformance/corpus/gold/gold_survivorship_max_across_sources
+    generator: _generate_member_universe_view
+    ts_precision: 0
+    tags: [gold]
+
   - id: gold_first_record
     kind: gold
     # PROMOTED (was pending): the first-record-per-key path

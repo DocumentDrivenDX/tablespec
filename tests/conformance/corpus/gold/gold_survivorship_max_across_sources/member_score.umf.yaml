@@ -1,0 +1,51 @@
+version: "1.0"
+table_name: member_score
+description: >-
+  GOLD - max_across_sources (GREATEST) survivorship across union_sources. The
+  member universe is the UNION of system_a and system_b keyed by member_id; the
+  surviving score is COALESCE(GREATEST(system_a.score, system_b.score_b),
+  default_value=-1). Exercises the GREATEST branch of _generate_greatest_mapping
+  (sql_generator.py ~1840/1974) plus the COALESCE(...,default) fallback. The
+  corpus deliberately makes the GREATEST/default contract observable on BOTH
+  backends:
+    * M1: a=10,  b=20 -> GREATEST(10,20)=20         (plain max, both present)
+    * M2: a=NULL, b=5 -> COALESCE(GREATEST(NULL,5),-1)=5
+          (one candidate NULL + a real value + default => the real max wins over
+           the default: proves COALESCE keeps GREATEST's non-null result)
+    * M3: a=7, (no b row) -> GREATEST(7)=7          (member only in source A)
+    * M4: a=NULL, b=NULL -> COALESCE(GREATEST(NULL,NULL),-1)=-1
+          (member NULL in BOTH sources + default => the bare DEFAULT literal wins:
+           proves the COALESCE default fallback branch)
+  GREATEST is a high cross-backend divergence risk (NULL handling + numeric type
+  coercion differ between DuckDB and Spark in general), so this case pins the
+  Spark-oracle golden and the matrix asserts DuckDB agrees byte-for-byte.
+primary_key:
+  - member_id
+metadata:
+  base_table_strategy: union_sources
+  source_tables:
+    - system_a
+    - system_b
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: score
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: system_a
+          column: score
+          priority: 1
+        - table: system_b
+          column: score_b
+          priority: 2
+      survivorship:
+        strategy: max_across_sources
+        explanation: take the GREATEST score across both source feeds
+        default_value: -1

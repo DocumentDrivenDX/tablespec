@@ -1,0 +1,14 @@
+version: "1.0"
+table_name: system_a
+description: Member score feed from system A - gold_survivorship_max_across_sources
+primary_key:
+  - member_id
+columns:
+  - name: member_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: score
+    data_type: INTEGER
+    nullable:
+      default: true
