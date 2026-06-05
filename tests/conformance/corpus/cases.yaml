@@ -209,19 +209,20 @@ cases:
 
   - id: gold_window_aggregation
     kind: gold
-    pending: true
-    # KNOWN DIVERGENCE surfaced by the executed matrix (Phase 3): with
-    # base_table_strategy=union_sources over (member, claims) the generator builds
-    # the universe by UNION-ing member.member_id with claims.claim_id (it picks
-    # each table's primary key, treating claim_id as a member_id), so the window
-    # pre-aggregation joins on the wrong key. A corpus remodel (claims should join
-    # to member by member_id, not union into the universe) or generator fix is
-    # required before this executes to a stable golden. Gated -> skipped visibly.
-    # (The redundant `service_date DESC` order_by that produced `DESC DESC` was
-    # separately fixed in member_claim_stats.umf.yaml.)
-    divergence: >-
-      union_sources universe unions member.member_id with claims.claim_id (wrong
-      join key for the window pre-aggregation)
+    # FIXED (was a KNOWN DIVERGENCE): with base_table_strategy=union_sources over
+    # (member, claims) the generator built the universe by UNION-ing
+    # member.member_id with claims.claim_id (it picked each table's own primary
+    # key, treating claim_id as a member_id), so the per-member pre-aggregations
+    # joined on the wrong key. The resolver now unions a CONSISTENT key -- the
+    # column in each source that matches the target PK (member_id), so claims
+    # contributes its member_id FK, not claim_id. Two further generator fixes were
+    # needed for this shape to execute byte-stably on both backends: the window
+    # aggregation view now PROJECTS its order_by column (service_date) into the
+    # ranked CTE so the window ORDER BY resolves, and the GROUP BY pre-aggregation
+    # view gets a distinct name (claims_agg_grouped) so it no longer clobbers the
+    # window view (claims_agg). The order_by entry stays a BARE column so the
+    # rendered window is ``ORDER BY service_date DESC`` (no ``DESC DESC``).
+    golden: tests/golden/ingest_parity/gold_window_aggregation.spark.expected.json
     dir: tests/conformance/corpus/gold/gold_window_aggregation
     generator: _generate_pre_aggregation_views
     ts_precision: 0

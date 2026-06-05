@@ -594,9 +594,21 @@ class RelationshipResolver:
                 if rel.target_table == source_table:
                     return (rel.target_column, rel.source_column)
 
-        # Fallback: try to find a key column in the source table UMF
+        # The union_sources universe must be unified on a CONSISTENT key: every
+        # source contributes the column that corresponds to the target's primary
+        # key (the universe key), NOT its own primary key. For a child/detail
+        # source (e.g. claims with PK claim_id but FK member_id), inferring the
+        # source's own PK (claim_id) would union claim_ids INTO the member
+        # universe and make every downstream per-key pre-aggregation join on the
+        # wrong key. So prefer the source column that matches the target PK.
         if source_table in self.all_umfs:
             source_cols = self._get_table_columns(source_table)
+            if primary_key_col in source_cols:
+                return (primary_key_col, primary_key_col)
+
+            # Fallback: the source lacks the target PK column. Use the source's
+            # own inferred key (best effort) -- the universe is then unified on
+            # whatever shared key the source exposes.
             join_key = self._infer_join_key(source_table, source_cols)
             if join_key:
                 return (join_key, primary_key_col)

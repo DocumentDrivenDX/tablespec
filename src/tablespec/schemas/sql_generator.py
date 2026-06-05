@@ -697,10 +697,17 @@ UNPIVOT EXCLUDE NULLS (
             if join_col in derived_cols:
                 expr, _ = derived_cols[join_col]
                 select_expr = f"({expr}) AS {pk_col}"
+                key_ref = f"({expr})"
             else:
                 select_expr = f"{join_col} AS {pk_col}"
+                key_ref = join_col
 
-            union_parts.append(f"SELECT DISTINCT {select_expr} FROM {resolved}")
+            # The universe key becomes the target's primary key; never admit a
+            # NULL key row (it would surface as a spurious NULL-PK member).
+            union_parts.append(
+                f"SELECT DISTINCT {select_expr} FROM {resolved} "
+                f"WHERE {key_ref} IS NOT NULL"
+            )
 
         union_sql = "\nUNION\n".join(union_parts)
 
@@ -916,8 +923,25 @@ SELECT {pk_col} FROM member_universe;"""
                 if not non_window_specs:
                     continue
 
-            # GROUP BY approach
+            # GROUP BY approach. When this source ALSO produced a window view, the
+            # window view already claimed the bare ``{source_table}_agg`` name, so
+            # the GROUP BY view must use a DISTINCT name -- otherwise the second
+            # CREATE OR REPLACE clobbers the window view and the window-derived
+            # columns (e.g. latest_claim_status) vanish from the agg join.
             group_by_specs = non_window_specs if window_specs else specs
+            group_view_name = (
+                f"{source_table}_agg_grouped" if window_specs else f"{source_table}_agg"
+            )
+            # Point the GROUP BY columns' pre-aggregation bookkeeping at the
+            # distinct grouped view so the agg-view join references the right view.
+            if window_specs:
+                for spec in group_by_specs:
+                    for entry in self._pre_aggregated_columns.get(spec["col_name"], []):
+                        if (
+                            entry["source_table"] == source_table
+                            and not entry.get("is_window_function")
+                        ):
+                            entry["agg_view_name"] = group_view_name
             agg_columns: list[str] = []
             for spec in group_by_specs:
                 func = spec["function"]
@@ -1000,7 +1024,7 @@ SELECT {pk_col} FROM member_universe;"""
                 section = f"""-- ============================================================================
 -- PRE-AGGREGATION: {source_table} aggregate columns (via {join_via_spec.lookup_table} lookup)
 -- ============================================================================
-CREATE OR REPLACE TEMPORARY VIEW {source_table}_agg AS
+CREATE OR REPLACE TEMPORARY VIEW {group_view_name} AS
 SELECT
   lookup.{join_via_spec.lookup_key} AS {pk_col},
 {agg_columns_str}
@@ -1013,7 +1037,7 @@ GROUP BY lookup.{join_via_spec.lookup_key};"""
                 section = f"""-- ============================================================================
 -- PRE-AGGREGATION: {source_table} aggregate columns
 -- ============================================================================
-CREATE OR REPLACE TEMPORARY VIEW {source_table}_agg AS
+CREATE OR REPLACE TEMPORARY VIEW {group_view_name} AS
 SELECT
   {col_prefix}{join_col} AS {pk_col},
 {agg_columns_str}
@@ -1021,9 +1045,8 @@ FROM {from_clause}
 GROUP BY {col_prefix}{join_col};"""
             sections.append(section)
 
-            agg_view_name = f"{source_table}_agg"
             if source_col:
-                self._agg_view_source_columns[agg_view_name] = source_col
+                self._agg_view_source_columns[group_view_name] = source_col
 
         return sections
 
@@ -1058,18 +1081,69 @@ GROUP BY {col_prefix}{join_col};"""
                     select_columns.append(col)
                     seen_cols.add(col)
 
-        order_by_clause = ", ".join(f"{col} DESC" for col in order_by_cols)
+        # Append DESC only when the order_by entry does not already carry an
+        # explicit direction, so a column listed as ``service_date`` renders
+        # ``service_date DESC`` while one already listed as ``service_date DESC``
+        # (or ASC) is left untouched -- never ``service_date DESC DESC``. Pin
+        # ``NULLS LAST`` so NULL ordering is identical across backends (DuckDB and
+        # Spark default NULL placement diverges by direction), keeping the
+        # "most recent non-null" window pick deterministic.
+        def _with_direction(col: str) -> str:
+            stripped = col.strip()
+            tokens = stripped.upper().split()
+            has_dir = "ASC" in tokens or "DESC" in tokens
+            has_nulls = "NULLS" in tokens
+            result = stripped if has_dir else f"{stripped} DESC"
+            if not has_nulls:
+                result = f"{result} NULLS LAST"
+            return result
+
+        order_by_clause = ", ".join(_with_direction(col) for col in order_by_cols)
+
+        # Bare order_by column names (direction stripped): these must be PROJECTED
+        # into the ``filtered`` CTE so the ``ranked`` CTE's ORDER BY can resolve
+        # them. They are then DROPPED from the view's final output (via an explicit
+        # final projection) so only the declared output columns survive.
+        def _bare_col(col: str) -> str:
+            parts = col.strip().rsplit(None, 1)
+            if len(parts) == 2 and parts[1].upper() in ("ASC", "DESC"):
+                return parts[0].strip()
+            return col.strip()
+
+        order_by_bare = [_bare_col(c) for c in order_by_cols]
 
         output_columns: list[str] = []
+        # Names the view ultimately exposes, in order, starting with the join key.
+        final_output_names: list[str] = [pk_col]
+        produced_cols: set[str] = {pk_col}
         for spec in specs:
             col_name = spec["col_name"]
             src_col = spec["source_column"]
             if src_col and src_col != "*":
                 src_col = self._substitute_template_vars(src_col)
                 output_columns.append(f"  {src_col} AS {col_name}")
+                if col_name not in produced_cols:
+                    final_output_names.append(col_name)
+                    produced_cols.add(col_name)
 
         for col in select_columns:
             output_columns.append(f"  {col}")
+            if col not in produced_cols:
+                final_output_names.append(col)
+                produced_cols.add(col)
+
+        # Project any order_by column not already produced (and not the partition
+        # key) so the window ORDER BY can reference it. These are NOT added to
+        # ``final_output_names`` -- they are scratch columns dropped by the final
+        # explicit projection below.
+        order_by_passthrough = [
+            c
+            for c in order_by_bare
+            if c and c not in produced_cols and c != join_col
+        ]
+        for col in order_by_passthrough:
+            output_columns.append(f"  {col}")
+            produced_cols.add(col)
 
         # Build FROM clause with derived columns if needed
         from_clause = resolved_table
@@ -1127,6 +1201,12 @@ GROUP BY {col_prefix}{join_col};"""
             else f"  {first_spec['source_column']} AS {first_spec['col_name']}"
         )
 
+        # Final projection: list only the declared output columns explicitly. This
+        # drops both ``rn`` and the order-by scratch columns WITHOUT a star-exclude,
+        # which differs between dialects (DuckDB ``* EXCLUDE (a, b)`` vs Spark
+        # ``* EXCEPT (a, b)``); an explicit column list is valid on both.
+        final_projection = ",\n  ".join(final_output_names)
+
         agg_view_name = f"{source_table}_agg{view_name_suffix}"
         return f"""-- ============================================================================
 -- PRE-AGGREGATION: {agg_view_name} (window function - max row with traceability)
@@ -1146,7 +1226,8 @@ ranked AS (
     ) AS rn
   FROM filtered
 )
-SELECT * EXCEPT (rn)
+SELECT
+  {final_projection}
 FROM ranked
 WHERE rn = 1;"""
 

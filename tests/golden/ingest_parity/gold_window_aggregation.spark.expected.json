@@ -1,0 +1,19 @@
+{
+  "columns": [
+    "member_id",
+    "claim_count",
+    "latest_claim_status"
+  ],
+  "rows": [
+    [
+      "M1",
+      "2",
+      "CLOSED"
+    ],
+    [
+      "M2",
+      "1",
+      "OPEN"
+    ]
+  ]
+}
