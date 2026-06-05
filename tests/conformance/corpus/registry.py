@@ -42,6 +42,13 @@ class Case:
         pending: True when the case is declared but its golden is not yet produced
             (the executed-gold phase materializes it). The corpus-validation test
             still requires a pending case's source fixtures to be present.
+        divergence: when set, a human-readable reason the case is a KNOWN
+            cross-engine divergence that cannot currently be executed to a
+            byte-stable golden (a genuine generator/corpus issue surfaced by the
+            harness). The matrix gates such a case with this reason so it is
+            SKIPPED VISIBLY -- never silently passed -- pending a generator/corpus
+            fix. Distinct from ``pending`` (which is merely "golden not yet
+            written"): a divergence case fails to EXECUTE, not just to compare.
     """
 
     id: str
@@ -54,6 +61,7 @@ class Case:
     gold_dir: Path | None = None
     generator: str | None = None
     pending: bool = False
+    divergence: str | None = None
 
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags
@@ -124,6 +132,7 @@ def load_corpus() -> Corpus:
                     generator=raw.get("generator"),
                     golden=(_resolve(raw["golden"]) if raw.get("golden") else None),
                     pending=bool(raw.get("pending", False)),
+                    divergence=raw.get("divergence"),
                 )
             )
         else:  # pragma: no cover - manifest guard

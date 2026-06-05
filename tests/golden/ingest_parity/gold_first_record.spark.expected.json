@@ -1,0 +1,16 @@
+{
+  "columns": [
+    "parent_id",
+    "detail_value"
+  ],
+  "rows": [
+    [
+      "1",
+      "first-for-1"
+    ],
+    [
+      "2",
+      "only-for-2"
+    ]
+  ]
+}

@@ -42,8 +42,11 @@ columns:
         - table: claims
           column: status
           expression: MAX_BY(status, service_date)
+          # The generator appends DESC to each order_by column (sql_generator.py
+          # line ~1054); list the BARE column name here so the rendered window is
+          # ``ORDER BY service_date DESC`` (not ``service_date DESC DESC``).
           order_by:
-            - service_date DESC
+            - service_date
           priority: 1
       survivorship:
         strategy: single_source

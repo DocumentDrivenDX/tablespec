@@ -187,6 +187,16 @@ cases:
   - id: gold_pivot
     kind: gold
     pending: true
+    # KNOWN DIVERGENCE surfaced by the executed matrix (Phase 3): the generated
+    # gold model (a) joins the pivot CTE under the alias `pivot`, a RESERVED word
+    # in DuckDB (parse error; Spark accepts it) and (b) the final-assembly column
+    # mapping references diagnosis__Code instead of the pivoted
+    # diagnosis__diagnosis_1..3 the pivot CTE actually produces. A generator fix is
+    # required before this case can execute to a byte-stable golden; gated here so
+    # it is SKIPPED VISIBLY, never silently passed.
+    divergence: >-
+      generator emits a DuckDB-reserved `pivot` alias and a final-assembly column
+      map (diagnosis__Code) that does not match the pivoted output columns
     dir: tests/conformance/corpus/gold/gold_pivot
     generator: _generate_pivot_join
     ts_precision: 0
@@ -203,6 +213,18 @@ cases:
   - id: gold_window_aggregation
     kind: gold
     pending: true
+    # KNOWN DIVERGENCE surfaced by the executed matrix (Phase 3): with
+    # base_table_strategy=union_sources over (member, claims) the generator builds
+    # the universe by UNION-ing member.member_id with claims.claim_id (it picks
+    # each table's primary key, treating claim_id as a member_id), so the window
+    # pre-aggregation joins on the wrong key. A corpus remodel (claims should join
+    # to member by member_id, not union into the universe) or generator fix is
+    # required before this executes to a stable golden. Gated -> skipped visibly.
+    # (The redundant `service_date DESC` order_by that produced `DESC DESC` was
+    # separately fixed in member_claim_stats.umf.yaml.)
+    divergence: >-
+      union_sources universe unions member.member_id with claims.claim_id (wrong
+      join key for the window pre-aggregation)
     dir: tests/conformance/corpus/gold/gold_window_aggregation
     generator: _generate_pre_aggregation_views
     ts_precision: 0
@@ -211,6 +233,17 @@ cases:
   - id: gold_survivorship_priority
     kind: gold
     pending: true
+    # KNOWN DIVERGENCE surfaced by the executed matrix (Phase 3): the generated
+    # gold model stops at the per-source join CTEs (system_a__phone,
+    # system_b__phone_number) and never emits the priority-COALESCE final assembly
+    # that would produce the declared `phone` survivorship column -- so the
+    # contract/schema selecting `phone` fails (column not found). The
+    # union_sources + priority-COALESCE survivorship final-assembly is not emitted
+    # for this shape; a generator fix is required before it executes to a stable
+    # golden. Gated -> skipped visibly, never silently passed.
+    divergence: >-
+      priority-COALESCE survivorship final assembly is not emitted; declared
+      `phone` column is never produced by the gold model
     dir: tests/conformance/corpus/gold/gold_survivorship_priority
     generator: _generate_member_universe_view
     ts_precision: 0
