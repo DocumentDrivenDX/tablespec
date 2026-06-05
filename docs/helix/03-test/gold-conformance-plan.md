@@ -344,3 +344,87 @@ skipped-with-reason, not flipped to a no-op pass.
 - Commit per item.
 - Goldens are written ONLY by the oracle engine under `--update-golden`
   (SparkDirect for ingest; `SQLPlanGeneratorGold[spark]` for gold).
+
+---
+
+## Adversarial review (Phase 0 — Divergence-risk lens)
+
+Codex review + manual verification against `sql_generator.py`. The four base
+promotions are sound and the headline hazards (UNPIVOT syntax, `* EXCEPT (rn)`,
+GREATEST null-skipping, `_rewrite_join_filter` regex fragility, reserved-word
+`pivot`) are all named. The gap is that several hazards are mitigated by AVOIDING
+them in the fixture rather than by an executable variant that FORCES the fix —
+which contradicts the cross-cutting "fix on both backends, don't paper over"
+policy. Convert these to executable variants (or explicitly tracked, justified
+out-of-scope notes):
+
+- **[MAJOR] UNPIVOT dedup-latest is a correctness bug, not just a syntax risk.**
+  `_generate_unpivot_base_view` (sql_generator.py:629-655) UNPIVOTs FIRST, then
+  `ROW_NUMBER() OVER (PARTITION BY <pk> ORDER BY meta_load_dt DESC)` + `WHERE
+  rn = 1`. Because the partition is the PK only (NOT `<pk>, source_column`), it
+  keeps exactly ONE unpivoted row per key — collapsing q1/q2/q3 to a single
+  arbitrary quarter — instead of all quarters of the latest snapshot. The Item-2
+  variant's Given/Then ("only the latest snapshot's unpivoted rows survive") must
+  pin the FULL surviving row-set (M1 -> q1,q2,q3 of the latest load), which the
+  current generator will FAIL. Fix: partition by `<pk>, source_column`, or dedup
+  the wide row before UNPIVOT. Add the multi-column-survival assertion.
+
+- **[MAJOR] first-record tie/NULL determinism: forbid the "out of scope" escape.**
+  `_generate_first_record_join` emits `ROW_NUMBER() OVER (PARTITION BY <pk>
+  ORDER BY {order_columns})` with NO secondary key and NO NULLS FIRST/LAST
+  (sql_generator.py:1572 — verified). Item 3 permits "document why ties are out
+  of scope." That is exactly the paper-over the policy forbids: a non-unique or
+  nullable order key is a real cross-backend divergence (DuckDB vs Spark default
+  NULLS ordering differs, and ROW_NUMBER tie resolution is engine-defined). The
+  plan should add an executable tie/NULL-order variant that FAILS until the
+  generator pins a deterministic order (stable secondary tie-break + explicit
+  NULLS LAST), then fix the generator — not constrain the fixture to dodge it.
+
+- **[MAJOR] GREATEST mixed-type coercion is the real hazard, and Item 5 dodges it.**
+  Same-type GREATEST agreeing across backends is the EASY case (already verified).
+  `_generate_greatest_mapping` emits raw `GREATEST(a, b)` / `COALESCE(GREATEST(...),
+  default)` with NO per-arg cast (sql_generator.py:1949,1954 — verified). The
+  divergence Codex originally flagged is INT-vs-DECIMAL candidates and a numeric
+  default literal coercing/rounding differently on the two engines. Item 5 says
+  fix casts only "if the generator must support mixed types" — that defers the
+  one branch worth testing. Add a mixed INT/DECIMAL (or default-literal-scale)
+  variant and require both backends to yield the declared target type/scale; if
+  it diverges, add dialect-safe `CAST(arg AS <target>)` per argument.
+
+- **[MAJOR] `_rewrite_join_filter` does NOT skip quoted literals.** Verified:
+  sql_generator.py:1635-1647 runs `re.sub` token-replacement over the RAW filter
+  string with a `(?<![.\w])col(?![\w])` boundary — it WILL rewrite a column-named
+  token inside `'...'` and produces an ambiguous bare reference when a column
+  exists on both sides. Item 1's mitigation ("keep the filter free of string
+  literals / ambiguous columns") is the dodge. Add the adversarial filter Codex
+  named (a quoted literal containing a column-like token + a function call + a
+  both-sides column name) as the executable variant and FIX the rewriter
+  (quote-span-aware, qualify both sides) on both backends.
+
+- **[MINOR] `* EXCEPT/EXCLUDE` should be a global generator invariant.** The
+  star-exclusion appears in at least three sites (sql_generator.py:653, 998,
+  1189); :1221-1224 already documents the portable fix (explicit column list).
+  Add a suite-wide assertion that generated gold SQL contains no dialect-specific
+  `* EXCEPT`/`* EXCLUDE`, so a new branch can't silently reintroduce the DuckDB-vs-
+  Spark split. (DuckDB DOES accept `EXCEPT` as column-exclusion, so this may pass
+  by luck today — make the invariant explicit, not luck-dependent.)
+
+- **[MINOR] reserved-word policy is "avoid," which won't catch regressions.**
+  `_SQL_KEYWORDS` (sql_generator.py:27) omits `PIVOT`/`UNPIVOT`; identifiers are
+  emitted unquoted broadly (e.g. :639, :1339). "Avoid names like value/order/pivot"
+  did not prevent the original `pivot`-alias DuckDB-only failure. Add one
+  reserved-word column/alias variant (or assert sanitization/quoting parity) so a
+  regression is caught by execution, not by fixture discipline.
+
+- **[NIT] gold_fk_integrity manifest relaxation must be scoped.** Item 4's
+  option (b) is the right call, but the new non-pending state MUST be gated
+  strictly to `generator == "relationships_schema_test"` AND the test must assert
+  the orphan-FK tier actually executed (positive + `FAIL 1` negative), so
+  "promotion" is not a skip in disguise. Plan already says this — keep it a hard
+  acceptance check, not a note.
+
+Policy verdict: the "fix, don't skip" rule is stated clearly and correctly, but
+is undercut by per-item fixture-avoidance escape hatches on the four highest
+divergence-risk branches (unpivot dedup, first-record ties, mixed-type GREATEST,
+join_filter quoting). Tighten those four into executable variants that exercise
+the hazardous branch and force the generator fix.

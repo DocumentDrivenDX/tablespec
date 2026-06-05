@@ -2,33 +2,31 @@
   "columns": [
     "claim_id",
     "member_id",
-    "member_name"
+    "member_name",
+    "plan_type",
+    "region"
   ],
   "rows": [
     [
       "100",
       "1",
-      "Alice"
-    ],
-    [
-      "101",
-      "2",
-      "Bob"
+      "Alice",
+      "PPO",
+      "WEST"
     ],
     [
       "102",
       "1",
-      "Alice"
+      "Alice",
+      "PPO",
+      "WEST"
     ],
     [
       "103",
       "3",
-      "Carol"
-    ],
-    [
-      "104",
-      "9",
-      "NULL"
+      "Carol",
+      "PPO",
+      "EAST"
     ]
   ]
 }

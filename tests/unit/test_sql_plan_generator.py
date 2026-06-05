@@ -711,6 +711,55 @@ class TestSQLPlanGeneratorJoins:
         assert "ACTIVE" in sql
 
 
+class TestRewriteJoinFilterQuoteSpans:
+    """``_rewrite_join_filter`` must qualify code tokens but never string literals.
+
+    Regression for the gold_inner_join_filter conformance case: a column-named
+    token INSIDE a single-quoted literal must be preserved verbatim (rewriting it
+    corrupts the constant on BOTH backends), while bare references and references
+    inside function calls are still qualified to the join alias.
+    """
+
+    def _gen(self, cols: list[str]) -> SQLPlanGenerator:
+        gen = SQLPlanGenerator()
+        gen._related_umfs = {
+            "member": _make_umf(
+                "member",
+                [UMFColumn(name=c, data_type="VARCHAR") for c in cols],
+            )
+        }
+        return gen
+
+    def test_token_inside_literal_is_preserved(self) -> None:
+        gen = self._gen(["region", "plan_type"])
+        out = gen._rewrite_join_filter(
+            "plan_type = 'PPO' AND UPPER(region) <> 'no region here'", "member"
+        )
+        # Bare tokens + function-arg tokens are qualified ...
+        assert "target.plan_type = 'PPO'" in out
+        assert "UPPER(target.region)" in out
+        # ... but the column-named token inside the literal is NOT touched.
+        assert "'no region here'" in out
+        assert "target.region here" not in out
+
+    def test_escaped_quote_literal_is_preserved(self) -> None:
+        gen = self._gen(["region", "plan_type"])
+        out = gen._rewrite_join_filter(
+            "region = 'it''s region' AND plan_type = 'PPO'", "member"
+        )
+        assert "target.region = 'it''s region'" in out
+        # the in-literal 'region' (after the escaped quote) stays unqualified
+        assert "'it''s region'" in out
+
+    def test_literal_in_in_list_is_preserved(self) -> None:
+        gen = self._gen(["region", "plan_type"])
+        out = gen._rewrite_join_filter(
+            "UPPER(region) = 'WEST' OR plan_type IN ('region','PPO')", "member"
+        )
+        assert "UPPER(target.region)" in out
+        assert "target.plan_type IN ('region','PPO')" in out
+
+
 # ---------------------------------------------------------------------------
 # TestSQLPlanGeneratorDerivations
 # ---------------------------------------------------------------------------

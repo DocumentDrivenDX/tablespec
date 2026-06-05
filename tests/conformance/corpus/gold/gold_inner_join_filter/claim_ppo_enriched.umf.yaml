@@ -1,0 +1,79 @@
+version: "1.0"
+table_name: claim_ppo_enriched
+description: >
+  GOLD - claims INNER-joined to member with a join_filter, exercising
+  _generate_direct_join(join_type=inner) and _rewrite_join_filter. The
+  join_filter deliberately contains (a) a both-sides-ambiguous column name
+  bare-referenced (plan_type), (b) a function call (UPPER(region)), and
+  (c) a column-like token INSIDE a string literal ('no region here') so the
+  rewriter's quote-span handling is forced, not dodged.
+primary_key:
+  - claim_id
+metadata:
+  base_table: claims
+columns:
+  - name: claim_id
+    data_type: INTEGER
+    nullable:
+      default: false
+    derivation:
+      strategy: primary_key
+  - name: member_id
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      strategy: base_column
+      candidates:
+        - table: claims
+          column: member_id
+          priority: 1
+  - name: member_name
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: member
+          column: member_name
+          priority: 1
+          join_filter: "plan_type = 'PPO' AND UPPER(region) <> 'no region here'"
+  - name: plan_type
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: member
+          column: plan_type
+          priority: 1
+  - name: region
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      strategy: survivorship
+      candidates:
+        - table: member
+          column: region
+          priority: 1
+relationships:
+  foreign_keys:
+    - column: member_id
+      references_table: member
+      references_column: member_id
+      type: foreign_key
+      join_type: inner
+  outgoing:
+    - target_table: member
+      source_column: member_id
+      target_column: member_id
+      type: foreign_to_primary
+      confidence: 1.0
+      cardinality:
+        type: many_to_one
+        notation: "1:1"
+        source_multiplicity: "*"
+        target_multiplicity: "1"

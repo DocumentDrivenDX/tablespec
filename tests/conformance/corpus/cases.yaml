@@ -178,8 +178,40 @@ cases:
   # --------------------------------------------------------------------------
   - id: gold_join
     kind: gold
-    pending: true
+    # PROMOTED (was pending): the sequential direct-join (claims x member) path
+    # executes byte-stably on BOTH backends. The claims batch carries an ORPHAN
+    # claim (member_id=9 with no member row) so the LEFT-join semantics are
+    # non-vacuous: row 104 survives with a NULL member_name on both engines, which
+    # the committed golden pins. The INNER + join_filter contrast lives in the
+    # sibling ``gold_inner_join_filter`` case (one golden per case -- the matrix
+    # derives exactly one golden per case id, so LEFT and INNER cannot share one).
+    golden: tests/golden/ingest_parity/gold_join.spark.expected.json
     dir: tests/conformance/corpus/gold/gold_join
+    generator: _generate_join_step
+    ts_precision: 0
+    tags: [gold]
+
+  - id: gold_inner_join_filter
+    kind: gold
+    # INNER-join + join_filter variant of the direct-join path (sibling of
+    # gold_join). Exercises _generate_direct_join(join_type=inner) AND
+    # _rewrite_join_filter. join_type=inner DROPS the orphan claim (member_id=9)
+    # and the filter (plan_type='PPO') drops the HMO member's claim -- so the
+    # output (claims 100,102,103) differs observably from the LEFT base case,
+    # proving both branches are non-vacuous on both backends.
+    #
+    # FIXED (real generator bug surfaced by promotion): the join_filter
+    # ``plan_type = 'PPO' AND UPPER(region) <> 'no region here'`` contains the
+    # column token ``region`` INSIDE the string literal ``'no region here'``.
+    # _rewrite_join_filter previously re.sub'd column tokens over the RAW filter
+    # string and rewrote the in-literal token, emitting the corrupted constant
+    # ``'no target.region here'`` on BOTH backends (a correctness bug, not a
+    # dialect divergence). The rewriter is now quote-span-aware: it only qualifies
+    # tokens in CODE spans and preserves single-quoted literals (incl. ``''``
+    # escapes) verbatim, so the bare ``plan_type``/``region`` are qualified while
+    # the literal is untouched, identically on duckdb + spark.
+    golden: tests/golden/ingest_parity/gold_inner_join_filter.spark.expected.json
+    dir: tests/conformance/corpus/gold/gold_inner_join_filter
     generator: _generate_join_step
     ts_precision: 0
     tags: [gold]

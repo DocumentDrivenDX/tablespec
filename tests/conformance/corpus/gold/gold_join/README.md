@@ -11,9 +11,14 @@ Files:
   `member_name` from `member` via the claims->member foreign key.
 - `claims.raw.csv`, `member.raw.csv` — real source rows.
 
-Golden status: **pending** (declared in `cases.yaml` with `pending: true`). The
-canonical golden is produced by the executed-gold phase, which runs the generated
-gold SQL on BOTH the Spark session AND DuckDB (via the dbt-generated gold project)
-and writes `tests/golden/ingest_parity/gold_join.spark.expected.json` under
-`--update-golden`. Phase 2 ships the source fixtures + pins the generator path;
-it does not fabricate a golden it cannot yet execute.
+The claims batch carries an ORPHAN claim (`claim_id=104`, `member_id=9` with no
+matching member row) so the LEFT-join semantics are non-vacuous: row 104 survives
+with a NULL `member_name`, which the committed golden pins on both backends. The
+INNER + `join_filter` contrast (where that orphan and a filtered-out member are
+DROPPED) lives in the sibling `gold_inner_join_filter` case — the matrix derives
+exactly one golden per case id, so LEFT and INNER cannot share one case.
+
+Golden status: **EXECUTED** — `tests/golden/ingest_parity/gold_join.spark.expected.json`
+is the Spark-backend `SQLPlanGeneratorGold` oracle output (written under
+`--update-golden`). The matrix runs the generated gold project on BOTH the Spark
+session AND DuckDB and asserts byte-identical agreement with that golden.

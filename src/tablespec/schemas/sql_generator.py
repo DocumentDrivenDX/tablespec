@@ -954,9 +954,8 @@ SELECT {pk_col} FROM {_UNION_UNIVERSE_VIEW};"""
             if window_specs:
                 for spec in group_by_specs:
                     for entry in self._pre_aggregated_columns.get(spec["col_name"], []):
-                        if (
-                            entry["source_table"] == source_table
-                            and not entry.get("is_window_function")
+                        if entry["source_table"] == source_table and not entry.get(
+                            "is_window_function"
                         ):
                             entry["agg_view_name"] = group_view_name
             agg_columns: list[str] = []
@@ -1154,9 +1153,7 @@ GROUP BY {col_prefix}{join_col};"""
         # ``final_output_names`` -- they are scratch columns dropped by the final
         # explicit projection below.
         order_by_passthrough = [
-            c
-            for c in order_by_bare
-            if c and c not in produced_cols and c != join_col
+            c for c in order_by_bare if c and c not in produced_cols and c != join_col
         ]
         for col in order_by_passthrough:
             output_columns.append(f"  {col}")
@@ -1635,16 +1632,38 @@ LEFT JOIN {agg_view_name} agg
     def _rewrite_join_filter(
         self, join_filter: str, target_table: str, alias: str = "target"
     ) -> str:
-        """Rewrite bare column references in a join filter to use the given alias."""
-        result = join_filter
-        table_cols = set(self._get_table_columns(target_table))
+        """Rewrite bare column references in a join filter to use the given alias.
 
-        # Longest-first replacement to avoid partial matches
-        for col in sorted(table_cols, key=len, reverse=True):
-            pattern = rf"(?<![.\w])({re.escape(str(col))})(?![\w])"
-            result = re.sub(pattern, rf"{alias}.\1", result)
+        Only *code* spans are rewritten: single-quoted SQL string literals are
+        preserved verbatim, so a column-named token that happens to appear INSIDE
+        a literal (e.g. ``region`` inside ``'no region here'``) is never qualified.
+        Rewriting tokens inside a literal would silently corrupt the constant on
+        BOTH backends (a correctness bug, not merely a dialect divergence). The
+        rewrite is also a single left-to-right pass over the code spans (longest
+        column name first within the pass) so an alias inserted for one column can
+        never be re-matched as a bare token for another.
+        """
+        table_cols = sorted(
+            set(self._get_table_columns(target_table)), key=len, reverse=True
+        )
+        if not table_cols:
+            return join_filter
 
-        return result
+        col_alt = "|".join(re.escape(str(c)) for c in table_cols)
+        token_re = re.compile(rf"(?<![.\w])({col_alt})(?![\w])")
+
+        def _rewrite_code(span: str) -> str:
+            return token_re.sub(rf"{alias}.\1", span)
+
+        # Split the filter into alternating code / single-quoted-string spans. A
+        # SQL string literal is ``'...'`` with an embedded quote escaped as ``''``;
+        # the capture group keeps the literal so we can pass it through untouched.
+        parts = re.split(r"('(?:[^']|'')*')", join_filter)
+        out: list[str] = []
+        for i, part in enumerate(parts):
+            # Odd indices are the captured quoted literals -> preserve verbatim.
+            out.append(part if i % 2 else _rewrite_code(part))
+        return "".join(out)
 
     def _rewrite_expression_for_alias(
         self, expression: str, alias_prefix: str, table_name: str

@@ -1,0 +1,4 @@
+member_id,member_name,plan_type,region
+1,Alice,PPO,WEST
+2,Bob,HMO,EAST
+3,Carol,PPO,EAST
