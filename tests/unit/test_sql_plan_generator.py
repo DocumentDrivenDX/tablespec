@@ -4,13 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = pytest.mark.fast
-
 from tablespec.models.umf import (
-
     Cardinality,
     DerivationCandidate,
-    Nullable,
     OutgoingRelationship,
     Relationships,
     RelationshipSummary,
@@ -19,8 +15,15 @@ from tablespec.models.umf import (
     UMFColumn,
     UMFColumnDerivation,
 )
-from tablespec.schemas.relationship_resolver import JoinInfo, PivotSpec, RelationshipResolver, ResolvedPlan
+from tablespec.schemas.relationship_resolver import (
+    JoinInfo,
+    PivotSpec,
+    RelationshipResolver,
+    ResolvedPlan,
+)
 from tablespec.schemas.sql_generator import SQLPlanGenerator, generate_sql_plan
+
+pytestmark = pytest.mark.fast
 
 
 # ---------------------------------------------------------------------------
@@ -396,9 +399,7 @@ class TestSQLPlanGeneratorBasic:
         sql = gen.generate_for_table(minimal_umf, related_umfs)
         assert "CREATE OR REPLACE TEMPORARY VIEW" in sql
 
-    def test_template_variable_substitution(
-        self, related_umfs: dict[str, UMF]
-    ):
+    def test_template_variable_substitution(self, related_umfs: dict[str, UMF]):
         """Template variables in derivation expressions are replaced."""
         target = _make_umf(
             "templated_table",
@@ -612,12 +613,23 @@ class TestSQLPlanGeneratorJoins:
         )
 
         gen = SQLPlanGenerator()
-        sql = gen.generate_for_table(
-            target, {"hub_table": hub, "detail_table": source}
-        )
+        sql = gen.generate_for_table(target, {"hub_table": hub, "detail_table": source})
         assert "ROW_NUMBER" in sql
         assert "PARTITION BY" in sql
         assert "First Record" in sql
+        # The ranking must be a TOTAL ORDER (stable tiebreak) so the "first" row is
+        # deterministic across backends, not the bare heuristic discriminator. The
+        # ORDER BY therefore spans the partition key + every remaining target column.
+        order_line = next(ln for ln in sql.splitlines() if "ORDER BY" in ln)
+        assert "ORDER BY" in order_line
+        for col in ("parent_id", "detail_value", "updated_date"):
+            assert col in order_line, (
+                f"ORDER BY missing tiebreak column {col!r}: {order_line!r}"
+            )
+        # Explicit ASC NULLS LAST on every term: DuckDB and Spark disagree on the
+        # DEFAULT ASC null placement, so the placement must be pinned to stay
+        # dialect-identical.
+        assert "NULLS LAST" in order_line, order_line
 
     def test_multiple_joins_create_sequential_steps(
         self, derived_umf: UMF, related_umfs: dict[str, UMF]
@@ -845,9 +857,7 @@ class TestSQLPlanGeneratorDerivations:
         sql = gen.generate_for_table(target, {})
         assert "CAST(NULL AS DATE)" in sql
 
-    def test_primary_key_strategy(
-        self, derived_umf: UMF, related_umfs: dict[str, UMF]
-    ):
+    def test_primary_key_strategy(self, derived_umf: UMF, related_umfs: dict[str, UMF]):
         """primary_key derivation strategy references base.column."""
         gen = SQLPlanGenerator()
         sql = gen.generate_for_table(derived_umf, related_umfs)
@@ -1181,9 +1191,7 @@ class TestConvenienceFunction:
 
     def test_accepts_template_vars(self, minimal_umf: UMF):
         """generate_sql_plan forwards template_vars."""
-        sql = generate_sql_plan(
-            minimal_umf, {}, template_vars={"run_id": "abc123"}
-        )
+        sql = generate_sql_plan(minimal_umf, {}, template_vars={"run_id": "abc123"})
         # Just verify it runs without error; no templates in minimal_umf
         assert isinstance(sql, str)
 

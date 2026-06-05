@@ -6,11 +6,11 @@
   "rows": [
     [
       "1",
-      "first-for-1"
+      "alpha"
     ],
     [
       "2",
-      "only-for-2"
+      "gamma"
     ]
   ]
 }

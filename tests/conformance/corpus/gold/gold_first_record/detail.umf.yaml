@@ -1,13 +1,27 @@
 version: "1.0"
 table_name: detail
-description: Detail table (many rows per parent) - source for gold_first_record
-primary_key:
-  - parent_id
+description: >-
+  Detail table (many rows per parent) - source for gold_first_record. NO
+  single-column primary key: ``parent_id`` is a FOREIGN key (1:N), not a unique
+  key. Declaring it as the PK would make the ingest staging model dedup to one
+  row per parent and collapse the N detail rows BEFORE the first-record ranking
+  (defeating the case). The first-record ROW_NUMBER must see all N rows per
+  parent.
+
+  ``record_type`` is the first-record discriminator the generator's ORDER BY
+  heuristic selects (a column whose name contains "type"); ``detail_value`` is the
+  surfaced gold column and ``updated_date`` a further column. Parent 1 carries TWO
+  rows tied on record_type='A' but with DIFFERENT detail_value ('zeta' vs 'alpha')
+  so the stable tiebreak is load-bearing AND observable in the surfaced output.
 columns:
   - name: parent_id
     data_type: INTEGER
     nullable:
       default: false
+  - name: record_type
+    data_type: VARCHAR
+    nullable:
+      default: true
   - name: detail_value
     data_type: VARCHAR
     nullable:

@@ -314,7 +314,32 @@ cases:
 
   - id: gold_first_record
     kind: gold
-    pending: true
+    # PROMOTED (was pending): the first-record-per-key path
+    # (_generate_first_record_join: ROW_NUMBER PARTITION BY key, keep rn=1)
+    # executes byte-stably on BOTH backends and matches the committed Spark-oracle
+    # golden -- parent 1 => detail_value 'alpha', parent 2 => 'gamma'.
+    #
+    # FIXED (real determinism bug surfaced by promotion): the generator's ORDER BY
+    # was the bare heuristic discriminator column (here record_type, the column
+    # whose name contains "type") with NO tiebreak, so the ROW_NUMBER ranking was
+    # NOT a total order -- two rows of a parent that tie on record_type left "first"
+    # undefined and DuckDB vs Spark could pick different rows (a non-deterministic
+    # cross-backend divergence, not a dialect issue). The corpus deliberately gives
+    # parent 1 TWO rows tied on record_type='A' but with DIFFERENT surfaced
+    # detail_value ('zeta' and 'alpha'), so the tie is real AND observable in the
+    # output. The generator now appends a STABLE TIEBREAK (the partition key
+    # followed by every remaining target column in declared order, each emitted as
+    # ``col ASC NULLS LAST`` -- explicit because DuckDB defaults ASC NULLS LAST while
+    # Spark defaults NULLS FIRST, so the placement is pinned dialect-identically),
+    # making the rank a total order: among the tied A-rows detail_value breaks the
+    # tie and 'alpha' < 'zeta' deterministically wins on both backends. parent 2
+    # ('gamma') is the single-row control.
+    #
+    # CORPUS FIX: detail.umf no longer declares parent_id as a single-column PK
+    # (parent_id is a 1:N FOREIGN key). The PK declaration made the ingest staging
+    # model dedup to ONE row per parent and collapse the N detail rows BEFORE the
+    # first-record ranking -- defeating the case (the ranking must see all N rows).
+    golden: tests/golden/ingest_parity/gold_first_record.spark.expected.json
     dir: tests/conformance/corpus/gold/gold_first_record
     generator: _generate_first_record_join
     ts_precision: 0

@@ -1486,8 +1486,12 @@ LEFT JOIN {target_table}_pivoted pivoted
         else:
             filtered_columns = target_columns
 
-        # Determine ordering columns
-        order_columns = target_col
+        # Determine the SEMANTIC ordering column(s): the heuristic picks a
+        # type/name column (or the first non-key column) as the "first record"
+        # discriminator. This alone does NOT impose a total order over the rows of
+        # a partition, so when two rows of a key tie on it ROW_NUMBER() is
+        # non-deterministic and DuckDB and Spark can pick different "first" rows.
+        order_heuristic: list[str] = []
         if target_columns:
             type_cols = [col for col in target_columns if "type" in col.lower()]
             name_cols = [
@@ -1496,11 +1500,11 @@ LEFT JOIN {target_table}_pivoted pivoted
                 if any(x in col.lower() for x in ["name", "lastname", "last_name"])
             ]
             if type_cols and name_cols:
-                order_columns = f"{type_cols[0]}, {name_cols[0]}"
+                order_heuristic = [type_cols[0], name_cols[0]]
             elif type_cols:
-                order_columns = type_cols[0]
+                order_heuristic = [type_cols[0]]
             elif name_cols:
-                order_columns = name_cols[0]
+                order_heuristic = [name_cols[0]]
             else:
                 order_col = next(
                     (
@@ -1510,12 +1514,33 @@ LEFT JOIN {target_table}_pivoted pivoted
                     ),
                     target_col,
                 )
-                order_columns = order_col
+                order_heuristic = [order_col]
+        if not order_heuristic:
+            order_heuristic = [target_col]
+
+        # Append a STABLE TIEBREAK so the ranking is a total order and therefore
+        # deterministic on every backend: the partition key followed by every
+        # remaining target column in declared order, so no two distinct rows of a
+        # key can remain tied. Each term is emitted ``col ASC NULLS LAST``: the
+        # direction + null-placement are made EXPLICIT because the two backends
+        # disagree on the default ASC null placement (DuckDB sorts NULLS LAST,
+        # Spark NULLS FIRST), so a NULL in any tiebreak column would otherwise pick a
+        # different "first" row per backend. ``ASC NULLS LAST`` is accepted verbatim
+        # by both DuckDB and Spark, making the rank dialect-identical.
+        ordered_seen: set[str] = set()
+        order_cols: list[str] = []
+        for col in [*order_heuristic, target_col, *target_columns]:
+            key = col.lower()
+            if key in ordered_seen:
+                continue
+            ordered_seen.add(key)
+            order_cols.append(col)
+        order_columns = ", ".join(f"{col} ASC NULLS LAST" for col in order_cols)
 
         # Build subquery column set
         subquery_columns = set(filtered_columns)
         subquery_columns.add(target_col)
-        for order_col_item in order_columns.split(","):
+        for order_col_item in order_cols:
             subquery_columns.add(order_col_item.strip())
 
         # Check for derived columns

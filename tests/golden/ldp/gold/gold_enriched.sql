@@ -36,7 +36,7 @@ FROM (
   SELECT
     member_id,
     member_name,
-    ROW_NUMBER() OVER (PARTITION BY member_id ORDER BY member_name) as rn
+    ROW_NUMBER() OVER (PARTITION BY member_id ORDER BY member_name ASC NULLS LAST, member_id ASC NULLS LAST) as rn
   FROM ingested_member
 ) ranked
 WHERE rn = 1
