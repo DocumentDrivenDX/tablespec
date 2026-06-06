@@ -58,9 +58,16 @@ def validate_column_pair_date_order(
         msg = "PySpark is required for date order validation"
         raise ImportError(msg)
 
-    scoped = dataframe.filter(
-        F.col(value_column).isNotNull() & F.col(reference_column).isNotNull()
-    )
+    # Use the DataFrame's own bound columns (``dataframe[col]``) rather than
+    # ``F.col(col)``. ``pyspark.sql.functions.col`` builds a CLASSIC Column when a
+    # classic JVM session is active in the process, which fails when ``dataframe``
+    # is a Spark CONNECT DataFrame (``'Column' object is not callable`` inside the
+    # connect plan). Bound columns are always session-correct. Behavior-identical
+    # on classic Spark and on real Databricks serverless (Spark Connect).
+    value_col = dataframe[value_column]
+    reference_col = dataframe[reference_column]
+
+    scoped = dataframe.filter(value_col.isNotNull() & reference_col.isNotNull())
     element_count = scoped.count()
     if element_count == 0:
         return {
@@ -74,17 +81,21 @@ def validate_column_pair_date_order(
             },
         }
 
+    scoped_value = scoped[value_column]
+    scoped_reference = scoped[reference_column]
     comparator = (
-        F.col(value_column) >= F.col(reference_column)
+        scoped_value >= scoped_reference
         if or_equal
-        else F.col(value_column) > F.col(reference_column)
+        else scoped_value > scoped_reference
     )
     unexpected_df = scoped.filter(~comparator)
     unexpected_count = unexpected_df.count()
     unexpected_percent = unexpected_count / element_count * 100
     success_ratio = 1.0 - (unexpected_count / element_count)
 
-    sample_rows = unexpected_df.select(value_column, reference_column).limit(10).collect()
+    sample_rows = (
+        unexpected_df.select(value_column, reference_column).limit(10).collect()
+    )
     operator = "<" if or_equal else "<="
     partial_unexpected_list = [
         f"{row[value_column]} {operator} {row[reference_column]}" for row in sample_rows
@@ -205,7 +216,10 @@ if GX_AVAILABLE:
                 col_type = col_schema.dataType
                 is_already_target_type = (
                     target_type.upper() == "DATE" and isinstance(col_type, DateType)
-                ) or (target_type.upper() == "TIMESTAMP" and isinstance(col_type, TimestampType))
+                ) or (
+                    target_type.upper() == "TIMESTAMP"
+                    and isinstance(col_type, TimestampType)
+                )
 
                 if is_already_target_type:
                     # Column is already the target type - validation passes
@@ -239,7 +253,9 @@ if GX_AVAILABLE:
 
                 # Use flexible parsing for DATE/TIMESTAMP columns
                 if target_type.upper() in ("DATE", "TIMESTAMP"):
-                    formats = build_flexible_formats(target_type, format_str, fallback_formats)
+                    formats = build_flexible_formats(
+                        target_type, format_str, fallback_formats
+                    )
                     cast_expr = try_parse_flexible_timestamp(
                         F.col(column),  # type: ignore[attr-defined]
                         primary_format=formats[0] if formats else "",
@@ -396,7 +412,9 @@ if GX_AVAILABLE:
 
                 unexpected_count = out_of_range_df.count()
                 unexpected_percent = (
-                    (unexpected_count / non_null_count * 100) if non_null_count > 0 else 0.0
+                    (unexpected_count / non_null_count * 100)
+                    if non_null_count > 0
+                    else 0.0
                 )
 
                 # Collect sample of out-of-range values
@@ -407,7 +425,9 @@ if GX_AVAILABLE:
 
                 # Calculate success based on mostly threshold
                 success_percent = (
-                    1.0 - (unexpected_count / non_null_count) if non_null_count > 0 else 1.0
+                    1.0 - (unexpected_count / non_null_count)
+                    if non_null_count > 0
+                    else 1.0
                 )
                 success = success_percent >= mostly
 
@@ -553,7 +573,16 @@ def validate_domain_type(
             },
         }
 
-    # Get column values, dropping nulls
+    # Get column values, dropping nulls.
+    #
+    # NOTE (Spark Connect / serverless limitation): this is a PANDAS-only shim.
+    # ``df[column]`` on a Spark Connect DataFrame returns a Column (not a pandas
+    # Series), so ``.dropna()`` here raises ``TypeError: 'Column' object is not
+    # callable``. Callers MUST pass a pandas DataFrame. The production GX path
+    # (ExpectColumnValuesToMatchDomainType._validate) already materializes the
+    # batch via ``toPandas()`` before calling this. Making the domain-type custom
+    # expectation execute natively on Spark Connect (GX-on-serverless) is a
+    # separate, much larger effort and is intentionally left as future work.
     import pandas as pd
 
     series = df[column].dropna()
@@ -620,7 +649,9 @@ def validate_domain_type(
         # and existence checks (expect_column_to_exist) - not applicable to value validation
 
     unexpected_count = int(unexpected_mask.sum())
-    unexpected_percent = (unexpected_count / total_count * 100) if total_count > 0 else 0.0
+    unexpected_percent = (
+        (unexpected_count / total_count * 100) if total_count > 0 else 0.0
+    )
 
     # Collect sample unexpected values
     unexpected_values = series[unexpected_mask].head(10).tolist()

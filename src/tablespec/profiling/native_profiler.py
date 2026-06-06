@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from tablespec.profiling.types import ColumnProfile, DataFrameProfile
 
@@ -32,10 +32,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Spark type names that should be treated as numeric
-_NUMERIC_TYPES = frozenset({
-    "IntegerType", "LongType", "ShortType", "ByteType",
-    "FloatType", "DoubleType", "DecimalType",
-})
+_NUMERIC_TYPES = frozenset(
+    {
+        "IntegerType",
+        "LongType",
+        "ShortType",
+        "ByteType",
+        "FloatType",
+        "DoubleType",
+        "DecimalType",
+    }
+)
 
 # Spark type names that should get string-length stats
 _STRING_TYPES = frozenset({"StringType"})
@@ -43,6 +50,32 @@ _STRING_TYPES = frozenset({"StringType"})
 # Quantile probabilities
 _QUANTILE_PROBS = [0.05, 0.25, 0.50, 0.75, 0.95]
 _QUANTILE_LABELS = ["p5", "p25", "p50", "p75", "p95"]
+
+
+def _functions_for(df: DataFrame) -> Any:
+    """Return the ``functions`` module matching the DataFrame's engine.
+
+    ``pyspark.sql.functions`` auto-dispatches to classic vs. connect based on
+    process-global remote state (``is_remote()``), NOT on the DataFrame. When a
+    classic JVM session and a Spark Connect (e.g. Sail) session coexist in one
+    process -- as in the local Connect test lane -- ``pyspark.sql.functions``
+    yields CLASSIC Column objects that fail inside a Connect plan
+    (``'Column' object is not callable``). Selecting the functions module from
+    the DataFrame's own type makes column expressions session-correct.
+
+    This is behavior-identical in production: on real Databricks serverless the
+    DataFrame is a Connect DataFrame and there is no classic session, so the
+    result is the same connect functions module ``F`` already resolves to; on a
+    purely classic local session it is the classic functions module.
+    """
+    module = type(df).__module__
+    if module.startswith("pyspark.sql.connect"):
+        from pyspark.sql.connect import functions as connect_F  # noqa: N812
+
+        return connect_F
+    from pyspark.sql import functions as classic_F  # noqa: N812
+
+    return classic_F
 
 
 class NativeSparkProfiler:
@@ -110,7 +143,7 @@ class NativeSparkProfiler:
             Profiling results for use with ``ProfileToGxMapper``.
 
         """
-        from pyspark.sql import functions as F
+        F = _functions_for(df)  # noqa: N806
 
         cached = False
         if cache_inputs:
@@ -137,9 +170,17 @@ class NativeSparkProfiler:
             completeness_exprs.append(
                 F.count(F.when(c.isNotNull(), 1)).alias(f"_nn_{col_name}")
             )
-            cardinality_exprs.append(
-                F.approx_count_distinct(c).alias(f"_cd_{col_name}")
-            )
+            # Cardinality: approx_count_distinct is fast and Connect-safe for most
+            # types, but DataFusion (Sail) does not implement approx_distinct for
+            # Float64. For float/double columns fall back to exact countDistinct,
+            # which is behavior-identical on classic Spark (just exact, not approx).
+            field_type = type(df.schema[col_name].dataType).__name__
+            if field_type in {"FloatType", "DoubleType"}:
+                cardinality_exprs.append(F.count_distinct(c).alias(f"_cd_{col_name}"))
+            else:
+                cardinality_exprs.append(
+                    F.approx_count_distinct(c).alias(f"_cd_{col_name}")
+                )
 
         # Execute in one pass (completeness + cardinality together)
         batch_row = df.select(*completeness_exprs, *cardinality_exprs).collect()[0]
@@ -190,12 +231,22 @@ class NativeSparkProfiler:
         self, df: DataFrame, col_name: str, profile: ColumnProfile
     ) -> None:
         """Compute numeric statistics, quantiles, and distribution shape."""
-        from pyspark.sql import functions as F
+        F = _functions_for(df)  # noqa: N806
 
         c = F.col(f"`{col_name}`").cast("double")
 
         # All numeric stats in one query: min, max, mean, stddev, sum,
-        # skewness, kurtosis, and quantiles
+        # skewness, kurtosis, and quantiles.
+        #
+        # Quantiles: emit one SCALAR percentile_approx per probe (not a single
+        # call with an array of probes). DataFusion (Sail) only accepts a scalar
+        # percentile for approx_percentile_cont; classic Spark accepts both, so
+        # this is behavior-identical there. All probes stay inside this single
+        # df.select so profiling remains one aggregation / one job.
+        quantile_exprs = [
+            F.percentile_approx(c, prob, self._quantile_accuracy).alias(f"_q_{label}")
+            for label, prob in zip(_QUANTILE_LABELS, _QUANTILE_PROBS)
+        ]
         stats_row = df.select(
             F.min(c).alias("min_val"),
             F.max(c).alias("max_val"),
@@ -204,9 +255,7 @@ class NativeSparkProfiler:
             F.sum(c).alias("sum_val"),
             F.skewness(c).alias("skew_val"),
             F.kurtosis(c).alias("kurt_val"),
-            F.percentile_approx(
-                c, _QUANTILE_PROBS, self._quantile_accuracy
-            ).alias("quantiles"),
+            *quantile_exprs,
         ).collect()[0]
 
         profile.minimum = stats_row["min_val"]
@@ -223,10 +272,14 @@ class NativeSparkProfiler:
         if kurt is not None:
             profile.kurtosis = round(kurt, 4)
 
-        # Quantiles
-        quantile_values = stats_row["quantiles"]
+        # Quantiles (one scalar column per probe)
+        quantile_values = {
+            label: stats_row[f"_q_{label}"]
+            for label in _QUANTILE_LABELS
+            if stats_row[f"_q_{label}"] is not None
+        }
         if quantile_values:
-            profile.quantiles = dict(zip(_QUANTILE_LABELS, quantile_values))
+            profile.quantiles = quantile_values
 
     def _profile_string(
         self,
@@ -236,7 +289,7 @@ class NativeSparkProfiler:
         num_records: int,
     ) -> None:
         """Compute string length statistics and detect patterns."""
-        from pyspark.sql import functions as F
+        F = _functions_for(df)  # noqa: N806
 
         c = F.col(f"`{col_name}`")
         length_c = F.length(c)
@@ -246,8 +299,10 @@ class NativeSparkProfiler:
             F.min(length_c).alias("min_len"),
             F.max(length_c).alias("max_len"),
             F.avg(length_c).alias("mean_len"),
+            # Scalar percentile (0.50, not [0.50]) for Sail/DataFusion
+            # compatibility; classic Spark accepts both identically.
             F.percentile_approx(
-                length_c.cast("double"), [0.50], self._quantile_accuracy
+                length_c.cast("double"), 0.50, self._quantile_accuracy
             ).alias("median_len"),
         ).collect()[0]
 
@@ -256,22 +311,17 @@ class NativeSparkProfiler:
 
         mean_len = len_row["mean_len"]
         median_len = len_row["median_len"]
-        if mean_len is not None and median_len:
+        if mean_len is not None and median_len is not None:
             profile.value_lengths = {
                 "min": len_row["min_len"],
                 "max": len_row["max_len"],
                 "mean": round(mean_len),
-                # median_len is guaranteed truthy by the enclosing guard above.
-                "p50": median_len[0],
+                # median_len is now a scalar (was a single-element array).
+                "p50": median_len,
             }
 
         # Pattern detection — sample a few values and infer structural patterns
-        sample_rows = (
-            df.select(c)
-            .where(c.isNotNull())
-            .limit(100)
-            .collect()
-        )
+        sample_rows = df.select(c).where(c.isNotNull()).limit(100).collect()
         if sample_rows:
             pattern = self._detect_pattern([str(row[0]) for row in sample_rows])
             if pattern:
@@ -285,7 +335,7 @@ class NativeSparkProfiler:
         num_records: int,
     ) -> None:
         """Collect all distinct values with frequency counts (low-cardinality)."""
-        from pyspark.sql import functions as F
+        F = _functions_for(df)  # noqa: N806
 
         c = F.col(f"`{col_name}`")
 
@@ -305,7 +355,9 @@ class NativeSparkProfiler:
             {
                 "value": str(row[col_name]),
                 "count": row["cnt"],
-                "fraction": round(row["cnt"] / num_records, 4) if num_records > 0 else 0,
+                "fraction": round(row["cnt"] / num_records, 4)
+                if num_records > 0
+                else 0,
             }
             for row in freq_rows
         ]
@@ -315,16 +367,18 @@ class NativeSparkProfiler:
             {
                 "value": str(row[col_name]),
                 "count": row["cnt"],
-                "fraction": round(row["cnt"] / num_records, 4) if num_records > 0 else 0,
+                "fraction": round(row["cnt"] / num_records, 4)
+                if num_records > 0
+                else 0,
             }
-            for row in freq_rows[:self._histogram_bins]
+            for row in freq_rows[: self._histogram_bins]
         ]
 
     def _collect_sample_values(
         self, df: DataFrame, col_name: str, profile: ColumnProfile
     ) -> None:
         """Collect representative sample values for high-cardinality columns."""
-        from pyspark.sql import functions as F
+        F = _functions_for(df)  # noqa: N806
 
         c = F.col(f"`{col_name}`")
 
@@ -357,7 +411,9 @@ class NativeSparkProfiler:
                 {
                     "value": str(row[col_name]),
                     "count": row["cnt"],
-                    "fraction": round(row["cnt"] / num_records, 4) if num_records > 0 else 0,
+                    "fraction": round(row["cnt"] / num_records, 4)
+                    if num_records > 0
+                    else 0,
                 }
                 for row in top_rows
             ]

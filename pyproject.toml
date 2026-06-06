@@ -85,6 +85,14 @@ dev = [
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",
     "mkdocstrings[python]>=0.27",
+    # Local Spark Connect lane: pysail is a Rust-based Spark Connect server
+    # (no JVM / no JAVA_HOME). It powers the cheap, JVM-free Connect test lane
+    # for the profiler and the GX domain/date-order standalone validators. The
+    # grpc/protobuf packages are the Spark Connect *client* dependencies.
+    "pysail>=0.6.3",
+    "grpcio",
+    "grpcio-status",
+    "googleapis-common-protos",
 ]
 
 [tool.pytest.ini_options]

@@ -312,6 +312,32 @@ def fixture_loader():
 
 
 # ---------------------------------------------------------------------------
+# Sail (Spark Connect) helper
+# ---------------------------------------------------------------------------
+
+
+def make_sail_connect_session(host: str, port: int, app_name: str) -> Any:
+    """Build a Spark Connect session against a running Sail server.
+
+    Uses the Spark CONNECT builder directly
+    (``pyspark.sql.connect.session.SparkSession``) rather than the top-level
+    ``SparkSession.builder.remote(...).getOrCreate()``. The latter raises
+    ``SESSION_ALREADY_EXIST`` whenever a regular (JVM) Spark session is already
+    active in the same process -- which happens in the full ``make test`` run,
+    where a session-scoped classic Spark session is alive. The connect builder
+    has no such guard and leaves the classic session untouched, so the JVM-backed
+    tests and these Sail-backed tests coexist in one pytest process.
+    """
+    from pyspark.sql.connect.session import SparkSession as RemoteSparkSession
+
+    return (
+        RemoteSparkSession.builder.remote(f"sc://{host}:{port}")
+        .appName(app_name)
+        .create()
+    )
+
+
+# ---------------------------------------------------------------------------
 # GX Test Harness (FEAT-016)
 # ---------------------------------------------------------------------------
 
@@ -384,12 +410,20 @@ class _ColumnResults:
 class GXTestHarness:
     """Thin wrapper around GXSuiteExecutor for test ergonomics.
 
-    Creates a Sail-backed SparkSession and provides a simple ``run()``
-    method that accepts expectation dicts and test data.
+    Provides a simple ``run()`` method that accepts expectation dicts and test
+    data. The default ``backend="auto"`` resolves to CLASSIC Spark (see
+    ``__init__``); a Sail (Spark Connect) backend is available opt-in.
+
+    NOTE: The default deliberately stays on classic Spark even though pysail is
+    now always installed. The GX custom expectations (e.g.
+    ``custom_gx_expectations.py``) use pandas code paths that are NOT
+    Spark-Connect-compatible; GX-on-serverless is separate future work. Sail
+    Connect coverage for the *profiler* lives in
+    ``tests/unit/test_profiler_connect_sail.py``.
 
     Usage::
 
-        harness = GXTestHarness()  # auto-detects Sail or Spark
+        harness = GXTestHarness()  # backend="auto" -> classic Spark
         result = harness.run(
             expectations=[{"type": "expect_column_to_exist", "kwargs": {"column": "id"}}],
             data=[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
@@ -400,10 +434,14 @@ class GXTestHarness:
 
     def __init__(self, backend: str = "auto") -> None:
         if backend == "auto":
-            # Prefer classic Spark for the default unit-test harness. Spark Connect
-            # coverage lives in dedicated backend-specific tests, while the auto
-            # harness is part of the canonical `make test` path and should avoid
-            # flaky socket/resource cleanup from transient Connect sessions.
+            # Prefer classic Spark for the default unit-test harness, ALWAYS --
+            # even though pysail is now an installed dev dependency. This is a
+            # hard requirement, not a fallback: the GX custom expectations exercise
+            # pandas code paths (e.g. validate_domain_type's df[col].dropna()) that
+            # are NOT Spark-Connect-compatible, so a Sail/Connect session would
+            # break the GX expectation tests. GX-on-Spark-Connect is separate,
+            # larger future work. Spark Connect coverage for the profiler lives in
+            # the dedicated tests/unit/test_profiler_connect_sail.py lane.
             backend = "spark"
         self._backend = backend
         self._spark: Any | None = None
@@ -417,18 +455,15 @@ class GXTestHarness:
         if self._backend == "sail":
             try:
                 from pysail.spark import SparkConnectServer
-                from pyspark.sql import SparkSession
 
                 self._sail_server = SparkConnectServer()
                 self._sail_server.start()
-                _, port = self._sail_server.listening_address
-                self._spark = (
-                    SparkSession.builder.remote(f"sc://localhost:{port}")
-                    .appName("gx-test-harness")
-                    .getOrCreate()
-                )
+                host, port = self._sail_server.listening_address
+                self._spark = make_sail_connect_session(host, port, "gx-test-harness")
             except ImportError:
-                pytest.skip("Sail not available — install with: uv sync --extra lite")
+                # pysail is a dev-group dependency, so this should not normally
+                # happen; keep a clear message for stripped-down environments.
+                pytest.skip("Sail (pysail) not available — install the dev group")
             except Exception as e:
                 pytest.skip(f"Sail session failed: {e}")
         elif self._backend == "spark":
@@ -585,7 +620,7 @@ class GXTestHarness:
 
 @pytest.fixture(scope="session")
 def gx_harness():
-    """Session-scoped GXTestHarness with auto-detected backend.
+    """Session-scoped GXTestHarness on the classic-Spark backend.
 
     Usage in tests::
 

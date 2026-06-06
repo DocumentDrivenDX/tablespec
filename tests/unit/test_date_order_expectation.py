@@ -13,27 +13,34 @@ import pytest
 
 try:
     from pysail.spark import SparkConnectServer
-    from pyspark.sql import SparkSession
+
+    # Use the Spark CONNECT builder (not the top-level remote().getOrCreate(),
+    # which raises SESSION_ALREADY_EXIST when a classic JVM session is active in
+    # the same process, e.g. during the full `make test` run).
+    from pyspark.sql.connect.session import SparkSession as RemoteSparkSession
 
     _HAS_SAIL = True
 except ImportError:
     _HAS_SAIL = False
 
-pytestmark = pytest.mark.skipif(not _HAS_SAIL, reason="pysail not available")
+pytestmark = [
+    pytest.mark.no_spark,  # Sail needs no JVM/JAVA_HOME; skip classic-Spark setup.
+    pytest.mark.skipif(not _HAS_SAIL, reason="pysail not available"),
+]
 
 
 @pytest.fixture(scope="module")
 def spark():
-    """Create a lightweight Sail session for testing."""
+    """Create a lightweight Sail (Spark Connect) session for testing."""
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=ResourceWarning)
         server = SparkConnectServer()
         server.start()
-        _, port = server.listening_address
+        host, port = server.listening_address
         session = (
-            SparkSession.builder.remote(f"sc://localhost:{port}")
+            RemoteSparkSession.builder.remote(f"sc://{host}:{port}")
             .appName("test-date-order")
-            .getOrCreate()
+            .create()
         )
         yield session
         session.stop()
@@ -49,7 +56,11 @@ class TestDateOrderValid:
     def test_end_after_start(self, spark):
         """End dates after start dates should pass."""
         df = spark.createDataFrame(
-            [("2024-01-01", "2024-01-31"), ("2024-03-15", "2024-04-15"), ("2024-06-01", "2024-12-31")],
+            [
+                ("2024-01-01", "2024-01-31"),
+                ("2024-03-15", "2024-04-15"),
+                ("2024-06-01", "2024-12-31"),
+            ],
             ["start_date", "end_date"],
         )
         result = validate_column_pair_date_order(df, "end_date", "start_date")
@@ -62,7 +73,9 @@ class TestDateOrderValid:
             [("2024-01-01", "2024-01-01"), ("2024-06-15", "2024-06-15")],
             ["start_date", "end_date"],
         )
-        result = validate_column_pair_date_order(df, "end_date", "start_date", or_equal=True)
+        result = validate_column_pair_date_order(
+            df, "end_date", "start_date", or_equal=True
+        )
         assert result["success"]
         assert result["result"]["unexpected_count"] == 0
 
@@ -72,7 +85,9 @@ class TestDateOrderValid:
             [("2024-01-01", "2024-01-01")],
             ["start_date", "end_date"],
         )
-        result = validate_column_pair_date_order(df, "end_date", "start_date", or_equal=False)
+        result = validate_column_pair_date_order(
+            df, "end_date", "start_date", or_equal=False
+        )
         assert not result["success"]
         assert result["result"]["unexpected_count"] == 1
 
@@ -93,7 +108,11 @@ class TestDateOrderViolations:
     def test_mixed_valid_and_invalid(self, spark):
         """Mix of valid and invalid orderings should fail."""
         df = spark.createDataFrame(
-            [("2024-01-01", "2024-12-31"), ("2024-06-01", "2024-01-01"), ("2024-03-01", "2024-09-30")],
+            [
+                ("2024-01-01", "2024-12-31"),
+                ("2024-06-01", "2024-01-01"),
+                ("2024-03-01", "2024-09-30"),
+            ],
             ["start_date", "end_date"],
         )
         result = validate_column_pair_date_order(df, "end_date", "start_date")
@@ -146,9 +165,11 @@ class TestDateOrderNulls:
 
     def test_both_null_skipped(self, spark):
         """Rows with both dates NULL should be skipped."""
+        # Explicit schema: Spark Connect's createDataFrame cannot infer types
+        # from all-None rows (CANNOT_DETERMINE_TYPE), so name the columns.
         df = spark.createDataFrame(
             [(None, None), (None, None)],
-            ["start_date", "end_date"],
+            "start_date string, end_date string",
         )
         result = validate_column_pair_date_order(df, "end_date", "start_date")
         assert result["success"]
@@ -156,9 +177,11 @@ class TestDateOrderNulls:
 
     def test_all_null_column(self, spark):
         """All-null columns should pass (nothing to validate)."""
+        # Explicit schema: Spark Connect's createDataFrame cannot infer types
+        # from all-None rows (CANNOT_DETERMINE_TYPE), so name the columns.
         df = spark.createDataFrame(
             [(None, None), (None, None), (None, None)],
-            ["start_date", "end_date"],
+            "start_date string, end_date string",
         )
         result = validate_column_pair_date_order(df, "end_date", "start_date")
         assert result["success"]
@@ -172,20 +195,32 @@ class TestDateOrderMostly:
         """Should pass when enough pairs satisfy the ordering."""
         # 2 out of 3 valid = 66.7%
         df = spark.createDataFrame(
-            [("2024-01-01", "2024-12-31"), ("2024-06-01", "2024-01-01"), ("2024-03-01", "2024-09-30")],
+            [
+                ("2024-01-01", "2024-12-31"),
+                ("2024-06-01", "2024-01-01"),
+                ("2024-03-01", "2024-09-30"),
+            ],
             ["start_date", "end_date"],
         )
-        result = validate_column_pair_date_order(df, "end_date", "start_date", mostly=0.6)
+        result = validate_column_pair_date_order(
+            df, "end_date", "start_date", mostly=0.6
+        )
         assert result["success"]
 
     def test_mostly_threshold_fails(self, spark):
         """Should fail when not enough pairs satisfy the ordering."""
         # 1 out of 3 valid = 33.3%
         df = spark.createDataFrame(
-            [("2024-01-01", "2024-12-31"), ("2024-06-01", "2024-01-01"), ("2024-09-01", "2024-03-01")],
+            [
+                ("2024-01-01", "2024-12-31"),
+                ("2024-06-01", "2024-01-01"),
+                ("2024-09-01", "2024-03-01"),
+            ],
             ["start_date", "end_date"],
         )
-        result = validate_column_pair_date_order(df, "end_date", "start_date", mostly=0.5)
+        result = validate_column_pair_date_order(
+            df, "end_date", "start_date", mostly=0.5
+        )
         assert not result["success"]
 
 

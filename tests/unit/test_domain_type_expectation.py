@@ -13,34 +13,60 @@ import pytest
 
 try:
     from pysail.spark import SparkConnectServer
-    from pyspark.sql import SparkSession
+
+    # Use the Spark CONNECT builder (not the top-level remote().getOrCreate(),
+    # which raises SESSION_ALREADY_EXIST when a classic JVM session is active in
+    # the same process, e.g. during the full `make test` run).
+    from pyspark.sql.connect.session import SparkSession as RemoteSparkSession
 
     _HAS_SAIL = True
 except ImportError:
     _HAS_SAIL = False
 
-pytestmark = pytest.mark.skipif(not _HAS_SAIL, reason="pysail not available")
+pytestmark = [
+    pytest.mark.no_spark,  # Sail needs no JVM/JAVA_HOME; skip classic-Spark setup.
+    pytest.mark.skipif(not _HAS_SAIL, reason="pysail not available"),
+]
 
 
 @pytest.fixture(scope="module")
 def spark():
-    """Create a lightweight Sail session for testing."""
+    """Create a lightweight Sail (Spark Connect) session for testing."""
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=ResourceWarning)
         server = SparkConnectServer()
         server.start()
-        _, port = server.listening_address
+        host, port = server.listening_address
         session = (
-            SparkSession.builder.remote(f"sc://localhost:{port}")
+            RemoteSparkSession.builder.remote(f"sc://{host}:{port}")
             .appName("test-domain-type")
-            .getOrCreate()
+            .create()
         )
         yield session
         session.stop()
         server.stop()
 
 
-from tablespec.validation.custom_gx_expectations import validate_domain_type  # noqa: E402
+from tablespec.validation.custom_gx_expectations import (  # noqa: E402
+    validate_domain_type as _validate_domain_type_pandas,
+)
+
+
+# NOTE: validate_domain_type() is a PANDAS-based shim (it uses df[col].dropna(),
+# .astype, .isin, etc.). It is NOT Spark-Connect-compatible: a Spark Connect
+# DataFrame's df[col] returns a Column, not a pandas Series. The production GX
+# custom-expectation path (ExpectColumnValuesToMatchDomainType._validate) already
+# materializes the batch via toPandas() before calling this function, so we mirror
+# that boundary here. Making the GX custom expectations run natively on Spark
+# Connect (GX-on-serverless) is a separate, much larger effort and is future work.
+def validate_domain_type(df, column, domain_type_name, mostly=1.0):
+    """Materialize the Spark(/Sail) DataFrame to pandas, then validate.
+
+    Mirrors the production toPandas() boundary in
+    ExpectColumnValuesToMatchDomainType._validate so the standalone pandas shim
+    receives the pandas frame it expects.
+    """
+    return _validate_domain_type_pandas(df.toPandas(), column, domain_type_name, mostly)
 
 
 class TestDomainTypeExpectationValueSet:
@@ -82,7 +108,9 @@ class TestDomainTypeExpectationValueSet:
 
     def test_valid_lob_codes(self, spark):
         """Valid line of business codes should pass."""
-        df = spark.createDataFrame([("MEDICAID",), ("MEDICARE",), ("MD",), ("ME",)], ["lob"])
+        df = spark.createDataFrame(
+            [("MEDICAID",), ("MEDICARE",), ("MD",), ("ME",)], ["lob"]
+        )
         result = validate_domain_type(df, "lob", "lob")
         assert result["success"]
 
@@ -98,13 +126,17 @@ class TestDomainTypeExpectationRegex:
 
     def test_valid_emails(self, spark):
         """Valid email addresses should pass."""
-        df = spark.createDataFrame([("user@example.com",), ("test@test.org",)], ["email"])
+        df = spark.createDataFrame(
+            [("user@example.com",), ("test@test.org",)], ["email"]
+        )
         result = validate_domain_type(df, "email", "email")
         assert result["success"]
 
     def test_invalid_email(self, spark):
         """Invalid email should fail."""
-        df = spark.createDataFrame([("user@example.com",), ("not-an-email",)], ["email"])
+        df = spark.createDataFrame(
+            [("user@example.com",), ("not-an-email",)], ["email"]
+        )
         result = validate_domain_type(df, "email", "email")
         assert not result["success"]
         assert result["result"]["unexpected_count"] == 1
@@ -181,9 +213,9 @@ class TestDomainTypeExpectationEdgeCases:
 
     def test_all_null_column(self, spark):
         """Column with all nulls should pass (nothing to validate)."""
-        df = spark.createDataFrame([(None,), (None,), (None,)], ["state: string"])
-        # Rename to get proper column name (schema trick for nullable string)
-        df = spark.createDataFrame([(None,), (None,), (None,)], "state: string")
+        # Explicit DDL schema: Spark Connect's createDataFrame cannot infer a
+        # type from all-None rows (CANNOT_DETERMINE_TYPE), so declare it string.
+        df = spark.createDataFrame([(None,), (None,), (None,)], "state string")
         result = validate_domain_type(df, "state", "us_state_code")
         assert result["success"]
         assert result["result"]["element_count"] == 0
