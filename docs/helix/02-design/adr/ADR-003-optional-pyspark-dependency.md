@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted — extended by ADR-010 (Spark Connect / serverless runtime model). The optional-dependency boundary still holds; ADR-010 adds that, *when* PySpark is present, no Spark-touching path may assume a classic JVM `SparkContext` (Connect / serverless are first-class).
 
 ## Context
 
@@ -43,3 +43,11 @@ The isolation is implemented at multiple levels:
 - The pyright `ignore` list must be manually maintained; adding new Spark-dependent modules requires updating `pyrightconfig.json`.
 - Test coverage for Spark-dependent modules requires a separate test environment with PySpark installed (the `[spark]` extra), adding complexity to the CI matrix.
 - Developers must be disciplined about not importing PySpark in non-Spark modules, as there is no automated enforcement beyond pyright's ignore list and the conditional import pattern.
+
+## Evolution
+
+Two changes since this ADR was accepted refine, but do not overturn, the optional-dependency boundary:
+
+1. **Connect / serverless is first-class (ADR-010).** Spark-dependent modules grew beyond `spark_mapper.py` and `table_validator.py` to include `session.py`, `casting_utils.py`, the native profiler, and the Connect-safe GX executor (`validation/gx_executor.py` + `validation/native_executor.py`). All remain gated behind the `[spark]` extra and lazy imports, but they may NOT assume a JVM `SparkContext` — engine-correct behavior is keyed off the DataFrame/session in hand and per-session capability probes (PRD FR-20.x). The native profiler and native GX executor exist precisely so the `[spark]` features work on serverless / Spark Connect where the classic `SparkContext`-bound paths (PyDeequ, GX `add_spark`) fail silently.
+
+2. **dbt and pysail are dev-group, not user extras.** `dbt` and `pysail` live in the dev / test group — not `[project.optional-dependencies]` — because user runtimes consume *committed* dbt/SQL/LDP artifacts and never import tablespec, dbt, or pysail at run time. `pysail` backs the local Sail (Spark Connect) test lane. This keeps the user-facing optional surface to the single `[spark]` extra (principle 5).

@@ -1,38 +1,60 @@
-# Product Vision: tablespec
+---
+ddx:
+  id: product-vision
+---
 
-## Vision Statement
+# Product Vision
 
-Provide a single, portable, type-safe Python library that makes Universal Metadata Format (UMF) the canonical source of truth for table schemas across data platform tooling -- from schema generation and validation to profiling and LLM-assisted enrichment.
+## Mission Statement
 
-## Problem
+tablespec makes Universal Metadata Format (UMF) the single, canonical source of truth for table schemas on healthcare data platforms, and acts as the *compiler* that turns one UMF into the full set of committed, reviewable runtime artifacts — direct SQL, dbt projects, Lakeflow Declarative Pipelines (LDP), and Great Expectations suites — so downstream runtimes execute diffable artifacts instead of re-deriving schema at run time.
 
-Healthcare data platforms work with table schemas across many tools and formats (SQL DDL, PySpark, JSON Schema, Great Expectations). Without a single authoritative schema format, definitions drift between tools, validation rules diverge, and onboarding new tables requires redundant manual work across each system.
+## Positioning
 
-## Target Users
+For **data and data-quality engineers** on healthcare platforms who **maintain table schemas, transforms, and validation across many tools and formats (SQL DDL, PySpark, JSON Schema, Great Expectations, dbt, LDP)**,
+**tablespec** is a **schema-compilation library** that **takes one UMF and deterministically compiles it into every committed runtime artifact, then lets the runtime consume only those artifacts**.
+Unlike **hand-maintaining each tool's schema and transforms separately (where definitions drift and validation diverges)**, **tablespec** **compiles once from UMF and runs from committed, diffable artifacts — so the transform is reviewable and the runtime carries no library dependency.**
 
-- **Data engineers** building and maintaining ETL pipelines with PySpark and SQL
-- **Data quality engineers** creating and managing Great Expectations validation suites
-- **Platform teams** standardizing schema definitions across Medicaid, Medicare Part D, and Medicare lines of business
+## Vision
 
-## Key Outcomes
+When tablespec succeeds, a healthcare data platform has exactly one place to change a table's truth: its UMF. From that UMF, a deterministic compile step emits the complete set of committed runtime artifacts — raw→ingest and gold SQL plans, dbt ingest and gold-DAG projects, LDP projects, and GX validation suites. The runtime never re-derives schema or transforms from UMF; it reads only the committed artifacts. Every change to a transform shows up as a reviewable diff, and the same UMF runs first-class on both classic Spark and Databricks serverless / Spark Connect. Schema drift between tools is structurally impossible because there is only one upstream source and one deterministic compiler.
 
-1. A single YAML-based UMF file is the source of truth for any table's schema
-2. Schema generation to SQL DDL, PySpark StructType, and JSON Schema is deterministic and lossless
-3. Great Expectations baselines are generated automatically from UMF metadata
-4. Existing GX suites can be reverse-engineered back into UMF constraints
-5. DataFrame profiling results (Spark, Deequ) feed back into UMF enrichment
-6. LLM prompts for documentation, validation, relationship discovery, and survivorship logic are structured and repeatable
+**North Star**: One UMF compiles, deterministically and losslessly, into every committed runtime artifact a healthcare platform needs — with zero drift between the UMF and what runs.
 
-## Differentiators
+## User Experience
 
-- **UMF as single source of truth**: All conversions are bidirectional where possible
-- **Healthcare-domain awareness**: Nullable configuration per LOB (MD/MP/ME), healthcare-specific validation patterns
-- **Optional dependency model**: Core library is pure Python; PySpark features are opt-in via `tablespec[spark]`
-- **LLM integration**: Structured prompt generators for AI-assisted schema enrichment
+A data engineer onboards a new claims table by editing (or inferring) its UMF. They run the compile step once. tablespec writes a pinned artifact layout: `ingest/<t>.ingest.sql`, `schemas/<t>.ddl.sql` / `.schema.py` / `.schema.json`, `validation/<t>.suite.json`, a single-table dbt ingest project, the multi-table gold dbt DAG, an LDP project, and the single-target gold SQL plan. The engineer reviews the generated transforms as ordinary diffs in code review. The runtime backbone then executes those committed artifacts — on classic Spark in CI, on Sail (local Spark Connect) in the test lane, and on Databricks serverless in production — without importing tablespec at run time. When a column type changes, they edit the UMF, recompile, and the change surfaces as a precise diff across the ingest SQL, the GX suite, and the dbt contract simultaneously.
 
-## Success Metrics
+## Target Market
 
-- Adoption across internal data platform tables
-- Zero-drift between UMF definitions and downstream schema artifacts
-- Reduction in manual GX suite authoring time
-- Coverage of all supported data types across all output formats
+| Attribute | Description |
+|-----------|-------------|
+| Who | Data engineers and data-quality engineers on healthcare data platforms (Medicaid/MD, Medicare Part D/MP, Medicare/ME) |
+| Pain | Schemas, transforms, and validation rules are maintained per-tool (SQL, PySpark, JSON Schema, GX, dbt, LDP) and drift apart; onboarding a table means redundant manual work in each system |
+| Current Solution | Hand-authored DDL, PySpark schemas, GX suites, and dbt/LDP transforms maintained independently, reconciled by hand |
+| Why They Switch | A single UMF source plus a deterministic compiler eliminates drift, makes transforms diffable, and removes the runtime's dependency on a schema library |
+
+## Key Value Propositions
+
+| Value Proposition | Customer Benefit |
+|-------------------|------------------|
+| UMF as single source of truth | One authoritative YAML per table; all schema representations derive from it (bidirectional where possible) |
+| Compile to committed runtime artifacts | One UMF deterministically emits direct SQL (raw→ingest + gold plans), dbt projects (ingest + gold DAG), LDP projects, and GX suites — all reviewable as diffs |
+| Compile-once, run-from-artifacts | Runtimes read committed artifacts, never re-derive from UMF; the transform is diffable and the runtime has no tablespec dependency (realized by the compile orchestrator + bootstrap pipeline — FEAT-026, decision ADR-012) |
+| Multi-engine, Connect-safe execution | The same UMF runs first-class on classic Spark and on Databricks serverless / Spark Connect, with engine-correct dispatch and Connect-safe validation |
+| Native, dependency-light profiling | Profiling uses standard Spark-SQL aggregations (no JVM, no Deequ) so it works on serverless / Connect and feeds GX expectations directly |
+| Healthcare-domain awareness | Per-LOB nullable configuration (MD/MP/ME) and healthcare-specific validation/relationship patterns are first-class |
+
+## Success Definition
+
+| Metric | Target |
+|--------|--------|
+| Primary KPI | Zero drift between UMF definitions and the committed runtime artifacts that downstream systems execute |
+| Compile coverage | One UMF compiles to the full committed artifact set (ingest SQL, DDL, PySpark, JSON Schema, GX suite, dbt ingest + gold DAG, LDP, gold plan) deterministically |
+| Multi-engine parity | Identical results across classic Spark, Sail (local Connect), and Databricks serverless on the cross-engine conformance harness |
+| Manual-authoring reduction | Reduction in hand-authored GX/dbt/SQL transform and validation time per onboarded table |
+| Runtime independence | Production runtimes execute committed artifacts with no tablespec import at run time |
+
+## Why Now
+
+Databricks serverless and Spark Connect have made the JVM-bound, library-coupled runtime model untenable: code that assumes a classic `SparkContext` (PyDeequ profiling, GX `add_spark`) silently breaks on Connect. At the same time, dbt and Lakeflow Declarative Pipelines have made *committed, reviewable transforms* the expected shape of a data platform. tablespec is positioned to be the compiler that bridges these: one UMF source, a deterministic compile step to committed artifacts, and engine-correct execution on both classic Spark and serverless/Connect. Waiting means continuing to maintain per-tool schemas by hand and shipping runtime code that fails silently on the platforms teams are already migrating to.

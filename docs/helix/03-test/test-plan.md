@@ -1,140 +1,264 @@
-# Test Plan: tablespec
+---
+ddx:
+  id: TP-001
+---
 
-**Version**: 2.0
-**Status**: Updated for post-merge codebase
-**Last Updated**: 2026-03-16
+# Test Plan
+
+**Version**: 3.0
+**Status**: Updated for the committed-artifact compiler + Connect-safe multi-engine runtime
+**Last Updated**: 2026-06-06
 
 **Requirements**: [../01-frame/prd.md](../01-frame/prd.md)
 **Architecture**: [../02-design/architecture.md](../02-design/architecture.md)
+**Companion plans**: [conformance-acceptance.md](conformance-acceptance.md),
+[gold-conformance-plan.md](gold-conformance-plan.md),
+[dbt-roadmap-acceptance.md](dbt-roadmap-acceptance.md),
+[data-quality-expectations.md](data-quality-expectations.md)
 
-## Strategy
+## Testing Strategy
 
-Two-tier testing: unit tests for pure Python logic and integration tests for end-to-end workflows. PySpark-dependent tests are conditionally skipped when PySpark is not available.
+**Goals**: Prove (1) every emitter is deterministic and on the shared core seam,
+(2) every execution engine reproduces the Spark-direct oracle byte-for-byte, and
+(3) profiling + validation are *correct* (not just non-crashing) on Spark Connect /
+Databricks serverless. | Quality gate: `make check` (lint + pyright + tests) plus
+the cross-engine conformance matrix and the Connect (Sail) lanes.
 
-## Test Infrastructure
+**Out of Scope**: Live production data processing (runtimes own that); warehouse
+provisioning; load/stress testing; full GX *custom*-expectation parity on Connect
+(tracked as a known gap — see [serverless-compatibility](../05-evaluation/serverless-compatibility.md)).
 
-- **Framework**: pytest
-- **Coverage**: pytest-cov with term-missing and HTML reports
-- **Mocking**: pytest-mock (MagicMock for Spark objects)
-- **Async**: anyio with asyncio backend
-- **CI**: GitHub Actions on push/PR to main
+**Traceability Source**: PRD FR-5.x (profiling), FR-7.7/7.8 (Connect-safe
+validation), FR-18.x (compile/bootstrap), FR-19.x (multi-target emission),
+FR-20.x (runtime platform); FEAT-024/025/026/027/028; US-021–026.
 
-## Unit Tests (`tests/unit/`)
+### Test Levels
 
-| Test File | Module Under Test | Tests | Coverage |
-|-----------|-------------------|-------|----------|
-| `test_umf_models.py` | `models/umf.py` | 45 | Pydantic validation, YAML I/O, all model types |
-| `test_type_mappings.py` | `type_mappings.py` | 10 | All type conversions, case insensitivity, defaults |
-| `test_schema_generators.py` | `schemas/generators.py` | 32 | SQL DDL, PySpark, JSON Schema generation |
-| `test_gx_baseline.py` | `gx_baseline.py` | 29 | Baseline generation, suite composition, strictness |
-| `test_gx_schema_validation.py` | `gx_schema_validator.py` | skipped | GX numpy/pandas compatibility issues |
-| `test_expectation_consistency.py` | `prompts/expectation_guide.py` | 9 | Cross-schema consistency (categories, parameters, schema) |
-| `test_profiling_mappers.py` | `profiling/` | 13 | Spark and Deequ mappers, statistics, nullable inference |
+| Level | Coverage Target | Priority |
+|-------|-----------------|----------|
+| Contract | Emitter→artifact byte-for-byte goldens; `CompiledArtifacts` manifest layout; `src` never imports the test tree or dbt | P0 |
+| Integration | Per-emitter project builds (dbt parse/run, LDP structure), staged validation routing, profiler→GX expectations | P0 |
+| Unit | UMF models, type mappings, schema generators, baseline GX, native expectation evaluators, capability probing | P0 |
+| E2E | Bootstrap → compile → backbone across the DuckDB/Spark/Sail matrix; opt-in real-Databricks deploy/execute | P0 (local), P1 (opt-in workspace) |
 
-## Integration Tests (`tests/integration/`)
+### Frameworks
 
-| Test File | Scope | Tests | Coverage |
-|-----------|-------|-------|----------|
-| `test_umf_workflow.py` | End-to-end | 8 | Create/save/load UMF, generate all schemas, validation errors, round-trip, modification |
+| Type | Framework | Reason |
+|------|-----------|--------|
+| Contract | pytest + golden files (`tests/golden/`, `tests/conformance/corpus`) + `canonical.to_json` | Byte-for-byte, human-diffable artifact verification |
+| Integration | pytest; dbt-core (duckdb/spark-session/databricks adapters); pysail (Spark Connect server) | Execute generated projects + Connect lanes with no JVM |
+| Unit | pytest, pytest-mock, hypothesis | Pure-Python logic; property tests for generators/diff |
+| E2E | pytest conformance engine matrix; `e2e/backbone.py` runner | One harness, many engines, one canonicalizer |
 
-## Coverage Targets
+## Test Data
 
-- 80%+ on new code
-- 100% on critical paths (model validation, type mappings, schema generation)
+| Type | Strategy |
+|------|----------|
+| Fixtures | Shared conformance corpus (`tests/conformance/corpus`) — one fixture set canonicalized across every engine; golden artifact trees (`tests/golden/ingest_sql/`, `tests/golden/dbt_project/`) |
+| Factories | UMF models built programmatically in unit tests; clean vs dirty datasets for validation lanes (exact `unexpected_count` asserted) |
+| Mocks | MagicMock for Spark objects in pure-unit tests; real Sail/Spark sessions where engine behavior is under test (never mocked) |
 
-## Test Patterns
+## Coverage Requirements
 
-- **Parametrized tests** for comprehensive type mapping coverage
-- **Conditional skipping** (`@pytest.mark.skipif`) for optional PySpark dependency
-- **MagicMock** for Spark objects in unit tests
-- **Round-trip testing** (save -> load -> save -> load) for data preservation
-- **Cross-file consistency** tests ensuring JSON schemas stay in sync
+| Metric | Target | Minimum | Enforcement |
+|--------|--------|---------|-------------|
+| Line | 80% on new code | 70% | `make coverage` |
+| Critical | 100% | 100% | Required on P0 paths below |
 
-## Known Gaps
+### Critical Paths (P0)
 
-### Pre-Existing (original codebase)
-- `test_gx_schema_validation.py` is fully skipped (GX numpy/pandas compatibility)
-- No dedicated unit tests for `prompts/` modules (documentation, validation, relationship, survivorship prompt generators)
-- No dedicated unit tests for `gx_constraint_extractor.py`
-- No dedicated unit tests for `umf_validator.py`
-- No load/stress testing
+1. **UMF model validation** — Pydantic constraints, YAML I/O, round-trip.
+2. **Compile orchestration** — `compile_umfs` persists every artifact under the
+   pinned layout; the `CompiledArtifacts` manifest resolves deterministically.
+3. **Runtime independence** — the backbone executes only committed artifacts; `src`
+   never imports the `tests/` tree or dbt (`test_core_encapsulation.py`,
+   `test_src_never_imports_dbt`).
+4. **Connect-safe validation** — Connect DataFrames route to the native executor and
+   return the *correct* verdict (clean→pass, dirty→fail), never the swallowed
+   `add_spark` false-negative.
+5. **Cross-engine parity** — every row-tier engine reproduces the Spark-direct
+   oracle byte-for-byte under one canonicalizer.
+6. **Native profiling** — `NativeSparkProfiler` runs JVM-free on Connect and feeds
+   GX expectations.
 
-### New Modules (post-merge, no tests yet)
-- `cli.py` - CLI commands (convert, validate, info, batch-convert, changelog, sync)
-- `excel_converter.py` - Excel bidirectional conversion
-- `excel_import_git.py` - Git-integrated Excel import
-- `umf_loader.py` - Split/JSON format loading and conversion
-- `umf_diff.py` - UMF comparison and change detection
-- `umf_change_applier.py` - Atomic change application
-- `changelog_generator.py` / `changelog_diff_parser.py` / `changelog_formatter.py` - Git changelog
-- `models/changelog.py` - Changelog Pydantic models
-- `sample_data/` - Entire sample data generation package (engine, generators, constraints, foreign keys, graph, registry, validation)
-- `quality/` - Quality baseline package (baseline_service, baseline_storage, executor, storage)
-- `inference/domain_types.py` - Domain type registry and inference
-- `naming.py` - Naming utilities
-- `date_formats.py` - Date format system
-- `formatting/` - YAML formatting package
-- `merge.py` - Table merge
-- `sync_baseline.py` - Baseline synchronization
-- `dependency_resolver.py` - Pipeline dependency resolution
-- `completeness_validator.py` - Completeness validation
-- `relationship_validator.py` - Relationship validation
-- `naming_validator.py` - Naming validation
-- `casting_utils.py` - Type casting utilities
-- `format_utils.py` - Format utilities
-- `output_formatting.py` - Output formatting
-- `survivorship_display.py` - Survivorship display
-- `spark_factory.py` - Spark session factory
-- `gx_wrapper.py` - GX wrapper utilities
-- `validator.py` - Unified validator
+### Secondary Paths (P1-P2)
 
-## Planned Improvements
+- P1: dbt `state:modified` CI selection from UMF diff; LDP structure golden;
+  opt-in real-Databricks deploy/execute leg.
+- P2: GX custom-expectation Connect parity (open gap); CLI mutation commands;
+  property-based generator fuzzing.
 
-### Testing Infrastructure Gaps (FEAT-016)
+## Acceptance Criteria Layer Allocation
 
-- **No lightweight GX execution**: All GX expectation tests require PySpark (JVM startup, heavyweight deps). Need DuckDB-backed harness (ADR-006) for sub-second GX test feedback.
-- **No property-based testing for UMF generators**: Hypothesis is only used for YAML formatter fuzzing (`test_yaml_formatter_fuzzing.py`). UMF model generation, schema generators, and type mappings lack property tests.
-- **No golden file testing pattern**: Schema generator outputs are tested with inline assertions. Need auto-discovered golden files for human-verifiable outputs with unified diff on failure.
-- **No convention for test-first development**: No `@pytest.mark.xfail` pattern for writing executable specs before implementation.
-- **No fast test marker**: No way to run only sub-second tests (`@pytest.mark.fast`) for rapid iteration during development.
+This project plan **aggregates** strategy; per-criterion AC↔test matrices live in
+the companion acceptance docs (conformance, gold-conformance, dbt-roadmap) and per-
+story test plans. Here, criterion *classes* are allocated to a primary layer:
 
-### Validation Pipeline Gaps (FEAT-017)
+| AC class / source | Story / plan | Primary Layer | Why this layer |
+|-------------------|--------------|---------------|----------------|
+| Compile produces every artifact under the pinned layout (FR-18.1/18.2) | US-023 / FEAT-026 | Contract | Artifact existence + manifest shape are static facts |
+| Runtime consumes only committed artifacts (FR-18.3) | US-024 / FEAT-026 | Contract + Integration | Import-isolation contract + executed backbone |
+| Bootstrap path-agnostic across engines (FR-18.4/18.5) | US-023 / FEAT-026 | E2E | User-observable across DuckDB/Spark/Sail |
+| Native profile on Connect feeds GX (FR-5.1/5.2) | US-021 / FEAT-024 | Integration | Real Connect session + GX expectation output |
+| Connect-safe suite execution, no silent false-negative (FR-7.7/7.8) | US-022 / FEAT-025 | Integration | Real Connect session; correctness asserted |
+| dbt project emitted + builds green (FR-19.2) | US-025 / FEAT-027 | Integration | dbt parse/run on duckdb/spark |
+| LDP project emitted + conformance tier (FR-19.3) | US-026 / FEAT-028 | Integration | Structure golden + Databricks-execute (opt-in) |
+| Cross-engine byte-for-byte parity (FR-18.5/19.x) | conformance-acceptance | E2E | Engine matrix vs the oracle |
 
-- **`classify_validation_type()` never called**: The function exists but the validation pipeline does not use it -- expectations are not classified by stage during execution.
-- **`BaselineExpectationGenerator` generates redundant types**: Produces `expect_column_to_exist` and `expect_column_values_to_be_of_type` which are redundant in context (existence implied by other column expectations, type checking meaningless at raw stage).
-- **No executor for `validation_rules`**: Only `quality_checks` has an executor (`quality/executor.py`). Raw-stage validation rules have no execution path.
-- **Blocking behavior always returns `False`**: `should_block_pipeline()` in `quality/executor.py` is stubbed out, never actually blocking regardless of severity or failure count.
-- **No validation result reporting**: Validation results are raw GX output with no summarization, formatting, or structured failure details.
+**Allocation rule**: every P0 acceptance criterion maps to exactly one primary
+layer here and to concrete tests in its companion plan / STP.
 
-### SQL CTE Mode Testing (FEAT-019)
+## The Cross-Engine Conformance Matrix
 
-- **Semantic equivalence testing**: Both view and CTE modes produce identical query results when executed against DuckDB with identical source data.
-- **Golden file tests**: ~15 cases covering linear chains, diamond dependencies, fan-out/fan-in patterns.
-- **CTE deduplication verification**: Diamond dependencies emit each CTE once, referenced multiple times.
+The conformance harness (`tests/conformance/`) proves every supported backend
+reproduces the Spark-direct oracle byte-for-byte under one shared canonicalizer
+(`canonical.to_json`). Engines that cannot run a tier in this environment are
+**skipped with an explicit, visible reason** — never silently passed — and a
+"skipped-but-green" guard fails the suite if a required engine produced only skips.
 
-### Domain Type Testing (FEAT-020)
+| Engine | Tier | JVM / `JAVA_HOME` | Role |
+|--------|------|-------------------|------|
+| `SparkDirect` | row (oracle) | yes / JDK 17 | The oracle: `generate_ingest_sql` on Delta-Spark |
+| `DbtDuckDB` | row | no | dbt(duckdb) raw→ingest parity; fast inner loop |
+| `DbtSparkSession` | row | yes / JDK 17 | dbt-spark `method: session` parity |
+| `SQLPlanGeneratorGold[duckdb]` | row (gold) | no | Direct gold SQL plan on DuckDB |
+| `SQLPlanGeneratorGold[spark]` | row (gold) | yes / JDK 17 | Direct gold SQL plan on Spark |
+| `DbtDatabricksCompile` | compile | no (offline parse) | dbt-databricks `dbt parse` registers; no cluster |
+| `LdpStructure` | structure | no | LDP project structure golden |
+| `DbtDatabricksE2E` / `LdpDatabricksE2E` | e2e | n/a | Opt-in real-workspace deploy/execute (`DATABRICKS_HOST`) |
 
-- **Abbreviation expansion**: Property tests that `expand_column_name()` produces valid candidates for all abbreviation combinations.
-- **InferenceResult consistency**: Property test that `InferenceResult.confidence` is always between 0.0 and 1.0, and `runner_up` differs from `domain_type`.
-- **Registry validation**: Test that invalid regex patterns in `domain_types.yaml` raise `ValueError` on load.
+`REQUIRED_LOCAL_ROW_ENGINES` (`tests/conformance/engines.py:1658`) lists the engines
+that MUST actually execute locally (Spark JDK + dbt adapters present): `SparkDirect`,
+`DbtDuckDB`, `DbtSparkSession`, `SQLPlanGeneratorGold[duckdb]`,
+`SQLPlanGeneratorGold[spark]`. See [conformance-acceptance](conformance-acceptance.md)
+and [gold-conformance-plan](gold-conformance-plan.md) for the criteria-first matrix.
 
-### Compatibility Checker Testing (FEAT-022)
+## Connect / Serverless Validation Lanes
 
-- **Hypothesis properties**: Reflexivity (UMF compatible with itself), addition safety (nullable column add is backward-compatible), removal detection (column removal is breaking).
-- **Rename-with-alias**: Verify that column renames with alias coverage are reported as info, not breaking.
-- **Golden files**: ~15 cases covering type widening/narrowing, nullable changes per context, column add/remove, length/precision changes.
+GX 1.x `add_spark` silently returns `success=False`/`result={}` on Spark Connect
+(no JVM `SparkContext`). The router (`gx_executor.py`) sends Connect DataFrames to a
+native DataFrame-API executor; classic Spark keeps `add_spark`. These lanes prove the
+native path is *correct*, not just non-crashing, with **no JVM / no `JAVA_HOME`**:
 
-### Authoring Tools Testing (FEAT-023)
+| Lane | What it proves | Evidence |
+|------|----------------|----------|
+| Native profiler on Sail (Connect) | `NativeSparkProfiler` runs Connect-safe; pins scalar `percentile_approx` + exact float `count_distinct` (DataFusion) | `tests/unit/test_profiler_connect_sail.py` |
+| Native GX executor + `TableValidator` on Sail | Every supported expectation type: clean→`success=True`, dirty→`success=False` with exact `unexpected_count` | `tests/unit/test_validation_connect_sail.py` |
+| Real Databricks serverless | The same native operations run on env-v3 / Python 3.12 serverless | ADR-010/011; test docstrings; opt-in e2e tier |
 
-- **LLM response applier**: Deduplication, stage classification, invalid expectation rejection, and sample data validation against GX harness.
-- **CLI mutation commands**: Pure function tests for column CRUD and validation management.
-- **Preview command**: Staged display formatting and `--against` dry-run via DuckDB harness.
+**Known gap (P2):** GX *custom* expectations use pandas paths not Connect-compatible;
+the default GX unit harness stays on classic Spark (`tests/conftest.py:417`), and the
+Connect path re-routes custom expectations through native validators that fail closed
+on unsupported types. Full custom-expectation Connect parity is future work.
 
-## Running Tests
+## The e2e Bootstrap → Compile → Backbone Matrix
 
-```bash
-make test            # All tests
-make test-unit       # Unit tests only
-make test-integration # Integration tests only
-make coverage        # With coverage report
-```
+`tests/e2e` / `e2e/backbone.py` exercise the full spine: bootstrap (Path A inferred /
+Path B loaded) → `compile_umfs` → backbone runner, parametrized across DuckDB,
+classic local Spark, and Sail (Connect). The backbone executes only committed
+artifacts, ships its deps from `src/` (never imports `tests/`), and gates the real-
+serverless leg behind `DATABRICKS_HOST`. Stage coverage per the runner
+(`e2e/backbone.py`): ingest raw→ROW → validate RAW (staged) → ingest ROW→INGESTED →
+validate INGESTED (staged) → transforms (dbt parse always; dbt run + gold plan on
+duckdb/local-spark; LDP structure local, APPLY CHANGES only on real Databricks).
+
+## Implementation Order
+
+1. UMF models, type mappings, schema generators, baseline GX (the emit foundation).
+2. Native profiler + native expectation evaluators + capability probing (the
+   Connect-safe substrate every higher lane depends on).
+3. Per-emitter goldens (direct SQL, dbt, LDP) on the shared core seam.
+4. Compile orchestrator + manifest contract; backbone import-isolation.
+5. Cross-engine conformance matrix + Connect (Sail) lanes.
+6. e2e bootstrap matrix; opt-in real-Databricks leg last.
+
+## Infrastructure
+
+| Requirement | Specification |
+|-------------|---------------|
+| CI Tool | GitHub Actions on push/PR; local `make check` |
+| Run prefix | `UV_PROJECT_ENVIRONMENT=/tmp/tsvenv JAVA_HOME=.../openjdk@17 SPARK_LOCAL_IP=127.0.0.1 uv run <cmd>` |
+| Test DB / engines | DuckDB (in-proc); classic Spark 4.0 + Delta 4.0 (JDK 17 — default JDK 26 crashes in `getSubject`); Sail Spark-Connect (pysail, no JVM); opt-in Databricks (`DATABRICKS_HOST`) |
+| Services | None required locally; isolated `spark.sql.warehouse.dir` + metastore per dbt-spark case for parallel safety |
+
+## Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Silent green on skipped engines | High | `REQUIRED_LOCAL_ROW_ENGINES` guard fails if a required engine only skips |
+| GX `add_spark` silent false-negative on Connect | High | Per-expectation routing to the native executor; correctness lanes assert exact counts |
+| JDK-version fragility (Spark) | Med | Explicit `JAVA_HOME=openjdk@17` prefix; Sail lane needs no JVM at all |
+| Connect DataFrame mis-classification | Med | `_is_connect_dataframe` is a correctness-critical seam; module-prefix based, covered by Sail lanes |
+| dbt-CLI startup dominates duckdb suite wall-clock | Low | Acknowledged harness cost (see phase4 eval); not an engine limitation |
+
+**Known Gaps**: (1) GX custom-expectation Connect parity (P2). (2) No load/stress
+testing. (3) Pre-existing: `test_gx_schema_validation.py` skipped (GX numpy/pandas
+compatibility); thin unit coverage on some authoring/change-mgmt utilities (see the
+inventory below). (4) Residual no-format TIMESTAMP offset divergence and dedup
+tie-break determinism (documented in the phase4 eval, fixtures pending).
+
+## Build Handoff
+
+**Commands**: `make check` (lint + pyright + test) | `make coverage` |
+`UV_PROJECT_ENVIRONMENT=/tmp/tsvenv ... uv run pytest tests/conformance` |
+`... uv run pytest tests/unit/test_profiler_connect_sail.py tests/unit/test_validation_connect_sail.py`
+
+**Priority**: emit foundation → Connect-safe substrate → goldens → compile/backbone →
+conformance + Connect lanes → e2e matrix.
+
+**Blocking Gate**: `make check` green; the cross-engine conformance matrix green with
+all `REQUIRED_LOCAL_ROW_ENGINES` actually executing (not skipped); both Connect (Sail)
+lanes green; the backbone import-isolation contract intact.
+
+## Appendix: Module Test Inventory
+
+The unit/integration inventory below remains authoritative for the non-spine library
+surface and tracks pre-existing coverage gaps.
+
+### Unit Tests (`tests/unit/`)
+
+| Test File | Module Under Test | Coverage |
+|-----------|-------------------|----------|
+| `test_umf_models.py` | `models/umf.py` | Pydantic validation, YAML I/O, all model types |
+| `test_type_mappings.py` | `type_mappings.py` | All type conversions, case insensitivity, defaults |
+| `test_schema_generators.py` | `schemas/generators.py` | SQL DDL, PySpark, JSON Schema generation |
+| `test_gx_baseline.py` | `gx_baseline.py` | Baseline generation, suite composition, strictness |
+| `test_expectation_consistency.py` | `prompts/expectation_guide.py` | Cross-schema consistency |
+| `test_profiling_mappers.py` | `profiling/` | Spark/legacy mappers, statistics, nullable inference |
+| `test_profiler_connect_sail.py` | `profiling/native_profiler.py` | Connect-safe profiling on a real Sail session |
+| `test_validation_connect_sail.py` | `validation/{gx_executor,native_executor,table_validator}.py` | Connect-safe validation correctness (clean/dirty, exact counts) |
+
+### Integration / E2E (`tests/integration/`, `tests/conformance/`, `tests/e2e/`)
+
+| Test Area | Scope | Coverage |
+|-----------|-------|----------|
+| `test_umf_workflow.py` | End-to-end library | Create/save/load UMF, generate all schemas, round-trip |
+| `tests/conformance/` | Cross-engine matrix | Byte-for-byte parity vs the Spark-direct oracle; LDP/dbt tiers |
+| `tests/e2e/` + `e2e/backbone.py` | Compile→backbone spine | Bootstrap matrix; runtime consumes only artifacts |
+| `tests/test_core_encapsulation.py` | Import isolation | `src` never imports dbt / the test tree |
+| `tests/test_golden.py` | Emitter goldens | Byte-for-byte ingest SQL + dbt project trees |
+
+### Pre-Existing Coverage Gaps
+
+- `test_gx_schema_validation.py` fully skipped (GX numpy/pandas compatibility).
+- No dedicated unit tests for `gx_constraint_extractor.py`, `umf_validator.py`, the
+  `prompts/` generators, or several change-mgmt / authoring utilities (`cli.py`,
+  `excel_converter.py`, `umf_loader.py`, `umf_diff.py`, `umf_change_applier.py`,
+  `changelog_*`, `sample_data/`, `quality/`, `inference/`, `naming.py`,
+  `date_formats.py`, `formatting/`, `merge.py`, `sync_baseline.py`,
+  `dependency_resolver.py`). These remain the standing backfill list.
+
+## Review Checklist
+
+- [x] Test levels cover contract, integration, unit, and E2E with coverage targets
+- [x] Framework choices are justified (dbt adapters, pysail Connect lane)
+- [x] Critical paths (P0) identified with 100% coverage requirement
+- [x] Test data strategy covers fixtures, factories, and mocks
+- [x] Coverage requirements have targets, minimums, and enforcement
+- [x] Implementation order is justified (substrate before higher lanes)
+- [x] Infrastructure is specific (engine versions, JDK pin, run prefix)
+- [x] Risks include silent-green, Connect false-negative, JDK fragility
+- [x] Known gaps documented (GX custom on Connect; no load testing)
+- [x] Build handoff commands are concrete and runnable
+- [x] Plan traces to PRD FR-5/7/18/19/20 and the governing FEAT/US
+- [x] Every P0 criterion allocated to a primary layer without restating per-AC rows

@@ -1,8 +1,16 @@
 # ADR-008: dbt Adoption Architecture (Subsystem Candidate Map + Encapsulation)
 
+| Date | Status | Deciders | Related | Confidence |
+|------|--------|----------|---------|------------|
+| 2026-06-06 | Accepted | Platform / Compile Team | FEAT-027, ADR-007, FR-19.1, FR-19.2 | High |
+
 ## Status
 
-Proposed — extends ADR-007 (raw->ingest SQL artifact) to the rest of tablespec.
+Accepted — implemented as the dbt backend on the Multi-Target Emission core seam
+(PRD FR-19.1/FR-19.2, FEAT-027); extends ADR-007 (raw->ingest SQL artifact) to the
+rest of tablespec. This record was reconciled against the shipped `tablespec.dbt`
+emitter on 2026-06-06: the roadmap items below (§4) have all SHIPPED — see the
+"Implementation status (shipped)" note after §4 for the per-item evidence.
 
 ## Context
 
@@ -10,9 +18,16 @@ ADR-007 made the raw->ingest transform a generated SQL artifact and Phase 1-8 of
 `feat/dbt-runner` added a fully isolated dbt path: a framework-agnostic CORE
 (`tablespec.core` — the `TableRenderer` Protocol + the logical-plan IR) and a
 dbt implementation package (`tablespec.dbt`) that both the direct-artifact path
-and the dbt path depend on, *never on each other*. `dbt-core`/`dbt-duckdb` are an
-optional `[dbt]` extra (lazy import; importing core never requires dbt), enforced
-by `tests/test_core_encapsulation.py`.
+and the dbt path depend on, *never on each other*. Generating a dbt project is
+pure-Python text emission with **no `import dbt`** (enforced by
+`tests/test_core_encapsulation.py::test_src_never_imports_dbt`), so importing core
+never requires dbt. dbt-core/dbt-duckdb (plus dbt-spark[session]/dbt-databricks)
+are needed only to *execute* generated projects in the conformance/parity tests;
+they therefore live in the `[dependency-groups] dev` group, **not** as a
+user-facing `[dbt]` extra — see §3 and `pyproject.toml:51`,`:63`. (This is the
+dependency-model reconciliation: the original draft assumed a `[dbt]` extra; the
+shipped decision is dev-group / test-only, matching the PRD Non-Goal "Shipping dbt
+… as user-facing runtime dependencies".)
 
 That covers ingest + gold model emission. The question this ADR answers: **once a
 user opts into dbt, what ELSE in tablespec should the dbt path own**, and how do
@@ -33,7 +48,7 @@ Legend — **maps**: what becomes a dbt artifact; **stays native**: what does no
 
 | Subsystem | Candidate | Maps to dbt | Stays native | E | V |
 |---|---|---|---|---|---|
-| `validation/` + `gx_*` (Great Expectations) | **partial** | The four deterministic baseline expectations that have first-class dbt generic tests: `expect_column_values_to_not_be_null` -> `not_null`; `expect_column_values_to_be_unique` -> `unique`; `expect_column_values_to_be_in_set` -> `accepted_values`; FK `references` -> `relationships`. These become `schema.yml` `data_tests:` on the `ingested_`/`gold_` model. **Status:** `not_null` + `unique` already emit on both dbt paths; `relationships` already emits on the multi-table DAG path (`project._gold_schema_yml`, FK-driven, cross-pipeline FKs skipped); `accepted_values` and single-table-path `relationships` are the remaining gap. | Everything stage-classified or rich: `expect_column_values_to_cast_to_type`, `expect_column_values_to_match_strftime_format`, `expect_column_value_lengths_to_be_between`, regex/regex_list, pair/compound/cross-column, `expect_table_*`, conditional (`row_condition`), and the `raw` vs `ingested` two-stage routing (`gx_executor.execute_staged`) — these run in GX on Spark/duckdb. dbt-utils/dbt-expectations could absorb a few (`accepted_range`, `expression_is_true`) but that adds a dbt-package dependency for marginal value; keep them in GX. | M | H |
+| `validation/` + `gx_*` (Great Expectations) | **partial** | The four deterministic baseline expectations that have first-class dbt generic tests: `expect_column_values_to_not_be_null` -> `not_null`; `expect_column_values_to_be_unique` -> `unique`; `expect_column_values_to_be_in_set` -> `accepted_values`; FK `references` -> `relationships`. These become `schema.yml` `data_tests:` on the `ingested_`/`gold_` model. **Status (shipped):** `not_null` is emitted as the model's enforced-contract `constraints:` entry (not a duplicate generic test); `unique`, `relationships`, and `accepted_values` are all emitted on BOTH the single-table path (`single_table._model_schema_block`, `src/tablespec/dbt/single_table.py:168`) and the multi-table DAG path (`project._staging_schema_yml`/`_gold_schema_yml`, `src/tablespec/dbt/project.py:229`,`:278`), all derived from the shared `core.schema_facts` (`relationship_tests`, `accepted_values_tests`). Cross-pipeline / unresolvable FKs are skipped (never a dangling `ref()`). | Everything stage-classified or rich: `expect_column_values_to_cast_to_type`, `expect_column_values_to_match_strftime_format`, `expect_column_value_lengths_to_be_between`, regex/regex_list, pair/compound/cross-column, `expect_table_*`, conditional (`row_condition`), and the `raw` vs `ingested` two-stage routing (`gx_executor.execute_staged`) — these run in GX on Spark/duckdb. dbt-utils/dbt-expectations could absorb a few (`accepted_range`, `expression_is_true`) but that adds a dbt-package dependency for marginal value; keep them in GX. | M | H |
 | `quality/` baselines | **no** | — | Run-over-run drift detection (row-count deltas, distribution comparison, KL-style change) is **stateful, statistical, and Spark-bound** (`baseline_service` reads a DataFrame with `pyspark.sql.functions`). dbt tests are stateless pass/fail; this is a metric store. Out of scope. | L | L |
 | `profiling/` (profile->umf) | **no** (UMF authoring) / **partial** (separate angle) | Nothing in the profile->UMF direction. A *separate* "dbt-profiler" angle (emit `dbt-profiler`-style column profiles from a built warehouse) is a net-new feature, not a port. | `SparkToUmfMapper` / Deequ mapping stays native — it produces UMF, the upstream source of truth that *feeds* dbt generation. | L | L |
 | `sample_data/` | **yes** | Generated per-table CSVs map directly to **dbt seeds** (`seeds/<table>.csv` + a `seeds:` config in `dbt_project.yml` with column `column_types` from UMF). Useful for `dbt build` smoke tests / CI fixtures and for the duckdb parity harness. | The *generation* logic (constraint handlers, FK graph, domain types) stays native — it produces the CSV; dbt only consumes it. | S | M |
@@ -49,11 +64,15 @@ selection from `umf_diff` (M/H), sample_data->seeds (S/M).
 
 ### 2. Encapsulation architecture (concrete)
 
-The seam is unchanged from Phases 0-8; new work slots into the SAME two packages.
-**Hard rule (enforced by `tests/test_core_encapsulation.py`): nothing under
-`tablespec.core` imports `tablespec.dbt`, and the two backend paths never import
-each other.** Each new candidate is a single-responsibility module under
-`tablespec.dbt`, fed by a CORE interface.
+The seam is unchanged from Phases 0-8; the work below slots into the SAME two
+packages. **Hard rule (enforced by `tests/test_core_encapsulation.py`): nothing
+under `tablespec.core` imports `tablespec.dbt`, and the two backend paths never
+import each other.** Each candidate is a single-responsibility module under
+`tablespec.dbt`, fed by a CORE interface. (Reconciliation note: the modules marked
+"NEW" in the listings below have all SHIPPED — `core/schema_facts.py`,
+`core/selection.py`, `dbt/schema_tests.py`, `dbt/contracts.py`, `dbt/seeds.py`,
+`dbt/selection.py` — except `dbt/runner.py`, which remains deferred per §4 item 6.
+The "NEW" markers are retained as the original design narrative.)
 
 #### Shared CORE (`src/tablespec/core/`) — no dbt, no Spark, no SQL dialect
 
@@ -113,50 +132,53 @@ Dependency direction (acyclic): `tablespec.dbt.*` -> `tablespec.core.*` -> stdli
 + `tablespec.models`. The direct-artifact path (`schemas/ingest_generator`,
 `SQLPlanGenerator`) -> `tablespec.core.*` only. No edge between the two backends.
 
-### 3. Opt-in mechanism (dbt strictly optional)
+### 3. Dependency model (dbt is dev-group / test-only, not a user extra)
 
-Three layers, so that *importing* tablespec core never touches dbt and *running*
-dbt only happens behind an explicit user choice:
+The dependency decision REVERSED the original `[dbt]` extra draft. dbt is needed
+only to EXECUTE a generated project (conformance/parity tests); the library's
+runtime never imports it. So:
 
-1. **Generation is import-safe.** Everything under `tablespec.dbt` that only
-   *emits text* (project.py, single_table.py, schema_tests.py, contracts.py,
-   seeds.py, selection.py) is pure Python with **no `import dbt`**. So
-   `from tablespec.dbt import generate_dbt_project` works without the extra
-   installed — you can generate a project anywhere.
+1. **Generation is import-safe.** Everything under `tablespec.dbt` is pure Python
+   with **no `import dbt`** — `project.py`, `single_table.py`, `schema_tests.py`,
+   `contracts.py`, `seeds.py`, `selection.py` (`src/tablespec/dbt/__init__.py:11`).
+   `from tablespec.dbt import generate_dbt_project` works with no dbt installed —
+   you can generate a project anywhere `tablespec` is. The compile orchestrator
+   (FR-18.1) emits both dbt projects as committed artifacts on this import-safe
+   path.
 
-2. **Execution is lazy + extra-gated.** Only `tablespec.dbt.runner.DbtRunner`
-   touches `dbt-core`, and it imports it **inside the method**, raising a clear
-   "install `tablespec[dbt]`" error if absent:
+2. **dbt is a dev-group, test-only dependency — NOT a `[dbt]` extra.** The dbt
+   stack (`dbt-core>=1.9`, `dbt-duckdb>=1.9`, `dbt-spark[session]>=1.10`,
+   `dbt-databricks>=1.9`) lives in `[dependency-groups] dev`, so `uv sync --group
+   dev` always yields a working test stack with no `--extra` to remember
+   (`pyproject.toml:63`). There is intentionally NO user-facing `[dbt]` extra
+   (`pyproject.toml:51`), matching the PRD Non-Goal "Shipping dbt … as user-facing
+   runtime dependencies" and the vision's compile-once/run-from-artifacts model:
+   the runtime consumes the committed dbt project as an artifact and never invokes
+   dbt through tablespec.
 
-   ```python
-   class DbtRunner:
-       def run(self, project_dir: Path, select: str | None = None) -> RunResult:
-           try:
-               from dbt.cli.main import dbtRunner as _DbtRunner  # lazy
-           except ModuleNotFoundError as e:
-               raise MissingDbtExtra("pip install 'tablespec[dbt]'") from e
-           ...
-   ```
+3. **Execution lives in the test/CI lanes.** The conformance/parity tests run
+   `dbt build` against the DuckDB, local Spark session, and compile-only Databricks
+   targets to prove cast parity (`tests/conformance/*`,
+   `docs/helix/03-test/dbt-roadmap-acceptance.md`). A future opt-in execution
+   entry point (`DbtRunner` + an `Emitter`/`get_emitter` backend selector + a CLI
+   `--backend dbt`) is the only deferred piece — see §4 item 6; it is NOT yet
+   shipped and remains explicitly future work.
 
-3. **Backend selection is an explicit interface, never auto-magic.** Define a
-   CORE `Emitter` Protocol (`emit(umfs, out_dir) -> None`); the CLI/API picks the
-   backend by name:
+### 4. Adoption roadmap (value-to-effort ordered) — items 1-5 SHIPPED
 
-   ```python
-   # tablespec generate <umf> --backend dbt   (vs the default direct artifact)
-   def get_emitter(backend: str) -> Emitter:        # in tablespec.cli / a registry
-       if backend == "dbt":
-           from tablespec.dbt import DbtEmitter     # lazy: dbt path only loaded on demand
-           return DbtEmitter()
-       return DirectArtifactEmitter()               # ADR-007 path, no dbt
-   ```
+Implementation status (reconciled 2026-06-06): items **1-5 have shipped**; only the
+opt-in execution wiring (item 6) is deferred.
 
-   The default backend is the ADR-007 direct artifact; `--backend dbt` (or a
-   `[tool.tablespec] backend = "dbt"` config / a `tablespec.emitters` entry point
-   for third parties) opts in. Core's `Emitter` Protocol is the only shared type;
-   neither backend imports the other.
+| # | Roadmap item | Status | Evidence |
+|---|---|---|---|
+| 1 | `core/schema_facts.py` shared by GX baseline + dbt | **Shipped** | `src/tablespec/core/schema_facts.py` (`column_contracts`, `relationship_tests`, `accepted_values_tests`, `column_tests`); consumed by `dbt/single_table.py:33` and `dbt/project.py:29` |
+| 2 | `accepted_values` + single-table `relationships` | **Shipped** | `src/tablespec/dbt/schema_tests.py:93`; emitted on both paths (`single_table.py:168`, `project.py:278`) |
+| 3 | model contracts from schema facts | **Shipped** | `src/tablespec/dbt/contracts.py:120`; enforced-contract config on every model (`project.py:229`) |
+| 4 | `state:modified` CI selection from `umf_diff` | **Shipped** | `src/tablespec/core/selection.py` (`ChangeSet`) + `src/tablespec/dbt/selection.py:69` (`select_expression`, `EMPTY_SELECTION`) |
+| 5 | `sample_data` -> dbt seeds | **Shipped** | `src/tablespec/dbt/seeds.py:190` (`emit_seeds`, `render_seeds_config`, `seed_column_types`) |
+| 6 | `DbtRunner` + `Emitter`/`get_emitter` opt-in + CLI `--backend` | **Deferred** | not implemented; the dbt path is exercised through the conformance/parity test lanes, not a product runner |
 
-### 4. Adoption roadmap (value-to-effort ordered)
+The original roadmap text is retained below for the rationale/effort record:
 
 1. **Extract `core/schema_facts.py`** and make BOTH `gx_baseline` and
    `dbt/single_table`/`project` consume it — reconciling the three nullable
@@ -179,10 +201,10 @@ mappers, `prompts/`, and all rich/stage-classified/statistical GX expectations.
 
 ## Consequences
 
-- **Positive:** one constraint truth (`schema_facts`) feeds GX and dbt; dbt stays
-  an optional extra never imported by core; each candidate is a small isolated
-  module; the highest-value items (schema tests, contracts, `state:modified`) are
-  cheap because the IR/registry already exist.
+- **Positive:** one constraint truth (`schema_facts`) feeds GX and dbt; dbt is a
+  dev-group/test-only tool never imported by core or the runtime; each candidate is
+  a small isolated module; the highest-value items (schema tests, contracts,
+  `state:modified`) are cheap because the IR/registry already exist.
 - **Negative / risks:** schema.yml generic tests and GX must not silently diverge
   — sharing `schema_facts` mitigates this but adds a refactor of `gx_baseline`.
   Contracts duplicate type info already in DDL; we accept DDL being subsumed on
@@ -191,4 +213,50 @@ mappers, `prompts/`, and all rich/stage-classified/statistical GX expectations.
 - **Enforcement:** `tests/test_core_encapsulation.py` continues to assert no
   `core -> dbt` import and no cross-backend import; every new dbt module lands
   under `tablespec.dbt` and every new shared interface under `tablespec.core`.
-```
+
+## Risks
+
+| Risk | Prob | Impact | Mitigation |
+|------|------|--------|------------|
+| schema.yml generic tests and the GX suite silently diverge | M | H | Both backends derive from one `core.schema_facts`; encapsulation test pins no cross-backend import |
+| dbt-spark merge silently skips (parquet default) so FK tests never run | M | H | Pin `file_format='delta'` for the spark/databricks dialects (`single_table._model_config`) |
+| dbt accidentally creeps into the user runtime dependency set | L | H | dbt confined to `[dependency-groups] dev`; `test_src_never_imports_dbt` asserts no `import dbt` under `src/` |
+| Contract type info drifts from the DDL/type-mapping source | L | M | Contracts reuse `type_mappings`; DDL is accepted as subsumed on the dbt path |
+
+## Validation
+
+| Success Metric | Review Trigger |
+|----------------|----------------|
+| dbt `schema.yml` constraint set == GX baseline set for the same UMF | A new baseline expectation type gains a first-class dbt generic test |
+| Generated projects build green on DuckDB / Spark / Databricks conformance tiers | A conformance tier turns red or a new emit target is added |
+| No `import dbt` anywhere under `src/` | The encapsulation test fails, or a runtime feature wants dbt |
+| Recompiled dbt project diffs clean for an unchanged UMF | UMF→artifact drift is detected in CI |
+
+## Supersession
+
+- **Supersedes**: None (extends ADR-007).
+- **Superseded by**: None.
+
+## Concern Impact
+
+- **Concern selection**: Selects dbt as a dev-group/test-only tool and pins the
+  dbt-adapter version floors (dbt-core/duckdb 1.9+, dbt-spark 1.10+, dbt-databricks
+  1.9+).
+- **Practice override**: Overrides the implicit "optional feature => user extra"
+  default — dbt is a `[dependency-groups] dev` tool, not a `[project.optional-dependencies]`
+  extra. No `docs/helix/01-frame/concerns.md` Project Overrides entry is required
+  beyond this ADR reference (no `concerns.md` exists in this repo).
+- **No concern impact**: N/A.
+
+## References
+
+- PRD: `docs/helix/01-frame/prd.md` — Subsystem: Multi-Target Emission (FR-19.1, FR-19.2);
+  Non-Goal "Shipping dbt … as user-facing runtime dependencies".
+- Product Vision: `docs/helix/00-discover/product-vision.md` — compile-to-committed-artifacts;
+  compile-once / run-from-artifacts.
+- FEAT-027 — dbt Project Emitter (`docs/helix/01-frame/features/FEAT-027-dbt-emitter.md`).
+- ADR-007 — Raw-to-Ingest Transforms as Committed SQL Artifacts.
+- Test acceptance: `docs/helix/03-test/dbt-roadmap-acceptance.md`.
+- Implementation: `src/tablespec/dbt/` (`single_table.py`, `project.py`, `schema_tests.py`,
+  `contracts.py`, `seeds.py`, `selection.py`), `src/tablespec/core/schema_facts.py`,
+  `src/tablespec/core/selection.py`, `pyproject.toml:51`,`:63`.

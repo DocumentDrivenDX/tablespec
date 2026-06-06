@@ -1,10 +1,27 @@
-# LDP as a Sibling Emitter on the Shared Core (PROTOTYPE / experimental)
+# LDP as a Sibling Emitter on the Shared Core
 
-> **Status: PROTOTYPE — experimental.** This is exploratory work that runs AFTER
-> the dbt-roadmap audit. It exists to PROVE the core is target-agnostic by emitting
-> a second backend from the same inputs. It does **not** touch or change
-> `tablespec.dbt`, `tablespec.core` semantics, or the direct-SQL path, and it makes
-> **no** claim of running on a real warehouse (see "Honest limits").
+> **Status: Active — governed design note.** This emitter is a committed runtime
+> artifact in the compiler (PRD Subsystem *Multi-Target Emission*).
+>
+> | Governs / governed by | Artifact |
+> |---|---|
+> | Feature | [FEAT-028 — LDP Sibling Emitter](../01-frame/features/FEAT-028-ldp-sibling-emitter.md) |
+> | Architecture decision (the shared seam) | [ADR-013 — Target-Agnostic Core Seam with Sibling Emitters](adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md) |
+> | User story | [US-026 — Emit an LDP project from a UMF set](../01-frame/user-stories/US-026-emit-ldp-project-from-umf.md) |
+> | PRD requirements | FR-19.3 (LDP sibling emitter), FR-19.1 (shared target-agnostic core seam) |
+> | Vision outcome | "Multi-target emission (direct SQL, dbt, LDP) on a shared target-agnostic core seam" |
+>
+> This note is the **detailed design** of how the LDP emitter maps the model onto
+> LDP; ADR-013 owns the *decision* that emitters are siblings on the shared core,
+> and FEAT-028 owns the behavioural requirements. The emitter does **not** touch or
+> change `tablespec.dbt`, `tablespec.core` semantics, or the direct-SQL path.
+>
+> **Scope (structure-local / Databricks-execute).** The emitter *generates* LDP SQL
+> as a committed artifact with no Databricks/Spark import. LDP runs ONLY on
+> Databricks; structure and cast parity are tested locally (JVM-free), and real
+> end-to-end pipeline execution is a Databricks-only conformance tier that is **not**
+> exercised in CI (see "Honest limits"). This boundary is a deliberate, governed
+> scope, not a prototype caveat.
 
 ## What this is
 
@@ -142,7 +159,8 @@ SELECT * FROM enriched;
   does not.
 - **No local loop.** There is no open-source LDP runner. The dbt path has a full
   local duckdb develop/test loop (and our e2e tests use it). LDP can only be run on
-  a Databricks pipeline, so this prototype is text-generation only.
+  a Databricks pipeline, so the emitter is text-generation only (the structure-local
+  / Databricks-execute scope above).
 - **Less explicit control.** APPLY CHANGES / declarative ordering means the platform
   owns the merge + DAG; we trade the transparent hand-written MERGE/window for
   platform behaviour we cannot unit-test locally.
