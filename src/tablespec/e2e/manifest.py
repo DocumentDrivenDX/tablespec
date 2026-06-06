@@ -58,6 +58,7 @@ Notes
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -189,25 +190,94 @@ class CompiledArtifacts:
 
     def table(self, name: str) -> TableArtifacts:
         """Return the artifact bundle for *name* (KeyError if absent)."""
-        raise NotImplementedError
+        return self.tables[name]
 
     def all_ingest_sql(self) -> list[Path]:
         """Every per-table ingest SQL artifact, in table order."""
-        raise NotImplementedError
+        return [t.ingest_sql for t in self.tables.values()]
 
     def all_suites(self) -> list[Path]:
         """Every per-table compiled validation suite, in table order."""
-        raise NotImplementedError
+        return [t.suite_json for t in self.tables.values()]
 
     def to_json(self) -> str:
-        """Serialize this manifest to a JSON string (paths relative to ``root``)."""
-        raise NotImplementedError
+        """Serialize this manifest to a JSON string (paths relative to ``root``).
+
+        Every absolute path is stored RELATIVE to ``root`` so the manifest is
+        relocatable; :meth:`load` re-absolutizes against the directory it reads
+        from. ``root`` itself is recorded (absolute) only as provenance.
+        """
+
+        def rel(p: Path | None) -> str | None:
+            if p is None:
+                return None
+            return str(p.relative_to(self.root))
+
+        payload = {
+            "root": str(self.root),
+            "source": self.source,
+            "profile_enriched": self.profile_enriched,
+            "dbt_gold_project": rel(self.dbt_gold_project),
+            "ldp_project": rel(self.ldp_project),
+            "tables": {
+                name: {
+                    "table_name": t.table_name,
+                    "umf_snapshot": rel(t.umf_snapshot),
+                    "ingest_sql": rel(t.ingest_sql),
+                    "ddl_sql": rel(t.ddl_sql),
+                    "pyspark_schema": rel(t.pyspark_schema),
+                    "json_schema": rel(t.json_schema),
+                    "suite_json": rel(t.suite_json),
+                    "dbt_ingest_project": rel(t.dbt_ingest_project),
+                    "gold_plan_sql": rel(t.gold_plan_sql),
+                }
+                for name, t in self.tables.items()
+            },
+        }
+        return json.dumps(payload, indent=2, sort_keys=False) + "\n"
 
     def write(self) -> Path:
         """Persist this manifest to ``manifest_path`` and return that path."""
-        raise NotImplementedError
+        self.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        self.manifest_path.write_text(self.to_json())
+        return self.manifest_path
 
     @classmethod
     def load(cls, root: Path) -> CompiledArtifacts:
         """Load a manifest previously written under *root* (re-absolutizing paths)."""
-        raise NotImplementedError
+        root = Path(root).resolve()
+        data = json.loads((root / MANIFEST_FILENAME).read_text())
+
+        def absolute(rel: str | None) -> Path | None:
+            if rel is None:
+                return None
+            return (root / rel).resolve()
+
+        tables: dict[str, TableArtifacts] = {}
+        for name, t in data["tables"].items():
+            tables[name] = TableArtifacts(
+                table_name=t["table_name"],
+                umf_snapshot=_require(absolute(t["umf_snapshot"])),
+                ingest_sql=_require(absolute(t["ingest_sql"])),
+                ddl_sql=_require(absolute(t["ddl_sql"])),
+                pyspark_schema=_require(absolute(t["pyspark_schema"])),
+                json_schema=_require(absolute(t["json_schema"])),
+                suite_json=_require(absolute(t["suite_json"])),
+                dbt_ingest_project=absolute(t["dbt_ingest_project"]),
+                gold_plan_sql=absolute(t["gold_plan_sql"]),
+            )
+        return cls(
+            root=root,
+            source=data["source"],
+            profile_enriched=bool(data["profile_enriched"]),
+            tables=tables,
+            dbt_gold_project=absolute(data["dbt_gold_project"]),
+            ldp_project=absolute(data["ldp_project"]),
+        )
+
+
+def _require(p: Path | None) -> Path:
+    """Narrow an optional path that the manifest guarantees is present."""
+    if p is None:  # pragma: no cover - manifest invariant
+        raise ValueError("required artifact path missing from manifest")
+    return p

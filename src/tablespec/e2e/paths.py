@@ -64,7 +64,29 @@ def umfs_from_tables(
         expectation list (empty dict when ``profile`` is False -- the orchestrator
         then generates baseline suites from the UMF).
     """
-    raise NotImplementedError
+    from tablespec.models.umf import UMF
+    from tablespec.profiling.spark_mapper import SparkToUmfMapper
+
+    mapper = SparkToUmfMapper()
+    umfs: list[UMF] = []
+    suites: dict[str, list[dict]] = {}
+
+    for full_name in table_names:
+        # Reflect the (possibly schema-qualified) table to a bare-name UMF: the
+        # compiled raw/ingested tables are unqualified (raw_<t>/ingested_<t>).
+        df = spark.table(full_name)
+        table = full_name.split(".")[-1]
+        umf_data = _to_strict_umf_data(mapper.map_dataframe_to_umf(df, table))
+        umfs.append(UMF(**umf_data))
+
+        if profile:
+            from tablespec.profiling.gx_expectation_builder import ProfileToGxMapper
+            from tablespec.profiling.native_profiler import NativeSparkProfiler
+
+            profile_result = NativeSparkProfiler(spark).profile(df)
+            suites[table] = ProfileToGxMapper().build_expectations(profile_result)
+
+    return umfs, suites
 
 
 def umfs_from_specs(spec_paths: list[str | Path]) -> list[UMF]:
@@ -76,4 +98,28 @@ def umfs_from_specs(spec_paths: list[str | Path]) -> list[UMF]:
     Returns:
         The loaded :class:`UMF` models, in input order.
     """
-    raise NotImplementedError
+    from tablespec.models.umf import load_umf_from_yaml
+
+    return [load_umf_from_yaml(p) for p in spec_paths]
+
+
+def _to_strict_umf_data(base: dict[str, Any]) -> dict[str, Any]:
+    """Normalize ``SparkToUmfMapper`` output into the strict UMF model shape.
+
+    ``map_dataframe_to_umf`` emits a BASE schema dict (``nullable: bool``, no
+    ``version``) tuned for downstream tooling; the strict :class:`UMF` model the
+    compile orchestrator consumes requires a ``version`` and a ``Nullable``-shaped
+    ``nullable``. This adapts the reflected dict in place so Path A produces the
+    same ``UMF`` type as Path B.
+    """
+    data = dict(base)
+    data.setdefault("version", "1.0")
+    cols = []
+    for col in data.get("columns", []):
+        col = dict(col)
+        nullable = col.get("nullable")
+        if isinstance(nullable, bool):
+            col["nullable"] = {"default": nullable}
+        cols.append(col)
+    data["columns"] = cols
+    return data

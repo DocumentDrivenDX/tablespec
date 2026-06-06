@@ -37,13 +37,36 @@ whether they came from Path A (inferred) or Path B (loaded). The two entry point
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import yaml
+
+from tablespec.e2e.manifest import (
+    CompiledArtifacts,
+    TableArtifacts,
+    ddl_path,
+    dbt_gold_project_dir,
+    dbt_ingest_project_dir,
+    gold_plan_path,
+    ingest_sql_path,
+    json_schema_path,
+    ldp_project_dir,
+    pyspark_schema_path,
+    suite_path,
+    umf_snapshot_path,
+)
 
 if TYPE_CHECKING:
     from tablespec.models.umf import UMF
 
-    from tablespec.e2e.manifest import CompiledArtifacts
+
+def _write(path: Path, text: str) -> Path:
+    """Create parents and write *text* to *path*; return it."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text)
+    return path
 
 
 def compile_umfs(
@@ -78,7 +101,58 @@ def compile_umfs(
     Returns:
         The :class:`CompiledArtifacts` manifest (already written to disk).
     """
-    raise NotImplementedError
+    from tablespec.dbt.project import generate_dbt_dag_project
+    from tablespec.ldp.project import generate_ldp_project
+
+    root = Path(out_dir).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    suites = suites or {}
+    targets = set(gold_targets or [])
+
+    # --- per-table seams ------------------------------------------------------
+    tables: dict[str, TableArtifacts] = {}
+    for umf in umfs:
+        related = [u for u in umfs if u.table_name != umf.table_name]
+        tables[umf.table_name] = _compile_table(
+            umf,
+            root,
+            dialect=dialect,
+            suite=suites.get(umf.table_name),
+            emit_gold_plan=umf.table_name in targets,
+            related=related,
+        )
+
+    # --- whole-compile seams (one project each, spanning every table) ---------
+    # Multi-table GOLD dbt DAG project (distinct from the single-target gold plan).
+    dbt_gold_root: Path | None = None
+    try:
+        generate_dbt_dag_project(
+            list(umfs), dialect=dialect, out_dir=dbt_gold_project_dir(root)
+        )
+        dbt_gold_root = dbt_gold_project_dir(root)
+    except Exception:
+        # A gold DAG is only well-formed when the set actually derives gold tables
+        # (fail-closed on dangling refs / no gold target). A pure-ingest set has no
+        # gold project; that is expected, so the project is simply absent.
+        dbt_gold_root = None
+
+    ldp_root: Path | None = None
+    try:
+        generate_ldp_project(list(umfs), dialect="spark", out_dir=ldp_project_dir(root))
+        ldp_root = ldp_project_dir(root)
+    except Exception:
+        ldp_root = None
+
+    artifacts = CompiledArtifacts(
+        root=root,
+        source=source,
+        profile_enriched=profile_enriched,
+        tables=tables,
+        dbt_gold_project=dbt_gold_root,
+        ldp_project=ldp_root,
+    )
+    artifacts.write()
+    return artifacts
 
 
 def _compile_table(
@@ -89,7 +163,7 @@ def _compile_table(
     suite: list[dict] | None,
     emit_gold_plan: bool,
     related: list[UMF],
-):
+) -> TableArtifacts:
     """Compile + persist every per-table artifact for *umf*; return TableArtifacts.
 
     Runs the per-table seams (ingest sql, ddl, pyspark, json, baseline suite,
@@ -97,13 +171,75 @@ def _compile_table(
     its pinned path. *related* is the rest of the UMF set (needed by the gold plan
     and the single-table dbt project's FK resolution).
     """
-    raise NotImplementedError
+    from tablespec.dbt.single_table import generate_dbt_project
+    from tablespec.schemas.generators import (
+        generate_json_schema,
+        generate_pyspark_schema,
+        generate_sql_ddl,
+    )
+    from tablespec.schemas.ingest_generator import generate_ingest_sql
+    from tablespec.schemas.sql_generator import generate_sql_plan
+
+    name = umf.table_name
+    umf_data = umf.model_dump(exclude_none=True)
+
+    # 0. snapshot the UMF the compile ran against (audit + reproducibility).
+    umf_snap = _write(
+        umf_snapshot_path(root, name),
+        yaml.safe_dump(umf_data, sort_keys=False, allow_unicode=True),
+    )
+
+    # 1. ingest SQL (raw DDL + typed DDL + raw->ingested transform).
+    ingest = _write(ingest_sql_path(root, name), generate_ingest_sql(umf_data))
+
+    # 2. schema generators.
+    ddl = _write(ddl_path(root, name), generate_sql_ddl(umf_data))
+    pyspark = _write(
+        pyspark_schema_path(root, name), generate_pyspark_schema(umf_data)
+    )
+    json_schema = _write(
+        json_schema_path(root, name),
+        json.dumps(generate_json_schema(umf_data), indent=2) + "\n",
+    )
+
+    # 3. compiled validation suite (baseline OR profile-enriched, persisted verbatim).
+    suite_exps = suite if suite is not None else _compile_baseline_suite(umf_data)
+    suite_json = _write(
+        suite_path(root, name), json.dumps(suite_exps, indent=2) + "\n"
+    )
+
+    # 4. single-table ingest dbt project (writes its own tree under out_dir).
+    dbt_ingest_root = dbt_ingest_project_dir(root, name)
+    generate_dbt_project(umf_data, dialect=dialect, out_dir=dbt_ingest_root)
+
+    # 5. SINGLE-target gold SQL plan (distinct from the multi-table dbt DAG).
+    gold_plan: Path | None = None
+    if emit_gold_plan:
+        related_map = {u.table_name: u for u in related}
+        gold_plan = _write(
+            gold_plan_path(root, name),
+            generate_sql_plan(umf, related_map, mode="views"),
+        )
+
+    return TableArtifacts(
+        table_name=name,
+        umf_snapshot=umf_snap,
+        ingest_sql=ingest,
+        ddl_sql=ddl,
+        pyspark_schema=pyspark,
+        json_schema=json_schema,
+        suite_json=suite_json,
+        dbt_ingest_project=dbt_ingest_root,
+        gold_plan_sql=gold_plan,
+    )
 
 
-def _compile_baseline_suite(umf: UMF) -> list[dict]:
-    """Generate the COMPILED baseline expectation suite for *umf*.
+def _compile_baseline_suite(umf_data: dict) -> list[dict]:
+    """Generate the COMPILED baseline expectation suite for *umf_data*.
 
     Thin wrapper over ``BaselineExpectationGenerator.generate_baseline_expectations``
     (structural + column + cross-column, raw and ingested stages co-mingled).
     """
-    raise NotImplementedError
+    from tablespec.gx_baseline import BaselineExpectationGenerator
+
+    return BaselineExpectationGenerator().generate_baseline_expectations(umf_data)

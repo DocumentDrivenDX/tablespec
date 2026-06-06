@@ -14,21 +14,184 @@ Pipeline:
       -> tablespec.e2e.paths.umfs_from_tables  (SparkToUmfMapper [+ profiler])
       -> tablespec.e2e.compile.compile_umfs     (persist artifacts + manifest)
       -> tablespec.e2e.backbone.run_backbone    (execute the compiled artifacts)
+
+The demo SEEDS each named table from a sibling ``<table>.raw.csv`` (the corpus
+fixtures already on disk) so "an existing Spark table" is reproducible without a
+warehouse. A real deployment would point ``--table`` at catalog tables instead and
+drop ``--seed-from``.
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+# A small default fixture set (ingest corpus) so the demo is runnable out of the box.
+_DEFAULT_SEEDS: dict[str, Path] = {
+    "decimal_boundaries": _REPO_ROOT
+    / "tests/conformance/corpus/ingest/decimal_boundaries.raw.csv",
+}
+
+
+def _seed_table(spark, table: str, csv_path: Path) -> None:  # noqa: ANN001
+    """Create an 'existing' Spark table from a CSV (header-inferred typed schema).
+
+    Path A reflects a table that ALREADY exists; the demo materializes one from a
+    corpus CSV. The ingest metadata columns (``_source_file`` / ``_load_ts``) are
+    NOT part of the user table, so they are dropped here -- a reflected source table
+    carries only business columns.
+    """
+    df = (
+        spark.read.option("header", True)
+        .option("inferSchema", True)
+        .option("quote", '"')
+        .option("escape", '"')
+        .option("multiLine", True)
+        .csv(str(csv_path))
+    )
+    for meta in ("_source_file", "_load_ts"):
+        if meta in df.columns:
+            df = df.drop(meta)
+    spark.sql(f"DROP TABLE IF EXISTS {table}")
+    df.write.mode("overwrite").saveAsTable(table)
 
 
 def main(argv: list[str] | None = None) -> int:
     """Run the Path A bootstrap demo. Returns a process exit code (0 = ok)."""
-    raise NotImplementedError
+    from tablespec.e2e.backbone import run_backbone
+    from tablespec.e2e.compile import compile_umfs
+    from tablespec.e2e.paths import umfs_from_tables
+
+    args = _parse_args(argv)
+    tables = list(args.table) if args.table else ["decimal_boundaries"]
+    out_dir = Path(args.out).resolve()
+    profile = not args.no_profile
+
+    print("== Path A: bootstrap from existing tables ==")
+    print(f"tables: {tables}  profile={profile}  backend={args.backend}")
+
+    spark = _make_session(args.backend)
+
+    # Seed the 'existing' tables from corpus CSVs so the demo is self-contained.
+    seeds = _resolve_seeds(tables, args.seed_from)
+    raw_batches: dict[str, list[Path]] = {}
+    for table in tables:
+        csv = seeds.get(table)
+        if csv is None:
+            raise SystemExit(
+                f"no seed CSV for table {table!r}; pass --seed-from {table}=<csv> "
+                "or use one of the default fixture tables"
+            )
+        _seed_table(spark, table, csv)
+        raw_batches[table] = [csv]
+        print(f"seeded table {table} from {csv}")
+
+    # 1. REFLECT (+ optionally PROFILE) the tables into a UMF set (Path A entry).
+    umfs, suites = umfs_from_tables(spark, tables, profile=profile)
+    print(f"\nreflected {len(umfs)} UMF(s); profile-enriched suites: {sorted(suites)}")
+
+    # 2. COMPILE -> persist artifacts + manifest.
+    artifacts = compile_umfs(
+        umfs,
+        out_dir,
+        source="tables",
+        profile_enriched=profile,
+        dialect=args.dialect,
+        suites=suites or None,
+    )
+    print(f"\n-- compiled artifacts under {artifacts.root} --")
+    _print_artifacts(artifacts)
+
+    # 3. BACKBONE: execute the COMPILED artifacts.
+    print(f"\n-- backbone ({args.backend}) consuming compiled artifacts --")
+    result = run_backbone(
+        artifacts, spark=spark, raw_batches=raw_batches, backend=args.backend
+    )
+    _print_stages(result)
+    return 0 if result.ok else 1
+
+
+def _resolve_seeds(tables: list[str], seed_from: list[str]) -> dict[str, Path]:
+    seeds: dict[str, Path] = dict(_DEFAULT_SEEDS)
+    for item in seed_from:
+        table, _, csv = item.partition("=")
+        seeds[table] = Path(csv).resolve()
+    return {t: seeds[t] for t in tables if t in seeds}
+
+
+def _make_session(backend: str):  # noqa: ANN201
+    if backend == "sail":
+        from pysail.spark import SparkConnectServer
+
+        from tests.conftest import make_sail_connect_session
+
+        server = SparkConnectServer()
+        server.start()
+        host, port = server.listening_address  # type: ignore[misc]
+        return make_sail_connect_session(host, port, "bootstrap-from-tables")
+    from tests.conformance.engines import get_shared_spark_session
+
+    return get_shared_spark_session()
+
+
+def _print_artifacts(artifacts) -> None:  # noqa: ANN001
+    print(f"  manifest: {artifacts.manifest_path}")
+    print(f"  source={artifacts.source} profile_enriched={artifacts.profile_enriched}")
+    for name, ta in artifacts.tables.items():
+        print(f"  [{name}]")
+        print(f"    ingest sql      : {ta.ingest_sql}")
+        print(f"    ddl             : {ta.ddl_sql}")
+        print(f"    pyspark schema  : {ta.pyspark_schema}")
+        print(f"    json schema     : {ta.json_schema}")
+        print(f"    suite           : {ta.suite_json}")
+        print(f"    dbt ingest proj : {ta.dbt_ingest_project}")
+    if artifacts.ldp_project:
+        print(f"  ldp project       : {artifacts.ldp_project}")
+
+
+def _print_stages(result) -> None:  # noqa: ANN001
+    for s in result.stages:
+        mark = "ok " if s.ok else "FAIL"
+        print(f"  [{mark}] {s.name}: {s.detail}")
+    print(f"\nbackbone {'PASSED' if result.ok else 'FAILED'}")
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     """Parse ``--table`` (repeatable), ``--out``, ``--no-profile`` flags."""
-    raise NotImplementedError
+    parser = argparse.ArgumentParser(
+        description="Bootstrap runtime artifacts from existing Spark tables."
+    )
+    parser.add_argument(
+        "--table",
+        action="append",
+        default=None,
+        help="Existing table to reflect (repeatable). Default: decimal_boundaries.",
+    )
+    parser.add_argument("--out", required=True, help="Compile output directory.")
+    parser.add_argument(
+        "--no-profile",
+        action="store_true",
+        help="Skip profiling; emit a schema-only baseline suite.",
+    )
+    parser.add_argument(
+        "--seed-from",
+        action="append",
+        default=[],
+        help="table=csv: seed an 'existing' table from a CSV (repeatable).",
+    )
+    parser.add_argument("--dialect", default="duckdb", help="Cast dialect for the dbt projects.")
+    parser.add_argument(
+        "--backend",
+        default="spark",
+        choices=["spark", "sail", "duckdb"],
+        help="Backbone execution backend.",
+    )
+    return parser.parse_args(argv)
 
 
 if __name__ == "__main__":

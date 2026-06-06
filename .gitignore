@@ -218,3 +218,8 @@ coverage.json
 
 # Beads credentials
 .beads/.beads-credential-key
+
+# Local Spark session warehouse/metastore (created by tests run from the repo root)
+spark-warehouse/
+metastore_db/
+derby.log
