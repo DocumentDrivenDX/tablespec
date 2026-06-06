@@ -27,11 +27,12 @@ from __future__ import annotations
 
 import pytest
 
-from tests.conformance.corpus.registry import Case, load_cases
+from tests.conformance.corpus.registry import Case, ingest_cases, load_cases
 from tests.conformance.engines import (
     REQUIRED_LOCAL_ROW_ENGINES,
     Engine,
     SQLPlanGeneratorGoldEngine,
+    e2e_engines,
     row_engines,
     stop_shared_spark_session,
 )
@@ -272,3 +273,117 @@ def test_matrix_has_required_row_engines_registered() -> None:
         f"row-engine set drifted from the required set.\n"
         f"  registered: {registered}\n  required:   {sorted(REQUIRED_LOCAL_ROW_ENGINES)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# D. OPT-IN real-Databricks e2e tier, wired into the SAME matrix + corpus golden.
+# ---------------------------------------------------------------------------
+#
+# The e2e engines (``DbtDatabricksE2EEngine`` + ``LdpDatabricksE2EEngine``) deploy +
+# execute against a REAL workspace, canonicalize the read-back through the SAME
+# ``to_json``, and are judged against the SAME corpus ROW golden as the local row
+# engines -- i.e. they are first-class ROW engines that just run remotely. They are
+# gated by the ``databricks_e2e`` marker (``databricks_e2e_availability``). There is
+# NO cluster in this harness, so every leg below SKIPS with an explicit reason; it
+# NEVER silently passes, and ``test_e2e_tier_is_gated_off_here`` proves the gate is
+# real rather than a no-op.
+
+_E2E_ENGINES = e2e_engines()
+_INGEST_CASES = list(ingest_cases())
+_E2E_MATRIX = [
+    pytest.param(engine, case)
+    for case in _INGEST_CASES
+    for engine in _E2E_ENGINES
+    if engine.handles(case)
+]
+_E2E_IDS = [
+    f"{e.name}-{c.id}" for c in _INGEST_CASES for e in _E2E_ENGINES if e.handles(c)
+]
+
+
+@pytest.mark.databricks_e2e
+@pytest.mark.parametrize(("engine", "case"), _E2E_MATRIX, ids=_E2E_IDS)
+def test_e2e_engine_matches_golden(engine: Engine, case: Case) -> None:
+    """Each opt-in e2e engine reproduces the SAME corpus row golden on a workspace.
+
+    Opt-in: skipped unless the Databricks workspace is configured. Here (no cluster)
+    this SKIPS with an explicit reason -- never silently passed. When a workspace IS
+    configured it deploys + executes the generated dbt-databricks / LDP project and
+    canonicalizes the read-back through the SAME ``to_json`` vs the SAME golden.
+    """
+    reason = engine.availability(case)
+    if reason is not None:
+        pytest.skip(f"{engine.name} unavailable for '{case.id}': {reason}")
+    # pragma: no cover - only reachable with a configured workspace.
+    actual = engine.run(case)
+    golden = _golden_for(case)
+    assert golden.exists(), f"row golden missing for '{case.id}': {golden}"
+    expected = golden.read_text()
+    assert actual == expected, (
+        f"{engine.name} e2e output for '{case.id}' must equal the corpus row golden.\n"
+        f"--- expected (golden) ---\n{expected}\n--- actual ({engine.name}) ---\n{actual}"
+    )
+
+
+@pytest.mark.databricks_e2e
+@pytest.mark.parametrize("case", _INGEST_CASES, ids=[c.id for c in _INGEST_CASES])
+def test_e2e_engines_agree_pairwise(case: Case) -> None:
+    """The two opt-in e2e engines (dbt-databricks + LDP) agree byte-for-byte.
+
+    Mirrors the row-tier pairwise check for the e2e tier: both engines deploy the
+    SAME corpus case to the workspace and must produce byte-identical canonical
+    output (each separately equals the golden in ``test_e2e_engine_matches_golden``;
+    this localizes a divergence to the engine PAIR). Opt-in: skipped unless the
+    workspace is configured, so it SKIPS here -- never silently passed.
+    """
+    available = [e for e in _E2E_ENGINES if e.availability(case) is None]
+    if len(available) < 2:
+        pytest.skip(
+            f"<2 e2e engines available for '{case.id}' (no workspace) -- cannot "
+            "check pairwise; covered as skip, not a silent pass"
+        )
+    # pragma: no cover - only reachable with a configured workspace.
+    outputs = {e.name: e.run(case) for e in available}
+    names = sorted(outputs)
+    reference = names[0]
+    for other in names[1:]:
+        assert outputs[reference] == outputs[other], (
+            f"e2e pairwise divergence for '{case.id}' between {reference} and "
+            f"{other}.\n--- {reference} ---\n{outputs[reference]}\n"
+            f"--- {other} ---\n{outputs[other]}"
+        )
+
+
+def test_e2e_tier_is_registered_in_matrix() -> None:
+    """Both opt-in e2e engines MUST be wired into the matrix (never silently dropped).
+
+    A regression that removed an e2e engine from ``all_engines()`` would shrink the
+    opt-in tier to nothing while still looking green. Pin the registered e2e set.
+    """
+    registered = sorted(e.name for e in _E2E_ENGINES)
+    assert registered == ["DbtDatabricksE2E", "LdpDatabricksE2E"], (
+        f"opt-in e2e engine set drifted: {registered}"
+    )
+    for engine in _E2E_ENGINES:
+        assert engine.tier == "e2e", f"{engine.name} is not tier='e2e'"
+
+
+def test_e2e_tier_is_gated_off_here() -> None:
+    """The e2e tier MUST be gated off in this cluster-less env (honest skip-proof).
+
+    A regression that made an e2e engine 'available' without a workspace would let it
+    masquerade as executed (and its ``run`` would then fail trying to open a
+    connection). Assert every e2e engine reports unavailable here with the
+    DATABRICKS_HOST reason -- proving the opt-in gate is real, not a silent pass.
+    """
+    import os
+
+    if os.environ.get("DATABRICKS_HOST"):
+        pytest.skip("DATABRICKS_HOST is set -- the e2e tier is live, not gated off")
+    case = _INGEST_CASES[0]
+    for engine in _E2E_ENGINES:
+        reason = engine.availability(case)
+        assert reason is not None and "DATABRICKS_HOST" in reason, (
+            f"{engine.name} must be gated off without DATABRICKS_HOST; "
+            f"got reason={reason!r}"
+        )

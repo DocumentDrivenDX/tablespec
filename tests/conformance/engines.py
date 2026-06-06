@@ -239,13 +239,31 @@ def _databricks_compile_availability() -> str | None:
     return None
 
 
+# The credentials the opt-in real-Databricks e2e tier needs to actually deploy +
+# execute against a workspace. ``DATABRICKS_HOST`` is the opt-in switch (its presence
+# is what flips the tier on); the rest are required to OPEN the connection. We probe
+# them all here so a half-configured workspace is reported with a precise reason
+# rather than failing deep inside a dbt/SDK call.
+DATABRICKS_E2E_REQUIRED_ENV: tuple[str, ...] = (
+    "DATABRICKS_HOST",
+    "DATABRICKS_HTTP_PATH",
+    "DATABRICKS_TOKEN",
+)
+
+
 def databricks_e2e_availability() -> str | None:
     """Skip reason for the OPT-IN real-Databricks e2e tier, else ``None``.
 
     This tier deploys + executes against a REAL Databricks workspace, so it is
-    skipped unless ``DATABRICKS_HOST`` is set (the opt-in switch). When set it also
-    needs the databricks adapter importable to drive ``dbt run`` / pipeline deploy.
-    There is NO cluster in this harness, so this is expected to skip here.
+    skipped unless the workspace is configured. ``DATABRICKS_HOST`` is the opt-in
+    switch: when UNSET the tier is OFF (skipped here, never silently passed). When
+    the switch is on, the remaining credentials (``DATABRICKS_HTTP_PATH``,
+    ``DATABRICKS_TOKEN``) MUST also be present and the databricks adapter importable
+    so ``dbt run`` can open a real connection -- a half-configured workspace is
+    skipped with a precise reason rather than failing deep in a dbt call.
+
+    There is NO cluster in this harness, so ``DATABRICKS_HOST`` is unset here and this
+    ALWAYS returns the opt-off reason -- the e2e legs SKIP, they never run or pass.
     """
     import warnings
 
@@ -254,12 +272,33 @@ def databricks_e2e_availability() -> str | None:
             "databricks_e2e opt-in tier: DATABRICKS_HOST not set "
             "(no remote workspace -- skipped, not silently passed)"
         )
+    missing = [k for k in DATABRICKS_E2E_REQUIRED_ENV if not os.environ.get(k)]
+    if missing:  # pragma: no cover - only on a partially-configured workspace
+        return (
+            "databricks_e2e opt-in tier: DATABRICKS_HOST is set but the workspace is "
+            f"only partially configured (missing: {', '.join(missing)}) -- the tier "
+            "cannot open a connection, so it is skipped with this reason, not run"
+        )
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             import dbt.adapters.databricks  # noqa: F401
     except Exception as exc:  # pragma: no cover - only on a configured workspace
         return f"dbt-databricks adapter not importable: {exc}"
+    # The e2e engines load raw batches + read back over the Databricks SQL connector
+    # and (for LDP) deploy the pipeline over the workspace SDK. Probe both so a
+    # configured-but-missing-deps workspace skips with a precise reason rather than
+    # failing deep inside ``run``.
+    try:  # pragma: no cover - only on a configured workspace
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            import databricks.sdk  # noqa: F401
+            import databricks.sql  # noqa: F401
+    except Exception as exc:  # pragma: no cover - only on a configured workspace
+        return (
+            "databricks SQL connector / SDK not importable "
+            f"(needed for e2e deploy + read-back): {exc}"
+        )
     return None
 
 
@@ -1304,6 +1343,192 @@ class LdpStructureEngine(Engine):
         )
 
 
+def _open_databricks_sql_connection():  # pragma: no cover - requires a workspace
+    """Open a Databricks SQL-warehouse connection from the opt-in env credentials.
+
+    Centralises the connection construction shared by both real-workspace e2e
+    engines (dbt-databricks + LDP read-back). The credentials are exactly the env
+    vars ``databricks_e2e_availability`` already PROVED present before any engine
+    reaches this code, so this never runs in the cluster-less harness (the
+    availability gate skips first). It is its own function so the engines do not
+    duplicate the import + connect dance, and so the honest "what runs only against a
+    workspace" boundary is a single, named seam.
+    """
+    from databricks import sql as databricks_sql
+
+    host = os.environ["DATABRICKS_HOST"].replace("https://", "").rstrip("/")
+    return databricks_sql.connect(
+        server_hostname=host,
+        http_path=os.environ["DATABRICKS_HTTP_PATH"],
+        access_token=os.environ["DATABRICKS_TOKEN"],
+    )
+
+
+class DbtDatabricksE2EEngine(Engine):
+    """OPT-IN: deploy the generated dbt-databricks project to a REAL workspace + run.
+
+    This is the EXECUTED counterpart to :class:`DbtDatabricksCompileEngine` (which
+    proves the prod target compiles offline): it generates the SAME ingest dbt
+    project with ``dialect="databricks"`` + ``target="databricks"``, loads the case's
+    raw CSV batches into a ``raw_<t>`` landing table on the workspace, drives
+    ``dbt run`` IN-PROCESS against the configured warehouse (the generated
+    ``profiles.yml`` already reads ``DBT_DATABRICKS_*`` env vars), reads the resulting
+    ``<t>`` ingest table back over the SQL connector, and canonicalizes the rows
+    through the SAME :func:`to_json` at the case's ``ts_precision`` -- so its output
+    is judged against the SAME corpus row golden and joins pairwise agreement as a
+    first-class ROW engine.
+
+    It is skipped unless the workspace is configured (``DATABRICKS_HOST`` +
+    credentials); there is no cluster in this harness, so it SKIPS here with an
+    explicit reason, never silently passing. The Databricks dialect is cast-identical
+    to Spark, so the locally-EXECUTED dbt-spark/Spark-direct legs already prove the
+    ROW semantics here; this tier closes the remaining gap that the prod target also
+    EXECUTES correctly against a real warehouse (not merely compiles).
+    """
+
+    name = "DbtDatabricksE2E"
+    kinds = ("ingest",)
+    tier = "e2e"
+
+    # The generated databricks ``sources.yml`` declares the raw landing tables under
+    # ``schema: main`` (RoutingPolicy default), exactly like the duckdb/spark targets;
+    # the ingest MODEL materializes into the dbt target's own schema (``_model_schema``
+    # below). Both MUST match the generated project or ``dbt run`` resolves the wrong
+    # relation -- so these are pinned to the same routing the local engines use.
+    RAW_SCHEMA = "main"
+
+    def availability(self, case: Case) -> str | None:
+        return databricks_e2e_availability()
+
+    def _model_schema(self) -> str:  # pragma: no cover - requires a workspace
+        """The schema the dbt model materializes into (the profile's ``schema``)."""
+        return os.environ.get("DBT_DATABRICKS_SCHEMA", "default")
+
+    def _profile_env(self) -> dict[str, str]:  # pragma: no cover - requires workspace
+        """Map the opt-in ``DATABRICKS_*`` creds onto the ``DBT_DATABRICKS_*`` vars.
+
+        The generated databricks ``profiles.yml`` resolves its connection from
+        ``DBT_DATABRICKS_HOST`` / ``_HTTP_PATH`` / ``_TOKEN`` / ``_SCHEMA`` env vars,
+        whereas the opt-in gate (and the SDK/SQL connector) read the canonical
+        ``DATABRICKS_*`` names. Bridge them here so ``dbt run`` connects to the SAME
+        workspace the availability gate proved configured, instead of falling back to
+        the compile-only profile defaults. A pre-set ``DBT_DATABRICKS_*`` is honoured
+        (only absent keys are derived).
+        """
+        host = os.environ["DATABRICKS_HOST"].replace("https://", "").rstrip("/")
+        mapping = {
+            "DBT_DATABRICKS_HOST": host,
+            "DBT_DATABRICKS_HTTP_PATH": os.environ["DATABRICKS_HTTP_PATH"],
+            "DBT_DATABRICKS_TOKEN": os.environ["DATABRICKS_TOKEN"],
+            "DBT_DATABRICKS_SCHEMA": self._model_schema(),
+        }
+        return {k: os.environ.get(k, v) for k, v in mapping.items()}
+
+    def _load_raw(  # pragma: no cover - requires a workspace
+        self, cursor: Any, umf: dict[str, Any], csv_path: Path
+    ) -> None:
+        """OVERWRITE ``main.raw_<t>`` with one batch as all-STRING + TIMESTAMP load ts.
+
+        Mirrors the local dbt-spark engine EXACTLY: the landing table is the single
+        current batch (drop + recreate per batch), NOT an accumulation -- the dbt
+        model owns multi-batch history via its merge/append config over the SUCCESSIVE
+        single-batch raw tables. The landing-table shape (every source column STRING
+        plus ``_source_file`` STRING + ``_load_ts`` TIMESTAMP) matches the local
+        engines so the SHARED dbt cast body consumes identical inputs. Rows insert via
+        parameterised VALUES (no DML-injection); ``_load_ts`` casts to TIMESTAMP.
+        """
+        import csv as csvmod
+
+        table = umf["table_name"]
+        src_cols = [c["name"] for c in umf["columns"]]
+        all_cols = [*src_cols, "_source_file", "_load_ts"]
+        coldefs = ", ".join(f"`{c}` STRING" for c in [*src_cols, "_source_file"])
+        coldefs += ", `_load_ts` TIMESTAMP"
+        cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {self.RAW_SCHEMA}")
+        cursor.execute(f"DROP TABLE IF EXISTS {self.RAW_SCHEMA}.raw_{table}")
+        cursor.execute(f"CREATE TABLE {self.RAW_SCHEMA}.raw_{table} ({coldefs})")
+        with csv_path.open(newline="") as fh:
+            reader = csvmod.DictReader(fh)
+            placeholders = ", ".join(["%s"] * len(all_cols))
+            collist = ", ".join(f"`{c}`" for c in all_cols)
+            for row in reader:
+                values = [row.get(c) for c in [*src_cols, "_source_file"]]
+                values.append(row.get("_load_ts"))
+                cursor.execute(
+                    f"INSERT INTO {self.RAW_SCHEMA}.raw_{table} ({collist}) "
+                    f"VALUES ({placeholders})",
+                    values,
+                )
+
+    def _read_back(  # pragma: no cover - requires a workspace
+        self, cursor: Any, umf: dict[str, Any], case: Case
+    ) -> str:
+        schema = self._model_schema()
+        table = umf["table_name"]
+        columns = [c["name"] for c in umf["columns"]]
+        cursor.execute(
+            f"SELECT {', '.join(f'`{c}`' for c in columns)} FROM {schema}.{table}"
+        )
+        rows = [dict(zip(columns, r, strict=True)) for r in cursor.fetchall()]
+        return to_json(
+            rows, columns, decimal_scales(umf), ts_precision=case.ts_precision
+        )
+
+    def run(self, case: Case) -> str:  # pragma: no cover - requires a workspace
+        """Deploy + execute the dbt-databricks ingest project on a real workspace."""
+        from dbt.cli.main import dbtRunner
+
+        from tablespec.schemas.dbt_generator import generate_dbt_project
+
+        assert case.umf is not None
+        umf = yaml.safe_load(case.umf.read_text())
+        table = umf["table_name"]
+        model_schema = self._model_schema()
+        project = Path(tempfile.mkdtemp(prefix=f"e2e_databricks_{case.id}_"))
+        conn = _open_databricks_sql_connection()
+        prior_env = dict(os.environ)
+        try:
+            # Point the generated databricks profile at the configured workspace.
+            os.environ.update(self._profile_env())
+            generate_dbt_project(
+                umf, dialect="databricks", target="databricks", out_dir=project
+            )
+            cursor = conn.cursor()
+            cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {model_schema}")
+            cursor.execute(f"DROP TABLE IF EXISTS {self.RAW_SCHEMA}.raw_{table}")
+            cursor.execute(f"DROP TABLE IF EXISTS {model_schema}.{table}")
+            for batch in case.batches:
+                assert batch.exists(), f"missing raw batch: {batch}"
+                self._load_raw(cursor, umf, batch)
+                result = dbtRunner().invoke(
+                    [
+                        "run",
+                        "--profiles-dir",
+                        str(project),
+                        "--project-dir",
+                        str(project),
+                        "--target",
+                        "dev",
+                    ]
+                )
+                if not result.success:
+                    raise AssertionError(
+                        f"dbt-databricks e2e run failed for '{case.id}':\n"
+                        + _dbt_failure_detail(result)
+                    )
+            return self._read_back(cursor, umf, case)
+        finally:
+            try:
+                cursor = conn.cursor()
+                cursor.execute(f"DROP TABLE IF EXISTS {self.RAW_SCHEMA}.raw_{table}")
+                cursor.execute(f"DROP TABLE IF EXISTS {model_schema}.{table}")
+            finally:
+                conn.close()
+            os.environ.clear()
+            os.environ.update(prior_env)
+            shutil.rmtree(project, ignore_errors=True)
+
+
 class LdpDatabricksE2EEngine(Engine):
     """OPT-IN: deploy the LDP pipeline to a REAL Databricks workspace and read back.
 
@@ -1323,13 +1548,122 @@ class LdpDatabricksE2EEngine(Engine):
     def availability(self, case: Case) -> str | None:
         return databricks_e2e_availability()
 
-    def run(self, case: Case) -> str:  # pragma: no cover - requires a real workspace
-        # Deploy the LDP pipeline + ingest the batches on the configured workspace,
-        # then read back ingested_<t> and canonicalize vs the SAME corpus golden.
-        # Implemented behind the opt-in gate; unreachable in this cluster-less env.
-        raise NotImplementedError(
-            "LdpDatabricksE2E requires a configured Databricks workspace; this tier "
-            "is gated by databricks_e2e_availability and is not executed here."
+    def _schema(self) -> str:  # pragma: no cover - requires a workspace
+        return os.environ.get("DBT_DATABRICKS_SCHEMA", "default")
+
+    def _stage_landing_batches(  # pragma: no cover - requires a workspace
+        self, ws: Any, case: Case, table: str, landing_root: str
+    ) -> str:
+        """Upload the case's raw CSV batches to ``<landing_root>/<table>/`` on a Volume.
+
+        The generated LDP raw autoloader reads ``${landing_path}/<table>`` via
+        ``STREAM read_files(...)``, so the e2e tier MUST stage the SAME corpus CSV
+        batches the local engines consume to that path before the pipeline runs --
+        otherwise the autoloader ingests nothing (codex review). Each batch is
+        uploaded under a distinct file name so multi-batch cases present all batches
+        to the streaming source. Returns the per-table landing directory.
+        """
+        table_dir = f"{landing_root}/{table}"
+        for i, batch in enumerate(case.batches):
+            assert batch.exists(), f"missing raw batch: {batch}"
+            remote = f"{table_dir}/batch_{i:04d}.csv"
+            ws.files.upload(remote, batch.read_bytes(), overwrite=True)
+        return table_dir
+
+    def _deploy_and_run_pipeline(  # pragma: no cover - requires a workspace
+        self, case: Case, umf_models: list[Any], table: str
+    ) -> None:
+        """Stage the raw batches, generate + upload the LDP files, run the pipeline.
+
+        Uses the Databricks SDK (``databricks-sdk``) to: (1) CREATE the Unity-Catalog
+        landing Volume (the Files API uploads INTO a volume but does not create the
+        volume object, so a ``CREATE VOLUME IF NOT EXISTS`` over the SQL connection is
+        required first -- codex review); (2) stage the case's raw CSV batches to a path
+        inside that volume the generated ``read_files`` autoloader reads
+        (``${landing_path}/<table>``); (3) upload the generated ``.sql`` dataset files
+        (the SAME prod ``spark``-dialect artifact the STRUCTURE-golden tier pins);
+        (4) create a Lakeflow Declarative Pipeline whose ``landing_path`` configuration
+        points at the staged Volume path; and (5) trigger a full-refresh update,
+        blocking until it completes.
+        """
+        from databricks.sdk import WorkspaceClient
+
+        from tablespec.ldp import generate_ldp_project
+
+        files = generate_ldp_project(umf_models, dialect="spark")
+        ws = WorkspaceClient(
+            host=os.environ["DATABRICKS_HOST"],
+            token=os.environ["DATABRICKS_TOKEN"],
+        )
+        catalog = os.environ.get("DBT_DATABRICKS_CATALOG", "main")
+        schema = self._schema()
+        # The landing Volume must EXIST before the Files API can upload into it (it
+        # uploads into a volume, it does not create the volume). Create it over the
+        # SQL connection, then stage each case into its own subdirectory of the volume.
+        volume = "tablespec_landing"
+        landing_conn = _open_databricks_sql_connection()
+        try:
+            cur = landing_conn.cursor()
+            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+            cur.execute(f"CREATE VOLUME IF NOT EXISTS {catalog}.{schema}.{volume}")
+        finally:
+            landing_conn.close()
+        landing_root = f"/Volumes/{catalog}/{schema}/{volume}/{case.id}"
+        workspace_dir = f"/Shared/tablespec_conformance/{case.id}"
+        ws.workspace.mkdirs(workspace_dir)
+        self._stage_landing_batches(ws, case, table, landing_root)
+        uploaded: list[str] = []
+        for rel, body in files.items():
+            remote = f"{workspace_dir}/{rel}"
+            ws.workspace.mkdirs(remote.rsplit("/", 1)[0])
+            ws.workspace.upload(remote, body.encode(), overwrite=True)
+            uploaded.append(remote)
+        created = ws.pipelines.create(
+            name=f"tablespec_conformance_{case.id}",
+            libraries=[{"file": {"path": p}} for p in uploaded],
+            catalog=catalog,
+            target=schema,
+            configuration={"landing_path": landing_root},
+        )
+        ws.pipelines.start_update(
+            pipeline_id=created.pipeline_id, full_refresh=True
+        ).result()
+
+    def run(self, case: Case) -> str:  # pragma: no cover - requires a workspace
+        """Deploy the LDP pipeline, ingest the batches, read back ingested_<t>.
+
+        Canonicalizes the resulting ``ingested_<t>`` table through the SAME
+        :func:`to_json` at the case's ``ts_precision`` vs the SAME corpus row golden,
+        so it is a first-class ROW engine when a workspace is configured. Gated by
+        :meth:`availability`; unreachable in this cluster-less env.
+        """
+        from tablespec.models.umf import UMF
+
+        assert case.umf is not None
+        raw = yaml.safe_load(case.umf.read_text())
+        raw.setdefault("version", "1.0")
+        for col in raw.get("columns", []):
+            nullable = col.get("nullable")
+            if isinstance(nullable, bool):
+                col["nullable"] = {"default": nullable}
+        table = raw["table_name"]
+        umf_models = [UMF(**raw)]
+        self._deploy_and_run_pipeline(case, umf_models, table)
+
+        schema = self._schema()
+        columns = [c["name"] for c in raw["columns"]]
+        conn = _open_databricks_sql_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"SELECT {', '.join(f'`{c}`' for c in columns)} "
+                f"FROM {schema}.ingested_{table}"
+            )
+            rows = [dict(zip(columns, r, strict=True)) for r in cursor.fetchall()]
+        finally:
+            conn.close()
+        return to_json(
+            rows, columns, decimal_scales(raw), ts_precision=case.ts_precision
         )
 
 
@@ -1362,11 +1696,24 @@ def all_engines() -> list[Engine]:
         DbtSparkSessionEngine(),
         SQLPlanGeneratorGoldEngine(backend="duckdb"),
         SQLPlanGeneratorGoldEngine(backend="spark"),
-        # non-local / prod tiers (compile-only + opt-in e2e) added in Phase 4
+        # non-local / prod tiers (compile-only + opt-in e2e) added in Phase 4,
+        # hardened into first-class executed-when-configured e2e engines in Phase 3.
         DbtDatabricksCompileEngine(),
         LdpStructureEngine(),
+        DbtDatabricksE2EEngine(),
         LdpDatabricksE2EEngine(),
     ]
+
+
+def e2e_engines() -> list[Engine]:
+    """The OPT-IN real-Databricks e2e engines (``tier="e2e"``).
+
+    These deploy + execute against a REAL workspace and are gated by
+    ``databricks_e2e_availability`` (the ``databricks_e2e`` marker). They SKIP in the
+    cluster-less harness with an explicit reason and run as first-class ROW engines
+    (judged against the SAME corpus row golden) only when a workspace is configured.
+    """
+    return [e for e in all_engines() if e.tier == "e2e"]
 
 
 def row_engines() -> list[Engine]:

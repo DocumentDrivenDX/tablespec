@@ -47,7 +47,9 @@ visible reason — it is never silently passed.
 | **DbtSparkSession** | Executed (result-parity) | Yes (local embedded `dbt-spark[session]`, `method: session`, embedded Hive/Derby) | corpus golden + pairwise | `slow`; skip if `dbt-spark` adapter missing or JVM unavailable; per-case isolated warehouse/metastore dir |
 | **SQLPlanGeneratorGold** | Executed (result-parity) — run on BOTH DuckDB AND the Spark session | Yes (both backends, via the dbt-generated gold project so the dialect layer applies) | corpus golden + Spark↔DuckDB equivalence proven pairwise (closes the "gold never run on Spark" gap) | DuckDB leg: `no_spark` + duckdb/dbt present; Spark leg: `slow` + JVM/`dbt-spark` present |
 | **DbtDatabricks** | Compile-golden (no cluster) | Compile only | the committed compiled-SQL golden; cast-SQL parity to Spark via the shared renderer | `no_spark`; `dbt compile` only — `dbt run` `skipif` no Databricks workspace |
+| **DbtDatabricksE2E** | Opt-in executed (result-parity) — real workspace | No here (skipped, no cluster); first-class ROW engine when configured | the SAME corpus row golden + pairwise (deploys the generated `dialect="databricks"` project, `dbt run`s it on the warehouse, reads back, canonicalizes through the SAME `to_json`) | opt-in `databricks_e2e` marker; `databricks_e2e_availability` skips unless `DATABRICKS_HOST` + `DATABRICKS_HTTP_PATH` + `DATABRICKS_TOKEN` set AND dbt-databricks adapter + databricks SQL connector/SDK importable |
 | **LDP** | Cast-parity + compile-golden + opt-in e2e | Cast-parity + emit-golden executed; e2e opt-in | (a) cast-parity: emitted cast SQL == Spark cast SQL; (b) compile-golden: emitted project text == `tests/golden/ldp/**`; (c) e2e: corpus golden | `no_spark` for (a)+(b); (c) gated behind opt-in `databricks_e2e` marker (`skipif` no Databricks) |
+| **LdpDatabricksE2E** | Opt-in executed (result-parity) — real workspace | No here (skipped, no cluster); first-class ROW engine when configured | the SAME corpus row golden (uploads the generated LDP pipeline via the workspace SDK, runs it full-refresh, reads back `ingested_<t>`, canonicalizes through the SAME `to_json`) | opt-in `databricks_e2e` marker; same `databricks_e2e_availability` gate |
 
 ### 2.1 Tier definitions
 
@@ -75,6 +77,52 @@ Reuse existing markers (`slow`, `fast`, `no_spark`, `spark_only`, `acceptance`,
 
 Registered in `pyproject.toml [tool.pytest.ini_options].markers` (`--strict-markers`
 is on, so it must be declared).
+
+### 2.3 `databricks_e2e` opt-in tier — covered HERE vs covered ONLY against a real workspace
+
+The `databricks_e2e` marker gates two first-class ROW engines wired into the SAME
+matrix and judged against the SAME corpus row goldens as the local engines:
+`DbtDatabricksE2E` (deploys the generated `dialect="databricks"` dbt project,
+`dbt run`s it on the warehouse) and `LdpDatabricksE2E` (uploads + runs the generated
+LDP pipeline). Both deploy, execute, read back, and canonicalize the result through
+the SAME `tests/ingest_parity/canonical.to_json` at the case's `ts_precision`. They
+are gated by `databricks_e2e_availability`, which requires `DATABRICKS_HOST` (the
+opt-in switch) PLUS `DATABRICKS_HTTP_PATH` + `DATABRICKS_TOKEN` and the
+dbt-databricks adapter + databricks SQL connector/SDK importable.
+
+**What this tier proves ONLY against a real, configured workspace** (NOT run here —
+there is no cluster, so every leg SKIPS with the explicit `DATABRICKS_HOST not set`
+reason, proven by `test_e2e_tier_is_gated_off_here` and the matrix skip output):
+
+- the generated dbt-databricks project actually `dbt run`s to completion on a real
+  SQL warehouse (not merely parses/compiles), and its read-back rows equal the
+  Spark-oracle corpus golden byte-for-byte through the shared canonicalization;
+- the generated LDP pipeline actually deploys + runs full-refresh on Lakeflow
+  Declarative Pipelines (streaming `read_files` autoloader, APPLY CHANGES dedup,
+  materialized views) and its `ingested_<t>` rows equal the same corpus golden.
+
+**What is ALREADY covered HERE, locally, without a workspace** (so the e2e tier
+closes only the residual "runs on a real Databricks/LDP cluster" gap, NOT the
+cast/SQL-semantics gap — note: nothing below EXECUTES the *Databricks* engine
+locally; the local execution engine is Spark, and Databricks is only compiled):
+
+- **Cast/SQL semantics via the cast-identical Spark engine** — the Databricks dialect
+  is cast-identical to Spark (the same `try_to_timestamp` + Java-token renderer), and
+  the locally-EXECUTED `DbtSparkSession` + `SparkDirect` legs run that exact cast SQL
+  on a real Spark session against the same goldens. This proves the cast SEMANTICS,
+  NOT a real Databricks runtime. `DbtDatabricksCompile` separately pins that the prod
+  (databricks) target *compiles* (parses offline) to a byte-stable, contract-carrying
+  model body (`tests/conformance/test_dbt_databricks_compile.py`) — it does NOT run.
+- **LDP cast + structure** — `LdpStructure` runs the LDP cast body on DuckDB vs the
+  same row golden (cast-parity) and pins the emitted prod-dialect LDP pipeline text to
+  a structure golden, INCLUDING multi-batch APPLY CHANGES structure
+  (`tests/conformance/test_ldp_tiers.py`).
+
+The honest boundary is therefore: **cast/SQL identity and emitted-artifact stability
+are proven locally; only end-to-end EXECUTION on a real Databricks/LDP runtime is
+deferred to the opt-in tier.** No leg of this tier runs or passes in this repo's CI —
+it is skip-only here, and `test_e2e_tier_is_gated_off_here` fails loudly if a
+regression ever makes it "available" without a workspace.
 
 ---
 
