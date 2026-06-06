@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-spark install-dbt setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
+.PHONY: help install install-dev install-spark setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
 TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py')
 TRACKED_TEST_FILES := $(shell git ls-files -- 'tests/**/*.py' ':(exclude)tests/golden/**/*.expected.py')
@@ -25,9 +25,6 @@ install-dev: ## Install project with dev dependencies
 
 install-spark: ## Install with Spark extras and dev dependencies
 	uv sync --extra spark --group dev
-
-install-dbt: ## Install with dbt extras (dbt-core + dbt-duckdb) and dev dependencies
-	uv sync --extra dbt --group dev
 
 setup-spark: install-spark ## Download and configure local Spark 4.0 + JDK 21 into .local/
 	uv run python scripts/setup_spark.py

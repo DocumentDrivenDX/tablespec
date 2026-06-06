@@ -45,25 +45,14 @@ duckdb = [
     "duckdb-engine>=0.15.0,<1.0.0",
     "sqlalchemy>=2.0.0,<3.0.0",
 ]
-dbt = [
-    "dbt-core>=1.9.0,<2.0.0",
-    "dbt-duckdb>=1.9.0,<2.0.0",
-    "duckdb>=1.5.0,<2.0.0",
-]
-# Cross-engine conformance harness: drives the SAME ingest artifact through
-# DuckDB, a local Spark session (dbt-spark[session]), and a compile-only
-# Databricks target. dbt-databricks is COMPILE-ONLY here (no cluster); the
-# Databricks SQL dialect equals Spark SQL for our casts.
-conformance = [
-    "dbt-core>=1.9.0,<2.0.0",
-    "dbt-duckdb>=1.9.0,<2.0.0",
-    "dbt-spark[session]>=1.10,<2",
-    "dbt-databricks>=1.9,<2",
-    "duckdb>=1.5.0,<2.0.0",
-]
 tui = [
     "textual>=0.50.0",
 ]
+# NOTE: dbt is intentionally NOT a user-facing extra. tablespec's runtime never
+# imports dbt -- generating a dbt project is pure-Python text emission (enforced
+# by tests/test_core_encapsulation.py::test_src_never_imports_dbt). dbt is only
+# needed to EXECUTE generated projects in the conformance/parity TESTS, so the
+# dbt stack lives in the [dependency-groups] dev group below, not here.
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
@@ -93,6 +82,16 @@ dev = [
     "grpcio",
     "grpcio-status",
     "googleapis-common-protos",
+    # dbt is a TEST-ONLY tool here (see NOTE in [project.optional-dependencies]):
+    # the conformance/parity tests EXECUTE generated dbt projects on DuckDB, a
+    # local Spark session (dbt-spark[session]), and a compile-only Databricks
+    # target. It lives in dev so `uv sync --group dev` always yields a working
+    # test stack -- no `--extra` to remember.
+    "dbt-core>=1.9.0,<2.0.0",
+    "dbt-duckdb>=1.9.0,<2.0.0",
+    "dbt-spark[session]>=1.10,<2",
+    "dbt-databricks>=1.9,<2",
+    "duckdb>=1.5.0,<2.0.0",
 ]
 
 [tool.pytest.ini_options]

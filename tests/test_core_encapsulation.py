@@ -97,6 +97,29 @@ def test_core_modules_do_not_import_dbt() -> None:
     )
 
 
+def test_src_never_imports_external_dbt() -> None:
+    """No src module may import the EXTERNAL ``dbt`` package (dbt-core).
+
+    tablespec generates dbt projects as pure text; dbt-core is a TEST-ONLY
+    dependency (it lives in the dev group, not a user extra). If any source
+    module imported ``dbt`` / ``dbt.*`` -- even lazily inside a function -- the
+    dbt emitter would break on a base ``pip install tablespec`` without the
+    dev/test stack. (``tablespec.dbt``, the internal emitter package, is fine;
+    only the external top-level ``dbt`` is forbidden.)
+    """
+    offenders: dict[str, set[str]] = {}
+    for path in sorted(SRC.rglob("*.py")):
+        bad = {m for m in _imported_modules(path) if m == "dbt" or m.startswith("dbt.")}
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    assert not offenders, (
+        "src/tablespec must NEVER import the external 'dbt' package (dbt is "
+        "test-only; importing it would break dbt-project generation on a base "
+        "install):\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
+    )
+
+
 def test_core_modules_do_not_import_ldp() -> None:
     """The CORE seam must not import the PROTOTYPE LDP package either.
 
