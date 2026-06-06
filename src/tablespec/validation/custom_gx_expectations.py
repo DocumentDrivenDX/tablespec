@@ -33,7 +33,7 @@ except ImportError:
 GX_AVAILABLE = _gx_available
 
 try:
-    from pyspark.sql import functions as F
+    import pyspark.sql.functions  # noqa: F401  (presence probe only)
 
     _spark_available = True
 except ImportError:
@@ -43,6 +43,201 @@ SPARK_AVAILABLE = _spark_available
 
 
 logger = logging.getLogger(__name__)
+
+
+def _build_cast_expr(
+    dataframe: Any,
+    column_ref: Any,
+    target_type: str,
+    format_str: str | None,
+    fallback_formats: list[str] | None = None,
+) -> Any:
+    """Build a NULL-on-failure cast expression for *column_ref*.
+
+    Two regimes, selected by the session's ``try_to_timestamp_with_format``
+    capability:
+
+    * **Capable** (classic Spark 4.0; capable Connect builds): delegate to the rich
+      :mod:`tablespec.casting_utils` path (``try_parse_flexible_timestamp`` /
+      ``cast_column_with_format``) so behavior — multi-format fallback, Excel-serial
+      and epoch detection, ``$``-stripping — is BYTE-IDENTICAL to what the classic
+      ``add_spark`` path produced before this change. The only adjustment is passing
+      the DataFrame-bound ``column_ref`` instead of ``F.col(column)``.
+    * **Incapable** (Sail / Databricks-serverless Connect builds that ignore the
+      Java format and whose strict casts THROW instead of NULLing): build a
+      Connect-portable expression with the engine-correct functions module
+      (``_functions_for``) — ``_connect_safe_parse`` for dates (formatless
+      ``try_to_timestamp`` gated by a structural prefilter regex) and
+      ``Column.try_cast`` for numerics/booleans (NULL-on-failure on both engines).
+    """
+    from tablespec.profiling.native_profiler import _functions_for
+    from tablespec.session import get_capabilities
+
+    capable = get_capabilities(dataframe.sparkSession)["try_to_timestamp_with_format"]
+
+    if capable:
+        # Classic-equivalent rich path (bound column instead of F.col).
+        from tablespec.casting_utils import (
+            build_flexible_formats,
+            cast_column_with_format,
+            try_parse_flexible_timestamp,
+        )
+
+        t = target_type.upper()
+        if t in ("DATE", "TIMESTAMP"):
+            formats = build_flexible_formats(target_type, format_str, fallback_formats)
+            cast_expr = try_parse_flexible_timestamp(
+                column_ref,
+                primary_format=formats[0] if formats else "",
+                fallback_formats=formats[1:] if len(formats) > 1 else None,
+            )
+            return cast_expr.cast("date") if t == "DATE" else cast_expr
+        return cast_column_with_format(column_ref, target_type, format_str)
+
+    # --- Connect-portable strict path (Sail / serverless) ---
+    from tablespec.casting_utils import convert_umf_format_to_spark
+    from tablespec.validation.native_executor import _connect_safe_parse
+
+    F = _functions_for(dataframe)  # noqa: N806
+    t = target_type.upper()
+
+    if t in ("DATE", "TIMESTAMP"):
+        if format_str:
+            spark_format = convert_umf_format_to_spark(format_str)
+            parsed = _connect_safe_parse(dataframe, column_ref, spark_format)
+        else:
+            parsed = F.try_to_timestamp(column_ref)
+        return parsed.cast("date") if t == "DATE" else parsed
+
+    # Numerics: strip a leading "$", trim, treat empty/whitespace as NULL, then
+    # cast NULL-on-failure. ``Column.try_cast`` is the portable primitive here:
+    # plain ``cast`` is ANSI-strict on Spark Connect (Sail/DataFusion) and THROWS
+    # on a non-numeric string instead of NULLing it, whereas ``try_cast`` returns
+    # NULL on both classic Spark and Connect.
+    if t in ("INTEGER", "DECIMAL", "DOUBLE", "FLOAT"):
+        cleaned = F.regexp_replace(F.trim(column_ref), r"^\$", "")
+        cleaned = F.when(F.trim(cleaned) == "", F.lit(None).cast("string")).otherwise(
+            cleaned
+        )
+        if t == "INTEGER":
+            return cleaned.try_cast("int")
+        if t == "DECIMAL":
+            return cleaned.try_cast("decimal(10,2)")
+        return cleaned.try_cast("double")  # DOUBLE / FLOAT
+
+    if t == "BOOLEAN":
+        return column_ref.try_cast("boolean")
+    if t == "STRING":
+        return column_ref
+
+    msg = f"Unsupported target_type for cast validation: {target_type}"
+    raise ValueError(msg)
+
+
+def validate_cast_to_type(
+    dataframe: Any,
+    column: str,
+    target_type: str,
+    *,
+    format_str: str | None = None,
+    fallback_formats: list[str] | None = None,
+    mostly: float = 1.0,
+) -> dict[str, Any]:
+    """Connect-safe validation that a column's values cast to ``target_type``.
+
+    Standalone helper shared by the GX custom expectation
+    (``ExpectColumnValuesToCastToType._validate``) and the native suite executor.
+    Uses DataFrame-bound columns (``dataframe[column]``) rather than ``F.col`` so
+    it works on BOTH classic Spark and Spark Connect (Sail / Databricks
+    serverless): ``pyspark.sql.functions.col`` builds a CLASSIC Column when a
+    classic JVM session is active in the process, which fails inside a Connect
+    plan.
+
+    Returns a GX-shaped result dict (``success`` + ``result`` with
+    ``unexpected_count``, ``unexpected_percent``, ``partial_unexpected_list``,
+    ``observed_value``).
+    """
+    if not SPARK_AVAILABLE:
+        msg = "PySpark is required for custom casting expectations"
+        raise ImportError(msg)
+
+    from pyspark.sql.types import DateType, TimestampType
+
+    column_ref = dataframe[column]
+
+    # Already the target type (e.g. Gold tables with pre-typed columns) -> pass.
+    col_type = dataframe.schema[column].dataType
+    is_already_target_type = (
+        target_type.upper() == "DATE" and isinstance(col_type, DateType)
+    ) or (
+        target_type.upper() == "TIMESTAMP" and isinstance(col_type, TimestampType)
+    )
+    if is_already_target_type:
+        total_count = dataframe.count()
+        return {
+            "success": True,
+            "result": {
+                "element_count": total_count,
+                "unexpected_count": 0,
+                "unexpected_percent": 0.0,
+                "partial_unexpected_list": [],
+                "observed_value": f"Column already typed as {col_type}",
+            },
+        }
+
+    original_non_null_count = dataframe.filter(column_ref.isNotNull()).count()
+    if original_non_null_count == 0:
+        return {
+            "success": True,
+            "result": {
+                "element_count": 0,
+                "unexpected_count": 0,
+                "unexpected_percent": 0.0,
+                "partial_unexpected_list": [],
+                "observed_value": "Column is entirely NULL",
+            },
+        }
+
+    cast_expr = _build_cast_expr(
+        dataframe, column_ref, target_type, format_str, fallback_formats
+    )
+
+    casted_df = dataframe.withColumn(f"_casted_{column}", cast_expr)
+    casting_failures_df = casted_df.filter(
+        casted_df[column].isNotNull() & casted_df[f"_casted_{column}"].isNull()
+    )
+    unexpected_count = casting_failures_df.count()
+    unexpected_percent = (
+        (unexpected_count / original_non_null_count * 100)
+        if original_non_null_count > 0
+        else 0.0
+    )
+
+    unexpected_values = []
+    if unexpected_count > 0:
+        sample_rows = casting_failures_df.select(column).limit(20).collect()
+        unexpected_values = [row[column] for row in sample_rows]
+
+    success_percent = (
+        1.0 - (unexpected_count / original_non_null_count)
+        if original_non_null_count > 0
+        else 1.0
+    )
+    success = success_percent >= mostly
+
+    format_msg = f" with format {format_str}" if format_str else ""
+    if fallback_formats:
+        format_msg += f" (fallbacks: {fallback_formats})"
+    return {
+        "success": success,
+        "result": {
+            "element_count": original_non_null_count,
+            "unexpected_count": unexpected_count,
+            "unexpected_percent": unexpected_percent,
+            "partial_unexpected_list": unexpected_values[:10],
+            "observed_value": f"{success_percent * 100:.2f}% cast successfully to {target_type}{format_msg}",
+        },
+    }
 
 
 def validate_column_pair_date_order(
@@ -112,6 +307,75 @@ def validate_column_pair_date_order(
                 f"{value_column} {'>=' if or_equal else '>'} {reference_column} "
                 f"for {success_ratio * 100:.2f}% of non-null rows"
             ),
+        },
+    }
+
+
+def validate_date_in_current_year(
+    dataframe: Any,
+    column: str,
+    *,
+    mostly: float = 1.0,
+) -> dict[str, Any]:
+    """Connect-safe validation that date values fall within the current year.
+
+    Shared by ``ExpectColumnDateToBeInCurrentYear._validate`` and the native suite
+    executor. Computes the year bounds with Spark SQL and compares using
+    DataFrame-bound columns (``dataframe[column]``) so it works on classic Spark
+    and Spark Connect alike.
+    """
+    if not SPARK_AVAILABLE:
+        msg = "PySpark is required for current year date validation"
+        raise ImportError(msg)
+
+    spark = dataframe.sparkSession
+    bounds_row = spark.sql("""
+        SELECT
+            DATE_TRUNC('YEAR', CURRENT_DATE()) as year_start,
+            DATE_TRUNC('YEAR', CURRENT_DATE()) + INTERVAL '1 YEAR' - INTERVAL '1 DAY' as year_end
+    """).first()
+    year_start = bounds_row["year_start"]
+    year_end = bounds_row["year_end"]
+
+    col = dataframe[column]
+    non_null_count = dataframe.filter(col.isNotNull()).count()
+    if non_null_count == 0:
+        return {
+            "success": True,
+            "result": {
+                "element_count": 0,
+                "unexpected_count": 0,
+                "unexpected_percent": 0.0,
+                "partial_unexpected_list": [],
+                "observed_value": "Column is entirely NULL",
+            },
+        }
+
+    out_of_range_df = dataframe.filter(
+        col.isNotNull() & ((col < year_start) | (col > year_end))
+    )
+    unexpected_count = out_of_range_df.count()
+    unexpected_percent = (
+        (unexpected_count / non_null_count * 100) if non_null_count > 0 else 0.0
+    )
+
+    unexpected_values = []
+    if unexpected_count > 0:
+        sample_rows = out_of_range_df.select(column).limit(20).collect()
+        unexpected_values = [str(row[column]) for row in sample_rows]
+
+    success_percent = (
+        1.0 - (unexpected_count / non_null_count) if non_null_count > 0 else 1.0
+    )
+    success = success_percent >= mostly
+    return {
+        "success": success,
+        "result": {
+            "element_count": non_null_count,
+            "unexpected_count": unexpected_count,
+            "unexpected_percent": unexpected_percent,
+            "partial_unexpected_list": unexpected_values[:10],
+            "observed_value": f"{success_percent * 100:.2f}% of dates within {year_start} to {year_end}",
         },
     }
 
@@ -197,122 +461,20 @@ if GX_AVAILABLE:
             mostly = getattr(self, "mostly", 1.0)  # type: ignore[attr-defined]
 
             # Get Spark DataFrame from execution engine
-            # In GX 1.x with Spark, the batch contains the DataFrame
+            # In GX 1.x with Spark, the batch contains the DataFrame.
+            # Delegate to the shared, Connect-safe ``validate_cast_to_type`` helper
+            # (bound columns ``df[col]`` instead of ``F.col``) so the casting logic
+            # is identical on classic Spark and the native Connect suite path.
             try:
-                from tablespec.casting_utils import (
-                    build_flexible_formats,
-                    cast_column_with_format,
-                    try_parse_flexible_timestamp,
-                )
-
-                # Access DataFrame through execution engine's active batch
                 df = execution_engine.batch_manager.active_batch.data.dataframe
-
-                # Check if column is already the target type (e.g., Gold tables with pre-typed columns)
-                # This avoids trying to parse strings when the column is already DATE/TIMESTAMP
-                from pyspark.sql.types import DateType, TimestampType
-
-                col_schema = df.schema[column]
-                col_type = col_schema.dataType
-                is_already_target_type = (
-                    target_type.upper() == "DATE" and isinstance(col_type, DateType)
-                ) or (
-                    target_type.upper() == "TIMESTAMP"
-                    and isinstance(col_type, TimestampType)
+                return validate_cast_to_type(
+                    df,
+                    column,
+                    target_type,
+                    format_str=format_str,
+                    fallback_formats=fallback_formats,
+                    mostly=mostly,
                 )
-
-                if is_already_target_type:
-                    # Column is already the target type - validation passes
-                    total_count = df.count()
-                    return {
-                        "success": True,
-                        "result": {
-                            "element_count": total_count,
-                            "unexpected_count": 0,
-                            "unexpected_percent": 0.0,
-                            "partial_unexpected_list": [],
-                            "observed_value": f"Column already typed as {col_type}",
-                        },
-                    }
-
-                # Count total non-null values before casting
-                original_non_null_count = df.filter(F.col(column).isNotNull()).count()  # type: ignore[attr-defined]
-
-                if original_non_null_count == 0:
-                    # Column is entirely NULL - nothing to cast
-                    return {
-                        "success": True,
-                        "result": {
-                            "element_count": 0,
-                            "unexpected_count": 0,
-                            "unexpected_percent": 0.0,
-                            "partial_unexpected_list": [],
-                            "observed_value": "Column is entirely NULL",
-                        },
-                    }
-
-                # Use flexible parsing for DATE/TIMESTAMP columns
-                if target_type.upper() in ("DATE", "TIMESTAMP"):
-                    formats = build_flexible_formats(
-                        target_type, format_str, fallback_formats
-                    )
-                    cast_expr = try_parse_flexible_timestamp(
-                        F.col(column),  # type: ignore[attr-defined]
-                        primary_format=formats[0] if formats else "",
-                        fallback_formats=formats[1:] if len(formats) > 1 else None,
-                    )
-                    if target_type.upper() == "DATE":
-                        cast_expr = cast_expr.cast("date")
-                else:
-                    # Use shared casting utility (always uses try_to_timestamp for graceful handling)
-                    cast_expr = cast_column_with_format(
-                        F.col(column),
-                        target_type,
-                        format_str,
-                    )
-                casted_df = df.withColumn(f"_casted_{column}", cast_expr)
-
-                # Count nulls after casting (excluding rows that were already null)
-                casting_failures_df = casted_df.filter(
-                    F.col(column).isNotNull() & F.col(f"_casted_{column}").isNull()  # type: ignore[attr-defined]
-                )
-
-                unexpected_count = casting_failures_df.count()
-                unexpected_percent = (
-                    (unexpected_count / original_non_null_count * 100)
-                    if original_non_null_count > 0
-                    else 0.0
-                )
-
-                # Collect sample of values that failed casting (limited to 20 examples)
-                unexpected_values = []
-                if unexpected_count > 0:
-                    sample_rows = casting_failures_df.select(column).limit(20).collect()
-                    unexpected_values = [row[column] for row in sample_rows]
-
-                # Calculate success
-                success_percent = (
-                    1.0 - (unexpected_count / original_non_null_count)
-                    if original_non_null_count > 0
-                    else 1.0
-                )
-                success = success_percent >= mostly
-
-                format_msg = f" with format {format_str}" if format_str else ""
-                if fallback_formats:
-                    format_msg += f" (fallbacks: {fallback_formats})"
-                return {
-                    "success": success,
-                    "result": {
-                        "element_count": original_non_null_count,
-                        "unexpected_count": unexpected_count,
-                        "unexpected_percent": unexpected_percent,
-                        "partial_unexpected_list": unexpected_values[
-                            :10
-                        ],  # Limit to 10 for reporting
-                        "observed_value": f"{success_percent * 100:.2f}% cast successfully to {target_type}{format_msg}",
-                    },
-                }
 
             except Exception as e:
                 logger.exception(f"Failed to execute casting validation: {e}")
@@ -375,72 +537,10 @@ if GX_AVAILABLE:
             mostly = getattr(self, "mostly", 1.0)  # type: ignore[attr-defined]
 
             try:
-                # Access DataFrame through execution engine's active batch
+                # Access DataFrame through execution engine's active batch and
+                # delegate to the Connect-safe shared helper (bound columns).
                 df = execution_engine.batch_manager.active_batch.data.dataframe
-                spark = df.sparkSession
-
-                # Compute current year bounds using Spark SQL
-                bounds_row = spark.sql("""
-                    SELECT
-                        DATE_TRUNC('YEAR', CURRENT_DATE()) as year_start,
-                        DATE_TRUNC('YEAR', CURRENT_DATE()) + INTERVAL '1 YEAR' - INTERVAL '1 DAY' as year_end
-                """).first()
-
-                year_start = bounds_row["year_start"]
-                year_end = bounds_row["year_end"]
-
-                # Count total non-null date values
-                non_null_count = df.filter(F.col(column).isNotNull()).count()
-
-                if non_null_count == 0:
-                    return {
-                        "success": True,
-                        "result": {
-                            "element_count": 0,
-                            "unexpected_count": 0,
-                            "unexpected_percent": 0.0,
-                            "partial_unexpected_list": [],
-                            "observed_value": "Column is entirely NULL",
-                        },
-                    }
-
-                # Find dates outside the current year
-                out_of_range_df = df.filter(
-                    F.col(column).isNotNull()
-                    & ((F.col(column) < year_start) | (F.col(column) > year_end))
-                )
-
-                unexpected_count = out_of_range_df.count()
-                unexpected_percent = (
-                    (unexpected_count / non_null_count * 100)
-                    if non_null_count > 0
-                    else 0.0
-                )
-
-                # Collect sample of out-of-range values
-                unexpected_values = []
-                if unexpected_count > 0:
-                    sample_rows = out_of_range_df.select(column).limit(20).collect()
-                    unexpected_values = [str(row[column]) for row in sample_rows]
-
-                # Calculate success based on mostly threshold
-                success_percent = (
-                    1.0 - (unexpected_count / non_null_count)
-                    if non_null_count > 0
-                    else 1.0
-                )
-                success = success_percent >= mostly
-
-                return {
-                    "success": success,
-                    "result": {
-                        "element_count": non_null_count,
-                        "unexpected_count": unexpected_count,
-                        "unexpected_percent": unexpected_percent,
-                        "partial_unexpected_list": unexpected_values[:10],
-                        "observed_value": f"{success_percent * 100:.2f}% of dates within {year_start} to {year_end}",
-                    },
-                }
+                return validate_date_in_current_year(df, column, mostly=mostly)
 
             except Exception as e:
                 logger.exception(f"Failed to execute current year validation: {e}")

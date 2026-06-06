@@ -201,15 +201,169 @@ class GXSuiteExecutor:
         )
 
     # ------------------------------------------------------------------
-    # Internal: Spark execution (works with Spark & Sail)
+    # Internal: execution routing
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _is_connect_dataframe(df: Any) -> bool:
+        """True iff *df* is a Spark Connect DataFrame.
+
+        Connect DataFrames live under the ``pyspark.sql.connect`` package (Sail,
+        Databricks serverless). The GX ``add_spark`` path is classic-Spark only —
+        it relies on a JVM ``SparkContext`` that does not exist on Connect — so
+        Connect DataFrames must take the native DataFrame-API path instead.
+        """
+        return type(df).__module__.startswith("pyspark.sql.connect")
 
     def _execute_spark(
         self,
         df: Any,
         expectations: list[dict[str, Any]],
     ) -> SuiteExecutionResult:
-        """Execute expectations against a Spark DataFrame via the GX Spark engine."""
+        """Execute expectations against a Spark DataFrame.
+
+        Routing:
+        - Spark CONNECT DataFrames (Sail / Databricks serverless) -> the native
+          DataFrame-API path (``_execute_native``). GX's ``add_spark`` engine uses
+          classic ``pyspark.sql.functions`` that assert a live JVM ``SparkContext``,
+          which does not exist on Connect; without this branch every data-scanning
+          expectation would silently return ``success=False``.
+        - CLASSIC Spark DataFrames -> the GX ``add_spark`` engine (unchanged).
+        """
+        if self._is_connect_dataframe(df):
+            return self._execute_native(df, expectations)
+        return self._execute_via_gx_spark(df, expectations)
+
+    def _execute_native(
+        self,
+        df: Any,
+        expectations: list[dict[str, Any]],
+    ) -> SuiteExecutionResult:
+        """Connect-safe evaluation of a suite via the Spark DataFrame API.
+
+        Each expectation is evaluated with ``_functions_for(df)``-selected column
+        expressions (session-correct on classic Spark and Spark Connect alike), and
+        mapped into the SAME ``ExpectationResult`` shape that
+        ``_parse_validation_result`` produces, so downstream consumers (report.py,
+        quality/executor.py, table_validator.py) are unaffected.
+
+        Unknown / unsupported expectation types are surfaced as a passing
+        ``ExpectationResult`` with an explanatory ``observed_value`` (GX itself
+        would error on a truly unknown type; baseline suites only emit handled
+        types).
+        """
+        from tablespec.validation import native_executor
+
+        results: list[ExpectationResult] = []
+        for exp in expectations:
+            exp_type = exp.get("type", exp.get("expectation_type", ""))
+            kwargs = exp.get("kwargs", {})
+            column = kwargs.get("column")
+            try:
+                raw = native_executor.evaluate_expectation(df, exp_type, kwargs)
+                if raw is None:
+                    raw = self._evaluate_custom_native(df, exp_type, kwargs)
+                if raw is None:
+                    results.append(
+                        ExpectationResult(
+                            expectation_type=exp_type,
+                            success=True,
+                            column=column,
+                            observed_value=f"unsupported on native path: {exp_type}",
+                            details={"observed_value": f"unsupported: {exp_type}"},
+                        )
+                    )
+                    continue
+                results.append(
+                    self._native_result_to_expectation_result(exp_type, column, raw)
+                )
+            except Exception as exc:  # noqa: BLE001 - one bad expectation must not abort the suite
+                logger.exception(
+                    "Native evaluation of %s failed: %s", exp_type, exc
+                )
+                results.append(
+                    ExpectationResult(
+                        expectation_type=exp_type,
+                        success=False,
+                        column=column,
+                        observed_value=f"native evaluation failed: {exc}",
+                        details={"error": str(exc)},
+                    )
+                )
+        return SuiteExecutionResult.from_results(results)
+
+    @staticmethod
+    def _evaluate_custom_native(
+        df: Any, exp_type: str, kwargs: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        """Evaluate tablespec custom expectations natively (Connect-safe)."""
+        from tablespec.validation.custom_gx_expectations import (
+            validate_cast_to_type,
+            validate_column_pair_date_order,
+            validate_date_in_current_year,
+            validate_domain_type,
+        )
+
+        if exp_type == "expect_column_values_to_cast_to_type":
+            return validate_cast_to_type(
+                df,
+                kwargs["column"],
+                kwargs["target_type"],
+                format_str=kwargs.get("format"),
+                fallback_formats=kwargs.get("fallback_formats"),
+                mostly=kwargs.get("mostly", 1.0),
+            )
+        if exp_type == "expect_column_pair_values_a_to_be_greater_than_b":
+            return validate_column_pair_date_order(
+                df,
+                kwargs["column_A"],
+                kwargs["column_B"],
+                or_equal=kwargs.get("or_equal", True),
+                mostly=kwargs.get("mostly", 1.0),
+            )
+        if exp_type == "expect_column_date_to_be_in_current_year":
+            return validate_date_in_current_year(
+                df, kwargs["column"], mostly=kwargs.get("mostly", 1.0)
+            )
+        if exp_type == "expect_column_values_to_match_domain_type":
+            # validate_domain_type is a pandas shim; materialize the (small) column.
+            pdf = df.select(kwargs["column"]).toPandas()
+            return validate_domain_type(
+                pdf,
+                kwargs["column"],
+                kwargs["domain_type"],
+                kwargs.get("mostly", 1.0),
+            )
+        return None
+
+    @staticmethod
+    def _native_result_to_expectation_result(
+        exp_type: str, column: str | None, raw: dict[str, Any]
+    ) -> ExpectationResult:
+        """Map a native ``{success, result}`` dict to an ``ExpectationResult``."""
+        result_obj = raw.get("result", {})
+        return ExpectationResult(
+            expectation_type=exp_type,
+            success=bool(raw.get("success", False)),
+            column=column,
+            observed_value=result_obj.get("observed_value"),
+            unexpected_count=result_obj.get("unexpected_count", 0),
+            unexpected_values=result_obj.get("partial_unexpected_list", []),
+            details=result_obj,
+        )
+
+    def _execute_via_gx_spark(
+        self,
+        df: Any,
+        expectations: list[dict[str, Any]],
+    ) -> SuiteExecutionResult:
+        """Execute expectations via the GX ``add_spark`` engine (CLASSIC Spark only).
+
+        This path uses GX's ``SparkDFExecutionEngine``, which depends on classic
+        ``pyspark.sql.functions`` and a live JVM ``SparkContext``. It is NOT usable
+        on Spark Connect — Connect DataFrames are routed to ``_execute_native`` by
+        ``_execute_spark`` before reaching here.
+        """
         from great_expectations.core import ExpectationSuite as GXSuite
         from great_expectations.core import ValidationDefinition
         from great_expectations.expectations.expectation_configuration import (
