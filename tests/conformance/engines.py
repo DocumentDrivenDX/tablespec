@@ -44,7 +44,19 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from tablespec.e2e.gating import (
+    DATABRICKS_E2E_REQUIRED_ENV,
+    databricks_e2e_availability,
+)
+from tablespec.e2e.sql_runtime import split_sql_statements
 from tests.ingest_parity.canonical import to_json
+
+__all__ = [  # re-exports kept for backwards-compatible test imports
+    "DATABRICKS_E2E_REQUIRED_ENV",
+    "databricks_e2e_availability",
+    "split_sql_statements",
+    "to_json",
+]
 
 if TYPE_CHECKING:
     from pyspark.sql import SparkSession
@@ -127,24 +139,6 @@ def _dbt_failure_detail(result: Any) -> str:
     return "\n".join(
         f"{r.node.name}: {r.status} -- {getattr(r, 'message', '')}" for r in items
     )
-
-
-def split_sql_statements(sql: str) -> list[str]:
-    """Split a multi-statement ingest artifact into executable statements.
-
-    Comment lines (``-- ...``) are stripped first (some warning comments contain a
-    ``;``), then the text is split on ``;``. The artifact never contains a ``;``
-    inside a string literal, so a plain split of the de-commented text is safe.
-    """
-    decommented = "\n".join(
-        ln for ln in sql.splitlines() if not ln.lstrip().startswith("--")
-    )
-    statements: list[str] = []
-    for chunk in decommented.split(";"):
-        stmt = chunk.strip()
-        if stmt:
-            statements.append(stmt)
-    return statements
 
 
 # ---------------------------------------------------------------------------
@@ -236,69 +230,6 @@ def _databricks_compile_availability() -> str | None:
             import dbt.adapters.databricks  # noqa: F401
     except Exception as exc:
         return f"dbt-databricks adapter not importable: {exc}"
-    return None
-
-
-# The credentials the opt-in real-Databricks e2e tier needs to actually deploy +
-# execute against a workspace. ``DATABRICKS_HOST`` is the opt-in switch (its presence
-# is what flips the tier on); the rest are required to OPEN the connection. We probe
-# them all here so a half-configured workspace is reported with a precise reason
-# rather than failing deep inside a dbt/SDK call.
-DATABRICKS_E2E_REQUIRED_ENV: tuple[str, ...] = (
-    "DATABRICKS_HOST",
-    "DATABRICKS_HTTP_PATH",
-    "DATABRICKS_TOKEN",
-)
-
-
-def databricks_e2e_availability() -> str | None:
-    """Skip reason for the OPT-IN real-Databricks e2e tier, else ``None``.
-
-    This tier deploys + executes against a REAL Databricks workspace, so it is
-    skipped unless the workspace is configured. ``DATABRICKS_HOST`` is the opt-in
-    switch: when UNSET the tier is OFF (skipped here, never silently passed). When
-    the switch is on, the remaining credentials (``DATABRICKS_HTTP_PATH``,
-    ``DATABRICKS_TOKEN``) MUST also be present and the databricks adapter importable
-    so ``dbt run`` can open a real connection -- a half-configured workspace is
-    skipped with a precise reason rather than failing deep in a dbt call.
-
-    There is NO cluster in this harness, so ``DATABRICKS_HOST`` is unset here and this
-    ALWAYS returns the opt-off reason -- the e2e legs SKIP, they never run or pass.
-    """
-    import warnings
-
-    if not os.environ.get("DATABRICKS_HOST"):
-        return (
-            "databricks_e2e opt-in tier: DATABRICKS_HOST not set "
-            "(no remote workspace -- skipped, not silently passed)"
-        )
-    missing = [k for k in DATABRICKS_E2E_REQUIRED_ENV if not os.environ.get(k)]
-    if missing:  # pragma: no cover - only on a partially-configured workspace
-        return (
-            "databricks_e2e opt-in tier: DATABRICKS_HOST is set but the workspace is "
-            f"only partially configured (missing: {', '.join(missing)}) -- the tier "
-            "cannot open a connection, so it is skipped with this reason, not run"
-        )
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            import dbt.adapters.databricks  # noqa: F401
-    except Exception as exc:  # pragma: no cover - only on a configured workspace
-        return f"dbt-databricks adapter not importable: {exc}"
-    # The e2e engines load raw batches + read back over the Databricks SQL connector
-    # and (for LDP) deploy the pipeline over the workspace SDK. Probe both so a
-    # configured-but-missing-deps workspace skips with a precise reason rather than
-    # failing deep inside ``run``.
-    try:  # pragma: no cover - only on a configured workspace
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            import databricks.sdk  # noqa: F401
-            import databricks.sql  # noqa: F401
-    except Exception as exc:  # pragma: no cover - only on a configured workspace
-        return (
-            "databricks SQL connector / SDK not importable "
-            f"(needed for e2e deploy + read-back): {exc}"
-        )
     return None
 
 

@@ -21,22 +21,25 @@ would, consuming the persisted artifacts:
        * LDP = structure golden + local cast-body parity (single-batch only);
          APPLY CHANGES execution ONLY on real Databricks.
 
-Tiering + canonicalization REUSE the conformance facades in
-``tests/conformance/engines.py`` (row / compile / structure / opt-in e2e) and the
-``tests/ingest_parity/canonical.to_json`` byte-parity canonicalizer. This module
-does NOT build a parallel harness -- it wires the compiled artifacts INTO those
-engines. The real-serverless leg is gated by
-:func:`engines.databricks_e2e_availability` (``DATABRICKS_HOST`` opt-in); local
-success NEVER depends on a remote workspace.
+Tiering + canonicalization reuse SHIPPED helpers in the package -- the
+``tablespec.canonical.to_json`` byte-parity canonicalizer, the
+``tablespec.e2e.sql_runtime.split_sql_statements`` splitter and the
+``tablespec.e2e.gating.databricks_e2e_availability`` opt-in gate -- so the backbone
+ships without importing the test tree (a wheel ships no ``tests/``). The conformance
+engines under ``tests/conformance/engines.py`` re-export these same helpers for the
+matrix tests. This module does NOT build a parallel harness. The real-serverless leg
+is gated by :func:`tablespec.e2e.gating.databricks_e2e_availability`
+(``DATABRICKS_HOST`` opt-in); local success NEVER depends on a remote workspace.
 
 Engine adapters
 ===============
 The runner is parametrized by a small :class:`_BackboneEngine` adapter -- one per
 local execution backend (DuckDB, classic local Spark, Sail Spark-Connect). Each
-adapter reuses the conformance facades for the load-raw schema, the SQL-statement
-splitter, the decimal-scale map and the ``canonical.to_json`` canonicalizer, so the
-backbone never reimplements ingest/dbt/spark execution that ``engines.py`` already
-provides. The DataFrame the adapter hands to :class:`GXSuiteExecutor` is auto-routed
+adapter reuses the conformance facades for the load-raw schema and the decimal-scale
+map, and the SHIPPED ``split_sql_statements`` splitter + ``canonical.to_json``
+canonicalizer, so the backbone never reimplements ingest/dbt/spark execution that
+``engines.py`` already provides. The DataFrame the adapter hands to
+:class:`GXSuiteExecutor` is auto-routed
 (classic Spark -> GX add_spark engine; Connect -> the native path) inside the
 executor itself.
 """
@@ -46,32 +49,18 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from tablespec.canonical import to_json
 from tablespec.e2e.compiled import CompiledSchema, load_compiled_schema
+from tablespec.e2e.gating import databricks_e2e_availability
+from tablespec.e2e.sql_runtime import split_sql_statements
 
 if TYPE_CHECKING:
     from tablespec.e2e.manifest import CompiledArtifacts
-
-
-# --- conformance-facade imports (reused; never reimplemented) -----------------
-
-# The conformance harness lives under ``tests/`` (outside the package). When the
-# backbone runs from a demo script we must put the repo root on ``sys.path`` so the
-# facades import; under pytest the rootdir is already importable.
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
-
-from tests.conformance.engines import (  # noqa: E402
-    databricks_e2e_availability,
-    split_sql_statements,
-)
-from tests.ingest_parity.canonical import to_json  # noqa: E402
 
 
 @dataclass(frozen=True)

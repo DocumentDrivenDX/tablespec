@@ -120,6 +120,34 @@ def test_src_never_imports_external_dbt() -> None:
     )
 
 
+def test_src_never_imports_tests_package() -> None:
+    """No src module may import the top-level ``tests`` package.
+
+    A wheel ships ``src/tablespec`` but NOT the ``tests/`` tree, so any source
+    module importing ``tests`` / ``tests.*`` -- even lazily inside a function --
+    breaks ``import tablespec.<x>`` on a clean wheel install with
+    ``ModuleNotFoundError: No module named 'tests'`` (caught running the e2e
+    backbone on real Databricks serverless). Shared helpers must live IN the
+    package and be re-exported FROM the test tree, never the reverse.
+    """
+    offenders: dict[str, set[str]] = {}
+    for path in sorted(SRC.rglob("*.py")):
+        bad = {
+            m
+            for m in _imported_modules(path)
+            if m == "tests" or m.startswith("tests.")
+        }
+        if bad:
+            offenders[str(path.relative_to(SRC))] = bad
+    assert not offenders, (
+        "src/tablespec must NEVER import the top-level 'tests' package (a wheel "
+        "ships no tests/ -- importing it breaks every consumer on a clean install). "
+        "Move the shared helper INTO the package and re-export it from the test "
+        "tree:\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
+    )
+
+
 def test_core_modules_do_not_import_ldp() -> None:
     """The CORE seam must not import the PROTOTYPE LDP package either.
 
