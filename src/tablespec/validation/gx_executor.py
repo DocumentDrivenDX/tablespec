@@ -183,10 +183,14 @@ class GXSuiteExecutor:
             elif stage == "ingested":
                 ingested_exps.append(exp)
             else:
-                skipped.append({"expectation": exp, "reason": f"unknown stage: {stage}"})
+                skipped.append(
+                    {"expectation": exp, "reason": f"unknown stage: {stage}"}
+                )
 
         raw_result = (
-            self.execute_suite(raw_df, raw_exps) if raw_exps else SuiteExecutionResult.from_results([])
+            self.execute_suite(raw_df, raw_exps)
+            if raw_exps
+            else SuiteExecutionResult.from_results([])
         )
         ingested_result = (
             self.execute_suite(ingested_df, ingested_exps)
@@ -278,9 +282,7 @@ class GXSuiteExecutor:
                     self._native_result_to_expectation_result(exp_type, column, raw)
                 )
             except Exception as exc:  # noqa: BLE001 - one bad expectation must not abort the suite
-                logger.exception(
-                    "Native evaluation of %s failed: %s", exp_type, exc
-                )
+                logger.exception("Native evaluation of %s failed: %s", exp_type, exc)
                 results.append(
                     ExpectationResult(
                         expectation_type=exp_type,
@@ -401,9 +403,89 @@ class GXSuiteExecutor:
             )
 
             validation_result = vd.run(batch_parameters={"dataframe": df})
-            return self._parse_validation_result(validation_result)
+            parsed = self._parse_validation_result(validation_result)
+            return self._reconcile_dropped(df, parsed, expectations)
         finally:
             self._cleanup(context, suite, ds, ds_name, asset_name, vd_name)
+
+    def _reconcile_dropped(
+        self,
+        df: Any,
+        parsed: SuiteExecutionResult,
+        expectations_fed: list[dict[str, Any]],
+    ) -> SuiteExecutionResult:
+        """Re-evaluate any expectation GX dropped from its results.
+
+        GX can return FEWER results than were fed:
+
+          * two custom expectations of the SAME type (e.g. two
+            ``expect_column_values_to_cast_to_type`` over different columns) collate
+            into a single result entry, dropping the others, even on clean data; and
+          * an expectation whose metric resolution RAISED (e.g. a strict ANSI cast
+            on uncastable dirt before the ``try_cast`` fix) is silently dropped.
+
+        A dropped expectation must never read as a pass. Rather than blindly fail it
+        (which would false-fail the benign same-type-collation case), each missing
+        ``(type, column)`` is RE-EVALUATED standalone via the Connect-safe native
+        validators so it gets a REAL verdict. If a missing expectation cannot be
+        re-evaluated standalone, it is surfaced as FAILED (fail-closed) so dropped
+        dirt can never silently pass.
+        """
+        present = [(r.expectation_type, r.column) for r in parsed.results]
+        if len(parsed.results) >= len(expectations_fed):
+            return parsed
+
+        remaining = list(present)
+        extra: list[ExpectationResult] = []
+        for exp in expectations_fed:
+            exp_type = exp.get("type", exp.get("expectation_type", ""))
+            kwargs = exp.get("kwargs", {})
+            column = kwargs.get("column")
+            key = (exp_type, column)
+            if key in remaining:
+                remaining.remove(key)
+                continue
+            extra.append(self._reeval_one(df, exp_type, kwargs, column))
+
+        if not extra:
+            return parsed
+        return SuiteExecutionResult.from_results(parsed.results + extra)
+
+    def _reeval_one(
+        self, df: Any, exp_type: str, kwargs: dict[str, Any], column: str | None
+    ) -> ExpectationResult:
+        """Re-evaluate a single dropped expectation standalone (real verdict).
+
+        Uses the native evaluator + custom validators (the same Connect-safe helpers
+        the native path uses). On any failure to re-evaluate, fails closed so a
+        dropped expectation never silently passes.
+        """
+        from tablespec.validation import native_executor
+
+        try:
+            raw = native_executor.evaluate_expectation(df, exp_type, kwargs)
+            if raw is None:
+                raw = self._evaluate_custom_native(df, exp_type, kwargs)
+            if raw is None:
+                return ExpectationResult(
+                    expectation_type=exp_type,
+                    success=False,
+                    column=column,
+                    observed_value=(
+                        "dropped by GX and not re-evaluable standalone -> failed closed"
+                    ),
+                    details={"error": "dropped by GX; no standalone evaluator"},
+                )
+            return self._native_result_to_expectation_result(exp_type, column, raw)
+        except Exception as exc:  # noqa: BLE001 - fail closed on re-eval error
+            logger.exception("Re-eval of dropped %s failed: %s", exp_type, exc)
+            return ExpectationResult(
+                expectation_type=exp_type,
+                success=False,
+                column=column,
+                observed_value=f"re-evaluation failed: {exc}",
+                details={"error": str(exc)},
+            )
 
     # ------------------------------------------------------------------
     # Shared helpers
@@ -411,7 +493,12 @@ class GXSuiteExecutor:
 
     @staticmethod
     def _parse_validation_result(validation_result: Any) -> SuiteExecutionResult:
-        """Convert a GX ValidationResult into our SuiteExecutionResult."""
+        """Convert a GX ValidationResult into our SuiteExecutionResult.
+
+        Note: GX may return FEWER results than were fed (same-type custom-expectation
+        collation, or a raised metric). :meth:`_reconcile_dropped` re-evaluates any
+        such dropped expectation standalone so it never silently passes.
+        """
         results: list[ExpectationResult] = []
         for res in validation_result.results:
             result_dict = res.to_json_dict() if hasattr(res, "to_json_dict") else {}

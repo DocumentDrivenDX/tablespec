@@ -723,9 +723,18 @@ def cast_column_with_format(
     if target_type_upper == "TIMESTAMP":
         return F.try_to_timestamp(column)  # type: ignore[attr-defined]
 
-    # For other types, use standard cast
+    # For other types, use a NULL-on-failure cast. ``Column.cast`` is ANSI-strict on
+    # Spark 4.0 (and on Spark Connect / DataFusion), so a non-numeric string like
+    # ``"abc"`` -> INT raises ``NumberFormatException`` [CAST_INVALID_INPUT] INSTEAD of
+    # producing NULL. Inside GX single-batch metric resolution that raised exception
+    # makes GX silently DROP the expectation, so uncastable numeric dirt can vanish
+    # from the results and a cast-only suite can falsely report success. ``try_cast``
+    # returns NULL on un-castable input (mirroring the already-null-safe
+    # ``try_to_timestamp`` used for DATE/TIMESTAMP above), so the failure is COUNTED by
+    # ``validate_cast_to_type`` rather than thrown. ``try_cast`` is available on
+    # ``Column`` for both classic Spark and Connect (PySpark 3.5+).
     if target_type_upper in type_mapping:
-        return column.cast(type_mapping[target_type_upper])
+        return column.try_cast(type_mapping[target_type_upper])
 
     # Unknown type
     msg = f"Unsupported target_type: {target_type}. Supported types: {[*list(type_mapping.keys()), 'DATE', 'TIMESTAMP', 'STRING']}"

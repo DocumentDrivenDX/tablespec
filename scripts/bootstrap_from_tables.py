@@ -31,10 +31,14 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-# A small default fixture set (ingest corpus) so the demo is runnable out of the box.
+# A small default fixture set so the demo is runnable out of the box. The default
+# seeds the ``member`` e2e fixture -- the same clean table the asserted Path A e2e
+# (``tests/e2e/test_bootstrap_from_tables.py``) uses -- so the out-of-the-box demo
+# validates to green (a profile-enriched suite over a fixture with profile-derived
+# ``in_set`` checks on DECIMAL columns intentionally FAILS the raw-stage validation,
+# which is correct dirt-catching behaviour but not a clean demo default).
 _DEFAULT_SEEDS: dict[str, Path] = {
-    "decimal_boundaries": _REPO_ROOT
-    / "tests/conformance/corpus/ingest/decimal_boundaries.raw.csv",
+    "member": _REPO_ROOT / "tests/e2e/fixtures/member.raw.csv",
 }
 
 
@@ -68,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     from tablespec.e2e.paths import umfs_from_tables
 
     args = _parse_args(argv)
-    tables = list(args.table) if args.table else ["decimal_boundaries"]
+    tables = list(args.table) if args.table else list(_DEFAULT_SEEDS)
     out_dir = Path(args.out).resolve()
     profile = not args.no_profile
 
@@ -176,7 +180,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--table",
         action="append",
         default=None,
-        help="Existing table to reflect (repeatable). Default: decimal_boundaries.",
+        help="Existing table to reflect (repeatable). Default: member (fixture).",
     )
     parser.add_argument("--out", required=True, help="Compile output directory.")
     parser.add_argument(
@@ -190,7 +194,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         default=[],
         help="table=csv: seed an 'existing' table from a CSV (repeatable).",
     )
-    parser.add_argument("--dialect", default="duckdb", help="Cast dialect for the dbt projects.")
+    parser.add_argument(
+        "--dialect", default="duckdb", help="Cast dialect for the dbt projects."
+    )
     parser.add_argument(
         "--backend",
         default="spark",

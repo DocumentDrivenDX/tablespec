@@ -117,7 +117,9 @@ def _bcol(df: DataFrame, column: str) -> Any:
 # ---------------------------------------------------------------------------
 
 
-def _table_row_count_to_be_between(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _table_row_count_to_be_between(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     count = df.count()
     min_value = kwargs.get("min_value")
     max_value = kwargs.get("max_value")
@@ -138,7 +140,9 @@ def _table_row_count_to_be_between(df: DataFrame, kwargs: dict[str, Any]) -> dic
     }
 
 
-def _table_column_count_to_equal(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _table_column_count_to_equal(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     actual = len(df.columns)
     expected = kwargs.get("value")
     success = actual == expected
@@ -184,13 +188,17 @@ def _table_columns_to_match_ordered_list(
 # ---------------------------------------------------------------------------
 
 
-def _column_values_to_be_of_type(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _column_values_to_be_of_type(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     column = kwargs["column"]
     expected = str(kwargs.get("type_", kwargs.get("type", ""))).strip()
     actual_dt = df.schema[column].dataType
     actual_class = type(actual_dt).__name__  # e.g. "StringType"
     actual_simple = actual_dt.simpleString()  # e.g. "string"
-    success = expected in (actual_class, actual_simple) or expected.lower() == actual_simple
+    success = (
+        expected in (actual_class, actual_simple) or expected.lower() == actual_simple
+    )
     return {
         "success": success,
         "result": {
@@ -203,7 +211,9 @@ def _column_values_to_be_of_type(df: DataFrame, kwargs: dict[str, Any]) -> dict[
     }
 
 
-def _column_values_to_not_be_null(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _column_values_to_not_be_null(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     column = kwargs["column"]
     mostly = kwargs.get("mostly", 1.0)
     scoped = _apply_row_condition(df, kwargs)
@@ -220,7 +230,9 @@ def _column_values_to_not_be_null(df: DataFrame, kwargs: dict[str, Any]) -> dict
     )
 
 
-def _column_values_to_be_in_set(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _column_values_to_be_in_set(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     column = kwargs["column"]
     value_set = list(kwargs.get("value_set", []))
     mostly = kwargs.get("mostly", 1.0)
@@ -230,7 +242,10 @@ def _column_values_to_be_in_set(df: DataFrame, kwargs: dict[str, Any]) -> dict[s
     element_count = non_null.count()
     unexpected_df = non_null.filter(~col.isin(value_set))
     unexpected_count = unexpected_df.count()
-    samples = [row[column] for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()]
+    samples = [
+        row[column]
+        for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()
+    ]
     return _result(
         unexpected_count=unexpected_count,
         element_count=element_count,
@@ -240,25 +255,40 @@ def _column_values_to_be_in_set(df: DataFrame, kwargs: dict[str, Any]) -> dict[s
     )
 
 
-def _column_values_to_be_between(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _column_values_to_be_between(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     column = kwargs["column"]
     min_value = kwargs.get("min_value")
     max_value = kwargs.get("max_value")
     mostly = kwargs.get("mostly", 1.0)
     col = _bcol(df, column)
+    # When the bounds are numeric, compare NUMERICALLY. A STRING column compared
+    # against numeric literals would otherwise be coerced to a LEXICOGRAPHIC compare
+    # (e.g. '250.5' > '1000.0' is True as strings), producing false positives. Cast
+    # the column to double (NULL-on-failure) so the comparison is on numbers. The
+    # ingested stage already feeds typed columns; this hardens the string-substrate
+    # case (e.g. a DuckDB-lane frame) so the check never mis-reads.
+    bounds_numeric = all(
+        v is None or isinstance(v, (int, float)) for v in (min_value, max_value)
+    ) and any(isinstance(v, (int, float)) for v in (min_value, max_value))
+    cmp_col = col.try_cast("double") if bounds_numeric else col
     non_null = df.filter(col.isNotNull())
     element_count = non_null.count()
     cond = None
     if min_value is not None:
-        cond = col < min_value
+        cond = cmp_col < min_value
     if max_value is not None:
-        upper = col > max_value
+        upper = cmp_col > max_value
         cond = upper if cond is None else (cond | upper)
     if cond is None:
         return _ok(observed_value=0, element_count=element_count)
     unexpected_df = non_null.filter(cond)
     unexpected_count = unexpected_df.count()
-    samples = [row[column] for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()]
+    samples = [
+        row[column]
+        for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()
+    ]
     return _result(
         unexpected_count=unexpected_count,
         element_count=element_count,
@@ -268,7 +298,9 @@ def _column_values_to_be_between(df: DataFrame, kwargs: dict[str, Any]) -> dict[
     )
 
 
-def _column_values_to_match_regex(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _column_values_to_match_regex(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     column = kwargs["column"]
     regex = kwargs.get("regex", "")
     mostly = kwargs.get("mostly", 1.0)
@@ -278,7 +310,10 @@ def _column_values_to_match_regex(df: DataFrame, kwargs: dict[str, Any]) -> dict
     # Unexpected = non-null values that do NOT match the pattern.
     unexpected_df = non_null.filter(~col.rlike(regex))
     unexpected_count = unexpected_df.count()
-    samples = [row[column] for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()]
+    samples = [
+        row[column]
+        for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()
+    ]
     return _result(
         unexpected_count=unexpected_count,
         element_count=element_count,
@@ -310,7 +345,10 @@ def _column_value_lengths_to_be_between(
         return _ok(observed_value=0, element_count=element_count)
     unexpected_df = non_null.filter(cond)
     unexpected_count = unexpected_df.count()
-    samples = [row[column] for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()]
+    samples = [
+        row[column]
+        for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()
+    ]
     return _result(
         unexpected_count=unexpected_count,
         element_count=element_count,
@@ -320,7 +358,9 @@ def _column_value_lengths_to_be_between(
     )
 
 
-def _column_values_to_be_unique(df: DataFrame, kwargs: dict[str, Any]) -> dict[str, Any]:
+def _column_values_to_be_unique(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
     column = kwargs["column"]
     mostly = kwargs.get("mostly", 1.0)
     F = _functions_for(df)  # noqa: N806
@@ -368,7 +408,10 @@ def _column_values_to_match_strftime_format(
     parsed = _connect_safe_parse(df, col.cast("string"), spark_format)
     unexpected_df = non_null.filter(parsed.isNull())
     unexpected_count = unexpected_df.count()
-    samples = [row[column] for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()]
+    samples = [
+        row[column]
+        for row in unexpected_df.select(column).limit(_SAMPLE_LIMIT).collect()
+    ]
     return _result(
         unexpected_count=unexpected_count,
         element_count=element_count,
@@ -468,7 +511,9 @@ _COLUMN_EVALUATORS = {
 }
 
 
-def evaluate_expectation(df: DataFrame, exp_type: str, kwargs: dict[str, Any]) -> dict[str, Any] | None:
+def evaluate_expectation(
+    df: DataFrame, exp_type: str, kwargs: dict[str, Any]
+) -> dict[str, Any] | None:
     """Evaluate a single expectation natively, or return ``None`` if unsupported.
 
     Returns a GX-shaped ``{"success": ..., "result": {...}}`` dict on success, or

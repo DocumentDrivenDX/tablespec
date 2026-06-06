@@ -52,7 +52,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import yaml
+from tablespec.e2e.compiled import CompiledSchema, load_compiled_schema
 
 if TYPE_CHECKING:
     from tablespec.e2e.manifest import CompiledArtifacts
@@ -69,7 +69,6 @@ if str(_REPO_ROOT) not in sys.path:
 
 from tests.conformance.engines import (  # noqa: E402
     databricks_e2e_availability,
-    decimal_scales,
     split_sql_statements,
 )
 from tests.ingest_parity.canonical import to_json  # noqa: E402
@@ -146,24 +145,29 @@ class _BackboneEngine:
 
     def ingest(
         self, artifacts: CompiledArtifacts, table: str, batches: list[Path]
-    ) -> tuple[Any, Any, dict[str, Any]]:
-        """Execute the compiled ingest -> return (raw_df, ingested_df, umf_data)."""
+    ) -> tuple[Any, Any, CompiledSchema]:
+        """Execute the compiled ingest -> return (raw_df, ingested_df, schema).
+
+        The third element is the :class:`CompiledSchema` parsed from the COMPILED
+        ingest SQL artifact (NOT the UMF snapshot) -- it carries the typed-projection
+        column order and the decimal-scale map the canonicalizer needs.
+        """
         raise NotImplementedError
 
-    def ingested_rows(self, umf: dict[str, Any], ingested_df: Any) -> list[dict[str, Any]]:
+    def ingested_rows(
+        self, schema: CompiledSchema, ingested_df: Any
+    ) -> list[dict[str, Any]]:
         """Collect the TYPED ingested rows from the engine's native store.
 
-        Returns row dicts keyed by the UMF (typed-target) column names, carrying the
-        engine's native typed values -- the input the SHARED ``canonical.to_json``
+        Returns row dicts keyed by the COMPILED typed-target column names, carrying
+        the engine's native typed values -- the input the SHARED ``canonical.to_json``
         canonicalizer renders for cross-engine byte parity. The default collects from
         a Spark/Connect DataFrame; engines whose native store is not a DataFrame
         (DuckDB) override this to read their own store so parity compares the typed
         ingest, not a stringified validation substrate.
         """
-        columns = [c["name"] for c in umf["columns"]]
-        return [
-            {k: r.asDict().get(k) for k in columns} for r in ingested_df.collect()
-        ]
+        columns = schema.columns
+        return [{k: r.asDict().get(k) for k in columns} for r in ingested_df.collect()]
 
 
 class _SparkEngine(_BackboneEngine):
@@ -204,16 +208,17 @@ class _SparkEngine(_BackboneEngine):
             if loc.exists():
                 shutil.rmtree(loc, ignore_errors=True)
 
-    def _load_raw(self, umf: dict[str, Any], csv_path: Path, raw_table: str) -> None:
+    def _load_raw(self, schema: CompiledSchema, csv_path: Path, raw_table: str) -> None:
         """Build the all-STRING raw landing relation (engines.py:527 schema).
 
         The raw shape is every business column as STRING plus ``_source_file`` +
-        ``_load_ts`` (a TIMESTAMP). A corpus CSV may already carry that metadata or be
-        a clean source extract that lacks it; we read only the columns the CSV header
-        actually declares and SYNTHESIZE any missing metadata (literal source-file +
-        load timestamp) -- exactly as the DuckDB engine and conformance gold loader do.
-        Without this, Sail's strict CSV reader rejects a 2-field row against a 4-field
-        schema ("incorrect number of fields").
+        ``_load_ts`` (a TIMESTAMP). The business-column set + order come from the
+        COMPILED ingest SQL (parsed into ``schema``), NOT the UMF snapshot. A corpus
+        CSV may already carry that metadata or be a clean source extract that lacks
+        it; we read only the columns the CSV header actually declares and SYNTHESIZE
+        any missing metadata (literal source-file + load timestamp) -- exactly as the
+        DuckDB engine and conformance gold loader do. Without this, Sail's strict CSV
+        reader rejects a 2-field row against a 4-field schema.
         """
         # ``pyspark.sql.functions`` resolves to the CLASSIC builtins, whose ``lit`` /
         # ``to_timestamp`` call ``_to_java_column`` and so need a live JVM
@@ -225,7 +230,13 @@ class _SparkEngine(_BackboneEngine):
         else:
             from pyspark.sql.functions import lit, to_timestamp
 
-        business_cols = [c["name"] for c in umf["columns"]]
+        business_cols = schema.columns
+        # The raw landing table is ``raw_<t>``; the synthesized ``_source_file`` literal
+        # mirrors the source table name (``<t>.csv``), recovered from the compiled raw
+        # table name rather than the UMF.
+        source_name = (
+            raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
+        )
         header = csv_path.read_text().splitlines()[0].split(",")
         has_meta = "_source_file" in header
 
@@ -247,7 +258,7 @@ class _SparkEngine(_BackboneEngine):
                 "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
             )
         else:
-            df = df.withColumn("_source_file", lit(f"{umf['table_name']}.csv")).withColumn(
+            df = df.withColumn("_source_file", lit(f"{source_name}.csv")).withColumn(
                 "_load_ts",
                 to_timestamp(lit("2026-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss"),
             )
@@ -272,15 +283,17 @@ class _SparkEngine(_BackboneEngine):
 
     def ingest(
         self, artifacts: CompiledArtifacts, table: str, batches: list[Path]
-    ) -> tuple[Any, Any, dict[str, Any]]:
-        umf = yaml.safe_load(artifacts.table(table).umf_snapshot.read_text())
-        raw_table = f"raw_{table}"
-        ingested_table = f"ingested_{table}"
+    ) -> tuple[Any, Any, CompiledSchema]:
+        sql = artifacts.table(table).ingest_sql.read_text()
+        # Derive the raw-load schema, projection order, table names, and decimal
+        # scales from the COMPILED ingest SQL -- never the UMF snapshot.
+        schema = load_compiled_schema(artifacts.table(table).ingest_sql, table)
+        raw_table = schema.raw_table
+        ingested_table = schema.ingested_table
 
         self._purge(raw_table)
         self._purge(ingested_table)
 
-        sql = artifacts.table(table).ingest_sql.read_text()
         statements = split_sql_statements(sql)
         create_stmts, transform_stmt = statements[:-1], statements[-1]
 
@@ -295,7 +308,7 @@ class _SparkEngine(_BackboneEngine):
             # (the body already dedups on the PK), which is the single-batch invariant
             # the LDP cast-parity leg also asserts.
             for batch in batches:
-                self._load_raw(umf, batch, raw_table)
+                self._load_raw(schema, batch, raw_table)
             cast_select = _extract_merge_using_select(transform_stmt)
             self._spark.sql(f"DROP VIEW IF EXISTS {ingested_table}")
             self._spark.sql(
@@ -303,7 +316,7 @@ class _SparkEngine(_BackboneEngine):
             )
             raw_df = self._spark.table(raw_table)
             ingested_df = self._spark.table(ingested_table)
-            return raw_df, ingested_df, umf
+            return raw_df, ingested_df, schema
 
         raw_create_prefix = f"CREATE TABLE {raw_table}".upper()
         for stmt in create_stmts:
@@ -317,12 +330,12 @@ class _SparkEngine(_BackboneEngine):
             self._spark.sql(stmt)
 
         for batch in batches:
-            self._load_raw(umf, batch, raw_table)
+            self._load_raw(schema, batch, raw_table)
             self._spark.sql(transform_stmt)
 
         raw_df = self._spark.table(raw_table)
         ingested_df = self._spark.table(ingested_table)
-        return raw_df, ingested_df, umf
+        return raw_df, ingested_df, schema
 
 
 class _DuckDBEngine(_BackboneEngine):
@@ -355,9 +368,14 @@ class _DuckDBEngine(_BackboneEngine):
         con.execute("SET TimeZone='UTC'")
         return con
 
-    def _load_raw(self, db_path: Path, umf: dict[str, Any], csv_path: Path) -> None:
-        table = umf["table_name"]
-        cols = [c["name"] for c in umf["columns"]]
+    def _load_raw(self, db_path: Path, schema: CompiledSchema, csv_path: Path) -> None:
+        # The raw table name + business-column set come from the COMPILED ingest SQL
+        # (parsed into ``schema``), NOT the UMF snapshot.
+        raw_table = schema.raw_table
+        source_name = (
+            raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
+        )
+        cols = schema.columns
         # The CSV may already carry the ingest metadata (conformance corpus) or be a
         # clean source extract without it (reflected source tables). Detect from the
         # header: if present, project it through; otherwise SYNTHESIZE it (literal
@@ -367,17 +385,17 @@ class _DuckDBEngine(_BackboneEngine):
         has_meta = "_source_file" in header
         con = self._connect(db_path)
         try:
-            con.execute(f"DROP TABLE IF EXISTS raw_{table}")
+            con.execute(f"DROP TABLE IF EXISTS {raw_table}")
             coldefs = ", ".join(f'"{c}" VARCHAR' for c in cols)
             coldefs += ', "_source_file" VARCHAR, "_load_ts" TIMESTAMP'
-            con.execute(f"CREATE TABLE raw_{table} ({coldefs})")
+            con.execute(f"CREATE TABLE {raw_table} ({coldefs})")
             projection = ", ".join(f'"{c}"' for c in cols)
             if has_meta:
                 projection += ', "_source_file", cast("_load_ts" as timestamp)'
             else:
-                projection += f", '{table}.csv', TIMESTAMP '2026-01-01 00:00:00'"
+                projection += f", '{source_name}.csv', TIMESTAMP '2026-01-01 00:00:00'"
             con.execute(
-                f"INSERT INTO raw_{table} "
+                f"INSERT INTO {raw_table} "
                 f"SELECT {projection} "
                 f"FROM read_csv_auto('{csv_path}', header=true, all_varchar=true)"
             )
@@ -389,7 +407,14 @@ class _DuckDBEngine(_BackboneEngine):
 
         env = dict(os.environ, DBT_DUCKDB_PATH=str(db_path))
         result = subprocess.run(
-            ["dbt", "run", "--profiles-dir", str(project), "--project-dir", str(project)],
+            [
+                "dbt",
+                "run",
+                "--profiles-dir",
+                str(project),
+                "--project-dir",
+                str(project),
+            ],
             env=env,
             capture_output=True,
             text=True,
@@ -403,8 +428,10 @@ class _DuckDBEngine(_BackboneEngine):
 
     def ingest(
         self, artifacts: CompiledArtifacts, table: str, batches: list[Path]
-    ) -> tuple[Any, Any, dict[str, Any]]:
-        umf = yaml.safe_load(artifacts.table(table).umf_snapshot.read_text())
+    ) -> tuple[Any, Any, CompiledSchema]:
+        # Derive the raw-load schema, projection order, and table names from the
+        # COMPILED ingest SQL -- never the UMF snapshot.
+        schema = load_compiled_schema(artifacts.table(table).ingest_sql, table)
         # Copy the compiled dbt ingest project into a scratch dir so the duckdb file
         # lives beside it (the project is read-only compile output).
         compiled = artifacts.table(table).dbt_ingest_project
@@ -417,18 +444,28 @@ class _DuckDBEngine(_BackboneEngine):
         self._ingested_table = table
 
         for batch in batches:
-            self._load_raw(db_path, umf, batch)
+            self._load_raw(db_path, schema, batch)
             self._run_dbt(project, db_path)
 
+        # Raw stage validates the UNTYPED landing rows -> stringify (raw IS strings).
         raw_df = self._frame_from_duckdb(
-            db_path, f"raw_{table}", [c["name"] for c in umf["columns"]] + ["_source_file", "_load_ts"]
+            db_path,
+            schema.raw_table,
+            [*schema.columns, "_source_file", "_load_ts"],
+            stringify=True,
         )
+        # Ingested stage validates the TYPED cast output. Preserve DuckDB-native typed
+        # values so an ingested numeric range (``between``) check compares NUMERICALLY
+        # rather than LEXICOGRAPHICALLY -- stringifying here would make e.g. '250.5'
+        # read as > '1000.0'. The raw frame is the only one that must be all-STRING.
         ingested_df = self._frame_from_duckdb(
-            db_path, table, [c["name"] for c in umf["columns"]]
+            db_path, table, schema.columns, stringify=False
         )
-        return raw_df, ingested_df, umf
+        return raw_df, ingested_df, schema
 
-    def ingested_rows(self, umf: dict[str, Any], ingested_df: Any) -> list[dict[str, Any]]:
+    def ingested_rows(
+        self, schema: CompiledSchema, ingested_df: Any
+    ) -> list[dict[str, Any]]:
         """Read the TYPED ingested rows straight from the DuckDB store.
 
         The DataFrame handed back from :meth:`ingest` is the STRINGIFIED GX-validation
@@ -438,7 +475,7 @@ class _DuckDBEngine(_BackboneEngine):
         canonicalize.
         """
         assert self._db_path is not None and self._ingested_table is not None
-        columns = [c["name"] for c in umf["columns"]]
+        columns = schema.columns
         con = self._connect(self._db_path)
         try:
             projection = ", ".join(f'"{c}"' for c in columns)
@@ -449,8 +486,17 @@ class _DuckDBEngine(_BackboneEngine):
             con.close()
         return [dict(zip(columns, rec, strict=True)) for rec in records]
 
-    def _frame_from_duckdb(self, db_path: Path, table: str, columns: list[str]) -> Any:
-        """Lift a DuckDB table into a Spark/Sail frame for the GX executor."""
+    def _frame_from_duckdb(
+        self, db_path: Path, table: str, columns: list[str], *, stringify: bool
+    ) -> Any:
+        """Lift a DuckDB table into a Spark/Sail frame for the GX executor.
+
+        When *stringify* is True every value is rendered to a string (the raw landing
+        stage, which is untyped by construction; a uniform string frame also avoids
+        Spark schema-inference surprises on NULLs). When False the DuckDB-native typed
+        values are passed through so a typed (ingested) numeric range check compares
+        numerically rather than lexicographically.
+        """
         con = self._connect(db_path)
         try:
             projection = ", ".join(f'"{c}"' for c in columns)
@@ -461,15 +507,16 @@ class _DuckDBEngine(_BackboneEngine):
         assert self._spark is not None, (
             "DuckDB backbone needs a session to host GX validation frames"
         )
-        # Stringify everything: the GX raw/ingested suites operate on values, and a
-        # uniform string frame avoids Spark schema-inference surprises on NULLs.
-        str_rows = [{k: (None if v is None else str(v)) for k, v in r.items()} for r in rows]
-        if not str_rows:
+        if stringify:
+            rows = [
+                {k: (None if v is None else str(v)) for k, v in r.items()} for r in rows
+            ]
+        if not rows:
             from pyspark.sql.types import StringType, StructField, StructType
 
             schema = StructType([StructField(c, StringType(), True) for c in columns])
             return self._spark.createDataFrame([], schema)
-        return self._spark.createDataFrame(str_rows)
+        return self._spark.createDataFrame(rows)
 
 
 # ---------------------------------------------------------------------------
@@ -538,7 +585,7 @@ def run_backbone(
 
         # Stage 1: ingest raw -> row (+ typed transform) from the compiled artifact.
         try:
-            raw_df, ingested_df, umf = eng.ingest(artifacts, table, batches)
+            raw_df, ingested_df, _schema = eng.ingest(artifacts, table, batches)
             stages.append(
                 StageOutcome(
                     name=f"[{eng.name}] ingest:{table}",
@@ -549,13 +596,17 @@ def run_backbone(
         except Exception as exc:  # pragma: no cover - surfaced as a failed stage
             detail = str(exc) or repr(exc)
             stages.append(
-                StageOutcome(name=f"[{eng.name}] ingest:{table}", ok=False, detail=detail)
+                StageOutcome(
+                    name=f"[{eng.name}] ingest:{table}", ok=False, detail=detail
+                )
             )
             continue
 
         # Stages 2 & 4: validate raw + ingested via the COMPILED suite (one staged
         # execution classifies raw-stage vs ingested-stage expectations).
-        stages.append(_validate_stage(spark, raw_df, ingested_df, ta.suite_json, table, eng.name))
+        stages.append(
+            _validate_stage(spark, raw_df, ingested_df, ta.suite_json, table, eng.name)
+        )
 
         # Stage record: the typed transform already ran inside ingest (stage 3);
         # surface it explicitly so the consumed compiled transform is visible.
@@ -570,7 +621,7 @@ def run_backbone(
     if run_transforms:
         stages.extend(_run_dbt_transforms(artifacts, engine=eng))
         stages.extend(_run_gold_plan(artifacts))
-        stages.extend(_run_ldp(artifacts, raw_batches))
+        stages.extend(_run_ldp(artifacts))
 
     return BackboneResult(stages=stages)
 
@@ -611,13 +662,23 @@ def _validate_stage(
 def _run_dbt_transforms(
     artifacts: CompiledArtifacts, *, engine: _BackboneEngine
 ) -> list[StageOutcome]:
-    """Stage 5 (dbt): parse always; compile/run on duckdb/local-spark only.
+    """Stage 5 (dbt): offline ``dbt parse`` over every compiled dbt project.
 
     Consumes the persisted single-table ingest dbt projects + the multi-table GOLD
-    dbt DAG project. ``dbt parse`` (offline) runs for EVERY project regardless of
-    backend; ``dbt run`` is attempted only when the engine supports local execution
-    (DuckDB / classic Spark session). On a Databricks compile target ``dbt run``
-    would need a live warehouse -> parse-only.
+    dbt DAG project and runs ``dbt parse`` (genuinely offline -- no warehouse, no
+    partial parse) for EACH, asserting the project resolves to a manifest. This is
+    the parse-not-compile guarantee: on a Databricks compile target ``dbt compile``
+    would open a SQL-warehouse connection and HANG against an unreachable host, so
+    the backbone never compiles/runs the gold DAG here.
+
+    Executed ``dbt run`` lives elsewhere, not in this stage:
+      * the per-table INGEST cast is materialized by ``dbt run`` INSIDE
+        :meth:`_DuckDBEngine.ingest` (the engine consumes the compiled ingest dbt
+        project to produce the typed rows the validation + parity legs check), and
+      * the gold dbt DAG ``dbt run`` is exercised by the conformance gold tier.
+
+    The engine's :attr:`_BackboneEngine.supports_dbt_run` capability is recorded in
+    the stage detail so the parse-only-here decision is explicit per backend.
     """
     out: list[StageOutcome] = []
     projects: list[tuple[str, Path]] = []
@@ -628,17 +689,24 @@ def _run_dbt_transforms(
         projects.append(("gold", artifacts.dbt_gold_project))
 
     for label, project in projects:
-        out.append(_dbt_parse(label, project))
+        out.append(_dbt_parse(label, project, supports_run=engine.supports_dbt_run))
     return out
 
 
-def _dbt_parse(label: str, project: Path) -> StageOutcome:
+def _dbt_parse(
+    label: str, project: Path, *, supports_run: bool = False
+) -> StageOutcome:
     """Run the always-available offline ``dbt parse`` over a compiled project.
 
     Invoked as a SUBPROCESS (mirroring the conformance ``dbt run`` facade) rather
     than the in-process ``dbtRunner``: the in-process runner installs a global file
     logger that holds the persisted project's ``logs/dbt.log`` handle open past the
     call, which surfaces as an unraisable ResourceWarning at interpreter teardown.
+
+    *supports_run* records whether the active backend could run this project locally
+    (DuckDB / classic Spark) -- it is surfaced in the detail to make the parse-only
+    decision explicit; the backbone still only PARSES here (executed ``dbt run`` is
+    the ingest engine + the conformance gold tier).
     """
     result = subprocess.run(
         [
@@ -656,7 +724,11 @@ def _dbt_parse(label: str, project: Path) -> StageOutcome:
     )
     manifest = project / "target" / "manifest.json"
     ok = result.returncode == 0 and manifest.exists()
-    detail = f"project={project.name} manifest={'written' if manifest.exists() else 'missing'}"
+    run_note = "run-capable" if supports_run else "parse-only backend"
+    detail = (
+        f"project={project.name} "
+        f"manifest={'written' if manifest.exists() else 'missing'} ({run_note})"
+    )
     return StageOutcome(name=f"dbt parse:{label}", ok=ok, detail=detail)
 
 
@@ -687,16 +759,21 @@ def _run_gold_plan(artifacts: CompiledArtifacts) -> list[StageOutcome]:
     return out
 
 
-def _run_ldp(
-    artifacts: CompiledArtifacts, raw_batches: dict[str, list[Path]]
-) -> list[StageOutcome]:
-    """Stage 5 (LDP): structure golden + local cast-body parity (single batch).
+def _run_ldp(artifacts: CompiledArtifacts) -> list[StageOutcome]:
+    """Stage 5 (LDP): structure golden (+ opt-in APPLY CHANGES on real Databricks).
 
     Consumes the compiled LDP project (``ldp/ingested_<t>.sql``). The structure leg
-    asserts each ingested dataset file exists + carries the shared cast SELECT body;
-    the cast-parity leg (single-batch only) runs that extracted SELECT over the raw
-    rows on DuckDB and confirms it canonicalizes to the same rows the dbt ingest
-    produced. APPLY CHANGES execution is the opt-in Databricks-only leg.
+    asserts each ingested dataset file exists + carries the shared cast SELECT body.
+
+    The LDP dataset bodies are emitted in the SPARK/Databricks dialect (``FROM STREAM
+    raw_<t>``, ``APPLY CHANGES``, Spark-dialect casts); they are NOT DuckDB-runnable,
+    so the backbone does NOT execute the LDP cast body locally. The EXECUTED
+    cast-body parity is the dbt ingest leg, which materializes the SAME shared cast
+    SELECT (``build_ingest_select``) and is byte-checked against the committed golden
+    by :func:`canonical_ingested` / the e2e matrix -- the LDP body is the same shared
+    seam, so its structure-golden check plus the executed dbt-ingest parity together
+    prove the LDP cast. APPLY CHANGES execution is the opt-in Databricks-only leg
+    (gated below); local success never depends on it.
     """
     out: list[StageOutcome] = []
     if artifacts.ldp_project is None:
@@ -760,10 +837,13 @@ def canonical_ingested(
     contract the conformance matrix uses. ``ts_precision`` defaults to 0 (the
     second-resolution corpus convention; the goldens pin 0 at their call sites).
     """
-    _raw_df, ingested_df, umf = engine.ingest(artifacts, table, batches)
-    rows = engine.ingested_rows(umf, ingested_df)
-    columns = [c["name"] for c in umf["columns"]]
-    return to_json(rows, columns, decimal_scales(umf), ts_precision=ts_precision)
+    _raw_df, ingested_df, schema = engine.ingest(artifacts, table, batches)
+    rows = engine.ingested_rows(schema, ingested_df)
+    # Decimal scales come from the COMPILED typed DDL (parsed into ``schema``), not a
+    # ``decimal_scales(umf)`` call on the source UMF model.
+    return to_json(
+        rows, schema.columns, schema.decimal_scales, ts_precision=ts_precision
+    )
 
 
 # Re-exported canonicalizer + facade helpers so callers / tests can reuse the SAME
@@ -772,7 +852,6 @@ __all__ = [
     "BackboneResult",
     "StageOutcome",
     "canonical_ingested",
-    "decimal_scales",
     "make_engine",
     "run_backbone",
     "to_json",
