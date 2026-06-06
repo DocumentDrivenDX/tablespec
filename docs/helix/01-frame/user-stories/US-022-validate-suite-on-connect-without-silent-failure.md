@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: VAL-CONNECT-01, VAL-CONNECT-04, VAL-CONNECT-05, VAL-CONNECT-09
 **PRD Requirements**: FR-7.7, FR-7.8 (with FR-20.4)
 **Priority**: P0
-**Status**: Approved
+**Status**: Done (all acceptance criteria met; baseline + custom parity proven on the Sail Connect lane)
 
 ## Story
 
@@ -31,10 +31,10 @@ Before this works, running a compiled GX suite on Spark Connect routes through G
 
 ## Acceptance Criteria
 
-- [ ] **US-022-AC1** — Given a Spark Connect DataFrame with clean data, when a compiled baseline suite is executed, then every expectation reports `success=True` (no `success=False`/`result={}` silent false-negative).
-- [ ] **US-022-AC2** — Given the same suite and data on a classic Spark DataFrame and on a Connect DataFrame, when both are executed, then the per-expectation pass/fail verdicts are identical.
-- [ ] **US-022-AC3** — Given a Connect DataFrame with a known violation (e.g. a null in a not-null column or an out-of-range value), when the suite is executed, then the violating expectation reports `success=False` with a populated `unexpected_count`.
-- [ ] **US-022-AC4** — Given an expectation that GX would drop from its results (same-type collation or a raised metric), when the suite is executed, then the dropped `(type, column)` is re-evaluated standalone and never silently reported as a pass.
+- [x] **US-022-AC1** — Given a Spark Connect DataFrame with clean data, when a compiled baseline suite is executed, then every expectation reports `success=True` (no `success=False`/`result={}` silent false-negative). *(`tests/unit/test_validation_connect_sail.py`)*
+- [x] **US-022-AC2** — Given the same suite and data on a classic Spark DataFrame and on a Connect DataFrame, when both are executed, then the per-expectation pass/fail verdicts are identical. *(baseline: `test_validation_connect_sail.py`; the four custom expectations: `tests/unit/test_custom_gx_parity.py`, now also value-equal on `partial_unexpected_list`)*
+- [x] **US-022-AC3** — Given a Connect DataFrame with a known violation (e.g. a null in a not-null column or an out-of-range value), when the suite is executed, then the violating expectation reports `success=False` with a populated `unexpected_count`. *(`test_validation_connect_sail.py`, `test_custom_gx_parity.py` dirty lanes)*
+- [x] **US-022-AC4** — Given an expectation that GX would drop from its results (same-type collation or a raised metric), when the suite is executed, then the dropped `(type, column)` is re-evaluated standalone and never silently reported as a pass. *(`test_custom_gx_parity.py` exercises the custom collation path through `execute_suite`)*
 
 ## Edge Cases
 

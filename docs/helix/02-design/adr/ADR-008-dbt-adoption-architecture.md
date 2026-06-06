@@ -9,8 +9,10 @@
 Accepted — implemented as the dbt backend on the Multi-Target Emission core seam
 (PRD FR-19.1/FR-19.2, FEAT-027); extends ADR-007 (raw->ingest SQL artifact) to the
 rest of tablespec. This record was reconciled against the shipped `tablespec.dbt`
-emitter on 2026-06-06: the roadmap items below (§4) have all SHIPPED — see the
-"Implementation status (shipped)" note after §4 for the per-item evidence.
+emitter on 2026-06-06: roadmap items 1-5 (§4) shipped first, and item 6 (the opt-in
+`DbtRunner` + `Emitter`/`get_emitter` selector + CLI `--backend dbt`) is now also
+implemented — the whole roadmap is delivered. See the §4 status table for the
+per-item evidence.
 
 ## Context
 
@@ -71,8 +73,8 @@ import each other.** Each candidate is a single-responsibility module under
 `tablespec.dbt`, fed by a CORE interface. (Reconciliation note: the modules marked
 "NEW" in the listings below have all SHIPPED — `core/schema_facts.py`,
 `core/selection.py`, `dbt/schema_tests.py`, `dbt/contracts.py`, `dbt/seeds.py`,
-`dbt/selection.py` — except `dbt/runner.py`, which remains deferred per §4 item 6.
-The "NEW" markers are retained as the original design narrative.)
+`dbt/selection.py`, and `dbt/runner.py` + `dbt/emitter.py` (§4 item 6, now
+implemented). The "NEW" markers are retained as the original design narrative.)
 
 #### Shared CORE (`src/tablespec/core/`) — no dbt, no Spark, no SQL dialect
 
@@ -124,8 +126,12 @@ dbt/
   seeds.py             # NEW: sample_data CSV -> seeds/ + dbt_project seeds: config.
   selection.py         # NEW: core.selection.ChangeSet -> `state:modified`
                        #   --select expression / selection manifest for CI.
-  runner.py            # NEW: the OPT-IN entry point (see §3) — lazy-imports
-                       #   dbt-core only here, when the user actually runs.
+  emitter.py           # NEW: Emitter ABC + DbtEmitter + get_emitter(backend) —
+                       #   the backend selector that materializes a runnable
+                       #   project by delegating to the generators above.
+  runner.py            # NEW: the OPT-IN entry point (see §3) — DbtRunner.emit +
+                       #   .build; lazy-imports dbt-core only inside .build/.invoke,
+                       #   when the user actually runs.
 ```
 
 Dependency direction (acyclic): `tablespec.dbt.*` -> `tablespec.core.*` -> stdlib
@@ -156,18 +162,21 @@ runtime never imports it. So:
    the runtime consumes the committed dbt project as an artifact and never invokes
    dbt through tablespec.
 
-3. **Execution lives in the test/CI lanes.** The conformance/parity tests run
-   `dbt build` against the DuckDB, local Spark session, and compile-only Databricks
-   targets to prove cast parity (`tests/conformance/*`,
-   `docs/helix/03-test/dbt-roadmap-acceptance.md`). A future opt-in execution
-   entry point (`DbtRunner` + an `Emitter`/`get_emitter` backend selector + a CLI
-   `--backend dbt`) is the only deferred piece — see §4 item 6; it is NOT yet
-   shipped and remains explicitly future work.
+3. **Execution lives in the test/CI lanes — plus an opt-in product runner.** The
+   conformance/parity tests run `dbt build` against the DuckDB, local Spark session,
+   and compile-only Databricks targets to prove cast parity (`tests/conformance/*`,
+   `docs/helix/03-test/dbt-roadmap-acceptance.md`). The opt-in execution entry point
+   (`DbtRunner` + an `Emitter`/`get_emitter` backend selector + a CLI
+   `--backend dbt`) is now SHIPPED — see §4 item 6: `get_emitter('dbt')` materializes
+   a runnable project (delegating to the existing pure-Python generators) and
+   `DbtRunner.build` runs it via dbt-duckdb. The runner lazy-imports the dbt CLI only
+   when a build is requested, so emitting still needs no dbt installed; the runnable
+   target is **duckdb only** (databricks stays compile-only per the phase-4 eval).
 
-### 4. Adoption roadmap (value-to-effort ordered) — items 1-5 SHIPPED
+### 4. Adoption roadmap (value-to-effort ordered) — all items SHIPPED
 
-Implementation status (reconciled 2026-06-06): items **1-5 have shipped**; only the
-opt-in execution wiring (item 6) is deferred.
+Implementation status (reconciled 2026-06-06): items **1-5 shipped** first and item
+**6 (opt-in execution wiring) is now implemented** — the full roadmap is delivered.
 
 | # | Roadmap item | Status | Evidence |
 |---|---|---|---|
@@ -176,7 +185,7 @@ opt-in execution wiring (item 6) is deferred.
 | 3 | model contracts from schema facts | **Shipped** | `src/tablespec/dbt/contracts.py:120`; enforced-contract config on every model (`project.py:229`) |
 | 4 | `state:modified` CI selection from `umf_diff` | **Shipped** | `src/tablespec/core/selection.py` (`ChangeSet`) + `src/tablespec/dbt/selection.py:69` (`select_expression`, `EMPTY_SELECTION`) |
 | 5 | `sample_data` -> dbt seeds | **Shipped** | `src/tablespec/dbt/seeds.py:190` (`emit_seeds`, `render_seeds_config`, `seed_column_types`) |
-| 6 | `DbtRunner` + `Emitter`/`get_emitter` opt-in + CLI `--backend` | **Deferred** | not implemented; the dbt path is exercised through the conformance/parity test lanes, not a product runner |
+| 6 | `DbtRunner` + `Emitter`/`get_emitter` opt-in + CLI `--backend` | **Implemented** | `src/tablespec/dbt/emitter.py` (`Emitter`, `DbtEmitter`, `get_emitter`), `src/tablespec/dbt/runner.py` (`DbtRunner.emit`/`build` -> dbt-duckdb), CLI `emit --backend dbt [--run]` (`src/tablespec/cli.py`); e2e `tests/integration/test_dbt_runner.py` (emit -> `dbt build` -> assert model + DATE NULL-on-failure cast), CLI tests `tests/unit/test_cli_validation_commands.py::TestEmitBackend`. duckdb is the runnable target (databricks stays compile-only). |
 
 The original roadmap text is retained below for the rationale/effort record:
 
@@ -193,8 +202,10 @@ The original roadmap text is retained below for the rationale/effort record:
    `umf_diff`. *M, H.*
 5. **`dbt/seeds.py`: sample_data -> seeds** for `dbt build` smoke tests + the
    duckdb parity harness. *S, M.*
-6. **`dbt/runner.py` + `Emitter`/`get_emitter` opt-in** wiring + CLI `--backend`.
-   *M, H — unlocks "run everything through dbt".*
+6. **`dbt/runner.py` + `dbt/emitter.py` (`Emitter`/`get_emitter`) opt-in** wiring +
+   CLI `--backend dbt`. *M, H — unlocks "run everything through dbt".* SHIPPED: the
+   emitter seam delegates to the existing pure-Python generators (no duplication),
+   and `DbtRunner` runs the emitted project via dbt-duckdb (duckdb-only target).
 
 Explicitly **out of scope** (stays native): `quality/` baselines, `profiling`
 mappers, `prompts/`, and all rich/stage-classified/statistical GX expectations.
@@ -258,5 +269,6 @@ mappers, `prompts/`, and all rich/stage-classified/statistical GX expectations.
 - ADR-007 — Raw-to-Ingest Transforms as Committed SQL Artifacts.
 - Test acceptance: `docs/helix/03-test/dbt-roadmap-acceptance.md`.
 - Implementation: `src/tablespec/dbt/` (`single_table.py`, `project.py`, `schema_tests.py`,
-  `contracts.py`, `seeds.py`, `selection.py`), `src/tablespec/core/schema_facts.py`,
+  `contracts.py`, `seeds.py`, `selection.py`, `emitter.py`, `runner.py`),
+  `src/tablespec/cli.py` (`emit --backend dbt`), `src/tablespec/core/schema_facts.py`,
   `src/tablespec/core/selection.py`, `pyproject.toml:51`,`:63`.

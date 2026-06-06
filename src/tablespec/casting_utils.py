@@ -413,7 +413,20 @@ def _epoch_ms_cast_sql(column: str, target: str, *, is_duck: bool) -> str:
     :func:`cast_timestamp_with_epoch_fallback` (with ``format=None``) does at
     runtime. Both dialects truncate to whole seconds (Spark ``from_unixtime`` and
     the DuckDB ``floor(.../1000)`` form drop sub-second ms identically), and both
-    gate on the SAME detection regexes, so a value one engine NULLs the other NULLs.
+    gate on the SAME detection regexes, so the epoch-detected branch is byte-equal
+    across engines.
+
+    Parity caveat for the ELSE (default-parse) branch: Spark uses
+    ``try_to_timestamp`` and DuckDB uses ``try_cast(... as timestamp)``. For
+    canonical ISO date/timestamp strings these agree, but they have engine-specific
+    leniency at the edges -- e.g. a bare time-only string like ``"15:06:40"`` or a
+    whitespace-padded date parses on Spark (yielding a today-relative timestamp) but
+    NULLs on DuckDB. Such values are NOT epoch-formatted and only appear as dirty
+    rows in an explicitly EPOCH_MS-declared column; clean ISO values, all detected
+    epoch values, and all Excel-serial values remain byte-equal across engines. The
+    Spark runtime itself produces the same today-relative (non-deterministic) result
+    for time-only strings, so the divergence is inherited from the parser leniency,
+    not introduced by the epoch-fallback arithmetic.
     """
     if is_duck:
         detect = (

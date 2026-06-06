@@ -60,6 +60,92 @@ def _load_umf(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
+def _umf_for_emit() -> dict:
+    """A minimal single-table UMF the dbt emitter can render into a project."""
+    return {
+        "version": "1.0",
+        "table_name": "metrics",
+        "primary_key": ["metric_id"],
+        "ingestion": {"mode": "incremental", "order_by": ["_load_ts"]},
+        "columns": [
+            {"name": "metric_id", "data_type": "INTEGER", "nullable": {"default": False}},
+            {"name": "as_of_date", "data_type": "DATE", "format": "YYYYMMDD"},
+            {"name": "label", "data_type": "VARCHAR", "length": 32},
+        ],
+    }
+
+
+class TestEmitBackend:
+    """`tablespec emit --backend dbt` produces a runnable dbt project dir."""
+
+    @pytest.mark.no_spark
+    def test_emit_dbt_writes_project(self, tmp_path: Path) -> None:
+        umf_file = tmp_path / "metrics.json"
+        umf_file.write_text(json.dumps(_umf_for_emit()))
+        out_dir = tmp_path / "project"
+
+        result = runner.invoke(
+            app,
+            ["emit", str(umf_file), str(out_dir), "--backend", "dbt"],
+        )
+        assert result.exit_code == 0, result.output
+        # The emitted project carries the model + scaffolding.
+        assert (out_dir / "dbt_project.yml").exists()
+        assert (out_dir / "models" / "metrics.sql").exists()
+        assert (out_dir / "models" / "schema.yml").exists()
+        assert (out_dir / "profiles.yml").exists()
+        assert "Emitted" in _strip_ansi(result.output)
+
+    @pytest.mark.no_spark
+    def test_emit_unknown_backend_errors(self, tmp_path: Path) -> None:
+        umf_file = tmp_path / "metrics.json"
+        umf_file.write_text(json.dumps(_umf_for_emit()))
+
+        result = runner.invoke(
+            app,
+            ["emit", str(umf_file), str(tmp_path / "p"), "--backend", "nope"],
+        )
+        assert result.exit_code == 1, result.output
+        assert "Unknown emitter backend" in _strip_ansi(result.output)
+
+    @pytest.mark.no_spark
+    @pytest.mark.slow
+    def test_emit_dbt_run(self, tmp_path: Path) -> None:
+        """`emit --run` emits AND runs the project via dbt-duckdb (gated on dbt)."""
+        import duckdb as _duckdb
+
+        pytest.importorskip("dbt", reason="dbt-core required for --run")
+        pytest.importorskip("dbt.adapters.duckdb", reason="dbt-duckdb required")
+
+        umf_file = tmp_path / "metrics.json"
+        umf_file.write_text(json.dumps(_umf_for_emit()))
+        out_dir = tmp_path / "project"
+
+        # The model reads from raw_metrics; create it before --run so dbt build
+        # has a source to materialize from.
+        db = out_dir / "tablespec.duckdb"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        con = _duckdb.connect(str(db))
+        try:
+            con.execute(
+                'CREATE TABLE raw_metrics ("metric_id" VARCHAR, "as_of_date" VARCHAR, '
+                '"label" VARCHAR, "_source_file" VARCHAR, "_load_ts" TIMESTAMP)'
+            )
+            con.execute(
+                "INSERT INTO raw_metrics VALUES "
+                "('1','20240101','alpha','s.csv', TIMESTAMP '2024-01-01 00:00:00')"
+            )
+        finally:
+            con.close()
+
+        result = runner.invoke(
+            app,
+            ["emit", str(umf_file), str(out_dir), "--backend", "dbt", "--run"],
+        )
+        assert result.exit_code == 0, result.output
+        assert "dbt build succeeded" in _strip_ansi(result.output)
+
+
 class TestValidationRemove:
     def test_remove_by_type_and_column(self, tmp_path: Path) -> None:
         umf_file = _write_umf(tmp_path)

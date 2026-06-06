@@ -98,6 +98,12 @@ Both are still open — documented, not fixed:
    Action: add an `iso_ts_noformat` fixture with offset/Z values, and EITHER make
    the duckdb no-format timestamp cast honor offsets like Spark, OR document it as
    a known limitation of the no-format path so it is not silently green.
+   Note: the EPOCH_MS sentinel cast (cast-edge-formats) shares this exact
+   default-parse ELSE branch — for an EPOCH_MS column, a *dirty, non-epoch*,
+   engine-lenient string (e.g. time-only `"15:06:40"`, whitespace-padded date)
+   parses on Spark `try_to_timestamp` but NULLs on DuckDB `try_cast`. Clean ISO,
+   all detected-epoch, and all Excel-serial values stay byte-equal. This is now
+   documented on `casting_utils._epoch_ms_cast_sql` and in the test-plan Known Gaps.
 
 2. **Dedup tie-break under-determined (documented, not fixed).**
    `dedup_window_sql` partitions by PK and orders only by the configured

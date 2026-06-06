@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-027 — dbt Project Emitter
 
 **Feature ID**: FEAT-027
-**Status**: Specified
+**Status**: Implemented
 **Priority**: P0
 **Owner**: Platform / Compile Team
 **Covered PRD Subsystem(s)**: Multi-Target Emission
@@ -56,6 +56,7 @@ CI/test lane that actually *runs* `dbt build` needs the dbt stack.
 | Schema facts → tests + contracts | "Derive the same constraints the GX suite uses" | Render `not_null` (as contract constraint), `unique`, `relationships`, `accepted_values` from the shared `core.schema_facts` |
 | CI selection + seeds | "Build/test only impacted models; smoke-test with fixtures" | Map a UMF diff `ChangeSet` to a `--select` expression; emit `sample_data` CSVs as dbt seeds |
 | Dependency packaging | "Generate without forcing dbt on consumers" | Keep all emission pure-Python (no `import dbt`); confine dbt to the dev/test group |
+| Opt-in runnable target | "Emit a project for a backend and actually run it" | `get_emitter(backend)` materializes a runnable project; `DbtRunner` runs it via dbt-duckdb; CLI `emit --backend dbt [--run]` |
 
 ## Requirements
 
@@ -136,6 +137,24 @@ DBT-13. dbt is NOT a user-facing extra: the dbt stack (`dbt-core`, `dbt-duckdb`,
 `uv sync --group dev` yields a working test stack with no `--extra` to remember.
 (`pyproject.toml:63`)
 
+#### Opt-in runnable target
+
+DBT-14. `get_emitter(backend)` returns an `Emitter` for the backend (`"dbt"` -> `DbtEmitter`);
+an unknown backend raises `EmitterError`. `DbtEmitter.emit` materializes a runnable project
+under `out_dir` by delegating to `generate_dbt_project` (single UMF) / `generate_dbt_dag_project`
+(a set) — no generation logic is re-implemented in the seam.
+(`src/tablespec/dbt/emitter.py`)
+
+DBT-15. `DbtRunner.emit` emits a project (pure-Python, no dbt needed) and `DbtRunner.build`
+runs it via dbt-duckdb (`dbt build`), pinning the DuckDB database under the project dir
+(`DBT_DUCKDB_PATH`) so the run is isolated; the result reports success + the dbt exit code.
+The dbt CLI is lazy-imported only inside `build`/`invoke`, so emitting needs no dbt installed.
+The runnable target is duckdb only. (`src/tablespec/dbt/runner.py`)
+
+DBT-16. The CLI `tablespec emit <umf> <out_dir> --backend dbt` writes the project dir; with
+`--run` it also invokes `dbt build` against the emitted project and fails non-zero on a failed
+build. (`src/tablespec/cli.py`)
+
 ### Non-Functional Requirements
 
 - **Determinism**: Re-emitting from an unchanged UMF produces byte-identical project files
@@ -190,14 +209,16 @@ DBT-13. dbt is NOT a user-facing extra: the dbt stack (`dbt-core`, `dbt-duckdb`,
 
 ## Out of Scope
 
-- Executing dbt at run time as a product surface — the runtime consumes committed artifacts,
-  it does not invoke dbt (PRD FR-18.3).
+- Executing dbt as the *production runtime* surface — the deployed runtime consumes committed
+  artifacts and does not invoke dbt (PRD FR-18.3). (The opt-in `DbtRunner` / `emit --backend
+  dbt --run` is a developer/CI convenience that runs an emitted project locally via
+  dbt-duckdb; it is NOT the production execution path.)
 - Porting rich/stage-classified/statistical GX expectations to dbt generic tests — these stay
   native in GX (ADR-008).
 - dbt-utils / dbt-expectations package adoption (deliberately avoided; ADR-008).
 - LDP and direct-SQL emitters (FR-19.3 / FR-19.4 — separate features).
-- A `DbtRunner` opt-in execution entry point and `--backend dbt` CLI wiring (ADR-008 roadmap
-  item 6; not yet shipped).
+- A Databricks dbt *run* target — the runnable `DbtRunner` target is duckdb only; the
+  spark/databricks dialects stay compile-only / conformance-lane (ADR-008 / phase-4 eval).
 
 ## Review Checklist
 

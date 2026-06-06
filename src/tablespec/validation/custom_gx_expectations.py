@@ -169,9 +169,7 @@ def validate_cast_to_type(
     col_type = dataframe.schema[column].dataType
     is_already_target_type = (
         target_type.upper() == "DATE" and isinstance(col_type, DateType)
-    ) or (
-        target_type.upper() == "TIMESTAMP" and isinstance(col_type, TimestampType)
-    )
+    ) or (target_type.upper() == "TIMESTAMP" and isinstance(col_type, TimestampType))
     if is_already_target_type:
         total_count = dataframe.count()
         return {
@@ -240,6 +238,18 @@ def validate_cast_to_type(
     }
 
 
+def _pair_element_repr(value: Any) -> Any:
+    """Render a column-pair element the way GX's classic ``add_spark`` engine does.
+
+    GX stringifies non-null pair members in ``partial_unexpected_list`` (e.g. a
+    ``datetime.date`` becomes its ISO ``str``) while preserving ``None`` for nulls.
+    Mirroring that here keeps the native Connect path byte-equal with classic.
+    """
+    if value is None:
+        return None
+    return str(value)
+
+
 def validate_column_pair_date_order(
     dataframe: Any,
     value_column: str,
@@ -291,9 +301,14 @@ def validate_column_pair_date_order(
     sample_rows = (
         unexpected_df.select(value_column, reference_column).limit(10).collect()
     )
-    operator = "<" if or_equal else "<="
+    # Match GX's classic ``add_spark`` ``expect_column_pair_values_a_to_be_greater_than_b``
+    # rendering byte-for-byte: a list of ``[column_A, column_B]`` pairs, each element
+    # stringified (so ``datetime.date(2023, 1, 1)`` -> ``"2023-01-01"``). Emitting a
+    # human-readable ``"a < b"`` comparison string here would diverge from the classic
+    # engine's partial_unexpected_list and break cross-engine value parity.
     partial_unexpected_list = [
-        f"{row[value_column]} {operator} {row[reference_column]}" for row in sample_rows
+        [_pair_element_repr(row[value_column]), _pair_element_repr(row[reference_column])]
+        for row in sample_rows
     ]
 
     return {
@@ -329,10 +344,15 @@ def validate_date_in_current_year(
         raise ImportError(msg)
 
     spark = dataframe.sparkSession
+    # Cast the bounds to DATE. ``DATE_TRUNC`` returns a TIMESTAMP, which Spark
+    # Connect (Sail / Databricks serverless) compares against a DATE column with
+    # different semantics than classic Spark -- producing parity-breaking
+    # false positives (e.g. a Jan-1 in-year date read as out-of-range). DATE
+    # bounds make the comparison date-to-date and identical on both engines.
     bounds_row = spark.sql("""
         SELECT
-            DATE_TRUNC('YEAR', CURRENT_DATE()) as year_start,
-            DATE_TRUNC('YEAR', CURRENT_DATE()) + INTERVAL '1 YEAR' - INTERVAL '1 DAY' as year_end
+            CAST(DATE_TRUNC('YEAR', CURRENT_DATE()) AS DATE) as year_start,
+            CAST(DATE_TRUNC('YEAR', CURRENT_DATE()) + INTERVAL '1 YEAR' - INTERVAL '1 DAY' AS DATE) as year_end
     """).first()
     year_start = bounds_row["year_start"]
     year_end = bounds_row["year_end"]
@@ -646,8 +666,17 @@ def validate_domain_type(
     Can be used as a shim when the full GX custom expectation framework
     is not available or practical.
 
+    PANDAS shim -- requires a pandas frame, NOT a Spark/Connect DataFrame.
+    Both callers (the GX ``ExpectColumnValuesToMatchDomainType._validate`` classic
+    path and the native suite executor at ``gx_executor._evaluate_custom_native``)
+    first materialize the single target column with ``df.select(col).toPandas()``
+    before calling this. That collect is O(rows) in driver memory: it is fine for
+    the bounded batch/test sizes here, but is NOT a scalable production path for
+    very large columns. A native Spark-API rewrite (so domain-type runs without a
+    full-column collect on Connect) is a separate, larger effort.
+
     Args:
-        df: Pandas DataFrame containing the data.
+        df: Pandas DataFrame containing the data (executor-collected, see above).
         column: Column name to validate.
         domain_type_name: Domain type name from registry (e.g., "us_state_code").
         mostly: Fraction of values that must match (default 1.0).

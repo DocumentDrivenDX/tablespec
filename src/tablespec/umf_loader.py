@@ -22,6 +22,7 @@ class UMFFormat(str, Enum):
 
     SPLIT = "split"  # Directory structure (table.yaml + columns/) - default
     JSON = "json"  # Single JSON file (artifact standard)
+    INLINE = "inline"  # Single .yaml/.yml/.umf file (legacy whole-UMF document)
 
 
 class UMFLoader:
@@ -205,11 +206,10 @@ class UMFLoader:
         if path.is_file():
             if path.suffix == ".json":
                 return UMFFormat.JSON
-            # Support legacy .yaml/.yml/.umf files (treat as inline YAML to be loaded directly)
+            # Support legacy .yaml/.yml/.umf files: a single YAML file holds the
+            # whole UMF document (not a split-dir table.yaml). Load it inline.
             if path.suffix in {".yaml", ".yml", ".umf"}:
-                return (
-                    UMFFormat.SPLIT
-                )  # Will be loaded via _load_column_centric using direct file read
+                return UMFFormat.INLINE
 
         if path.is_dir():
             if not (path / "table.yaml").exists():
@@ -279,8 +279,41 @@ class UMFLoader:
         """
         if format_type == UMFFormat.JSON:
             return self._load_json(path)
+        if format_type == UMFFormat.INLINE:
+            return self._load_inline_yaml(path)
         # SPLIT format (table.yaml + columns/)
         return self._load_column_centric(path)
+
+    def _load_inline_yaml(self, file_path: Path) -> UMF:
+        """Load UMF from a single inline YAML document (.yaml/.yml/.umf).
+
+        Unlike the split format, the whole UMF lives in one YAML file. This is the
+        legacy single-file form and what the ``emit``/``generate`` CLIs accept for a
+        single-file source. Mirrors ``_load_json``'s legacy-field handling so YAML and
+        JSON single-file sources behave identically.
+        """
+        try:
+            with file_path.open(encoding="utf-8") as f:
+                data = self.yaml.load(f) or {}
+        except FileNotFoundError:
+            msg = f"UMF file not found: {file_path}"
+            raise FileNotFoundError(msg) from None
+
+        # Normalize string types for Spark/serialization consistency.
+        data = self._convert_yaml_to_plain_strings(data)
+
+        # Populate expectations from legacy fields if not already present (ADR-005).
+        if "expectations" not in data and (
+            "validation_rules" in data or "quality_checks" in data
+        ):
+            from tablespec.expectation_migration import ensure_expectation_suite_data
+
+            data["expectations"] = ensure_expectation_suite_data(data)
+
+        umf = UMF(**data)
+        if hasattr(umf, "mtime"):
+            umf.mtime = file_path.stat().st_mtime
+        return umf
 
     def _load_json(self, file_path: Path) -> UMF:
         """Load UMF from JSON file.

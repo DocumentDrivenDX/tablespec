@@ -25,8 +25,12 @@ Databricks serverless. | Quality gate: `make check` (lint + pyright + tests) plu
 the cross-engine conformance matrix and the Connect (Sail) lanes.
 
 **Out of Scope**: Live production data processing (runtimes own that); warehouse
-provisioning; load/stress testing; full GX *custom*-expectation parity on Connect
-(tracked as a known gap — see [serverless-compatibility](../05-evaluation/serverless-compatibility.md)).
+provisioning; load/stress testing.
+
+(GX *custom*-expectation parity on Connect is now **covered** — all four customs are
+verdict- and value-equal across classic and Connect, asserted by
+`tests/unit/test_custom_gx_parity.py`. See
+[serverless-compatibility](../05-evaluation/serverless-compatibility.md).)
 
 **Traceability Source**: PRD FR-5.x (profiling), FR-7.7/7.8 (Connect-safe
 validation), FR-18.x (compile/bootstrap), FR-19.x (multi-target emission),
@@ -85,7 +89,8 @@ FR-20.x (runtime platform); FEAT-024/025/026/027/028; US-021–026.
 
 - P1: dbt `state:modified` CI selection from UMF diff; LDP structure golden;
   opt-in real-Databricks deploy/execute leg.
-- P2: GX custom-expectation Connect parity (open gap); CLI mutation commands;
+- P2: GX custom-expectation Connect parity (**covered** — `test_custom_gx_parity.py`,
+  all four customs verdict+value equal classic vs Connect); CLI mutation commands;
   property-based generator fuzzing.
 
 ## Acceptance Criteria Layer Allocation
@@ -144,12 +149,17 @@ native path is *correct*, not just non-crashing, with **no JVM / no `JAVA_HOME`*
 |------|----------------|----------|
 | Native profiler on Sail (Connect) | `NativeSparkProfiler` runs Connect-safe; pins scalar `percentile_approx` + exact float `count_distinct` (DataFusion) | `tests/unit/test_profiler_connect_sail.py` |
 | Native GX executor + `TableValidator` on Sail | Every supported expectation type: clean→`success=True`, dirty→`success=False` with exact `unexpected_count` | `tests/unit/test_validation_connect_sail.py` |
+| GX *custom*-expectation parity (classic vs Connect) | All four customs (`cast_to_type`, `match_domain_type`, `pair a>b`, `date_in_current_year`) driven through `GXSuiteExecutor` on both engines: identical `success`, `unexpected_count`, and `partial_unexpected_list` (incl. the pair custom's `[A, B]` rendering) | `tests/unit/test_custom_gx_parity.py` |
 | Real Databricks serverless | The same native operations run on env-v3 / Python 3.12 serverless | ADR-010/011; test docstrings; opt-in e2e tier |
 
-**Known gap (P2):** GX *custom* expectations use pandas paths not Connect-compatible;
-the default GX unit harness stays on classic Spark (`tests/conftest.py:417`), and the
-Connect path re-routes custom expectations through native validators that fail closed
-on unsupported types. Full custom-expectation Connect parity is future work.
+**Custom-expectation Connect parity (was P2 gap — now COVERED):** the four GX
+*custom* expectations are routed through GX's classic `add_spark` engine on classic
+Spark and through the Connect-safe native path (`gx_executor._evaluate_custom_native`
+→ `custom_gx_expectations` validators) on Connect. Both engines now agree on
+`success`, `unexpected_count`, *and* the `partial_unexpected_list` sample (the native
+column-pair validator renders `[column_A, column_B]` string pairs to match
+`add_spark` byte-for-byte). Asserted on both lanes by
+`tests/unit/test_custom_gx_parity.py` (classic JVM + Sail/Connect, clean and dirty).
 
 ## The e2e Bootstrap → Compile → Backbone Matrix
 
@@ -191,11 +201,17 @@ duckdb/local-spark; LDP structure local, APPLY CHANGES only on real Databricks).
 | Connect DataFrame mis-classification | Med | `_is_connect_dataframe` is a correctness-critical seam; module-prefix based, covered by Sail lanes |
 | dbt-CLI startup dominates duckdb suite wall-clock | Low | Acknowledged harness cost (see phase4 eval); not an engine limitation |
 
-**Known Gaps**: (1) GX custom-expectation Connect parity (P2). (2) No load/stress
-testing. (3) Pre-existing: `test_gx_schema_validation.py` skipped (GX numpy/pandas
-compatibility); thin unit coverage on some authoring/change-mgmt utilities (see the
-inventory below). (4) Residual no-format TIMESTAMP offset divergence and dedup
-tie-break determinism (documented in the phase4 eval, fixtures pending).
+**Known Gaps**: (1) ~~GX custom-expectation Connect parity (P2)~~ — **CLOSED**,
+covered by `tests/unit/test_custom_gx_parity.py` (all four customs, verdict + value
+equal on classic and Connect). (2) No load/stress testing. (3) Pre-existing:
+`test_gx_schema_validation.py` skipped (GX numpy/pandas compatibility); thin unit
+coverage on some authoring/change-mgmt utilities (see the inventory below). (4)
+Residual no-format TIMESTAMP offset divergence and dedup tie-break determinism
+(documented in the phase4 eval, fixtures pending). Note: the EPOCH_MS/Excel-serial
+ingest casts (cast-edge-formats) are now byte-equal for clean ISO, all detected-epoch,
+and all Excel-serial values; only engine-lenient *dirty* fall-through strings (e.g.
+time-only `"15:06:40"`) can differ in the default-parse ELSE branch — documented on
+`casting_utils._epoch_ms_cast_sql`.
 
 ## Build Handoff
 

@@ -498,6 +498,101 @@ def generate(
 
 
 @app.command()
+def emit(
+    source: Path = typer.Argument(
+        ...,
+        help="UMF file or directory to emit a runnable project from",
+        exists=True,
+    ),
+    out_dir: Path = typer.Argument(
+        ...,
+        help="Output directory for the emitted project",
+    ),
+    backend: str = typer.Option(
+        "dbt",
+        "--backend",
+        "-b",
+        help="Emission backend (currently: dbt)",
+    ),
+    project_name: str | None = typer.Option(
+        None,
+        "--project-name",
+        help="dbt project + profile name (default depends on single/multi table)",
+    ),
+    dialect: str = typer.Option(
+        "duckdb",
+        "--dialect",
+        help="Cast dialect for emitted models (duckdb, spark, databricks)",
+    ),
+    run: bool = typer.Option(
+        False,
+        "--run",
+        help="After emitting, run the project with dbt (dbt build via dbt-duckdb)",
+    ),
+) -> None:
+    """Emit a runnable project for a UMF (or UMF set) via a backend.
+
+    The ``dbt`` backend materializes a complete dbt project (model SQL,
+    contracts/tests, sources, profiles, scaffolding) into OUT_DIR. With ``--run``
+    it also invokes ``dbt build`` against the emitted project (requires dbt-duckdb).
+
+    Examples:
+      tablespec emit table.umf.yaml out/ --backend dbt
+      tablespec emit tables/ out/ --backend dbt --run
+
+    """
+    from tablespec.dbt import EmitterError, get_emitter
+
+    try:
+        loader = UMFLoader()
+        if source.is_dir() and not (source / "schema.yaml").exists():
+            # A directory of tables -> emit a multi-table project.
+            umfs = [loader.load(p.parent) for p in sorted(source.rglob("table.yaml"))]
+            if not umfs:
+                # Fall back to treating it as a single split-format table dir.
+                umfs = [loader.load(source)]
+        else:
+            umfs = [loader.load(source)]
+
+        emitter = get_emitter(backend)
+        console.print(
+            f"[cyan]Emitting[/cyan] {backend} project for "
+            f"{len(umfs)} table(s) -> {out_dir}"
+        )
+        project = emitter.emit(
+            umfs, out_dir, project_name=project_name, dialect=dialect
+        )
+        console.print(
+            f"[green]Emitted[/green] {len(project.files)} files "
+            f"(project '{project.project_name}') to {project.project_dir}"
+        )
+
+        if run:
+            from tablespec.dbt import DbtRunner
+
+            console.print("[cyan]Running[/cyan] dbt build...")
+            runner = DbtRunner()
+            result = runner.build(project)
+            if result.success:
+                console.print("[green]dbt build succeeded.[/green]")
+            else:
+                console.print(f"[red]dbt build failed[/red] (exit {result.returncode})")
+                console.print(result.stdout)
+                console.print(result.stderr)
+                raise typer.Exit(1)
+
+    except EmitterError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+    except FileNotFoundError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red]\n{e}")
+        raise typer.Exit(1)
+
+
+@app.command()
 def export_excel(
     source: Path = typer.Argument(
         ...,

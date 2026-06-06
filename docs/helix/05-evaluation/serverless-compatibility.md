@@ -20,11 +20,14 @@ native-executor routing).
 
 **Verdict: TRUE for the native profiler and the native GX-suite executor /
 `TableValidator` path, proven both locally (Sail Spark-Connect, no JVM) and on real
-Databricks serverless.** The GX-`add_spark` engine and the GX *custom* expectations
-(pandas-backed) are NOT Connect-safe and are deliberately routed away from Connect
-(classic-Spark only). The single most important finding: GX `add_spark` does not
-error on Connect — it *silently returns wrong answers* — so the fix is
-per-expectation routing to a native DataFrame-API executor, not a try/except.
+Databricks serverless.** The GX-`add_spark` engine itself is NOT Connect-safe and is
+deliberately routed away from Connect; the four GX *custom* expectations now run on
+Connect through the native path (`_evaluate_custom_native` → `custom_gx_expectations`
+validators, with the small domain-type column materialized via `toPandas`) and are
+proven verdict- and value-equal to classic `add_spark` by
+`tests/unit/test_custom_gx_parity.py`. The single most important finding: GX
+`add_spark` does not error on Connect — it *silently returns wrong answers* — so the
+fix is per-expectation routing to a native DataFrame-API executor, not a try/except.
 
 ## 1. The runtime model (env-v3 / Python 3.12 / no JVM SparkContext)
 
@@ -60,7 +63,7 @@ test asserts *correctness* (clean → pass, dirty → fail with the exact
 |---|---|---|---|---|---|---|---|
 | **DuckDB** (fast inner loop) | no | no | n/a (SQL engine, not Spark) | n/a (df-API path is Spark) | n/a | n/a | conformance ingest/gold parity; ADR-006 |
 | **Classic Spark 4.0** (local, JDK 17) | yes | **required** (JDK 17; default JDK 26 crashes in `getSubject`) | proven | proven via `add_spark` (classic path) | proven (classic only) | proven (classic only, pandas paths OK on a JVM session) | full `make test`; conformance row tier |
-| **Sail Spark-Connect** (local, pysail, no JVM) | **no** | **no** | **proven** | **proven** (routed to native executor) | not used (routed away) | not run (pandas paths not Connect-compatible) | `tests/unit/test_profiler_connect_sail.py`, `tests/unit/test_validation_connect_sail.py` |
+| **Sail Spark-Connect** (local, pysail, no JVM) | **no** | **no** | **proven** | **proven** (routed to native executor) | not used (routed away) | **proven** (native path; verdict+value equal to classic) | `tests/unit/test_profiler_connect_sail.py`, `tests/unit/test_validation_connect_sail.py`, `tests/unit/test_custom_gx_parity.py` |
 | **Databricks serverless / Spark Connect** (env-v3, Py 3.12) | no | no | **proven** (real serverless) | **proven** (same native operations) | not used | not used | the same native operations run on real serverless (test docstrings; ADR-010/011 "proven on real serverless") |
 | **Real-Databricks e2e** (opt-in) | n/a | n/a | — | dbt-databricks + LDP deploy/execute | — | — | gated by `DATABRICKS_HOST` (`e2e/gating.py:48`); `tests/conformance/test_*_databricks_*` |
 
@@ -75,13 +78,18 @@ Notes on the matrix:
   `GXSuiteExecutor._is_connect_dataframe` (`gx_executor.py:212`) detects Connect
   DataFrames by module (`pyspark.sql.connect.*`) and routes them to the native path
   (`gx_executor.py:237`); classic DataFrames keep the unchanged `add_spark` engine.
-- **GX *custom* expectations are not yet Connect-safe.** They exercise pandas code
-  paths (e.g. `validate_domain_type`'s `df[col].dropna()`) that are not
-  Spark-Connect-compatible, so the default GX unit harness deliberately stays on
-  **classic Spark** (`tests/conftest.py:417-447`). On the Connect path these are
-  re-evaluated through the native custom-validators (`_evaluate_custom_native`,
-  `gx_executor.py:298`), failing closed if a type is unsupported. GX-on-Connect for
-  the full custom-expectation surface is acknowledged future work.
+- **GX *custom* expectations ARE Connect-safe via the native path (parity proven).**
+  The classic `add_spark` custom-expectation `_validate` methods exercise pandas code
+  (e.g. `validate_domain_type`'s `df[col].dropna()`), so the default GX unit harness
+  stays on **classic Spark** (`tests/conftest.py:417-447`). On the Connect path the
+  four customs are re-evaluated through the native custom-validators
+  (`_evaluate_custom_native`, `gx_executor.py:298`) — the small domain-type column is
+  materialized with `toPandas`, and the rest stay on the Spark DataFrame API. These
+  are now proven verdict- AND value-equal to classic `add_spark` (identical `success`,
+  `unexpected_count`, and `partial_unexpected_list` — the native column-pair validator
+  renders the same `[column_A, column_B]` sample list) by
+  `tests/unit/test_custom_gx_parity.py` on both a classic JVM session and a Sail
+  (Connect) session. Unsupported types still fail closed.
 
 ## 3. What the Sail lane locks in (correctness, not just liveness)
 
@@ -112,10 +120,12 @@ session — proving the native executor is the *correct* answer the swallowed
 
 ## 5. Residual risks / honest gaps
 
-1. **GX custom expectations on Connect (open).** The pandas-backed custom GX
-   expectations are not Connect-safe; the default GX harness stays on classic Spark
-   and the Connect path re-routes through native custom-validators that fail closed
-   on unsupported types. Full custom-expectation parity on Connect is future work.
+1. **GX custom expectations on Connect — CLOSED.** The four customs run on the
+   Connect native path and are proven verdict- and value-equal to classic
+   `add_spark` (`tests/unit/test_custom_gx_parity.py`, both engines, clean + dirty).
+   The default GX harness still stays on classic Spark for the `add_spark`-engine
+   `_validate` pandas paths; the Connect path re-routes through native
+   custom-validators that fail closed on unsupported types. No residual gap.
 2. **`add_spark` silent-false-negative is a *routing* guarantee.** Correctness on
    Connect depends on `_is_connect_dataframe` correctly classifying the DataFrame.
    A DataFrame from a Connect build that did **not** surface under
@@ -137,7 +147,8 @@ The hypothesis holds for the paths that matter: **native profiling and native GX
 validation are first-class and *correct* on Spark Connect / Databricks serverless**,
 with no JVM, no `JAVA_HOME`, and no PyDeequ — proven locally on Sail and on real
 serverless. Keep the routing discipline (Connect → native, classic → `add_spark`)
-as the load-bearing invariant, treat `_is_connect_dataframe` as a correctness-critical
-seam, and track GX custom-expectation Connect parity as the one remaining gap.
+as the load-bearing invariant, and treat `_is_connect_dataframe` as a
+correctness-critical seam. GX custom-expectation Connect parity — formerly the one
+remaining gap — is now closed and locked down by `tests/unit/test_custom_gx_parity.py`.
 Maintain the always-on Sail lane as the local serverless proxy and the
 `DATABRICKS_HOST` e2e leg as the periodic real-workspace truth-gate.

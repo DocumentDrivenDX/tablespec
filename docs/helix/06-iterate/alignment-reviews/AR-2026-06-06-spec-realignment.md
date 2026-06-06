@@ -84,7 +84,7 @@
 
 | Area | Dimension | Concern | Severity | Resolution | Issue |
 |------|-----------|---------|----------|------------|-------|
-| GX custom expectations on Connect | robustness | Custom-expectation pandas paths not fully Connect-parity-tested (P2 known gap) | low | Tracked in test-plan "Known Gaps"; conformance harness asserts real results for baseline types | feat/helix-align |
+| GX custom expectations on Connect | robustness | ~~Custom-expectation pandas paths not fully Connect-parity-tested (P2 known gap)~~ — **RESOLVED** (feat/close-gaps): all four customs are verdict- and value-equal across classic and Connect | low → closed | `tests/unit/test_custom_gx_parity.py` asserts identical `success` + `unexpected_count` + `partial_unexpected_list` on both engines | feat/close-gaps |
 
 ## Traceability Matrix
 
@@ -115,7 +115,7 @@ No execution issues remain: every gap was a stale-or-missing spec resolved by wr
 | FR-5.5 / US-007 Deequ-stale | This review (edits) | covered |
 | FEAT-029 cross-reference | This review (edits) | covered |
 | PRD Open Questions resolved-but-open | This review (edits) | covered |
-| GX custom-expectation Connect parity (P2) | test-plan Known Gaps | deferred |
+| GX custom-expectation Connect parity (P2) | `tests/unit/test_custom_gx_parity.py` (feat/close-gaps) | resolved |
 
 ## Execution Order
 
@@ -127,9 +127,11 @@ No execution issues remain: every gap was a stale-or-missing spec resolved by wr
 
 ## Open Decisions
 
-| Decision | Why Open | Governing Artifacts | Recommended Owner |
-|----------|----------|---------------------|-------------------|
-| Promote GX custom-expectation Connect parity from P2 known-gap to a tested guarantee | Custom (cast/domain/date-order) handlers have native routing but not full Connect parity coverage | test-plan.md, FEAT-025, gx_executor.py | Data-Quality Platform |
+| Decision | Status | Governing Artifacts | Resolution |
+|----------|--------|---------------------|------------|
+| Promote GX custom-expectation Connect parity from P2 known-gap to a tested guarantee | **RESOLVED** (feat/close-gaps) | test-plan.md, FEAT-025, gx_executor.py, custom_gx_expectations.py | All four customs proven verdict- and value-equal across classic `add_spark` and the native Connect path by `tests/unit/test_custom_gx_parity.py`. The native column-pair validator was aligned to emit GX's `[column_A, column_B]` `partial_unexpected_list` rendering so the sample list matches byte-for-byte, not just `success` + `unexpected_count`. |
+
+No open decisions remain.
 
 ## Confirmation: No Spec Invalidates a Shipped Feature
 

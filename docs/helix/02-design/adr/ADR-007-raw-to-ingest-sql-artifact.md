@@ -73,7 +73,15 @@ artifact, not to wrap it at runtime.
     == duckdb-dialect SQL, plus a Sail/Connect lane). The sentinels are EXPLICIT opt-in (never
     inferred from a value), so a 4–6 digit numeric ID is never mis-read as an Excel serial; the
     Excel int-cast uses `try_cast` so dirty rows NULL on strict backends (Connect/Sail) too.
-    The flexible-format coalesce caster remains a follow-up.
+    Parity scope is precise: clean ISO date/timestamp values, ALL detected-epoch (12+-digit
+    / scientific) values, and ALL Excel-serial values are byte-identical across the runtime
+    caster, spark-dialect SQL, and duckdb-dialect SQL. The one residual divergence is the
+    default-parse ELSE branch of an EPOCH_MS column on *dirty, engine-lenient* strings (e.g.
+    a bare time-only `"15:06:40"` or whitespace-padded date): Spark `try_to_timestamp` parses
+    these (today-relative) while DuckDB `try_cast(... as timestamp)` NULLs them. This is
+    inherited parser leniency on non-epoch dirty rows, documented on
+    `casting_utils._epoch_ms_cast_sql`, not the epoch/Excel arithmetic. The flexible-format
+    coalesce caster remains a follow-up.
   - **Snapshot "latest file" filtering — DESCOPED (not needed).** No consumer requests
     input-file / file-modification "latest file" selection and no UMF field declares it; the
     snapshot mode already drops/reloads via `INSERT OVERWRITE` and incremental dedup-latest

@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: DBT-01, DBT-02, DBT-03, DBT-05, DBT-08, DBT-09, DBT-12
 **PRD Requirements**: FR-19.2 (dbt emitter), FR-19.1 (shared core seam)
 **Priority**: P0
-**Status**: Approved
+**Status**: Done (acceptance criteria met; emitter + opt-in `DbtRunner` shipped — see FEAT-027 DBT-14/15/16)
 
 ## Story
 
@@ -44,24 +44,29 @@ dev/test-only tool), so the engineer can compile anywhere `tablespec` is present
 
 ## Acceptance Criteria
 
-- [ ] **US-025-AC1** — Given a UMF with `ingestion.mode='incremental'` and a single-column
+- [x] **US-025-AC1** — Given a UMF with `ingestion.mode='incremental'` and a single-column
   `primary_key`, when `generate_dbt_project` runs, then the model `{{ config }}` is
   `materialized='incremental'`, `incremental_strategy='merge'`, `unique_key=[<pk>]` with
   `on_schema_change='fail'`, and the body applies the dedup-latest window.
-- [ ] **US-025-AC2** — Given a UMF with a non-nullable column and a single-column PK, when the
+  *(golden `tests/golden/dbt_project/incremental_pk/`; `tests/ingest_parity/test_dbt_idempotency.py`)*
+- [x] **US-025-AC2** — Given a UMF with a non-nullable column and a single-column PK, when the
   emitter runs, then `schema.yml` declares an enforced contract with that column's
   `data_type` + a `not_null` constraint and a `unique` generic test, and no duplicate
   generic `not_null` test is emitted.
-- [ ] **US-025-AC3** — Given a UMF set whose gold table references another emitted table by FK,
+  *(`tests/dbt_roadmap/test_contracts_functional.py`, `test_schema_tests_functional.py`)*
+- [x] **US-025-AC3** — Given a UMF set whose gold table references another emitted table by FK,
   when `generate_dbt_dag_project` runs, then the gold model carries a `relationships` test
   pointing at the referenced table's emitted model; an FK to a table in no UMF (not external)
   is skipped, never a dangling `ref()`.
-- [ ] **US-025-AC4** — Given a UMF set with a dependency cycle or a gold reference to an
+  *(`tests/dbt_dag/test_dbt_dag_ref_branches.py`, golden `tests/golden/dbt_dag_project/`)*
+- [x] **US-025-AC4** — Given a UMF set with a dependency cycle or a gold reference to an
   unknown, non-external relation, when `generate_dbt_dag_project` runs, then it raises
   `DbtProjectError` (fail closed), not a silently-dropped edge.
-- [ ] **US-025-AC5** — Given an environment with the dbt runtime packages NOT installed, when
+  *(`tests/dbt_dag/test_dbt_dag_ref_branches.py`)*
+- [x] **US-025-AC5** — Given an environment with the dbt runtime packages NOT installed, when
   `generate_dbt_project` / `generate_dbt_dag_project` are imported and called, then they
   succeed (no `import dbt` at generation time).
+  *(`test_src_never_imports_dbt`; the `DbtRunner` lazy-imports the dbt CLI only inside `build`)*
 
 ## Edge Cases
 

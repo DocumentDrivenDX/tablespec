@@ -130,14 +130,23 @@ class TestDateOrderViolations:
         assert result["result"]["unexpected_count"] == 2
 
     def test_unexpected_values_in_result(self, spark):
-        """Partial unexpected list should contain violation details."""
+        """Partial unexpected list mirrors GX add_spark: a list of [A, B] string pairs.
+
+        The native column-pair validator renders each offending row as a
+        ``[value_column, reference_column]`` (= ``[column_A, column_B]``) pair of
+        stringified values so the Connect path is byte-equal with GX's classic
+        ``add_spark`` ``partial_unexpected_list`` (cross-engine parity, see
+        ``tests/unit/test_custom_gx_parity.py``).
+        """
         df = spark.createDataFrame(
             [("2024-06-01", "2024-01-01")],
             ["start_date", "end_date"],
         )
         result = validate_column_pair_date_order(df, "end_date", "start_date")
-        assert len(result["result"]["partial_unexpected_list"]) == 1
-        assert "<" in result["result"]["partial_unexpected_list"][0]
+        pul = result["result"]["partial_unexpected_list"]
+        assert len(pul) == 1
+        # value_column=end_date="2024-01-01", reference_column=start_date="2024-06-01"
+        assert pul[0] == ["2024-01-01", "2024-06-01"]
 
 
 class TestDateOrderNulls:

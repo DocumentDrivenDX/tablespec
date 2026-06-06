@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-025 — Connect-Safe GX Suite Validation
 
 **Feature ID**: FEAT-025
-**Status**: Specified
+**Status**: Implemented
 **Priority**: P0
 **Owner**: Data-Quality Platform
 **Covered PRD Subsystem(s)**: Table Validation
@@ -81,7 +81,7 @@ VAL-CONNECT-09. When GX returns FEWER results than were fed (same-type collation
 
 ## Success Metrics
 
-- Sail Connect lane (`tests/unit/test_validation_connect_sail.py`) passes every baseline + custom expectation type with verdicts equal to the classic `add_spark` path.
+- Sail Connect lane (`tests/unit/test_validation_connect_sail.py`) passes every baseline + custom expectation type with verdicts equal to the classic `add_spark` path. The four custom expectations are additionally pinned to classic-vs-Connect parity — identical `success`, `unexpected_count`, AND `partial_unexpected_list` — by `tests/unit/test_custom_gx_parity.py` (VAL-CONNECT-08 / US-022-AC2 met for the custom surface).
 - Cross-engine conformance harness shows identical suite verdicts across classic Spark / Sail / Databricks serverless.
 - Zero observed silent false-negatives (`success=False`/`result={}` on a clean Connect DataFrame) after the routing change.
 

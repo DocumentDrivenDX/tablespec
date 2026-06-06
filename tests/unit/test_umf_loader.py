@@ -51,6 +51,59 @@ class TestFormatDetection:
         with pytest.raises(FileNotFoundError, match="no table.yaml"):
             converter.detect_format(tmp_path)
 
+    @pytest.mark.parametrize("suffix", [".yaml", ".yml", ".umf"])
+    def test_detect_inline_yaml_file(self, tmp_path, suffix):
+        """A single .yaml/.yml/.umf file is detected as the INLINE (whole-doc) format."""
+        inline_file = tmp_path / f"table{suffix}"
+        inline_file.write_text("version: '1.0'\ntable_name: t\ncolumns: []\n")
+
+        assert UMFLoader().detect_format(inline_file) == UMFFormat.INLINE
+
+
+class TestInlineYamlLoading:
+    """Loading a single-file (inline) YAML/.umf UMF document."""
+
+    @pytest.mark.parametrize("suffix", [".yaml", ".yml", ".umf"])
+    def test_load_single_inline_yaml_file(self, tmp_path, suffix):
+        """UMFLoader.load() reads a whole-UMF YAML document from one file.
+
+        Regression: previously detect_format returned SPLIT for a single YAML file
+        and _load_column_centric tried ``<file>/table.yaml``, raising
+        NotADirectoryError. The new emit/generate single-file path depends on this.
+        """
+        umf = UMF(
+            version="1.0",
+            table_name="metrics",
+            columns=[UMFColumn(name="id", data_type="INTEGER")],
+        )
+        inline_file = tmp_path / f"metrics.umf{suffix}"
+        save_umf_to_yaml(umf, inline_file)
+
+        loaded = UMFLoader().load(inline_file)
+
+        assert loaded.table_name == "metrics"
+        assert [c.name for c in loaded.columns] == ["id"]
+
+    def test_load_inline_yaml_populates_expectations_from_legacy(self, tmp_path):
+        """Inline YAML honors the legacy validation_rules -> expectations migration."""
+        inline_file = tmp_path / "legacy.umf.yaml"
+        inline_file.write_text(
+            "version: '1.0'\n"
+            "table_name: legacy\n"
+            "columns:\n"
+            "  - name: id\n"
+            "    data_type: INTEGER\n"
+            "validation_rules:\n"
+            "  expectations:\n"
+            "    - type: expect_column_to_exist\n"
+            "      kwargs:\n"
+            "        column: id\n"
+        )
+
+        loaded = UMFLoader().load(inline_file)
+
+        assert loaded.expectations is not None
+
 
 class TestRoundtripConversion:
     """Test roundtrip conversion: SPLIT ↔ JSON."""
@@ -998,20 +1051,24 @@ class TestLoadColumnCentricEdgeCases:
             loader._load_column_centric(tmp_path)
 
     def test_detect_yaml_file(self, tmp_path):
-        """Test that .yaml files are detected as SPLIT format."""
+        """A single .yaml file is detected as the INLINE (whole-doc) format.
+
+        Previously this returned SPLIT, which routed single YAML files into the
+        directory loader and raised NotADirectoryError on ``<file>/table.yaml``.
+        """
         yaml_file = tmp_path / "test.yaml"
         yaml_file.write_text("version: '1.0'")
         loader = UMFLoader()
         fmt = loader.detect_format(yaml_file)
-        assert fmt == UMFFormat.SPLIT
+        assert fmt == UMFFormat.INLINE
 
     def test_detect_yml_file(self, tmp_path):
-        """Test that .yml files are detected as SPLIT format."""
+        """A single .yml file is detected as the INLINE (whole-doc) format."""
         yml_file = tmp_path / "test.yml"
         yml_file.write_text("version: '1.0'")
         loader = UMFLoader()
         fmt = loader.detect_format(yml_file)
-        assert fmt == UMFFormat.SPLIT
+        assert fmt == UMFFormat.INLINE
 
 
 class TestSortRecursive:
