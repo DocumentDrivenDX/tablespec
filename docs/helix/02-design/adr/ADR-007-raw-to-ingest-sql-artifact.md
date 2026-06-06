@@ -59,11 +59,26 @@ artifact, not to wrap it at runtime.
 
 - **Positive:** ingest logic is reviewable and independently runnable; no library runtime on
   the cluster; one canonical cast; diff-based review via golden files; Databricks-native.
-- **Negative / follow-up:** `cast_column_sql` currently covers the common cast paths
-  (`cast_column_with_format`); the richer fallback casters (flexible-format coalesce,
-  epoch-ms, Excel-serial) and snapshot "latest file" filtering are follow-ups. The runtime
-  caster has not yet been refactored to consume `cast_column_sql` — until it is, the two are
-  kept in parity by tests.
+- **Negative / follow-up:** `cast_column_sql` covers the common cast paths
+  (`cast_column_with_format`). The runtime caster has not yet been refactored to consume
+  `cast_column_sql` — until it is, the two are kept in parity by tests.
+  - **epoch-ms + Excel-serial — DONE.** `cast_column_sql` now emits the two numeric
+    date/time encodings the runtime supported but the SQL seam previously could not: the
+    explicit `EPOCH_MS` and `EXCEL_SERIAL` UMF format sentinels render epoch-ms→timestamp
+    (gated on the same 12+-digit / scientific detection as
+    `cast_timestamp_with_epoch_fallback`) and Excel-serial→date (the `1899-12-30 + N days`
+    arithmetic of `convert_excel_serial_to_date`). Both are emitted for the `spark` and
+    `duckdb` dialects and are proven byte-identical to the runtime PySpark caster by
+    `tests/unit/test_cast_column_edge_format_parity.py` (runtime caster == spark-dialect SQL
+    == duckdb-dialect SQL, plus a Sail/Connect lane). The sentinels are EXPLICIT opt-in (never
+    inferred from a value), so a 4–6 digit numeric ID is never mis-read as an Excel serial; the
+    Excel int-cast uses `try_cast` so dirty rows NULL on strict backends (Connect/Sail) too.
+    The flexible-format coalesce caster remains a follow-up.
+  - **Snapshot "latest file" filtering — DESCOPED (not needed).** No consumer requests
+    input-file / file-modification "latest file" selection and no UMF field declares it; the
+    snapshot mode already drops/reloads via `INSERT OVERWRITE` and incremental dedup-latest
+    handles per-key recency. Building file-level latest filtering would add a speculative,
+    unconsumed seam, so it is intentionally NOT implemented.
 - **Type fidelity:** the typed target DDL uses Spark-correct types (e.g. `DATETIME ->
   TIMESTAMP`), unlike `generate_sql_ddl` which emits a literal `DATETIME`.
 

@@ -374,6 +374,94 @@ def _is_registry_format(umf_format: str) -> bool:
     return umf_format in _DUCKDB_FORMAT_BY_UMF
 
 
+# Explicit non-strftime UMF format SENTINELS for the two numeric date/time
+# encodings the runtime caster supports but a plain strptime/to_timestamp cannot:
+#
+#   EPOCH_MS     -- Unix epoch milliseconds (the runtime
+#                   cast_timestamp_with_epoch_fallback path).
+#   EXCEL_SERIAL -- Excel serial day number (the runtime
+#                   convert_excel_serial_to_date path).
+#
+# These are OPT-IN flags, not heuristics: a 4-6 digit integer is indistinguishable
+# from a legitimate numeric ID, so Excel-serial handling is emitted ONLY when the
+# UMF column explicitly declares EXCEL_SERIAL -- never inferred from the value.
+# EPOCH_MS likewise must be declared; the detection regex below only governs which
+# *rows* take the epoch branch once the column has opted in (mirroring the runtime
+# caster, which converts detected epoch rows and format-parses the rest).
+EPOCH_MS_FORMAT = "EPOCH_MS"
+EXCEL_SERIAL_FORMAT = "EXCEL_SERIAL"
+
+# Row-level epoch-ms detection, identical to the runtime is_epoch_milliseconds /
+# cast_timestamp_with_epoch_fallback patterns: scientific notation (1.75E+12) OR a
+# bare 12+-digit integer. Kept here as the single source both the Spark and DuckDB
+# SQL branches render, so the two engines gate on byte-identical predicates.
+_EPOCH_MS_SCIENTIFIC_PATTERN = r"^[0-9]+\.?[0-9]*[Ee][+\-]?[0-9]+$"
+_EPOCH_MS_LARGE_INT_PATTERN = r"^[0-9]{12,}$"
+
+# Excel epoch (serial 0). Excel serial N == this date + N days. The runtime
+# convert_excel_serial_to_date uses date_add(date'1899-12-30', cast(int)); the SQL
+# emitters reproduce that exactly so all three paths agree.
+_EXCEL_EPOCH_DATE = "1899-12-30"
+
+
+def _epoch_ms_cast_sql(column: str, target: str, *, is_duck: bool) -> str:
+    """SQL for an EPOCH_MS-declared column, parity with the runtime epoch caster.
+
+    Emits ``CASE WHEN <detected-epoch> THEN <epoch->timestamp> ELSE <default parse>
+    END`` so detected epoch rows convert and everything else falls through to the
+    plain timestamp parse -- exactly what
+    :func:`cast_timestamp_with_epoch_fallback` (with ``format=None``) does at
+    runtime. Both dialects truncate to whole seconds (Spark ``from_unixtime`` and
+    the DuckDB ``floor(.../1000)`` form drop sub-second ms identically), and both
+    gate on the SAME detection regexes, so a value one engine NULLs the other NULLs.
+    """
+    if is_duck:
+        detect = (
+            f"(regexp_full_match({column}, '{_EPOCH_MS_SCIENTIFIC_PATTERN}') "
+            f"OR regexp_full_match({column}, '{_EPOCH_MS_LARGE_INT_PATTERN}'))"
+        )
+        # make_timestamp(us) avoids DuckDB's TIMESTAMPTZ path (to_timestamp returns
+        # WITH TIME ZONE, which localizes on cast); building from whole-second
+        # microseconds yields the same naive UTC wall clock Spark's from_unixtime
+        # produces under a UTC session.
+        epoch = (
+            f"make_timestamp(cast(floor(try_cast({column} as double)/1000) "
+            f"as bigint)*1000000)"
+        )
+        default = f"try_cast({column} as timestamp)"
+    else:
+        detect = (
+            f"({column} rlike '{_EPOCH_MS_SCIENTIFIC_PATTERN}' "
+            f"OR {column} rlike '{_EPOCH_MS_LARGE_INT_PATTERN}')"
+        )
+        epoch = f"cast(from_unixtime(cast({column} as double)/1000) as timestamp)"
+        default = f"try_to_timestamp({column})"
+    expr = f"case when {detect} then {epoch} else {default} end"
+    return f"cast(({expr}) as date)" if target == "DATE" else expr
+
+
+def _excel_serial_cast_sql(column: str, *, is_duck: bool) -> str:
+    """SQL for an EXCEL_SERIAL-declared DATE column, parity with the runtime caster.
+
+    Mirrors :func:`convert_excel_serial_to_date`: ``date'1899-12-30' + N days``.
+    A non-integer / unparseable value NULLs in both engines (``try_cast`` /
+    ANSI-disabled ``cast`` of a bad int -> NULL), so the date_add yields NULL too.
+    """
+    if is_duck:
+        # date + integer adds days in DuckDB; try_cast NULLs non-integers.
+        return (
+            f"cast(date '{_EXCEL_EPOCH_DATE}' + try_cast({column} as integer) as date)"
+        )
+    # date_add mirrors the runtime F.date_add(excel_epoch, col.cast('int')), but uses
+    # try_cast (not plain cast) for the serial->int step: the runtime relies on
+    # ANSI-disabled cast to NULL non-integers, which holds on classic Spark but NOT
+    # on strict backends (Spark Connect / DataFusion / Sail abort on a bad cast).
+    # try_cast NULLs on failure on EVERY Spark backend, so the committed artifact is
+    # portable without depending on a session ANSI toggle -- matching the DuckDB
+    # try_cast above and keeping the dirty-row NULL contract symmetric cross-engine.
+    return f"date_add(cast('{_EXCEL_EPOCH_DATE}' as date), try_cast({column} as int))"
+
+
 # strftime directive -> structural regex fragment for the DuckDB padding pre-filter.
 # DuckDB's try_strptime is uniformly lenient: %m/%d/%H/%M/%S accept BOTH "6" and
 # "06", and %Y accepts a short year. Spark's to_timestamp is strict about
@@ -563,6 +651,24 @@ def cast_column_sql(
     #   spark  -> try_to_timestamp(col[, javaFmt])  (Spark 4.0+)
     #   duckdb -> try_strptime(col, strftimeFmt)     (NULL when unparseable)
     if t in ("DATE", "DATETIME", "TIMESTAMP"):
+        # Numeric date/time encodings the runtime caster supports but strptime/
+        # to_timestamp cannot. These are EXPLICIT opt-in formats (never inferred
+        # from the value, so legitimate numeric strings are never corrupted) and
+        # bypass the strftime registry guard below: both dialects render the same
+        # detection + conversion, reaching parity with the runtime epoch/Excel
+        # casters. See _epoch_ms_cast_sql / _excel_serial_cast_sql.
+        if format == EPOCH_MS_FORMAT:
+            return _epoch_ms_cast_sql(
+                column, t if t == "DATE" else "TIMESTAMP", is_duck=is_duck
+            )
+        if format == EXCEL_SERIAL_FORMAT:
+            if t != "DATE":
+                msg = (
+                    f"{EXCEL_SERIAL_FORMAT} is only supported for DATE targets "
+                    f"(got {target_type}); use {EPOCH_MS_FORMAT} for timestamps."
+                )
+                raise ValueError(msg)
+            return _excel_serial_cast_sql(column, is_duck=is_duck)
         # Single-registry guard for the ingest seam. convert_umf_format_to_spark is
         # a permissive string transformer (it happily rewrites e.g. 2-digit-year
         # "MM/DD/YY" -> "MM/dd/yy"), but DuckDB and Spark do NOT agree on every such
