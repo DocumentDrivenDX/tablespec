@@ -22,6 +22,43 @@ VALID_PYSPARK_TYPES = frozenset(
     }
 )
 
+# PySpark + SQL type names denoting a NUMERIC column. Numeric value-constraints
+# (ranges, value-sets) must compare as NUMBERS, so they validate on the TYPED
+# (ingested) stage -- on the raw all-string stage 1.5 never equals "1.50".
+NUMERIC_TYPE_NAMES = frozenset(
+    {
+        "IntegerType",
+        "LongType",
+        "ShortType",
+        "ByteType",
+        "DecimalType",
+        "FloatType",
+        "DoubleType",
+        "INTEGER",
+        "INT",
+        "BIGINT",
+        "SMALLINT",
+        "TINYINT",
+        "DECIMAL",
+        "NUMERIC",
+        "FLOAT",
+        "DOUBLE",
+        "REAL",
+    }
+)
+
+
+def is_numeric_data_type(data_type: str | None) -> bool:
+    """Whether a UMF/PySpark ``data_type`` name denotes a numeric column.
+
+    Accepts PySpark names (``"DoubleType"``) and SQL names (``"DECIMAL"``), with
+    or without precision/parens (``"DECIMAL(10,2)"``, ``"DecimalType()"``).
+    """
+    if not data_type:
+        return False
+    base = data_type.split("(")[0].strip().rstrip("()")
+    return base in NUMERIC_TYPE_NAMES or base.upper() in NUMERIC_TYPE_NAMES
+
 
 def map_pyspark_to_sql_type(data_type: str) -> str:
     """Map PySpark type names to SQL type names for casting.

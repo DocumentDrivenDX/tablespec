@@ -352,20 +352,31 @@ class ProfileToGxMapper:
         if not cp.distinct_values:
             return []
 
+        from tablespec.type_mappings import is_numeric_data_type
+
+        meta: dict[str, Any] = {
+            "description": (
+                f"{cp.column_name}: values must be in observed set "
+                f"of {len(cp.distinct_values)} values"
+            ),
+            "severity": "warning",
+            "generated_from": "profiling",
+        }
+        # A numeric column's value-set holds numeric literals (e.g. 1.5, 2.0). On the
+        # RAW all-string stage those never match the string representation ("1.50"), so
+        # pin numeric value-sets to the typed (ingested) stage. classify_validation_type
+        # sees only the type (-> raw for in_set); execute_staged honors this explicit
+        # meta stage. String value-sets keep the default raw classification.
+        if is_numeric_data_type(cp.data_type):
+            meta["validation_stage"] = "ingested"
+
         return [{
             "type": "expect_column_values_to_be_in_set",
             "kwargs": {
                 "column": cp.column_name,
                 "value_set": cp.distinct_values,
             },
-            "meta": {
-                "description": (
-                    f"{cp.column_name}: values must be in observed set "
-                    f"of {len(cp.distinct_values)} values"
-                ),
-                "severity": "warning",
-                "generated_from": "profiling",
-            },
+            "meta": meta,
         }]
 
     def _string_length_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:

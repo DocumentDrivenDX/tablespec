@@ -586,15 +586,22 @@ class BaselineExpectationGenerator:
         # Value set from low-cardinality columns
         distinct_values = profiling.get("distinct_values")
         if distinct_values:
+            from tablespec.type_mappings import is_numeric_data_type
+
+            in_set_meta: dict[str, Any] = {
+                "description": f"Column {col_name} values must be in observed set of {len(distinct_values)} values",
+                "severity": "warning",
+                "generated_from": "profiling",
+            }
+            # Numeric value-sets hold numeric literals; validate on the typed (ingested)
+            # stage, not the raw all-string stage where 1.5 != "1.50".
+            if is_numeric_data_type(column.get("data_type")):
+                in_set_meta["validation_stage"] = "ingested"
             expectations.append(
                 {
                     "type": "expect_column_values_to_be_in_set",
                     "kwargs": {"column": col_name, "value_set": distinct_values},
-                    "meta": {
-                        "description": f"Column {col_name} values must be in observed set of {len(distinct_values)} values",
-                        "severity": "warning",
-                        "generated_from": "profiling",
-                    },
+                    "meta": in_set_meta,
                 }
             )
 
