@@ -110,14 +110,26 @@ def _has_gold(umf) -> bool:  # noqa: ANN001
     return any(getattr(c, "derivation", None) is not None for c in umf.columns)
 
 
+# Sail's Rust server shuts down as soon as its ``SparkConnectServer`` handle is GC'd;
+# root the handle here so it survives for the life of the demo process.
+_SAIL_SERVERS: list = []
+
+
 def _make_session(backend: str):  # noqa: ANN201
-    """Build the execution session for *backend* (reuses the conformance facades)."""
-    if backend == "sail":
-        from tests.conftest import make_sail_connect_session
+    """Build the execution session for *backend* (reuses the conformance facades).
+
+    For ``sail`` / ``duckdb`` (no JVM) a Sail Spark Connect session is used (the
+    DuckDB backbone needs a session only as the GX validation substrate). For
+    ``spark`` the classic JVM session is adopted via the conformance facade.
+    """
+    if backend in ("sail", "duckdb"):
         from pysail.spark import SparkConnectServer
+
+        from tests.conftest import make_sail_connect_session
 
         server = SparkConnectServer()
         server.start()
+        _SAIL_SERVERS.append(server)  # keep alive past this function
         host, port = server.listening_address  # type: ignore[misc]
         return make_sail_connect_session(host, port, "bootstrap-from-specs")
     from tests.conformance.engines import get_shared_spark_session

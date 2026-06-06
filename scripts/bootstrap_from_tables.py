@@ -124,14 +124,20 @@ def _resolve_seeds(tables: list[str], seed_from: list[str]) -> dict[str, Path]:
     return {t: seeds[t] for t in tables if t in seeds}
 
 
+# Sail's Rust server shuts down as soon as its ``SparkConnectServer`` handle is GC'd;
+# root the handle here so it survives for the life of the demo process.
+_SAIL_SERVERS: list = []
+
+
 def _make_session(backend: str):  # noqa: ANN201
-    if backend == "sail":
+    if backend in ("sail", "duckdb"):
         from pysail.spark import SparkConnectServer
 
         from tests.conftest import make_sail_connect_session
 
         server = SparkConnectServer()
         server.start()
+        _SAIL_SERVERS.append(server)  # keep alive past this function
         host, port = server.listening_address  # type: ignore[misc]
         return make_sail_connect_session(host, port, "bootstrap-from-tables")
     from tests.conformance.engines import get_shared_spark_session

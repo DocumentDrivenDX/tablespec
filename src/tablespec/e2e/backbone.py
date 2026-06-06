@@ -97,6 +97,34 @@ class BackboneResult:
         return all(s.ok for s in self.stages)
 
 
+def _extract_merge_using_select(transform_stmt: str) -> str:
+    """Pull the deduped cast SELECT out of a compiled ``MERGE INTO ... USING ( ... )``.
+
+    The compiled raw->ingested transform is a Delta ``MERGE`` whose ``USING ( <select>
+    ) AS src`` body is the typed, PK-deduped projection of the raw rows. Spark Connect
+    (Sail) cannot execute the Delta MERGE itself, but it CAN run that inner SELECT, so
+    the Connect ingest path materializes it directly. Returns the inner SELECT with
+    balanced parentheses (the first ``USING (`` through its matching ``)``).
+    """
+    upper = transform_stmt.upper()
+    using_idx = upper.find("USING")
+    if using_idx == -1:  # pragma: no cover - compiled MERGE always has USING
+        raise ValueError("compiled transform is not a MERGE (no USING clause)")
+    open_idx = transform_stmt.find("(", using_idx)
+    if open_idx == -1:  # pragma: no cover - USING is always followed by '('
+        raise ValueError("MERGE USING clause has no opening parenthesis")
+    depth = 0
+    for i in range(open_idx, len(transform_stmt)):
+        ch = transform_stmt[i]
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                return transform_stmt[open_idx + 1 : i].strip()
+    raise ValueError("unbalanced parentheses in MERGE USING clause")  # pragma: no cover
+
+
 # ---------------------------------------------------------------------------
 # Engine adapters (the local execution backends the backbone is parametrized by)
 # ---------------------------------------------------------------------------
@@ -121,6 +149,21 @@ class _BackboneEngine:
     ) -> tuple[Any, Any, dict[str, Any]]:
         """Execute the compiled ingest -> return (raw_df, ingested_df, umf_data)."""
         raise NotImplementedError
+
+    def ingested_rows(self, umf: dict[str, Any], ingested_df: Any) -> list[dict[str, Any]]:
+        """Collect the TYPED ingested rows from the engine's native store.
+
+        Returns row dicts keyed by the UMF (typed-target) column names, carrying the
+        engine's native typed values -- the input the SHARED ``canonical.to_json``
+        canonicalizer renders for cross-engine byte parity. The default collects from
+        a Spark/Connect DataFrame; engines whose native store is not a DataFrame
+        (DuckDB) override this to read their own store so parity compares the typed
+        ingest, not a stringified validation substrate.
+        """
+        columns = [c["name"] for c in umf["columns"]]
+        return [
+            {k: r.asDict().get(k) for k in columns} for r in ingested_df.collect()
+        ]
 
 
 class _SparkEngine(_BackboneEngine):
@@ -162,15 +205,34 @@ class _SparkEngine(_BackboneEngine):
                 shutil.rmtree(loc, ignore_errors=True)
 
     def _load_raw(self, umf: dict[str, Any], csv_path: Path, raw_table: str) -> None:
-        """Reuse the conformance oracle raw-load schema (engines.py:527)."""
-        from pyspark.sql.functions import to_timestamp
+        """Build the all-STRING raw landing relation (engines.py:527 schema).
 
-        string_cols = [c["name"] for c in umf["columns"]] + ["_source_file"]
-        read_schema_fields: list[tuple[str, str]] = [
-            (name, "string") for name in string_cols
-        ]
-        read_schema_fields.append(("_load_ts", "string"))
-        schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+        The raw shape is every business column as STRING plus ``_source_file`` +
+        ``_load_ts`` (a TIMESTAMP). A corpus CSV may already carry that metadata or be
+        a clean source extract that lacks it; we read only the columns the CSV header
+        actually declares and SYNTHESIZE any missing metadata (literal source-file +
+        load timestamp) -- exactly as the DuckDB engine and conformance gold loader do.
+        Without this, Sail's strict CSV reader rejects a 2-field row against a 4-field
+        schema ("incorrect number of fields").
+        """
+        # ``pyspark.sql.functions`` resolves to the CLASSIC builtins, whose ``lit`` /
+        # ``to_timestamp`` call ``_to_java_column`` and so need a live JVM
+        # ``SparkContext`` -- which a Spark Connect (Sail) session does not have. Route
+        # to ``pyspark.sql.connect.functions`` on Connect so the expressions build
+        # against the Connect plan instead of a (non-existent) JVM column.
+        if self._connect:
+            from pyspark.sql.connect.functions import lit, to_timestamp
+        else:
+            from pyspark.sql.functions import lit, to_timestamp
+
+        business_cols = [c["name"] for c in umf["columns"]]
+        header = csv_path.read_text().splitlines()[0].split(",")
+        has_meta = "_source_file" in header
+
+        read_cols = list(business_cols)
+        if has_meta:
+            read_cols += ["_source_file", "_load_ts"]
+        schema_ddl = ", ".join(f"`{n}` string" for n in read_cols)
 
         df = (
             self._spark.read.option("header", True)
@@ -179,15 +241,31 @@ class _SparkEngine(_BackboneEngine):
             .option("multiLine", True)
             .schema(schema_ddl)
             .csv(str(csv_path))
-            .withColumn("_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss"))
         )
-        ordered = [c["name"] for c in umf["columns"]] + ["_source_file", "_load_ts"]
+        if has_meta:
+            df = df.withColumn(
+                "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
+            )
+        else:
+            df = df.withColumn("_source_file", lit(f"{umf['table_name']}.csv")).withColumn(
+                "_load_ts",
+                to_timestamp(lit("2026-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss"),
+            )
+        ordered = [*business_cols, "_source_file", "_load_ts"]
         df = df.select(*ordered)
         if self._connect:
             # Connect has no Hive/Delta saveAsTable here -> back the raw table with a
-            # temp view the compiled transform's FROM clause resolves against.
-            self._spark.sql(f"DROP TABLE IF EXISTS {raw_table}")
-            df.createOrReplaceTempView(raw_table)
+            # temp view the compiled transform's FROM clause resolves against. Collect
+            # + re-create the frame so the view is an in-memory relation rather than a
+            # lazy CSV scan re-executed on every downstream read (the GX validation
+            # pass scans it again, and Sail's CSV reader has surfaced row-shape
+            # mismatches on the second scan).
+            rows = [r.asDict() for r in df.collect()]
+            self._spark.sql(f"DROP VIEW IF EXISTS {raw_table}")
+            if rows:
+                self._spark.createDataFrame(rows).createOrReplaceTempView(raw_table)
+            else:  # pragma: no cover - corpus batches are non-empty
+                df.createOrReplaceTempView(raw_table)
         else:
             self._spark.sql(f"DROP TABLE IF EXISTS {raw_table}")
             df.write.format("delta").mode("overwrite").saveAsTable(raw_table)
@@ -205,13 +283,35 @@ class _SparkEngine(_BackboneEngine):
         sql = artifacts.table(table).ingest_sql.read_text()
         statements = split_sql_statements(sql)
         create_stmts, transform_stmt = statements[:-1], statements[-1]
+
+        if self._connect:
+            # Sail (Spark Connect) has NO Delta Lake write path: ``USING DELTA`` +
+            # ``MERGE INTO`` create the table metadata but never write the
+            # ``_delta_log`` commit files, so the compiled Delta transform fails with
+            # "No commit files found in _delta_log". Connect DOES execute plain
+            # SELECT/CTAS, so on Connect the typed cast is materialized by running the
+            # MERGE's deduped cast SELECT (its ``USING ( ... )`` body) directly. For a
+            # single batch over an empty target this is row-equivalent to the MERGE
+            # (the body already dedups on the PK), which is the single-batch invariant
+            # the LDP cast-parity leg also asserts.
+            for batch in batches:
+                self._load_raw(umf, batch, raw_table)
+            cast_select = _extract_merge_using_select(transform_stmt)
+            self._spark.sql(f"DROP VIEW IF EXISTS {ingested_table}")
+            self._spark.sql(
+                f"CREATE OR REPLACE TEMP VIEW {ingested_table} AS {cast_select}"
+            )
+            raw_df = self._spark.table(raw_table)
+            ingested_df = self._spark.table(ingested_table)
+            return raw_df, ingested_df, umf
+
         raw_create_prefix = f"CREATE TABLE {raw_table}".upper()
         for stmt in create_stmts:
             # Skip the raw landing CREATE TABLE: ``_load_raw`` owns the raw relation
-            # (Delta ``saveAsTable`` on classic, temp view on Connect), so running the
-            # compiled CREATE first only risks a DELTA_CREATE_TABLE_WITH_NON_EMPTY_
-            # LOCATION clash against a warehouse dir left by a prior run. The typed-
-            # target CREATE (which the transform writes into) still runs.
+            # (Delta ``saveAsTable``), so running the compiled CREATE first only risks
+            # a DELTA_CREATE_TABLE_WITH_NON_EMPTY_LOCATION clash against a warehouse
+            # dir left by a prior run. The typed-target CREATE (which the transform
+            # writes into) still runs.
             if stmt.upper().startswith(raw_create_prefix):
                 continue
             self._spark.sql(stmt)
@@ -246,6 +346,7 @@ class _DuckDBEngine(_BackboneEngine):
         self._spark = spark
         self._db_path: Path | None = None
         self._project: Path | None = None
+        self._ingested_table: str | None = None
 
     def _connect(self, db_path: Path):
         import duckdb
@@ -313,6 +414,7 @@ class _DuckDBEngine(_BackboneEngine):
         self._project = project
         db_path = project / "ingest.duckdb"
         self._db_path = db_path
+        self._ingested_table = table
 
         for batch in batches:
             self._load_raw(db_path, umf, batch)
@@ -325,6 +427,27 @@ class _DuckDBEngine(_BackboneEngine):
             db_path, table, [c["name"] for c in umf["columns"]]
         )
         return raw_df, ingested_df, umf
+
+    def ingested_rows(self, umf: dict[str, Any], ingested_df: Any) -> list[dict[str, Any]]:
+        """Read the TYPED ingested rows straight from the DuckDB store.
+
+        The DataFrame handed back from :meth:`ingest` is the STRINGIFIED GX-validation
+        substrate (a Spark/Connect frame), so canonicalizing it would compare strings,
+        not the typed ingest. Re-read the dbt-materialized DuckDB table instead so the
+        cross-engine byte-parity check sees the same typed values the Spark/Sail legs
+        canonicalize.
+        """
+        assert self._db_path is not None and self._ingested_table is not None
+        columns = [c["name"] for c in umf["columns"]]
+        con = self._connect(self._db_path)
+        try:
+            projection = ", ".join(f'"{c}"' for c in columns)
+            records = con.execute(
+                f"SELECT {projection} FROM {self._ingested_table}"
+            ).fetchall()
+        finally:
+            con.close()
+        return [dict(zip(columns, rec, strict=True)) for rec in records]
 
     def _frame_from_duckdb(self, db_path: Path, table: str, columns: list[str]) -> Any:
         """Lift a DuckDB table into a Spark/Sail frame for the GX executor."""
@@ -620,11 +743,35 @@ def _run_ldp(
     return out
 
 
+def canonical_ingested(
+    engine: _BackboneEngine,
+    artifacts: CompiledArtifacts,
+    table: str,
+    batches: list[Path],
+    *,
+    ts_precision: int = 0,
+) -> str:
+    """Run *engine*'s compiled ingest for *table* and canonicalize the typed rows.
+
+    Drives the engine's :meth:`ingest` over *batches*, reads back the TYPED ingested
+    rows from its native store (:meth:`_BackboneEngine.ingested_rows`), and renders
+    them through the SHARED ``canonical.to_json`` at *ts_precision*. Two engines agree
+    on the ingest iff this string is byte-identical -- the same cross-engine parity
+    contract the conformance matrix uses. ``ts_precision`` defaults to 0 (the
+    second-resolution corpus convention; the goldens pin 0 at their call sites).
+    """
+    _raw_df, ingested_df, umf = engine.ingest(artifacts, table, batches)
+    rows = engine.ingested_rows(umf, ingested_df)
+    columns = [c["name"] for c in umf["columns"]]
+    return to_json(rows, columns, decimal_scales(umf), ts_precision=ts_precision)
+
+
 # Re-exported canonicalizer + facade helpers so callers / tests can reuse the SAME
 # byte-parity surface the backbone validates against.
 __all__ = [
     "BackboneResult",
     "StageOutcome",
+    "canonical_ingested",
     "decimal_scales",
     "make_engine",
     "run_backbone",

@@ -1,0 +1,20 @@
+{
+  "columns": [
+    "member_id",
+    "member_name"
+  ],
+  "rows": [
+    [
+      "1",
+      "Alice"
+    ],
+    [
+      "2",
+      "Bob"
+    ],
+    [
+      "3",
+      "Carol"
+    ]
+  ]
+}
