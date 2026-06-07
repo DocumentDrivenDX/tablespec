@@ -237,6 +237,7 @@ derby.log
 .ddx/server/
 .ddx/run-state.json
 .ddx/run-state/
+.ddx/harness-sessions/
 !.ddx/executions/
 !.ddx/executions/*/
 !.ddx/executions/*/prompt.md
