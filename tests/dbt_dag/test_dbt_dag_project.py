@@ -17,6 +17,13 @@ design's load-bearing claims:
 dbt/duckdb are required; the test skips if the dbt CLI is unavailable.
 """
 
+# dbt project emitter coverage.
+# @covers US-025-AC1
+# @covers US-025-AC2
+# @covers US-025-AC3
+# @covers US-025-AC4
+# @covers US-025-AC5
+
 from __future__ import annotations
 
 import json

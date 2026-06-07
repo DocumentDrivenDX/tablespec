@@ -1,6 +1,5 @@
+# @covers US-030-AC2
 """Tests for blocking behavior and validation reporting."""
-
-import logging
 
 import pytest
 
@@ -38,40 +37,58 @@ def _make_run(results: list[QualityCheckResult], **kwargs) -> QualityCheckRun:
 
 class TestValidationReport:
     def test_all_pass_summary(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1", expectation_type="not_null", success=True, severity="warning"
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="not_null",
+                    success=True,
+                    severity="warning",
+                ),
+            ]
+        )
         report = ValidationReport(run)
         assert "All 1 expectations passed" in report.summary()
 
     def test_failures_summary(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1", expectation_type="not_null", success=True, severity="warning"
-            ),
-            QualityCheckResult(
-                check_id="chk2",
-                expectation_type="in_set",
-                success=False,
-                severity="error",
-                unexpected_count=3,
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="not_null",
+                    success=True,
+                    severity="warning",
+                ),
+                QualityCheckResult(
+                    check_id="chk2",
+                    expectation_type="in_set",
+                    success=False,
+                    severity="error",
+                    unexpected_count=3,
+                ),
+            ]
+        )
         report = ValidationReport(run)
         assert "1/2" in report.summary()
         assert "1 failure" in report.summary()
 
     def test_multiple_failures_plural(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1", expectation_type="a", success=False, severity="error"
-            ),
-            QualityCheckResult(
-                check_id="chk2", expectation_type="b", success=False, severity="error"
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="a",
+                    success=False,
+                    severity="error",
+                ),
+                QualityCheckResult(
+                    check_id="chk2",
+                    expectation_type="b",
+                    success=False,
+                    severity="error",
+                ),
+            ]
+        )
         report = ValidationReport(run)
         assert "2 failures" in report.summary()
 
@@ -81,16 +98,18 @@ class TestValidationReport:
         assert "No expectations" in report.summary()
 
     def test_failures_list(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1",
-                expectation_type="not_null",
-                success=False,
-                severity="critical",
-                column_name="id",
-                unexpected_count=5,
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="not_null",
+                    success=False,
+                    severity="critical",
+                    column_name="id",
+                    unexpected_count=5,
+                ),
+            ]
+        )
         report = ValidationReport(run)
         failures = report.failures()
         assert len(failures) == 1
@@ -99,29 +118,39 @@ class TestValidationReport:
         assert failures[0].severity == "critical"
 
     def test_failures_excludes_passing(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1", expectation_type="not_null", success=True, severity="warning"
-            ),
-            QualityCheckResult(
-                check_id="chk2",
-                expectation_type="in_set",
-                success=False,
-                severity="error",
-                column_name="state",
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="not_null",
+                    success=True,
+                    severity="warning",
+                ),
+                QualityCheckResult(
+                    check_id="chk2",
+                    expectation_type="in_set",
+                    success=False,
+                    severity="error",
+                    column_name="state",
+                ),
+            ]
+        )
         report = ValidationReport(run)
         failures = report.failures()
         assert len(failures) == 1
         assert failures[0].expectation_type == "in_set"
 
     def test_as_dict(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1", expectation_type="not_null", success=True, severity="info"
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="not_null",
+                    success=True,
+                    severity="info",
+                ),
+            ]
+        )
         report = ValidationReport(run)
         d = report.as_dict()
         assert d["total"] == 1
@@ -132,16 +161,18 @@ class TestValidationReport:
         assert d["failures"] == []
 
     def test_as_dict_with_failures(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1",
-                expectation_type="in_set",
-                success=False,
-                severity="error",
-                column_name="status",
-                unexpected_count=2,
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="in_set",
+                    success=False,
+                    severity="error",
+                    column_name="status",
+                    unexpected_count=2,
+                ),
+            ]
+        )
         report = ValidationReport(run)
         d = report.as_dict()
         assert d["success"] is False
@@ -150,40 +181,50 @@ class TestValidationReport:
         assert d["failures"][0]["column"] == "status"
 
     def test_as_rich_table(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1",
-                expectation_type="not_null",
-                success=True,
-                severity="info",
-                column_name="id",
-            ),
-            QualityCheckResult(
-                check_id="chk2",
-                expectation_type="in_set",
-                success=False,
-                severity="error",
-                column_name="state",
-                unexpected_count=2,
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1",
+                    expectation_type="not_null",
+                    success=True,
+                    severity="info",
+                    column_name="id",
+                ),
+                QualityCheckResult(
+                    check_id="chk2",
+                    expectation_type="in_set",
+                    success=False,
+                    severity="error",
+                    column_name="state",
+                    unexpected_count=2,
+                ),
+            ]
+        )
         report = ValidationReport(run)
         table = report.as_rich_table()
         assert table.title == "Validation Results"
         assert table.row_count == 2
 
     def test_properties(self):
-        run = _make_run([
-            QualityCheckResult(
-                check_id="chk1", expectation_type="a", success=True, severity="info"
-            ),
-            QualityCheckResult(
-                check_id="chk2", expectation_type="b", success=False, severity="error"
-            ),
-            QualityCheckResult(
-                check_id="chk3", expectation_type="c", success=False, severity="warning"
-            ),
-        ])
+        run = _make_run(
+            [
+                QualityCheckResult(
+                    check_id="chk1", expectation_type="a", success=True, severity="info"
+                ),
+                QualityCheckResult(
+                    check_id="chk2",
+                    expectation_type="b",
+                    success=False,
+                    severity="error",
+                ),
+                QualityCheckResult(
+                    check_id="chk3",
+                    expectation_type="c",
+                    success=False,
+                    severity="warning",
+                ),
+            ]
+        )
         report = ValidationReport(run)
         assert report.total == 3
         assert report.passed == 1
@@ -236,7 +277,8 @@ class TestBlockingBehavior:
             threshold_breached = False
             if (
                 thresholds.max_critical_failure_percent is not None
-                and score.critical_failure_rate > thresholds.max_critical_failure_percent
+                and score.critical_failure_rate
+                > thresholds.max_critical_failure_percent
             ):
                 threshold_breached = True
             if (
@@ -307,9 +349,7 @@ class TestBlockingBehavior:
                 blocking=True,
             ),
         ]
-        score = self._make_score(
-            passed_checks=0, failed_checks=1, success_rate=0.0
-        )
+        score = self._make_score(passed_checks=0, failed_checks=1, success_rate=0.0)
         assert self._should_block(results, score) is True
 
     def test_blocking_warning_does_not_block(self):
@@ -354,7 +394,11 @@ class TestBlockingBehavior:
             ),
         ]
         score = self._make_score(
-            total_checks=2, passed_checks=0, failed_checks=2, warning_failures=2, success_rate=0.0
+            total_checks=2,
+            passed_checks=0,
+            failed_checks=2,
+            warning_failures=2,
+            success_rate=0.0,
         )
         thresholds = QualityThreshold(max_failures=1)
         assert self._should_block(results, score, thresholds) is True
@@ -366,7 +410,11 @@ class TestBlockingBehavior:
             ),
         ]
         score = self._make_score(
-            total_checks=2, passed_checks=1, failed_checks=1, warning_failures=1, success_rate=50.0
+            total_checks=2,
+            passed_checks=1,
+            failed_checks=1,
+            warning_failures=1,
+            success_rate=50.0,
         )
         thresholds = QualityThreshold(max_failures=1)
         assert self._should_block(results, score, thresholds) is False
@@ -374,10 +422,16 @@ class TestBlockingBehavior:
     def test_max_critical_failures_threshold_blocks(self):
         results = [
             QualityCheckResult(
-                check_id="chk1", expectation_type="a", success=False, severity="critical"
+                check_id="chk1",
+                expectation_type="a",
+                success=False,
+                severity="critical",
             ),
             QualityCheckResult(
-                check_id="chk2", expectation_type="b", success=False, severity="critical"
+                check_id="chk2",
+                expectation_type="b",
+                success=False,
+                severity="critical",
             ),
         ]
         score = self._make_score(
@@ -420,9 +474,7 @@ class TestBlockingBehavior:
                 check_id="chk1", expectation_type="a", success=False, severity="error"
             ),
         ]
-        score = self._make_score(
-            passed_checks=0, failed_checks=1, success_rate=0.0
-        )
+        score = self._make_score(passed_checks=0, failed_checks=1, success_rate=0.0)
         assert self._should_block(results, score, thresholds=None) is False
 
     def test_empty_results_no_block(self):

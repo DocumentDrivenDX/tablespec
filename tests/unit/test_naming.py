@@ -1,3 +1,4 @@
+# @covers US-027-AC1
 """Tests for table naming utilities."""
 
 import pytest
@@ -129,7 +130,10 @@ class TestToSparkIdentifier:
 
     def test_hyphens_and_special_chars(self):
         """Hyphens and special characters become underscores."""
-        assert to_spark_identifier("Inbound Only-Warm Transfer") == "inbound_only_warm_transfer"
+        assert (
+            to_spark_identifier("Inbound Only-Warm Transfer")
+            == "inbound_only_warm_transfer"
+        )
         assert to_spark_identifier("ICD9/10") == "icd9_10"
 
     def test_pascal_case(self):

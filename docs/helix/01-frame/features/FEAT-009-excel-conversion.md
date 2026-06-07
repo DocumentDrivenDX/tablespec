@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-009
+---
+
 # FEAT-009: Excel Bidirectional Conversion
 
 **Status**: Implemented
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-009
+**Owner**: Data Stewardship
+**Covered PRD Subsystem(s)**: Excel Bidirectional Conversion
+**Covered PRD Requirements**: FR-9.1, FR-9.2, FR-9.3, FR-9.4
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -25,6 +35,9 @@ Round-trip conversion between Excel workbooks and UMF schemas, designed for non-
 ## Dependencies
 
 - openpyxl
+## User Stories
+
+- [US-011 — Round-Trip UMF Through Excel](../user-stories/US-011-excel-round-trip.md)
 
 ## Source
 

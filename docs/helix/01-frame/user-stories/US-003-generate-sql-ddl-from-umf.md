@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-003
+---
+
 # US-003: Generate SQL DDL from a UMF Schema
 
-**Parent Feature**: [FEAT-002 - Schema Generation](../features/FEAT-002-schema-generation.md)
+**Feature**: FEAT-002 — Schema Generation
+**PRD Requirements**: FR-2.1, FR-2.2, FR-2.3
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer maintaining SQL pipelines,
-**I want to** generate CREATE TABLE DDL from a UMF schema,
-**so that** my database table definitions stay in sync with the canonical UMF specification without manual SQL authoring.
+**I want** generate CREATE TABLE DDL from a UMF schema,
+**So that** my database table definitions stay in sync with the canonical UMF specification without manual SQL authoring.
 
 ## Acceptance Criteria
 

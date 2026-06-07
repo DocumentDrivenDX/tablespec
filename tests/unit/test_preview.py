@@ -1,3 +1,4 @@
+# @covers US-036-AC1
 import pytest
 
 from tablespec.authoring.preview import generate_preview
@@ -10,7 +11,10 @@ class TestGeneratePreview:
         data = {
             "validation_rules": {
                 "expectations": [
-                    {"type": "expect_column_values_to_not_be_null", "kwargs": {"column": "id"}},
+                    {
+                        "type": "expect_column_values_to_not_be_null",
+                        "kwargs": {"column": "id"},
+                    },
                     {
                         "type": "expect_column_values_to_match_regex",
                         "kwargs": {"column": "ssn", "regex": ".*"},
@@ -60,7 +64,10 @@ class TestGeneratePreview:
         data = {
             "validation_rules": {
                 "expectations": [
-                    {"type": "expect_column_values_to_not_be_null", "kwargs": {"column": "id"}},
+                    {
+                        "type": "expect_column_values_to_not_be_null",
+                        "kwargs": {"column": "id"},
+                    },
                 ]
             },
             "quality_checks": {

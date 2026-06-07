@@ -5,7 +5,7 @@ ddx:
 
 # US-022: Validate a Compiled Suite on Spark Connect Without Silent Failure
 
-**Feature**: [FEAT-025 — Connect-Safe GX Suite Validation](../features/FEAT-025-connect-safe-gx-validation.md)
+**Feature**: FEAT-025 — Connect-Safe GX Suite Validation
 **Feature Requirements**: VAL-CONNECT-01, VAL-CONNECT-04, VAL-CONNECT-05, VAL-CONNECT-09
 **PRD Requirements**: FR-7.7, FR-7.8 (with FR-20.4)
 **Priority**: P0

@@ -231,10 +231,3 @@ Uses `pytest.main()` in-process.
 
 - `uv build` works on Databricks (no Spark dependency for building).
 - Version override: `UV_DYNAMIC_VERSIONING_BYPASS=X.Y.Z uv build` (workspace FS has no git tags).
-
-## File Reading Discipline
-
-- Never read files larger than 200 lines at once.
-- Never page through a file sequentially.
-- Always identify candidate files with search before opening them.
-- Limit exploration to 5 files before stopping for user approval.

@@ -120,10 +120,9 @@ consumable by suite composition (FR-4.3).
 - **Dependency weight**: SHALL add no user-facing extra beyond `pyspark`; the
   local Connect test lane (pysail) lives in the dev group only
   (`pyproject.toml:77-81`).
-
 ## User Stories
 
-- [US-021 — Profile a DataFrame natively on Spark Connect](../user-stories/US-021-profile-dataframe-natively-on-connect.md)
+- [US-021 — Profile a DataFrame Natively on Spark Connect](../user-stories/US-021-profile-dataframe-natively-on-connect.md)
 
 ## Edge Cases and Error Handling
 

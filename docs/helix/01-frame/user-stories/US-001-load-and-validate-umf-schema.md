@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-001
+---
+
 # US-001: Load and Validate a UMF Schema from YAML
 
-**Parent Feature**: [FEAT-001 - UMF Models and I/O](../features/FEAT-001-umf-models.md)
+**Feature**: FEAT-001 — UMF Models and I/O
+**PRD Requirements**: FR-1.1, FR-1.7, FR-1.8, FR-1.9
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer building a pipeline,
-**I want to** load a UMF schema from a YAML file and have it validated automatically,
-**so that** I can trust the schema definition is correct before using it to generate DDL, configure data quality checks, or drive downstream processing.
+**I want** load a UMF schema from a YAML file and have it validated automatically,
+**So that** I can trust the schema definition is correct before using it to generate DDL, configure data quality checks, or drive downstream processing.
 
 ## Acceptance Criteria
 

@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-011
+---
+
 # US-011: Round-Trip UMF Through Excel
 
-**Parent Feature**: [FEAT-009 - Excel Conversion](../features/FEAT-009-excel-conversion.md)
+**Feature**: FEAT-009 — Excel Bidirectional Conversion
+**PRD Requirements**: FR-9.1, FR-9.2, FR-9.3, FR-9.4
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data steward who works primarily in Excel,
-**I want to** export a UMF schema to Excel, make edits with validation assistance, and import it back,
-**so that** I can review and update table definitions without learning YAML syntax.
+**I want** export a UMF schema to Excel, make edits with validation assistance, and import it back,
+**So that** I can review and update table definitions without learning YAML syntax.
 
 ## Acceptance Criteria
 

@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-010
+---
+
 # FEAT-010: UMF Change Management
 
 **Status**: Implemented
-**Priority**: High
+**Priority**: P0
+**Feature ID**: FEAT-010
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: Split-Format UMF; Schema Change Management
+**Covered PRD Requirements**: FR-10.1, FR-10.2, FR-10.3, FR-10.4, FR-11.1, FR-11.2, FR-11.3, FR-11.4, FR-11.5
+**Cross-Subsystem Rationale**: Cross-subsystem workflow: git-friendly split storage, diffing, applying, dependency checks, and changelog generation are one schema-change workflow.
 
 ## Description
 
@@ -32,6 +42,12 @@ Split-format UMF storage, schema diffing, atomic change application, and git-bas
 
 - ruamel.yaml (split-format YAML)
 - gitpython (changelog generation)
+## User Stories
+
+- [US-012 — Load UMF from Split-Format Directory](../user-stories/US-012-split-format-loading.md)
+- [US-014 — Generate Changelog from Git History](../user-stories/US-014-generate-changelog.md)
+- [US-015 — Diff Two UMF Versions](../user-stories/US-015-diff-umf-versions.md)
+- [US-020 — Resolve Pipeline Dependencies](../user-stories/US-020-resolve-dependencies.md)
 
 ## Source
 

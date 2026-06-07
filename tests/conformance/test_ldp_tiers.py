@@ -27,6 +27,11 @@ Run::
     UV_PROJECT_ENVIRONMENT=/tmp/tsvenv uv run pytest tests/conformance/test_ldp_tiers.py
 """
 
+# LDP conformance tier coverage.
+# @covers US-026-AC1
+# @covers US-026-AC5
+# @covers US-026-AC7
+
 from __future__ import annotations
 
 import os

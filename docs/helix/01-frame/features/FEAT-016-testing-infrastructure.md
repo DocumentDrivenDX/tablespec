@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-016
+---
+
 # FEAT-016: Testing Infrastructure for Agentic Development
 
 **Status**: Proposed
-**Priority**: Critical (prerequisite for all other improvements)
+**Priority**: P0
+**Feature ID**: FEAT-016
+**Owner**: Engineering Productivity
+**Covered PRD Subsystem(s)**: Runtime Platform
+**Covered PRD Requirements**: FR-20.3
+**Cross-Subsystem Rationale**: Verification support feature: test infrastructure proves supported runtime targets without owning runtime behavior.
 
 ## Description
 
@@ -74,6 +84,9 @@ Every generated value passes Pydantic validation. Extends existing Hypothesis us
 Source file `src/tablespec/foo.py` maps to test file `tests/unit/test_foo.py`.
 
 For new features: write test file first with `@pytest.mark.xfail` tests as the executable spec. Implementation removes `xfail` by making tests pass.
+## User Stories
+
+- [US-029 — Maintain Agentic Test Infrastructure](../user-stories/US-029-maintain-agentic-test-infrastructure.md)
 
 ## Source
 

@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-019
+---
+
 # FEAT-019: SQL Generator CTE Mode
 
 **Status**: Proposed
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-019
+**Owner**: Platform / Compilation
+**Covered PRD Subsystem(s)**: Multi-Target Emission
+**Covered PRD Requirements**: FR-19.4
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -58,6 +68,9 @@ Not all intermediates are suitable as pure CTEs. Steps that perform 1:N deduplic
 Semantic equivalence testing: both modes produce identical query results when executed against DuckDB with identical source data. DuckDB is used as a dev/test dependency for this verification.
 
 Golden file tests for representative CTE outputs (~15 cases covering linear chains, diamond dependencies, fan-out/fan-in patterns).
+## User Stories
+
+- [US-032 — Generate a Single-Statement SQL Plan](../user-stories/US-032-generate-single-statement-sql-plan.md)
 
 ## Source
 

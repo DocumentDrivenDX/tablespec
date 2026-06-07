@@ -6,6 +6,16 @@ persisted artifacts (it loads them from disk via ``CompiledArtifacts.load``), so
 green run proves the compile output is a self-sufficient runtime contract.
 """
 
+# Bootstrap Path B and compile-orchestrator coverage.
+# @covers US-023-AC1
+# @covers US-023-AC2
+# @covers US-023-AC3
+# @covers US-023-AC4
+# @covers US-023-AC5
+# @covers US-023-AC6
+# @covers US-024-AC1
+# @covers US-024-AC2
+
 from __future__ import annotations
 
 import json

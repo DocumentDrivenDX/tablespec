@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-004
+---
+
 # FEAT-004: Great Expectations Integration
 
 **Status**: Implemented
-**Priority**: High
+**Priority**: P0
+**Feature ID**: FEAT-004
+**Owner**: Data-Quality Platform
+**Covered PRD Subsystem(s)**: Great Expectations Integration
+**Covered PRD Requirements**: FR-4.1, FR-4.2, FR-4.3, FR-4.4, FR-4.5, FR-4.6, FR-4.7
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -30,6 +40,10 @@ Bidirectional integration with Great Expectations: generate baseline expectation
 - Merge baseline expectations with AI-generated
 - Deduplicate using type:column signatures
 - Validate GX 1.6+ format (reject legacy fields)
+## User Stories
+
+- [US-005 — Generate a Great Expectations Baseline from UMF](../user-stories/US-005-generate-gx-baseline-from-umf.md)
+- [US-006 — Extract UMF Constraints from an Existing GX Suite](../user-stories/US-006-extract-umf-constraints-from-gx-suite.md)
 
 ## Source
 

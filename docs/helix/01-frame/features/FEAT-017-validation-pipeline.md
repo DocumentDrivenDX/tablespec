@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-017
+---
+
 # FEAT-017: Validation Pipeline Improvements
 
 **Status**: Proposed
-**Priority**: High
+**Priority**: P0
+**Feature ID**: FEAT-017
+**Owner**: Data-Quality Platform
+**Covered PRD Subsystem(s)**: Great Expectations Integration; Table Validation; Quality Baselines
+**Covered PRD Requirements**: FR-4.3, FR-7.5, FR-7.6, FR-13.3
+**Cross-Subsystem Rationale**: Cross-subsystem validation workflow: suite execution, blocking behavior, reporting, and baselines are one user-visible validation pipeline.
 
 ## Description
 
@@ -68,6 +78,9 @@ Must consider:
 - Structured failure details with expectation type, column, observed vs expected
 - Rich-formatted tables for CLI output
 - Machine-readable dicts for programmatic consumption
+## User Stories
+
+- [US-030 — Run Validation Pipeline with Blocking Reports](../user-stories/US-030-run-validation-pipeline-with-blocking-reports.md)
 
 ## Source
 

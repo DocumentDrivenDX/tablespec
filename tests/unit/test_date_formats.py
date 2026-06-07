@@ -1,10 +1,9 @@
+# @covers US-027-AC2
 """Unit tests for date_formats module - supported date/datetime format definitions."""
 
 from datetime import datetime
 
 import pytest
-
-pytestmark = [pytest.mark.fast, pytest.mark.no_spark]
 
 from tablespec.date_formats import (
     SUPPORTED_DATE_FORMATS,
@@ -17,6 +16,8 @@ from tablespec.date_formats import (
     suggest_format_for_example,
     validate_format_for_data_type,
 )
+
+pytestmark = [pytest.mark.fast, pytest.mark.no_spark]
 
 
 class TestSupportedDateFormats:

@@ -1,3 +1,4 @@
+# @covers US-034-AC2
 """Tests for UMF format loading and conversion (split ↔ JSON)."""
 
 import json
@@ -267,13 +268,17 @@ class TestExpectationSuitePersistence:
         # Cross-column in expectations.yaml
         exp_data = YAML().load((target / "expectations.yaml").read_text())
         assert len(exp_data["expectations"]) == 1
-        assert exp_data["expectations"][0]["type"] == "expect_table_columns_to_match_set"
+        assert (
+            exp_data["expectations"][0]["type"] == "expect_table_columns_to_match_set"
+        )
 
         # Column-specific in column file
         col_data = YAML().load((target / "columns" / "id.yaml").read_text())
         assert "validations" in col_data
         assert len(col_data["validations"]) == 1
-        assert col_data["validations"][0]["type"] == "expect_column_values_to_not_be_null"
+        assert (
+            col_data["validations"][0]["type"] == "expect_column_values_to_not_be_null"
+        )
 
     def test_save_split_expectations_thresholds_and_pending(self, tmp_path):
         """Thresholds, alert_config, and pending are persisted in expectations.yaml."""
@@ -448,7 +453,10 @@ class TestQualityChecksPersistence:
     def test_save_split_persists_quality_thresholds_and_alerts(self, tmp_path):
         """quality_checks thresholds/alert_config should be written to quality_checks.yaml."""
         loader = UMFLoader()
-        quality_thresholds = {"max_critical_failure_percent": 5.0, "min_success_rate": 95.0}
+        quality_thresholds = {
+            "max_critical_failure_percent": 5.0,
+            "min_success_rate": 95.0,
+        }
         alert_config = {"channel": "ops", "threshold_breach_only": True}
 
         umf = UMF(
@@ -785,8 +793,6 @@ class TestWriteYaml:
         # Monkey-patch the formatting module to raise an error
         import tablespec.formatting as fmt_module
 
-        original_fn = fmt_module.format_yaml_dict
-
         def broken_format(*args, **kwargs):
             raise RuntimeError("Formatting broken")
 
@@ -797,7 +803,9 @@ class TestWriteYaml:
             warnings.simplefilter("always")
             loader._write_yaml(output_file, data)
             # Should have emitted a warning about formatting failure
-            assert any("YAML formatting failed" in str(warning.message) for warning in w)
+            assert any(
+                "YAML formatting failed" in str(warning.message) for warning in w
+            )
 
         assert output_file.exists()
         content = output_file.read_text()
@@ -997,7 +1005,10 @@ class TestLoadColumnCentricEdgeCases:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             umf = loader.load(tmp_path)
-            assert any("cross_column_validations.yaml is deprecated" in str(warning.message) for warning in w)
+            assert any(
+                "cross_column_validations.yaml is deprecated" in str(warning.message)
+                for warning in w
+            )
 
         assert umf.validation_rules is not None
         assert len(umf.validation_rules.expectations) == 1
@@ -1012,9 +1023,7 @@ class TestLoadColumnCentricEdgeCases:
             "      kwargs: {}\n"
         )
         (tmp_path / "validation_rules.yaml").write_text(
-            "expectations:\n"
-            "  - type: cross_column_expectation\n"
-            "    kwargs: {}\n"
+            "expectations:\n  - type: cross_column_expectation\n    kwargs: {}\n"
         )
         (tmp_path / "columns").mkdir()
         (tmp_path / "columns" / "id.yaml").write_text(
@@ -1042,9 +1051,7 @@ class TestLoadColumnCentricEdgeCases:
 
     def test_load_missing_columns_dir_raises(self, tmp_path):
         """Test that missing columns/ directory raises FileNotFoundError."""
-        (tmp_path / "table.yaml").write_text(
-            "version: '1.0'\ntable_name: test_table\n"
-        )
+        (tmp_path / "table.yaml").write_text("version: '1.0'\ntable_name: test_table\n")
 
         loader = UMFLoader()
         with pytest.raises(FileNotFoundError, match="Missing columns/ directory"):
@@ -1091,7 +1098,9 @@ class TestSortRecursive:
 
     def test_recursive_nested(self):
         loader = UMFLoader()
-        result = loader._sort_recursive({"z": {"b": 1, "a": 2}, "a": [{"c": 3, "b": 4}]})
+        result = loader._sort_recursive(
+            {"z": {"b": 1, "a": 2}, "a": [{"c": 3, "b": 4}]}
+        )
         assert list(result.keys()) == ["a", "z"]
         assert list(result["z"].keys()) == ["a", "b"]
         assert list(result["a"][0].keys()) == ["b", "c"]

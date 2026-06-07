@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-016
+---
+
 # US-016: Capture and Compare Quality Baselines
 
-**Parent Feature**: [FEAT-012 - Quality Baselines](../features/FEAT-012-quality-baselines.md)
+**Feature**: FEAT-012 — Quality Baselines
+**PRD Requirements**: FR-13.1, FR-13.2, FR-13.3, FR-13.4
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data quality engineer monitoring pipeline health,
-**I want to** capture a quality baseline from a DataFrame and compare it to previous runs,
-**so that** I can detect data drift in row counts, distributions, and statistics.
+**I want** capture a quality baseline from a DataFrame and compare it to previous runs,
+**So that** I can detect data drift in row counts, distributions, and statistics.
 
 ## Acceptance Criteria
 

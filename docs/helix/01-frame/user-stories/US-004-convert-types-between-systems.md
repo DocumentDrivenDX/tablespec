@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-004
+---
+
 # US-004: Convert Column Types Between Type Systems
 
-**Parent Feature**: [FEAT-003 - Type System Mappings](../features/FEAT-003-type-mappings.md)
+**Feature**: FEAT-003 — Type System Mappings
+**PRD Requirements**: FR-3.1, FR-3.2, FR-3.3, FR-3.4, FR-3.5
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer working across PySpark and SQL environments,
-**I want to** convert UMF column types to PySpark, JSON Schema, and Great Expectations type representations,
-**so that** I can use a single UMF schema as the source of truth across all downstream systems without manually mapping types.
+**I want** convert UMF column types to PySpark, JSON Schema, and Great Expectations type representations,
+**So that** I can use a single UMF schema as the source of truth across all downstream systems without manually mapping types.
 
 ## Acceptance Criteria
 

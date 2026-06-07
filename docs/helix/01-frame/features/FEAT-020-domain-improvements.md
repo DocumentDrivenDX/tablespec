@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-020
+---
+
 # FEAT-020: Domain Type System Improvements
 
 **Status**: Proposed
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-020
+**Owner**: Data Platform
+**Covered PRD Subsystem(s)**: Domain Type Inference
+**Covered PRD Requirements**: FR-14.1, FR-14.2, FR-14.3, FR-14.4
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -44,6 +54,9 @@ Excel dropdown for domain types currently reads from a hardcoded 14-type list. U
 ### Regex Validation on Registry Load (`src/tablespec/inference/domain_types.py`)
 
 Invalid regex patterns in `domain_types.yaml` currently fail silently during inference. Change to raise `ValueError` on registry load, catching configuration errors early.
+## User Stories
+
+- [US-033 — Improve Domain Type Inference](../user-stories/US-033-improve-domain-type-inference.md)
 
 ## Source
 

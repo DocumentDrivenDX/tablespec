@@ -6,6 +6,11 @@ over the persisted artifacts. Profile enrichment is the recommended default, so 
 compiled suite carries data-derived expectations rather than schema-only checks.
 """
 
+# Bootstrap Path A coverage.
+# @covers US-023-AC1
+# @covers US-023-AC4
+# @covers US-023-AC5
+
 from __future__ import annotations
 
 import json

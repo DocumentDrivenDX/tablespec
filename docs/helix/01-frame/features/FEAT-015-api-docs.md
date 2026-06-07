@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-015
+---
+
 # FEAT-015: Browsable API Documentation
 
 **Status**: Planned
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-015
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: UMF Model and I/O
+**Covered PRD Requirements**: FR-1.1
+**Cross-Subsystem Rationale**: Documentation support feature: API docs expose the modeled UMF surface rather than owning new product behavior.
 
 ## Description
 
@@ -18,6 +28,9 @@ The GitHub Pages site currently serves a PyPI package index, not documentation.
 - MkDocs with mkdocstrings plugin for auto-generation from type annotations and docstrings
 - Pydantic models benefit most since their Field(description=...) metadata is already rich
 - Deploy alongside or integrated with the existing GitHub Pages PyPI index
+## User Stories
+
+- [US-028 — Publish Browsable API Documentation](../user-stories/US-028-publish-browsable-api-docs.md)
 
 ## Source
 

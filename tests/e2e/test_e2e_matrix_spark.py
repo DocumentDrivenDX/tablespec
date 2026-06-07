@@ -14,6 +14,12 @@ sockets for lazy GC, which ``filterwarnings = error`` would surface as unraisabl
 ResourceWarnings at a test boundary -- pure session noise, downgraded here.
 """
 
+# Spark runtime-backbone matrix coverage.
+# @covers US-024-AC1
+# @covers US-024-AC2
+# @covers US-024-AC3
+# @covers US-024-AC4
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,5 +48,7 @@ def test_ingest_byte_identical_to_golden(tmp_path: Path, spark_session) -> None:
     and DuckDB, so this ties the classic-Spark leg to identical bytes (the parity
     triangle spark == sail == duckdb) without importing across lanes.
     """
-    canon = _matrix.canonical_ingest("spark", spark=spark_session, out_dir=tmp_path / "spark")
+    canon = _matrix.canonical_ingest(
+        "spark", spark=spark_session, out_dir=tmp_path / "spark"
+    )
     _matrix.assert_canonical_matches_golden("spark", canon)

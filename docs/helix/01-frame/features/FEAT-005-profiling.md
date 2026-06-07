@@ -6,7 +6,10 @@ ddx:
 # FEAT-005: Profiling Integration (Schema Mapping + Legacy Path)
 
 **Status**: Implemented
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-005
+**Owner**: Data Platform
+**Cross-Subsystem Rationale**: None — single subsystem. Native Connect-safe profiling is governed by FEAT-024.
 **Covered PRD Subsystem(s)**: Profiling Integration
 **Covered PRD Requirements**: FR-5.3, FR-5.4, FR-5.5
 
@@ -38,6 +41,9 @@ legacy-compatibility surfaces of the Profiling Integration subsystem.
   Connect (FR-5.5). Code that needs profile-derived expectations now uses the native
   profiler + `ProfileToGxMapper` (FEAT-024). Per FR-5.5, no Deequ path may be
   assumed available on Connect/serverless.
+## User Stories
+
+- [US-007 — Convert Profiling Results to UMF](../user-stories/US-007-convert-profiling-results-to-umf.md)
 
 ## Related
 

@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-009
+---
+
 # US-009: Validate a DataFrame Against a UMF Schema
 
-**Parent Feature**: [FEAT-007 - Table Validation](../features/FEAT-007-validation.md)
+**Feature**: FEAT-007 — Table Validation
+**PRD Requirements**: FR-7.1, FR-7.2, FR-7.3, FR-7.4, FR-7.5, FR-7.6
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer running a PySpark pipeline,
-**I want to** validate a DataFrame against its UMF specification at runtime,
-**so that** I catch schema drift, type mismatches, missing columns, and business rule violations before data lands in the target table.
+**I want** validate a DataFrame against its UMF specification at runtime,
+**So that** I catch schema drift, type mismatches, missing columns, and business rule violations before data lands in the target table.
 
 ## Acceptance Criteria
 

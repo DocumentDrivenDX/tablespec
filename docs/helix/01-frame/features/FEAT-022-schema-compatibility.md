@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-022
+---
+
 # FEAT-022: Schema Compatibility Checker
 
 **Status**: Proposed
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-022
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: Schema Change Management
+**Covered PRD Requirements**: FR-11.1, FR-11.2
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -60,6 +70,9 @@ Hypothesis properties:
 - **Removal detection**: Removing a column is always detected as breaking.
 
 Golden files for ~15 specific cases covering type widening, type narrowing, nullable changes per context, column addition/removal, length/precision changes, and rename-with-alias scenarios.
+## User Stories
+
+- [US-035 — Check Schema Compatibility](../user-stories/US-035-check-schema-compatibility.md)
 
 ## Source
 

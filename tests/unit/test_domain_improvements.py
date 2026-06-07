@@ -1,3 +1,4 @@
+# @covers US-033-AC1
 """Tests for domain type system improvements: abbreviation expansion,
 structured inference results, regex validation, and Excel registry sync.
 """
@@ -7,7 +8,6 @@ from __future__ import annotations
 import pytest
 
 from tablespec.inference.domain_types import (
-    COMMON_ABBREVIATIONS,
     DomainTypeInference,
     DomainTypeRegistry,
     InferenceResult,
@@ -79,7 +79,10 @@ class TestInferenceWithExplanation:
         inference = DomainTypeInference()
         result = inference.infer_with_explanation("member_id", data_type="VARCHAR")
         assert result.explanation  # non-empty
-        assert "column name" in result.explanation.lower() or "pattern" in result.explanation.lower()
+        assert (
+            "column name" in result.explanation.lower()
+            or "pattern" in result.explanation.lower()
+        )
 
     def test_includes_runner_up(self):
         inference = DomainTypeInference()
@@ -89,7 +92,9 @@ class TestInferenceWithExplanation:
 
     def test_no_match_returns_explanation(self):
         inference = DomainTypeInference()
-        result = inference.infer_with_explanation("xyzzy_field_999", data_type="VARCHAR")
+        result = inference.infer_with_explanation(
+            "xyzzy_field_999", data_type="VARCHAR"
+        )
         assert result.domain_type is None
         assert result.confidence == 0.0
         assert "no matching" in result.explanation.lower()
@@ -100,7 +105,10 @@ class TestInferenceWithExplanation:
             "state", data_type="VARCHAR", description="US state abbreviation"
         )
         assert result.domain_type is not None
-        assert "description" in result.explanation.lower() or "keyword" in result.explanation.lower()
+        assert (
+            "description" in result.explanation.lower()
+            or "keyword" in result.explanation.lower()
+        )
 
     def test_sample_values_in_explanation(self):
         inference = DomainTypeInference()
@@ -108,7 +116,10 @@ class TestInferenceWithExplanation:
             "zip_code", data_type="VARCHAR", sample_values=["12345", "67890", "54321"]
         )
         assert result.domain_type == "zip_code"
-        assert "sample" in result.explanation.lower() or "pattern" in result.explanation.lower()
+        assert (
+            "sample" in result.explanation.lower()
+            or "pattern" in result.explanation.lower()
+        )
 
     def test_abbreviation_expansion_noted_in_explanation(self):
         """When abbreviation expansion is needed, explanation mentions it."""
@@ -118,7 +129,10 @@ class TestInferenceWithExplanation:
         assert result.domain_type is not None
         assert result.confidence > 0
         # Explanation should mention the column name or pattern
-        assert "column name" in result.explanation.lower() or "pattern" in result.explanation.lower()
+        assert (
+            "column name" in result.explanation.lower()
+            or "pattern" in result.explanation.lower()
+        )
 
 
 class TestRegexValidation:

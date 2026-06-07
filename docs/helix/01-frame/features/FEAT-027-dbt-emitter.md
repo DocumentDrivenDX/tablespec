@@ -165,10 +165,9 @@ build. (`src/tablespec/cli.py`)
   dbt runtime packages to be installed.
 - **Multi-engine parity**: Generated projects build on the DuckDB, local Spark (session), and
   compile-only Databricks targets with equivalent cast results (conformance harness).
-
 ## User Stories
 
-- [US-025 — Emit a dbt project from UMF](../user-stories/US-025-emit-dbt-project-from-umf.md)
+- [US-025 — Emit a dbt Project from UMF](../user-stories/US-025-emit-dbt-project-from-umf.md)
 
 ## Edge Cases and Error Handling
 

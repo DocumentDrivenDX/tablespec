@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-008
+---
+
 # FEAT-008: CLI Interface
 
 **Status**: Implemented
-**Priority**: High
+**Priority**: P0
+**Feature ID**: FEAT-008
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: CLI Interface
+**Covered PRD Requirements**: FR-8.1, FR-8.2, FR-8.3, FR-8.4, FR-8.5, FR-8.6
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -25,6 +35,9 @@ Typer-based CLI (`tablespec` command) for schema management, conversion, and val
 - typer (CLI framework)
 - rich (terminal formatting)
 - Conditional: validator module for validate/convert/info commands
+## User Stories
+
+- [US-010 — Convert UMF Formats via CLI](../user-stories/US-010-convert-umf-via-cli.md)
 
 ## Source
 

@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-013
+---
+
 # US-013: Generate Sample Data from UMF
 
-**Parent Feature**: [FEAT-011 - Sample Data Generation](../features/FEAT-011-sample-data.md)
+**Feature**: FEAT-011 — Sample Data Generation
+**PRD Requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** QA engineer setting up test environments,
-**I want to** generate realistic sample data from UMF specifications,
-**so that** I can test pipelines with data that respects types, constraints, and foreign key relationships.
+**I want** generate realistic sample data from UMF specifications,
+**So that** I can test pipelines with data that respects types, constraints, and foreign key relationships.
 
 ## Acceptance Criteria
 

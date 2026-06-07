@@ -15,6 +15,10 @@ proves the CAST LAYER is shared by running the extracted SELECT on duckdb. The
 streaming/APPLY-CHANGES runtime is out of scope (see the package docstring).
 """
 
+# LDP sibling-emitter cast parity coverage.
+# @covers US-026-AC3
+# @covers US-026-AC6
+
 from __future__ import annotations
 
 from pathlib import Path

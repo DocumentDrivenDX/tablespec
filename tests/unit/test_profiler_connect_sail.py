@@ -19,6 +19,12 @@ from __future__ import annotations
 
 import warnings
 
+# @covers US-021-AC1
+# @covers US-021-AC2
+# @covers US-021-AC3
+# @covers US-021-AC4
+# @covers US-021-AC5
+
 import pytest
 
 try:

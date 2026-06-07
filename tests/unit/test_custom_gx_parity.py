@@ -1,3 +1,5 @@
+# @covers US-031-AC1
+# @covers US-031-AC2
 """Classic-Spark vs Sail-Connect PARITY for the four custom GX expectations.
 
 The four tablespec custom expectations

@@ -1,3 +1,5 @@
+# @covers US-032-AC1
+# @covers US-032-AC2
 """Tests for CTE mode in SQL plan generation."""
 
 from __future__ import annotations
@@ -181,9 +183,7 @@ def derived_umf() -> UMF:
 class TestCTEMode:
     """Test CTE output mode for SQLPlanGenerator."""
 
-    def test_cte_starts_with_WITH(
-        self, derived_umf: UMF, related_umfs: dict[str, UMF]
-    ):
+    def test_cte_starts_with_WITH(self, derived_umf: UMF, related_umfs: dict[str, UMF]):
         """CTE mode output contains a WITH clause."""
         gen = SQLPlanGenerator()
         sql = gen.generate_for_table(derived_umf, related_umfs, mode="cte")

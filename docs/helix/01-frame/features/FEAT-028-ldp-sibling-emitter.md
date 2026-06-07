@@ -134,10 +134,9 @@ unknown relation in a gold plan MUST raise `UnknownDatasetError`
 - **Cast parity**: The LDP ingested cast SELECT MUST produce the same canonical
   rows as the dbt/direct path on real duckdb for at least one single-batch case
   (`tests/conformance/test_ldp_tiers.py:97`).
-
 ## User Stories
 
-- [US-026 — Emit an LDP project from a UMF set](../user-stories/US-026-emit-ldp-project-from-umf.md)
+- [US-026 — Emit an LDP Project from a UMF Set](../user-stories/US-026-emit-ldp-project-from-umf.md)
 
 ## Edge Cases and Error Handling
 

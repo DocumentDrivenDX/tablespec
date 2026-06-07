@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-018
+---
+
 # US-018: Merge Table Files with Survivorship
 
-**Parent Feature**: [FEAT-007 - Table Validation](../features/FEAT-007-validation.md)
+**Feature**: FEAT-007 — Table Validation
+**PRD Requirements**: FR-15.1, FR-15.2, FR-15.3
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer merging vendor files,
-**I want to** merge multiple table files using UMF survivorship rules,
-**so that** deduplication and conflict resolution follow the spec rather than ad-hoc logic.
+**I want** merge multiple table files using UMF survivorship rules,
+**So that** deduplication and conflict resolution follow the spec rather than ad-hoc logic.
 
 ## Acceptance Criteria
 

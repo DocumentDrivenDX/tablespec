@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-018
+---
+
 # FEAT-018: Custom GX Extensions
 
 **Status**: Implemented
-**Priority**: High
+**Priority**: P0
+**Feature ID**: FEAT-018
+**Owner**: Data-Quality Platform
+**Covered PRD Subsystem(s)**: Table Validation
+**Covered PRD Requirements**: FR-7.5
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -53,6 +63,9 @@ Cross-column date ordering for start_date < end_date patterns common in temporal
 | AC-7 | Date pair ordering with valid/invalid data | `test_date_order_expectation.py` |
 | AC-8 | Date pair or_equal flag (>= vs >) | `test_date_order_expectation.py` |
 | AC-9 | Result structure includes element_count, unexpected_count, partial_unexpected_list | `test_domain_type_expectation.py::test_*_result*` |
+## User Stories
+
+- [US-031 — Validate Custom GX Expectations](../user-stories/US-031-validate-custom-gx-expectations.md)
 
 ## Source
 

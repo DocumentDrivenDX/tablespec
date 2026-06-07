@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-021
+---
+
 # FEAT-021: UMF Loader & Validator Improvements
 
 **Status**: Proposed
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-021
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: UMF Model and I/O; Split-Format UMF
+**Covered PRD Requirements**: FR-1.7, FR-10.2, FR-10.3
+**Cross-Subsystem Rationale**: Cross-subsystem hardening: loader diagnostics and validator checks protect the same UMF load path.
 
 ## Description
 
@@ -29,6 +39,9 @@ Uses a known-types registry derived from GX's built-in expectation list, updatab
 ### Split Format Roundtrip Property Test (`tests/unit/test_umf_loader.py`)
 
 Hypothesis property test: any valid UMF produced by `umf_object()` strategy survives `save -> load` through split format with all fields preserved. Catches serialization edge cases (empty lists, None vs missing, special characters in descriptions).
+## User Stories
+
+- [US-034 — Load and Validate UMF with Clear Errors](../user-stories/US-034-load-and-validate-umf-with-clear-errors.md)
 
 ## Source
 

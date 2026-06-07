@@ -25,6 +25,13 @@ A GATED real-serverless leg is included; it SKIPS unless a real Databricks
 workspace is configured (``databricks_e2e_availability()``), and is never run here.
 """
 
+# No-JVM runtime-backbone matrix coverage.
+# @covers US-024-AC1
+# @covers US-024-AC2
+# @covers US-024-AC3
+# @covers US-024-AC4
+# @covers US-024-AC5
+
 from __future__ import annotations
 
 import warnings

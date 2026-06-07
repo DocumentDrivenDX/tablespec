@@ -130,7 +130,6 @@ seams at run time. (asserted by `tests/e2e/test_bootstrap_from_specs.py:4`)
   relative to root) and consumable on DuckDB, classic Spark, and Sail (Connect).
 - **Runtime independence**: The backbone SHALL run with no tablespec import at run
   time (PRD Success Metric "Runtime independence").
-
 ## User Stories
 
 - [US-023 — Bootstrap a runtime from a UMF set (Path A / Path B)](../user-stories/US-023-bootstrap-runtime-from-umf-set.md)

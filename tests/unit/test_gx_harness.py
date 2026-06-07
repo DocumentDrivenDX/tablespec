@@ -1,3 +1,5 @@
+# @covers US-029-AC1
+# @covers US-029-AC2
 """Tests for the GXTestHarness (FEAT-016).
 
 These tests verify the harness API works end-to-end with a Sail backend.
@@ -39,7 +41,10 @@ class TestGXTestHarness:
         """Harness validates not-null constraints."""
         result = gx_harness.run(
             expectations=[
-                {"type": "expect_column_values_to_not_be_null", "kwargs": {"column": "id"}},
+                {
+                    "type": "expect_column_values_to_not_be_null",
+                    "kwargs": {"column": "id"},
+                },
             ],
             data=[{"id": 1}, {"id": 2}, {"id": 3}],
         )
@@ -106,8 +111,14 @@ class TestGXTestHarness:
         result = gx_harness.run(
             expectations=[
                 {"type": "expect_column_to_exist", "kwargs": {"column": "id"}},
-                {"type": "expect_column_values_to_not_be_null", "kwargs": {"column": "id"}},
-                {"type": "expect_column_values_to_be_unique", "kwargs": {"column": "id"}},
+                {
+                    "type": "expect_column_values_to_not_be_null",
+                    "kwargs": {"column": "id"},
+                },
+                {
+                    "type": "expect_column_values_to_be_unique",
+                    "kwargs": {"column": "id"},
+                },
             ],
             data=[{"id": 1}, {"id": 2}, {"id": 3}],
         )

@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-006
+---
+
 # US-006: Extract UMF Constraints from an Existing GX Suite
 
-**Parent Feature**: [FEAT-004 - Great Expectations Integration](../features/FEAT-004-gx-integration.md)
+**Feature**: FEAT-004 — Great Expectations Integration
+**PRD Requirements**: FR-4.4, FR-4.5
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data quality engineer with existing Great Expectations suites,
-**I want to** extract validation constraints from those suites back into UMF format,
-**so that** I can consolidate tribal knowledge already captured in GX into the canonical UMF schema and avoid maintaining rules in two places.
+**I want** extract validation constraints from those suites back into UMF format,
+**So that** I can consolidate tribal knowledge already captured in GX into the canonical UMF schema and avoid maintaining rules in two places.
 
 ## Acceptance Criteria
 

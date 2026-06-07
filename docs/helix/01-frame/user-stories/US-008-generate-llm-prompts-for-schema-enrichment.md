@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-008
+---
+
 # US-008: Generate LLM Prompts for Schema Enrichment
 
-**Parent Feature**: [FEAT-006 - LLM Prompt Generation](../features/FEAT-006-llm-prompts.md)
+**Feature**: FEAT-006 — LLM Prompt Generation
+**PRD Requirements**: FR-6.1, FR-6.2, FR-6.3, FR-6.4, FR-6.5, FR-6.6, FR-6.7
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** platform engineer integrating LLMs into a schema management pipeline,
-**I want to** generate structured prompts from UMF metadata for documentation, validation rules, relationship discovery, and survivorship logic,
-**so that** I can feed consistent, domain-aware context to an LLM and get back enrichments that slot directly into the UMF schema.
+**I want** generate structured prompts from UMF metadata for documentation, validation rules, relationship discovery, and survivorship logic,
+**So that** I can feed consistent, domain-aware context to an LLM and get back enrichments that slot directly into the UMF schema.
 
 ## Acceptance Criteria
 

@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-006
+---
+
 # FEAT-006: LLM Prompt Generation
 
 **Status**: Implemented
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-006
+**Owner**: Data-Quality Platform
+**Covered PRD Subsystem(s)**: LLM Prompt Generation
+**Covered PRD Requirements**: FR-6.1, FR-6.2, FR-6.3, FR-6.4, FR-6.5, FR-6.6, FR-6.7
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -35,6 +45,9 @@ Generate structured prompts for LLM-based schema enrichment across documentation
 
 ### Validation Per Column (`prompts/validation_per_column.py`)
 - Column-specific validation prompt generation with granular targeting
+## User Stories
+
+- [US-008 — Generate LLM Prompts for Schema Enrichment](../user-stories/US-008-generate-llm-prompts-for-schema-enrichment.md)
 
 ## Source
 

@@ -16,6 +16,9 @@ right node set in dbt's graph, and the empty selector builds 0 models) live in
 ``test_state_modified_e2e.py``. These tests are JVM-free and dbt-package-free.
 """
 
+# dbt state:modified selection coverage.
+# @covers US-025-AC4
+
 from __future__ import annotations
 
 import shutil
@@ -93,10 +96,15 @@ def test_changeset_one_edited_table(tmp_path: Path) -> None:
     [
         ("primary_key", lambda d: d.update(primary_key=["claim_id", "member_id"])),
         ("ingestion.mode", lambda d: d["ingestion"].update(mode="snapshot")),
-        ("ingestion.order_by", lambda d: d["ingestion"].update(order_by=["_source_file"])),
+        (
+            "ingestion.order_by",
+            lambda d: d["ingestion"].update(order_by=["_source_file"]),
+        ),
     ],
 )
-def test_changeset_detects_structural_field_change(tmp_path: Path, field, mutate) -> None:
+def test_changeset_detects_structural_field_change(
+    tmp_path: Path, field, mutate
+) -> None:
     """Regression: structural fields UMFDiff does NOT diff (primary_key, ingestion,
     ...) still mark a table modified, so CI never under-selects a model whose merge
     key or materialization changed (would otherwise silently skip the rebuild).

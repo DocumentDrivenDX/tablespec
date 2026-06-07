@@ -95,6 +95,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: UMF Model and I/O
 
+**FR-1** requirement family.
+
 - **FR-1.1** — Pydantic models for UMF format with runtime validation
 - **FR-1.2** — Support 10 data types: VARCHAR, CHAR, TEXT, INTEGER, DECIMAL, FLOAT, DATE, DATETIME, TIMESTAMP, BOOLEAN
 - **FR-1.3** — Per-LOB nullable configuration (MD, MP, ME)
@@ -108,11 +110,15 @@ edits; do not renumber on edit.
 
 ### Subsystem: Schema Generation
 
+**FR-2** requirement family.
+
 - **FR-2.1** — SQL DDL generation with NOT NULL, column comments, table comments, and suggested indexes
 - **FR-2.2** — PySpark StructType code generation with correct type imports
 - **FR-2.3** — JSON Schema (draft-07) generation with type mapping, maxLength, and examples
 
 ### Subsystem: Type Mappings
+
+**FR-3** requirement family.
 
 - **FR-3.1** — UMF to PySpark type mapping (all types plus BIGINT, SMALLINT, TINYINT, DOUBLE, STRING, TIMESTAMP)
 - **FR-3.2** — UMF to JSON Schema type mapping
@@ -121,6 +127,8 @@ edits; do not renumber on edit.
 - **FR-3.5** — Safe defaults (unknown types map to StringType/string)
 
 ### Subsystem: Great Expectations Integration
+
+**FR-4** requirement family.
 
 - **FR-4.1** — Baseline expectation generation from UMF metadata (column existence, types, nullability, length, date format)
 - **FR-4.2** — Structural expectations (column count, column order)
@@ -132,6 +140,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: Profiling Integration
 
+**FR-5** requirement family.
+
 - **FR-5.1** — **Native Spark-SQL profiler (default).** Profile a DataFrame using only standard Spark SQL aggregations (min, max, avg, stddev, approx_count_distinct, percentile_approx, skewness, kurtosis), with no JVM and no Deequ, so profiling runs on Databricks serverless / Spark Connect. Engine-correct `functions` dispatch is selected from the DataFrame's own engine, not a process-global flag.
 - **FR-5.2** — **Profile → GX expectations.** `ProfileToGxMapper` builds GX expectations directly from a native profile at a configurable strictness, feeding suite composition (FR-4.3).
 - **FR-5.3** — Profiling metadata (tool, version, timestamp, sample size).
@@ -139,6 +149,8 @@ edits; do not renumber on edit.
 - **FR-5.5** — **Deequ mapper removed; no Deequ on Connect/serverless.** The PyDeequ-based `DeequToUmfMapper` (`profiling/deequ_mapper.py`) has been **removed** (commit `ad5a4d9`); it assumed a classic `SparkContext` and may not be assumed available on Connect/serverless. The Spark-schema `SparkToUmfMapper` (schema → UMF) is retained and is Connect-safe (it reflects the DataFrame *schema*, not data), but it is a schema mapper, not the profiling mechanism — the native profiler (FR-5.1) is the default for data profiling.
 
 ### Subsystem: LLM Prompt Generation
+
+**FR-6** requirement family.
 
 - **FR-6.1** — Documentation enrichment prompts
 - **FR-6.2** — Table-level validation rule prompts (multi-column expectations)
@@ -149,6 +161,8 @@ edits; do not renumber on edit.
 - **FR-6.7** — Healthcare domain knowledge in prompts (member/provider/claim IDs, drug codes)
 
 ### Subsystem: Table Validation
+
+**FR-7** requirement family.
 
 - **FR-7.1** — DataFrame validation against UMF specifications (requires PySpark).
 - **FR-7.2** — Schema validation (missing/extra columns).
@@ -161,6 +175,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: Compile Orchestration & Bootstrap
 
+**FR-18** requirement family.
+
 - **FR-18.1** — **Compile orchestrator.** A single orchestrator (`tablespec.e2e.compile`) takes a list of UMF models and drives every compile seam, persisting one committed artifact each: ingest SQL, DDL, PySpark schema, JSON schema, compiled GX suite, single-table dbt ingest project, multi-table gold dbt DAG project, LDP project, and the single-target gold SQL plan. *Governed by FEAT-026; decision recorded in ADR-012.*
 - **FR-18.2** — **Pinned manifest layout.** Compiled artifacts are written under a pinned layout and described by a `CompiledArtifacts` manifest that the runtime can resolve deterministically.
 - **FR-18.3** — **Runtime consumes only committed artifacts.** The runtime backbone (`tablespec.e2e.backbone`) executes the committed artifacts and must not re-derive schema/transforms from UMF or import tablespec at run time. *Governed by FEAT-026 (US-024); decision recorded in ADR-012.*
@@ -169,6 +185,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: Multi-Target Emission
 
+**FR-19** requirement family.
+
 - **FR-19.1** — **Shared target-agnostic core seam.** Direct-SQL, dbt, and LDP emitters are siblings on a framework-agnostic core (`tablespec.core` — the renderer Protocol + logical-plan IR); no emitter imports another, and importing the core never requires dbt/LDP runtime packages.
 - **FR-19.2** — **dbt emitter.** Emit a single-table ingest project and a multi-table gold dbt DAG project, including model contracts from schema facts, relationships + accepted_values schema tests, `state:modified` CI selection from UMF diff, and sample-data → dbt seeds.
 - **FR-19.3** — **LDP sibling emitter.** Emit an LDP (Lakeflow Declarative Pipelines) project as a committed artifact and as a conformance engine tier, proving the target-agnostic core seam with a second backend.
@@ -176,12 +194,16 @@ edits; do not renumber on edit.
 
 ### Subsystem: Runtime Platform
 
+**FR-20** requirement family.
+
 - **FR-20.1** — **Per-session capability probing.** Detect per-session Spark capabilities that vary across builds (e.g. `try_to_timestamp` with a format on classic Spark 4.0 vs. some Connect builds) by probing a tiny expression, cached per session.
 - **FR-20.2** — **Engine-correct functions dispatch.** Select the `functions` module / Column engine from the DataFrame in hand, never from a process-global `is_remote()`, so expressions stay session-correct when classic and Connect sessions coexist (the local Sail test lane) and behave identically in production.
 - **FR-20.3** — **First-class serverless / Connect target.** Databricks serverless / Spark Connect (env-v3, Python 3.12) and classic Spark are both first-class execution targets; no decision may assume a JVM `SparkContext`.
 - **FR-20.4** — **Connect-safe validation path.** Validation routing (FR-7.7) is the Runtime-Platform contract applied to GX execution.
 
 ### Subsystem: CLI Interface
+
+**FR-8** requirement family.
 
 - **FR-8.1** — Typer-based CLI (`tablespec` command) with Rich output formatting
 - **FR-8.2** — `convert` command for format conversion (JSON, split, Excel)
@@ -192,12 +214,16 @@ edits; do not renumber on edit.
 
 ### Subsystem: Excel Bidirectional Conversion
 
+**FR-9** requirement family.
+
 - **FR-9.1** — UMF to Excel export with data validation dropdowns and formatting
 - **FR-9.2** — Excel to UMF import with strict validation
 - **FR-9.3** — Helper columns (validation status, error messages) for domain experts
 - **FR-9.4** — Round-trip fidelity between Excel and UMF formats
 
 ### Subsystem: Split-Format UMF
+
+**FR-10** requirement family.
 
 - **FR-10.1** — Directory-based UMF storage (`table.yaml` + `columns/*.yaml`)
 - **FR-10.2** — `UMFLoader` with automatic format detection (split vs JSON)
@@ -206,6 +232,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: Schema Change Management
 
+**FR-11** requirement family.
+
 - **FR-11.1** — UMF diffing (`UMFDiff`) detecting column, validation, metadata, and relationship changes
 - **FR-11.2** — Atomic change application (`UMFChangeApplier`) for per-change commits
 - **FR-11.3** — Git-based changelog generation from commit history
@@ -213,6 +241,8 @@ edits; do not renumber on edit.
 - **FR-11.5** — Changelog models with structured change entries and types
 
 ### Subsystem: Sample Data Generation
+
+**FR-12** requirement family.
 
 - **FR-12.1** — Healthcare-specific sample data from UMF specifications
 - **FR-12.2** — Constraint-aware generation (value sets, regex patterns, date formats)
@@ -223,6 +253,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: Quality Baselines
 
+**FR-13** requirement family.
+
 - **FR-13.1** — Capture baseline metrics from DataFrames (row counts, distributions, statistics)
 - **FR-13.2** — Baseline storage and retrieval
 - **FR-13.3** — Comparison against previous baselines with drift detection
@@ -231,6 +263,8 @@ edits; do not renumber on edit.
 
 ### Subsystem: Domain Type Inference
 
+**FR-14** requirement family.
+
 - **FR-14.1** — Automatic domain type detection from column names and descriptions
 - **FR-14.2** — YAML-based domain type registry (us_state_code, email, phone, etc.)
 - **FR-14.3** — Pattern matching and sample value validation
@@ -238,17 +272,23 @@ edits; do not renumber on edit.
 
 ### Subsystem: Table Merge
 
+**FR-15** requirement family.
+
 - **FR-15.1** — Spark-based merge of multiple table files with UMF metadata (requires PySpark)
 - **FR-15.2** — Survivorship rules from UMF specifications
 - **FR-15.3** — Configurable deduplication and conflict resolution
 
 ### Subsystem: Naming Utilities
 
+**FR-16** requirement family.
+
 - **FR-16.1** — `to_spark_identifier()` for canonical snake_case conversion
 - **FR-16.2** — `position_sort_key()` for Excel-style column ordering
 - **FR-16.3** — Naming validation against UMF conventions
 
 ### Subsystem: Date Format System
+
+**FR-17** requirement family.
 
 - **FR-17.1** — Supported date/datetime format definitions with UMF notation
 - **FR-17.2** — Format validation and strftime conversion

@@ -10,6 +10,9 @@ the core ``column_contracts`` derivation. They are JVM-free and fast.
   * AC2.6 (import-safe) ``tablespec.dbt.contracts`` imports no ``dbt`` package.
 """
 
+# dbt contract derivation coverage.
+# @covers US-025-AC2
+
 from __future__ import annotations
 
 from pathlib import Path

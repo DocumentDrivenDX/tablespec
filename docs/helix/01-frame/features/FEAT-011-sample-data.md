@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-011
+---
+
 # FEAT-011: Sample Data Generation
 
 **Status**: Implemented
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-011
+**Owner**: Data-Quality Platform
+**Covered PRD Subsystem(s)**: Sample Data Generation
+**Covered PRD Requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5, FR-12.6
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -34,6 +44,9 @@ Generate realistic healthcare-specific sample data from UMF specifications, resp
 
 ### Filename Generator (`sample_data/filename_generator.py`)
 - Generate filenames from UMF file format specifications
+## User Stories
+
+- [US-013 — Generate Sample Data from UMF](../user-stories/US-013-generate-sample-data.md)
 
 ## Source
 

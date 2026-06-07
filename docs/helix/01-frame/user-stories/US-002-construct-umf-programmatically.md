@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-002
+---
+
 # US-002: Construct a UMF Schema Programmatically
 
-**Parent Feature**: [FEAT-001 - UMF Models and I/O](../features/FEAT-001-umf-models.md)
+**Feature**: FEAT-001 — UMF Models and I/O
+**PRD Requirements**: FR-1.1, FR-1.2, FR-1.3, FR-1.5, FR-1.6, FR-1.10
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** platform engineer managing schema standards,
-**I want to** construct UMF schemas programmatically using type-safe Python models,
-**so that** I can generate and manage table specifications across Medicaid, Medicare Part D, and Medicare lines of business in automated workflows without hand-editing YAML.
+**I want** construct UMF schemas programmatically using type-safe Python models,
+**So that** I can generate and manage table specifications across Medicaid, Medicare Part D, and Medicare lines of business in automated workflows without hand-editing YAML.
 
 ## Acceptance Criteria
 

@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-014
+---
+
 # US-014: Generate Changelog from Git History
 
-**Parent Feature**: [FEAT-010 - UMF Change Management](../features/FEAT-010-change-management.md)
+**Feature**: FEAT-010 — UMF Change Management
+**PRD Requirements**: FR-11.3, FR-11.4, FR-11.5
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data governance lead,
-**I want to** generate a changelog of schema changes from git history,
-**so that** I can track who changed what and when for audit and compliance purposes.
+**I want** generate a changelog of schema changes from git history,
+**So that** I can track who changed what and when for audit and compliance purposes.
 
 ## Acceptance Criteria
 

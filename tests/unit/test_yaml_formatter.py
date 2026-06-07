@@ -1,3 +1,4 @@
+# @covers US-027-AC2
 """Test suite for YAML formatter (normalizer + yamlfix + postprocessor)."""
 
 import pytest
@@ -366,7 +367,14 @@ class TestDictionaryKeySorting:
                 top_level_keys.append(key)
 
         # Should be in alphabetical order
-        expected_order = ["a_number", "b_null", "c_dict", "m_bool", "x_list", "z_string"]
+        expected_order = [
+            "a_number",
+            "b_null",
+            "c_dict",
+            "m_bool",
+            "x_list",
+            "z_string",
+        ]
         assert top_level_keys == expected_order
 
 
@@ -411,7 +419,9 @@ foreign_keys:
         # Extract list items
         lines = result.split("\n")
         list_items = [
-            line.strip().replace("- ", "") for line in lines if line.strip().startswith("-")
+            line.strip().replace("- ", "")
+            for line in lines
+            if line.strip().startswith("-")
         ]
 
         # Should be in ORIGINAL order, not sorted
@@ -454,7 +464,9 @@ foreign_keys:
 
         # Extract column names in order
         lines = result.split("\n")
-        name_lines = [line for line in lines if "name:" in line and "STRING" not in line]
+        name_lines = [
+            line for line in lines if "name:" in line and "STRING" not in line
+        ]
 
         # Should maintain original order
         assert "id" in name_lines[0]
@@ -854,7 +866,9 @@ class TestYamlfixLimitationsAndKnownIssues:
         # since fixing this requires changes to yamlfix itself
         if formatted_once != formatted_twice:
             # This is expected - document the difference for awareness
-            assert "\x85" in list_data[0]["_"], "Test setup: NEL character must be present"
+            assert "\x85" in list_data[0]["_"], (
+                "Test setup: NEL character must be present"
+            )
 
             # Verify the output is at least valid YAML both times
             parsed_once = yaml.safe_load(formatted_once)
@@ -1242,7 +1256,9 @@ class TestTypeCoercionProtection:
                 f"Boolean literal '{original}' was coerced to {type(parsed_value).__name__}!\n"
                 f"YAML output:\n{result}"
             )
-            assert parsed_value == original, f"Value changed: '{original}' → '{parsed_value}'"
+            assert parsed_value == original, (
+                f"Value changed: '{original}' → '{parsed_value}'"
+            )
 
     def test_null_string_preserved(self):
         """The string 'null' must not be coerced to None.

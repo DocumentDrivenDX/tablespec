@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-007
+---
+
 # US-007: Convert Profiling Results to UMF
 
-**Parent Feature**: [FEAT-005 - Profiling Integration](../features/FEAT-005-profiling.md)
+**Feature**: FEAT-005 — Profiling Integration
+**PRD Requirements**: FR-5.3, FR-5.4, FR-5.5
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer running Spark profiling jobs,
-**I want to** convert profiling results into UMF format,
-**so that** column statistics, completeness metrics, and inferred types enrich the UMF schema and feed into downstream validation and documentation workflows.
+**I want** convert profiling results into UMF format,
+**So that** column statistics, completeness metrics, and inferred types enrich the UMF schema and feed into downstream validation and documentation workflows.
 
 > **Profiling source (reconciled 2026-06-06):** Profiles are now produced by the
 > native, Connect-safe Spark-SQL profiler (FEAT-024 / ADR-009), which is the

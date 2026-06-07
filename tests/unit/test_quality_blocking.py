@@ -1,3 +1,4 @@
+# @covers US-030-AC1
 """Tests for QualityCheckExecutor blocking/threshold logic.
 
 Tests the internal _should_block_pipeline() and _calculate_quality_score()
@@ -68,7 +69,9 @@ class QualityThreshold:
 
 _quality_models = {
     "tablespec.models.quality": type(
-        "module", (), {
+        "module",
+        (),
+        {
             "QualityCheckResult": QualityCheckResult,
             "QualityCheckRun": None,  # Not needed for these tests
             "QualityScore": QualityScore,
@@ -91,6 +94,7 @@ def _make_executor() -> Any:
     executor.gx_wrapper = None
 
     import logging
+
     executor.logger = logging.getLogger("QualityCheckExecutor")
     return executor
 
@@ -131,10 +135,16 @@ class TestShouldBlockPipeline:
         """A blocking=True + severity=critical failure blocks the pipeline."""
         results = [_result(success=False, severity="critical", blocking=True)]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=1, warning_failures=0, info_failures=0,
-            success_rate=0.0, critical_failure_rate=100.0,
-            warning_failure_rate=0.0, blocking_failures=1,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=1,
+            warning_failures=0,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=100.0,
+            warning_failure_rate=0.0,
+            blocking_failures=1,
         )
         assert executor._should_block_pipeline(results, score, thresholds=None) is True
 
@@ -142,10 +152,16 @@ class TestShouldBlockPipeline:
         """A check with blocking=False never triggers blocking."""
         results = [_result(success=False, severity="critical", blocking=False)]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=1, warning_failures=0, info_failures=0,
-            success_rate=0.0, critical_failure_rate=100.0,
-            warning_failure_rate=0.0, blocking_failures=0,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=1,
+            warning_failures=0,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=100.0,
+            warning_failure_rate=0.0,
+            blocking_failures=0,
         )
         assert executor._should_block_pipeline(results, score, thresholds=None) is False
 
@@ -156,10 +172,16 @@ class TestShouldBlockPipeline:
             _result(success=True, severity="warning", check_id="check2"),
         ]
         score = QualityScore(
-            total_checks=2, passed_checks=1, failed_checks=1,
-            critical_failures=0, warning_failures=1, info_failures=0,
-            success_rate=50.0, critical_failure_rate=0.0,
-            warning_failure_rate=50.0, blocking_failures=0,
+            total_checks=2,
+            passed_checks=1,
+            failed_checks=1,
+            critical_failures=0,
+            warning_failures=1,
+            info_failures=0,
+            success_rate=50.0,
+            critical_failure_rate=0.0,
+            warning_failure_rate=50.0,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(min_success_rate=80.0)
 
@@ -168,14 +190,22 @@ class TestShouldBlockPipeline:
         assert result is True
         assert score.threshold_breached is True
 
-    def test_threshold_max_critical_failure_percent_breached(self, executor: Any) -> None:
+    def test_threshold_max_critical_failure_percent_breached(
+        self, executor: Any
+    ) -> None:
         """When critical_failure_rate exceeds max_critical_failure_percent, threshold is breached."""
         results = [_result(success=False, severity="critical")]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=1, warning_failures=0, info_failures=0,
-            success_rate=0.0, critical_failure_rate=100.0,
-            warning_failure_rate=0.0, blocking_failures=0,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=1,
+            warning_failures=0,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=100.0,
+            warning_failure_rate=0.0,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(max_critical_failure_percent=10.0)
 
@@ -184,14 +214,22 @@ class TestShouldBlockPipeline:
         assert result is True
         assert score.threshold_breached is True
 
-    def test_threshold_max_warning_failure_percent_breached(self, executor: Any) -> None:
+    def test_threshold_max_warning_failure_percent_breached(
+        self, executor: Any
+    ) -> None:
         """When warning_failure_rate exceeds max_warning_failure_percent, threshold is breached."""
         results = [_result(success=False, severity="warning")]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=0, warning_failures=1, info_failures=0,
-            success_rate=0.0, critical_failure_rate=0.0,
-            warning_failure_rate=100.0, blocking_failures=0,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=0,
+            warning_failures=1,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=0.0,
+            warning_failure_rate=100.0,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(max_warning_failure_percent=25.0)
 
@@ -208,10 +246,16 @@ class TestShouldBlockPipeline:
             _result(success=False, severity="warning", check_id="c3"),
         ]
         score = QualityScore(
-            total_checks=3, passed_checks=2, failed_checks=1,
-            critical_failures=0, warning_failures=1, info_failures=0,
-            success_rate=66.7, critical_failure_rate=0.0,
-            warning_failure_rate=33.3, blocking_failures=0,
+            total_checks=3,
+            passed_checks=2,
+            failed_checks=1,
+            critical_failures=0,
+            warning_failures=1,
+            info_failures=0,
+            success_rate=66.7,
+            critical_failure_rate=0.0,
+            warning_failure_rate=33.3,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(
             min_success_rate=50.0,
@@ -228,10 +272,16 @@ class TestShouldBlockPipeline:
         """When thresholds is None, threshold_breached is not modified on the score."""
         results = [_result(success=False, severity="critical")]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=1, warning_failures=0, info_failures=0,
-            success_rate=0.0, critical_failure_rate=100.0,
-            warning_failure_rate=0.0, blocking_failures=0,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=1,
+            warning_failures=0,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=100.0,
+            warning_failure_rate=0.0,
+            blocking_failures=0,
         )
 
         result = executor._should_block_pipeline(results, score, thresholds=None)
@@ -244,10 +294,16 @@ class TestShouldBlockPipeline:
         """When multiple thresholds are breached, threshold_breached is True and blocks."""
         results = [_result(success=False, severity="critical")]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=1, warning_failures=0, info_failures=0,
-            success_rate=0.0, critical_failure_rate=100.0,
-            warning_failure_rate=0.0, blocking_failures=0,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=1,
+            warning_failures=0,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=100.0,
+            warning_failure_rate=0.0,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(
             min_success_rate=90.0,
@@ -267,10 +323,16 @@ class TestShouldBlockPipeline:
             _result(success=True, severity="warning", check_id="c3"),
         ]
         score = QualityScore(
-            total_checks=3, passed_checks=1, failed_checks=2,
-            critical_failures=0, warning_failures=2, info_failures=0,
-            success_rate=33.3, critical_failure_rate=0.0,
-            warning_failure_rate=66.7, blocking_failures=0,
+            total_checks=3,
+            passed_checks=1,
+            failed_checks=2,
+            critical_failures=0,
+            warning_failures=2,
+            info_failures=0,
+            success_rate=33.3,
+            critical_failure_rate=0.0,
+            warning_failure_rate=66.7,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(max_failures=1)
 
@@ -286,10 +348,16 @@ class TestShouldBlockPipeline:
             _result(success=True, severity="warning", check_id="c2"),
         ]
         score = QualityScore(
-            total_checks=2, passed_checks=1, failed_checks=1,
-            critical_failures=0, warning_failures=1, info_failures=0,
-            success_rate=50.0, critical_failure_rate=0.0,
-            warning_failure_rate=50.0, blocking_failures=0,
+            total_checks=2,
+            passed_checks=1,
+            failed_checks=1,
+            critical_failures=0,
+            warning_failures=1,
+            info_failures=0,
+            success_rate=50.0,
+            critical_failure_rate=0.0,
+            warning_failure_rate=50.0,
+            blocking_failures=0,
         )
         thresholds = QualityThreshold(max_failures=1)
 
@@ -298,25 +366,41 @@ class TestShouldBlockPipeline:
         assert result is False
         assert score.threshold_breached is False
 
-    def test_blocking_false_with_critical_severity_does_not_block(self, executor: Any) -> None:
+    def test_blocking_false_with_critical_severity_does_not_block(
+        self, executor: Any
+    ) -> None:
         """A check with severity=critical but blocking=False does not block the pipeline."""
         results = [_result(success=False, severity="critical", blocking=False)]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=1, warning_failures=0, info_failures=0,
-            success_rate=0.0, critical_failure_rate=100.0,
-            warning_failure_rate=0.0, blocking_failures=0,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=1,
+            warning_failures=0,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=100.0,
+            warning_failure_rate=0.0,
+            blocking_failures=0,
         )
         assert executor._should_block_pipeline(results, score, thresholds=None) is False
 
-    def test_blocking_true_with_warning_severity_does_not_block(self, executor: Any) -> None:
+    def test_blocking_true_with_warning_severity_does_not_block(
+        self, executor: Any
+    ) -> None:
         """A check with blocking=True but severity=warning does not trigger individual blocking."""
         results = [_result(success=False, severity="warning", blocking=True)]
         score = QualityScore(
-            total_checks=1, passed_checks=0, failed_checks=1,
-            critical_failures=0, warning_failures=1, info_failures=0,
-            success_rate=0.0, critical_failure_rate=0.0,
-            warning_failure_rate=100.0, blocking_failures=1,
+            total_checks=1,
+            passed_checks=0,
+            failed_checks=1,
+            critical_failures=0,
+            warning_failures=1,
+            info_failures=0,
+            success_rate=0.0,
+            critical_failure_rate=0.0,
+            warning_failure_rate=100.0,
+            blocking_failures=1,
         )
         # blocking=True only triggers for severity in (critical, error), not warning
         assert executor._should_block_pipeline(results, score, thresholds=None) is False

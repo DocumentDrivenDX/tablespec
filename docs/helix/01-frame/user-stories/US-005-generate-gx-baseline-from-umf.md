@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-005
+---
+
 # US-005: Generate a Great Expectations Baseline from UMF
 
-**Parent Feature**: [FEAT-004 - Great Expectations Integration](../features/FEAT-004-gx-integration.md)
+**Feature**: FEAT-004 — Great Expectations Integration
+**PRD Requirements**: FR-4.1, FR-4.2, FR-4.3, FR-4.7
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data quality engineer setting up validation for a new table,
-**I want to** generate a baseline Great Expectations suite directly from a UMF schema,
-**so that** I get deterministic structural and type expectations (column existence, order, types, nullability, lengths) without writing expectations by hand.
+**I want** generate a baseline Great Expectations suite directly from a UMF schema,
+**So that** I get deterministic structural and type expectations (column existence, order, types, nullability, lengths) without writing expectations by hand.
 
 ## Acceptance Criteria
 

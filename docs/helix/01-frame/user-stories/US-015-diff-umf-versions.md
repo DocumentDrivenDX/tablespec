@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-015
+---
+
 # US-015: Diff Two UMF Versions
 
-**Parent Feature**: [FEAT-010 - UMF Change Management](../features/FEAT-010-change-management.md)
+**Feature**: FEAT-010 — UMF Change Management
+**PRD Requirements**: FR-11.1, FR-11.2
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer reviewing schema changes,
-**I want to** compare two UMF versions and see a structured list of differences,
-**so that** I can understand what changed before approving a pull request.
+**I want** compare two UMF versions and see a structured list of differences,
+**So that** I can understand what changed before approving a pull request.
 
 ## Acceptance Criteria
 

@@ -1,3 +1,5 @@
+# @covers US-035-AC1
+# @covers US-035-AC2
 """Unit tests for schema compatibility checking."""
 
 from copy import deepcopy
@@ -27,38 +29,64 @@ pytestmark = pytest.mark.no_spark
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _col(name: str, data_type: str = "VARCHAR", *, length: int | None = 50,
-         nullable: Nullable | None = None, description: str | None = None,
-         precision: int | None = None, scale: int | None = None,
-         aliases: list[str] | None = None, **kwargs) -> UMFColumn:
+
+def _col(
+    name: str,
+    data_type: str = "VARCHAR",
+    *,
+    length: int | None = 50,
+    nullable: Nullable | None = None,
+    description: str | None = None,
+    precision: int | None = None,
+    scale: int | None = None,
+    aliases: list[str] | None = None,
+    **kwargs,
+) -> UMFColumn:
     return UMFColumn(
-        name=name, data_type=data_type, length=length, nullable=nullable,
-        description=description, precision=precision, scale=scale,
-        aliases=aliases, **kwargs,
+        name=name,
+        data_type=data_type,
+        length=length,
+        nullable=nullable,
+        description=description,
+        precision=precision,
+        scale=scale,
+        aliases=aliases,
+        **kwargs,
     )
 
 
-def _umf(columns: list[UMFColumn] | None = None, *,
-         primary_key: list[str] | None = None,
-         description: str | None = None) -> UMF:
+def _umf(
+    columns: list[UMFColumn] | None = None,
+    *,
+    primary_key: list[str] | None = None,
+    description: str | None = None,
+) -> UMF:
     cols = columns or [_col("id", "INTEGER", length=None)]
     return UMF(
-        version="1.0", table_name="test_table", columns=cols,
-        primary_key=primary_key, description=description,
+        version="1.0",
+        table_name="test_table",
+        columns=cols,
+        primary_key=primary_key,
+        description=description,
     )
 
 
-def _issues_by_change(report: CompatibilityReport, change: str) -> list[CompatibilityIssue]:
+def _issues_by_change(
+    report: CompatibilityReport, change: str
+) -> list[CompatibilityIssue]:
     return [i for i in report.issues if i.change == change]
 
 
-def _issues_by_severity(report: CompatibilityReport, severity: str) -> list[CompatibilityIssue]:
+def _issues_by_severity(
+    report: CompatibilityReport, severity: str
+) -> list[CompatibilityIssue]:
     return [i for i in report.issues if i.severity == severity]
 
 
 # ---------------------------------------------------------------------------
 # type_lattice unit tests
 # ---------------------------------------------------------------------------
+
 
 class TestSafeWidening:
     def test_identical_types_are_safe(self):
@@ -132,11 +160,16 @@ class TestPrecisionCompatible:
 # Compatibility checker — parametrized golden-style tests
 # ---------------------------------------------------------------------------
 
+
 class TestColumnAddition:
     def test_add_nullable_column_is_safe(self):
         old = _umf([_col("id", "INTEGER", length=None)])
-        new = _umf([_col("id", "INTEGER", length=None),
-                     _col("email", "VARCHAR", nullable=Nullable(MD=True, MP=True))])
+        new = _umf(
+            [
+                _col("id", "INTEGER", length=None),
+                _col("email", "VARCHAR", nullable=Nullable(MD=True, MP=True)),
+            ]
+        )
         report = check_compatibility(old, new)
         assert report.is_backward_compatible
         added = _issues_by_change(report, "added")
@@ -145,8 +178,12 @@ class TestColumnAddition:
 
     def test_add_required_column_is_breaking(self):
         old = _umf([_col("id", "INTEGER", length=None)])
-        new = _umf([_col("id", "INTEGER", length=None),
-                     _col("ssn", "VARCHAR", nullable=Nullable(MD=False))])
+        new = _umf(
+            [
+                _col("id", "INTEGER", length=None),
+                _col("ssn", "VARCHAR", nullable=Nullable(MD=False)),
+            ]
+        )
         report = check_compatibility(old, new)
         assert not report.is_forward_compatible
         added = _issues_by_change(report, "added_required")
@@ -156,7 +193,9 @@ class TestColumnAddition:
     def test_add_column_without_nullable_is_safe(self):
         """Column with nullable=None is treated as fully nullable."""
         old = _umf([_col("id", "INTEGER", length=None)])
-        new = _umf([_col("id", "INTEGER", length=None), _col("note", "TEXT", length=None)])
+        new = _umf(
+            [_col("id", "INTEGER", length=None), _col("note", "TEXT", length=None)]
+        )
         report = check_compatibility(old, new)
         assert report.is_backward_compatible
 
@@ -175,8 +214,12 @@ class TestColumnRemoval:
 class TestColumnRename:
     def test_rename_via_alias_is_info(self):
         old = _umf([_col("id", "INTEGER", length=None), _col("fname", "VARCHAR")])
-        new = _umf([_col("id", "INTEGER", length=None),
-                     _col("first_name", "VARCHAR", aliases=["fname"])])
+        new = _umf(
+            [
+                _col("id", "INTEGER", length=None),
+                _col("first_name", "VARCHAR", aliases=["fname"]),
+            ]
+        )
         report = check_compatibility(old, new)
         assert report.is_backward_compatible
         renamed = _issues_by_change(report, "renamed")
@@ -294,8 +337,12 @@ class TestContextAwareNullable:
 
     def test_multi_context_mixed(self):
         """Multiple changes across contexts."""
-        old = _umf([_col("x", "VARCHAR", nullable=Nullable(MD=True, MP=False, ME=True))])
-        new = _umf([_col("x", "VARCHAR", nullable=Nullable(MD=False, MP=False, ME=True))])
+        old = _umf(
+            [_col("x", "VARCHAR", nullable=Nullable(MD=True, MP=False, ME=True))]
+        )
+        new = _umf(
+            [_col("x", "VARCHAR", nullable=Nullable(MD=False, MP=False, ME=True))]
+        )
         report = check_compatibility(old, new)
         # MD tightened -> breaking
         assert not report.is_backward_compatible
@@ -323,10 +370,14 @@ class TestPrimaryKeyChanges:
         assert pk_issues[0].change == "primary_key_removed"
 
     def test_pk_changed(self):
-        old = _umf([_col("id", "INTEGER", length=None), _col("code", "VARCHAR")],
-                    primary_key=["id"])
-        new = _umf([_col("id", "INTEGER", length=None), _col("code", "VARCHAR")],
-                    primary_key=["id", "code"])
+        old = _umf(
+            [_col("id", "INTEGER", length=None), _col("code", "VARCHAR")],
+            primary_key=["id"],
+        )
+        new = _umf(
+            [_col("id", "INTEGER", length=None), _col("code", "VARCHAR")],
+            primary_key=["id", "code"],
+        )
         report = check_compatibility(old, new)
         assert not report.is_backward_compatible
         pk_issues = [i for i in report.issues if i.component == "table.primary_key"]
@@ -351,26 +402,39 @@ class TestDescriptionChange:
 
 # Strategy for generating a minimal UMF with random column names
 _col_name_st = st.from_regex(r"[A-Za-z][A-Za-z0-9_]{0,10}", fullmatch=True)
-_data_type_st = st.sampled_from(["VARCHAR", "INTEGER", "DECIMAL", "DATE", "BOOLEAN", "TEXT"])
+_data_type_st = st.sampled_from(
+    ["VARCHAR", "INTEGER", "DECIMAL", "DATE", "BOOLEAN", "TEXT"]
+)
 
 
 @st.composite
 def umf_object(draw):
     """Generate a random UMF with 1-5 columns."""
     n = draw(st.integers(min_value=1, max_value=5))
-    names = draw(
-        st.lists(_col_name_st, min_size=n, max_size=n, unique=True)
-    )
+    names = draw(st.lists(_col_name_st, min_size=n, max_size=n, unique=True))
     cols = []
     for name in names:
         dtype = draw(_data_type_st)
-        length = draw(st.integers(min_value=1, max_value=255)) if dtype in ("VARCHAR", "CHAR") else None
-        precision = draw(st.integers(min_value=1, max_value=38)) if dtype == "DECIMAL" else None
-        scale = draw(st.integers(min_value=0, max_value=10)) if dtype == "DECIMAL" else None
-        cols.append(UMFColumn(
-            name=name, data_type=dtype, length=length,
-            precision=precision, scale=scale,
-        ))
+        length = (
+            draw(st.integers(min_value=1, max_value=255))
+            if dtype in ("VARCHAR", "CHAR")
+            else None
+        )
+        precision = (
+            draw(st.integers(min_value=1, max_value=38)) if dtype == "DECIMAL" else None
+        )
+        scale = (
+            draw(st.integers(min_value=0, max_value=10)) if dtype == "DECIMAL" else None
+        )
+        cols.append(
+            UMFColumn(
+                name=name,
+                data_type=dtype,
+                length=length,
+                precision=precision,
+                scale=scale,
+            )
+        )
     return UMF(version="1.0", table_name="test_table", columns=cols)
 
 
@@ -389,10 +453,14 @@ class TestHypothesisProperties:
     def test_add_nullable_column_always_backward_compatible(self, umf):
         """Adding a nullable column never breaks backward compatibility."""
         new = deepcopy(umf)
-        new.columns.append(UMFColumn(
-            name="zzz_extra", data_type="VARCHAR", length=100,
-            nullable=Nullable(MD=True),
-        ))
+        new.columns.append(
+            UMFColumn(
+                name="zzz_extra",
+                data_type="VARCHAR",
+                length=100,
+                nullable=Nullable(MD=True),
+            )
+        )
         report = check_compatibility(umf, new)
         assert report.is_backward_compatible
 
@@ -409,17 +477,6 @@ class TestHypothesisProperties:
         assert any(i.change == "removed" for i in report.issues)
 
 
-class TestSharedStrategyProperties:
-    """Property-based tests using the shared umf_object strategy from tests.strategies."""
-
-    @given(umf=shared_umf_object())
-    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
-    def test_reflexivity_with_shared_strategy(self, umf):
-        """check_compatibility(umf, umf) reports no breaking issues for any UMF."""
-        report = check_compatibility(umf, umf)
-        assert report.is_backward_compatible
-        assert report.is_forward_compatible
-        assert len(report.issues) == 0
 class TestSharedStrategyProperties:
     """Property-based tests using the shared umf_object strategy from tests.strategies."""
 

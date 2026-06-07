@@ -8,6 +8,15 @@ emitter fails closed on a cycle / unknown relation. Real-Databricks e2e is
 explicitly out of scope (see the package docstring).
 """
 
+# LDP emitter behavior coverage.
+# @covers US-026-AC1
+# @covers US-026-AC2
+# @covers US-026-AC3
+# @covers US-026-AC4
+# @covers US-026-AC5
+# @covers US-026-AC6
+# @covers US-026-AC7
+
 from __future__ import annotations
 
 from pathlib import Path

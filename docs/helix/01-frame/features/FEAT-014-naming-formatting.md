@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-014
+---
+
 # FEAT-014: Naming and Formatting Utilities
 
 **Status**: Implemented
-**Priority**: Low
+**Priority**: P2
+**Feature ID**: FEAT-014
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: Naming Utilities; Date Format System
+**Covered PRD Requirements**: FR-16.1, FR-16.2, FR-16.3, FR-17.1, FR-17.2, FR-17.3
+**Cross-Subsystem Rationale**: Cross-subsystem utility surface: identifier normalization and date-format notation are shared formatting primitives.
 
 ## Description
 
@@ -27,6 +37,9 @@ Naming conventions, date format definitions, and YAML formatting utilities.
 
 ### Formatting Constants (`formatting/constants.py`)
 - Shared configuration for formatting behavior
+## User Stories
+
+- [US-027 — Normalize Names and Date Formats](../user-stories/US-027-normalize-names-and-date-formats.md)
 
 ## Source
 

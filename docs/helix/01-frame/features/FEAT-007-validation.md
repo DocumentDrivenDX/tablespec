@@ -1,8 +1,17 @@
+---
+ddx:
+  id: FEAT-007
+---
+
 # FEAT-007: Table Validation
 
 **Status**: Implemented
-**Priority**: High
-**Covered PRD Requirements**: FR-7.1–FR-7.8 (with the Runtime-Platform contract FR-20.4)
+**Priority**: P0
+**Feature ID**: FEAT-007
+**Owner**: Data-Quality Platform
+**Covered PRD Subsystem(s)**: Table Validation; Table Merge
+**Cross-Subsystem Rationale**: Cross-subsystem validation workflow: table merge uses UMF survivorship and validation metadata, and US-018 is the merge slice under this validation-facing feature. Runtime-platform behavior is governed by FR-20.x and ADR-010.
+**Covered PRD Requirements**: FR-7.1–FR-7.8, FR-15.1, FR-15.2, FR-15.3 (with the Runtime-Platform contract FR-20.4)
 
 ## Description
 
@@ -50,11 +59,10 @@ Validate Spark DataFrames against UMF specifications and validate UMF files agai
 - `src/tablespec/completeness_validator.py`
 - `src/tablespec/relationship_validator.py`
 - `src/tablespec/naming_validator.py`
-
 ## User Stories
 
-- [US-009 — Validate a DataFrame against UMF](../user-stories/US-009-validate-dataframe-against-umf.md)
-- [US-022 — Validate a compiled suite on Spark Connect without silent failure](../user-stories/US-022-validate-suite-on-connect-without-silent-failure.md)
+- [US-009 — Validate a DataFrame Against a UMF Schema](../user-stories/US-009-validate-dataframe-against-umf.md)
+- [US-018 — Merge Table Files with Survivorship](../user-stories/US-018-merge-tables.md)
 
 ## Related
 

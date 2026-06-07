@@ -1,12 +1,20 @@
+---
+ddx:
+  id: US-017
+---
+
 # US-017: Infer Domain Types for Columns
 
-**Parent Feature**: [FEAT-013 - Domain Type Inference](../features/FEAT-013-domain-inference.md)
+**Feature**: FEAT-013 — Domain Type Inference
+**PRD Requirements**: FR-14.1, FR-14.2, FR-14.3, FR-14.4
+**Priority**: P1
+**Status**: Implemented
 
-## User Story
+## Story
 
 **As a** data engineer building table specs,
-**I want to** automatically detect domain types (state code, SSN, phone) from column names and descriptions,
-**so that** I can enrich UMF specs with semantic types without manual tagging.
+**I want** automatically detect domain types (state code, SSN, phone) from column names and descriptions,
+**So that** I can enrich UMF specs with semantic types without manual tagging.
 
 ## Acceptance Criteria
 

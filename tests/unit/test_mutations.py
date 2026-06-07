@@ -1,3 +1,4 @@
+# @covers US-036-AC1
 """Tests for UMF authoring mutation functions."""
 
 import pytest
@@ -41,7 +42,12 @@ class TestAddColumn:
 
 class TestRemoveColumn:
     def test_removes_column(self):
-        umf = UMFBuilder("t").column("id", "INTEGER").column("name", "VARCHAR", length=50).build()
+        umf = (
+            UMFBuilder("t")
+            .column("id", "INTEGER")
+            .column("name", "VARCHAR", length=50)
+            .build()
+        )
         result = remove_column(umf, "name")
         assert len(result.columns) == 1
         assert result.columns[0].name == "id"
@@ -101,7 +107,9 @@ class TestModifyColumn:
 class TestRemoveExpectation:
     @staticmethod
     def _umf_with_suite() -> UMF:
-        umf = UMFBuilder("t").column("id", "INTEGER").column("amount", "DECIMAL").build()
+        umf = (
+            UMFBuilder("t").column("id", "INTEGER").column("amount", "DECIMAL").build()
+        )
         suite = ExpectationSuite(
             expectations=[
                 Expectation(
@@ -125,7 +133,9 @@ class TestRemoveExpectation:
 
     def test_removes_matching_type_and_column(self):
         umf = self._umf_with_suite()
-        result, count = remove_expectation(umf, "expect_column_values_to_not_be_null", "id")
+        result, count = remove_expectation(
+            umf, "expect_column_values_to_not_be_null", "id"
+        )
         assert count == 1
         assert len(result.expectations.expectations) == 2
 
@@ -134,7 +144,10 @@ class TestRemoveExpectation:
         result, count = remove_expectation(umf, "expect_column_values_to_not_be_null")
         assert count == 2
         assert len(result.expectations.expectations) == 1
-        assert result.expectations.expectations[0].type == "expect_column_values_to_be_between"
+        assert (
+            result.expectations.expectations[0].type
+            == "expect_column_values_to_be_between"
+        )
 
     def test_no_match_returns_original(self):
         umf = self._umf_with_suite()
@@ -168,7 +181,9 @@ class TestRemoveExpectation:
             },
         )
 
-        result, count = remove_expectation(umf, "expect_column_values_to_not_be_null", "id")
+        result, count = remove_expectation(
+            umf, "expect_column_values_to_not_be_null", "id"
+        )
 
         assert count == 1
         assert result.expectations is not None

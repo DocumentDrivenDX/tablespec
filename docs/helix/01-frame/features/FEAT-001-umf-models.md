@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-001
+---
+
 # FEAT-001: UMF Models and I/O
 
 **Status**: Implemented
-**Priority**: Critical
+**Priority**: P0
+**Feature ID**: FEAT-001
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: UMF Model and I/O
+**Covered PRD Requirements**: FR-1.1, FR-1.2, FR-1.3, FR-1.4, FR-1.5, FR-1.6, FR-1.7, FR-1.8, FR-1.9, FR-1.10
+**Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description
 
@@ -39,6 +49,10 @@ Type-safe Pydantic models for the Universal Metadata Format (UMF), plus YAML ser
 - **ChangeEntry** - Structured changelog entry with timestamp, author, change type
 - **ChangeDetail** - Per-field change detail
 - **ChangeType** - Enum of change categories
+## User Stories
+
+- [US-001 — Load and Validate a UMF Schema from YAML](../user-stories/US-001-load-and-validate-umf-schema.md)
+- [US-002 — Construct a UMF Schema Programmatically](../user-stories/US-002-construct-umf-programmatically.md)
 
 ## Source
 

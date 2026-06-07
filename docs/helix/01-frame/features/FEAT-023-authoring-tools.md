@@ -1,7 +1,17 @@
+---
+ddx:
+  id: FEAT-023
+---
+
 # FEAT-023: Authoring Tools
 
 **Status**: Proposed
-**Priority**: Medium
+**Priority**: P1
+**Feature ID**: FEAT-023
+**Owner**: Platform / Data Engineering
+**Covered PRD Subsystem(s)**: CLI Interface; LLM Prompt Generation; Domain Type Inference
+**Covered PRD Requirements**: FR-8.1, FR-8.2, FR-6.2, FR-6.3, FR-14.4
+**Cross-Subsystem Rationale**: Cross-subsystem authoring workflow: CLI mutations, prompt response application, validation preview, and domain assignment form one authoring surface.
 
 ## Description
 
@@ -58,6 +68,9 @@ Textual-based terminal UI for browsing and editing UMF schemas:
 Requires adding `textual` as an optional dependency (`tablespec[tui]`). Testing via Textual's pilot framework.
 
 NOTE: The TUI is for interactive exploration and editing. The CLI commands above are for scripting and CI. These are complementary, not overlapping.
+## User Stories
+
+- [US-036 — Author UMF with CLI and LLM Assistance](../user-stories/US-036-author-umf-with-cli-and-llm-assistance.md)
 
 ## Source
 

@@ -1,3 +1,4 @@
+# @covers US-036-AC2
 """Tests for LLM response applier."""
 
 from __future__ import annotations
@@ -89,9 +90,7 @@ class TestApplyValidationResponse:
         assert "Missing" in result.invalid[0][1]
 
     def test_classifies_ingested_type(self):
-        umf = _make_umf(
-            columns=[{"name": "age", "data_type": "INTEGER"}]
-        )
+        umf = _make_umf(columns=[{"name": "age", "data_type": "INTEGER"}])
         response = [
             {
                 "type": "expect_column_values_to_be_between",
@@ -160,7 +159,11 @@ class TestApplyValidationResponse:
                     {
                         "expectation": {
                             "type": "expect_column_values_to_be_between",
-                            "kwargs": {"column": "age", "min_value": 0, "max_value": 150},
+                            "kwargs": {
+                                "column": "age",
+                                "min_value": 0,
+                                "max_value": 150,
+                            },
                         },
                         "severity": "warning",
                     }

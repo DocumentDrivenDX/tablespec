@@ -1,3 +1,4 @@
+# @covers US-029-AC1
 """Unit tests for UMFBuilder DSL."""
 
 from __future__ import annotations
@@ -231,7 +232,11 @@ class TestNullable:
         assert dump["default"] is False
 
     def test_nullable_dict(self):
-        umf = UMFBuilder("t").column("x", "VARCHAR", nullable={"MD": False, "MP": True}).build()
+        umf = (
+            UMFBuilder("t")
+            .column("x", "VARCHAR", nullable={"MD": False, "MP": True})
+            .build()
+        )
         n = umf.columns[0].nullable
         assert n.model_dump() == {"MD": False, "MP": True}
 
@@ -302,9 +307,7 @@ class TestReproduceUMFDiffFixture:
         # _make_umf() -> UMF(version="1.0", table_name="test_table",
         #   columns=[UMFColumn(name="col1", data_type="VARCHAR", length=50)])
         from_builder = (
-            UMFBuilder("test_table")
-            .column("col1", "VARCHAR", length=50)
-            .build()
+            UMFBuilder("test_table").column("col1", "VARCHAR", length=50).build()
         )
         from_direct = UMF(
             version="1.0",
@@ -344,7 +347,9 @@ class TestReproduceUMFDiffFixture:
             table_name="test_table",
             columns=[
                 UMFColumn(name="col1", data_type="VARCHAR", length=50),
-                UMFColumn(name="col2", data_type="INTEGER", description="second column"),
+                UMFColumn(
+                    name="col2", data_type="INTEGER", description="second column"
+                ),
             ],
         )
         assert from_builder.model_dump() == from_direct.model_dump()

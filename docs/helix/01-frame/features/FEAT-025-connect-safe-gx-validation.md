@@ -67,10 +67,9 @@ VAL-CONNECT-09. When GX returns FEWER results than were fed (same-type collation
 - **Performance**: The native path materializes only aggregates and bounded samples (`.count()`, `limit(10)`), never the full dataset to the driver.
 - **Reliability**: A single failing expectation MUST NOT abort the suite; it is recorded as a failure with diagnostic detail.
 - **Compatibility**: No change to the `ExpectationResult` / `SuiteExecutionResult` shapes consumed downstream.
-
 ## User Stories
 
-- [US-022 — Validate a compiled suite on Spark Connect without silent failure](../user-stories/US-022-validate-suite-on-connect-without-silent-failure.md)
+- [US-022 — Validate a Compiled Suite on Spark Connect Without Silent Failure](../user-stories/US-022-validate-suite-on-connect-without-silent-failure.md)
 
 ## Edge Cases and Error Handling
 
