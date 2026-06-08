@@ -1,0 +1,33 @@
+{
+  "attempt_id": "20260608T202242-40596bf9",
+  "bead_id": "tablespec-3ee3b466",
+  "base_rev": "96de4c5e2742d4966eef8d4c03c1efea7707dc75",
+  "created_at": "2026-06-08T20:22:44.033350543Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-3ee3b466",
+    "title": "Document databricks as an accepted public dialect",
+    "description": "PROBLEM: The public dialect contract can still be read as spark/duckdb-only, so reviewers and validators may incorrectly reject dialect=\"databricks\" even though the implementation accepts it.\nROOT CAUSE: docs/helix/03-test/conformance-acceptance.md:49, docs/helix/03-test/conformance-acceptance.md:85, and docs/helix/03-test/conformance-acceptance.md:109 are governing acceptance artifacts whose dialect wording does not clearly preserve databricks as an accepted public dialect.\nPROPOSED FIX: Update the conformance/documentation contract and its regression coverage so accepted dialect wording includes databricks alongside spark and duckdb, and fails if it regresses to spark/duckdb-only language.\nNON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No real Databricks workspace execution beyond existing opt-in tiers. GOVERNING ARTIFACTS: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84; docs/helix/03-test/conformance-acceptance.md:49; docs/helix/03-test/conformance-acceptance.md:85; docs/helix/03-test/conformance-acceptance.md:109. DEPENDENCIES: parent bead tablespec-ed74497c; no additional dependencies.",
+    "acceptance": "1. TestDatabricksDialectContractIsDocumented: add or update a docs/metadata regression test that fails if the accepted dialect list regresses back to spark/duckdb-only wording and omits public dialect=\"databricks\".\n2. TestPytestGate: `uv run pytest tests/docs/test_dialect_contract.py tests/unit/test_bootstrap.py`\n3. TestGoGate: `go test ./...`\n4. TestLefthookGate: `lefthook run pre-commit`",
+    "parent": "tablespec-943b21a5",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:docs",
+      "kind:bug",
+      "ac-quality:refined"
+    ]
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T202242-40596bf9",
+    "prompt": ".ddx/executions/20260608T202242-40596bf9/prompt.md",
+    "manifest": ".ddx/executions/20260608T202242-40596bf9/manifest.json",
+    "result": ".ddx/executions/20260608T202242-40596bf9/result.json",
+    "checks": ".ddx/executions/20260608T202242-40596bf9/checks.json",
+    "usage": ".ddx/executions/20260608T202242-40596bf9/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-3ee3b466-20260608T202242-40596bf9"
+  },
+  "prompt_sha": "1f6c18c659494327eced5bff64900d3f9c97a02e3dd5b6df80fb9e65ec06daad"
+}
