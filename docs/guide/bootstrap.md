@@ -15,7 +15,7 @@ artifacts = bootstrap_from_tables(
     ["member"],
     out_dir="/tmp/tablespec-bootstrap",
     profile=True,
-    dialect="spark",
+    dialect="databricks",
 )
 
 print(artifacts.manifest_path)
@@ -32,6 +32,10 @@ What the facade does:
 
 The profiler enriches validation. It does not create UMF. Schema reflection does
 that first step, and the facade handles the compile step for you.
+
+`databricks` is the public Databricks-facing spelling for the Spark-family SQL
+this facade emits. Internal emitters may normalize to `spark` when the rendered
+SQL is identical.
 
 The returned `CompiledArtifacts` manifest is the production handoff: it points to
 the compiled `manifest.json`, the JSON pipeline artifacts (`validation/*.suite.json`

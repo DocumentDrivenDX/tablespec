@@ -20,9 +20,11 @@ Current boundary notes:
 
 - Split YAML UMF or JSON interchange is the canonical authoring surface. Inline
   YAML is legacy/migration-only.
-- The Databricks dialect guidance is still being canonicalized; the active bead
-  trail is `tablespec-ed74497c` and child beads `tablespec-0b146671`,
-  `tablespec-171e409c`, and `tablespec-0fb0d1c2`.
+- Public Databricks-facing examples use `dialect="databricks"` for the
+  Spark-family SQL emitted by tablespec; internal emitters may normalize to
+  `spark` when the rendered SQL is identical.
+  The active bead trail is `tablespec-ed74497c` and child beads
+  `tablespec-0b146671`, `tablespec-171e409c`, and `tablespec-0fb0d1c2`.
 - Production runs consume the committed artifact tree and installed packages,
   not source-time orchestration. See the deployment checklist for the release
   boundary.
@@ -198,7 +200,7 @@ artifacts = compile_umfs(
     out_dir="build/tablespec",
     source="tables",
     profile_enriched=True,
-    dialect="spark",  # Spark-family SQL; Databricks aliasing is tracked separately.
+    dialect="databricks",  # Public Databricks-facing spelling for Spark-family SQL.
     gold_targets=["Claims_Summary"],
 )
 

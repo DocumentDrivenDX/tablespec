@@ -146,6 +146,7 @@ artifacts = bootstrap_from_tables(
     ["member"],
     "/tmp/tablespec-bootstrap",
     profile=True,
+    dialect="databricks",
 )
 
 print(artifacts.manifest_path)
@@ -156,6 +157,10 @@ print(artifacts.table("member").suite_json)
 the data to enrich the compiled validation suite, and persists the full
 artifact tree in one call. The profiler enriches validation; it does not create
 UMF.
+
+`databricks` is the public Databricks-facing spelling for the Spark-family SQL
+this bootstrap path emits. Internal emitters may normalize to `spark` when the
+rendered SQL is identical.
 
 This is the development bootstrap path. Production installs the published
 `tablespec` wheel and consumes the committed artifact tree through the manifest;
