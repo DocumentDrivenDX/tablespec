@@ -1,0 +1,18 @@
+{
+  "ran": true,
+  "changed_docs": [
+    "docs/helix/01-frame/features/FEAT-015-api-docs.md",
+    "docs/helix/01-frame/features/FEAT-016-testing-infrastructure.md",
+    "docs/helix/01-frame/features/FEAT-017-validation-pipeline.md",
+    "docs/helix/01-frame/features/FEAT-019-sql-cte-mode.md",
+    "docs/helix/01-frame/features/FEAT-020-domain-improvements.md",
+    "docs/helix/01-frame/features/FEAT-021-loader-validator-improvements.md",
+    "docs/helix/01-frame/features/FEAT-022-schema-compatibility.md",
+    "docs/helix/01-frame/features/FEAT-023-authoring-tools.md",
+    "docs/helix/01-frame/user-stories/US-021-profile-dataframe-natively-on-connect.md",
+    "docs/helix/01-frame/user-stories/US-023-bootstrap-runtime-from-umf-set.md",
+    "docs/helix/01-frame/user-stories/US-024-runtime-consumes-only-compiled-artifacts.md",
+    "docs/helix/01-frame/user-stories/US-026-emit-ldp-project-from-umf.md",
+    "docs/helix/01-frame/user-stories/US-028-publish-browsable-api-docs.md"
+  ]
+}
