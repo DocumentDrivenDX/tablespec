@@ -1,0 +1,54 @@
+{
+  "attempt_id": "20260608T160718-5e036cc8",
+  "bead_id": "tablespec-bc47a14e",
+  "base_rev": "223175588d978e052ce2a2ceae736fb8bcb69586",
+  "created_at": "2026-06-08T16:07:20.099012365Z",
+  "requested": {
+    "prompt": "synthesized",
+    "min_power": 5
+  },
+  "bead": {
+    "id": "tablespec-bc47a14e",
+    "title": "Allow databricks as an LDP emitter alias",
+    "description": "PROBLEM: Direct LDP generation still treats Spark as the only public dialect, so a databricks compile path can fail when it reaches the LDP emitter even if the surrounding compile flow accepts the value.\nROOT CAUSE: src/tablespec/ldp/project.py:242 documents LDP dialect as Spark with duckdb accepted for parity, but omits databricks even though the compile contract now needs it.\nPROPOSED FIX: Teach generate_ldp_project to accept dialect=\"databricks\" as a Spark-family alias, keep emitted cast SQL byte-for-byte equivalent to dialect=\"spark\", and add a regression test that locks the parity contract.\nNON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No real Databricks workspace execution beyond existing opt-in tiers. GOVERNING ARTIFACTS: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84; docs/helix/03-test/conformance-acceptance.md:49; docs/helix/03-test/conformance-acceptance.md:85; docs/helix/03-test/conformance-acceptance.md:109. DEPENDENCIES: parent bead tablespec-ed74497c; no additional dependencies.",
+    "acceptance": "1. TestGenerateLdpProjectAcceptsDatabricksAlias: add an LDP unit/conformance test proving generate_ldp_project(..., dialect=\"databricks\") succeeds and emits the same Spark-family cast body as dialect=\"spark\".\n2. TestGenerateLdpProjectSparkParityRemainsStable: add a regression test proving the spark and databricks outputs stay identical for cast SQL and do not diverge in unrelated sections of the LDP payload.\n3. TestPytestGate: `uv run pytest tests/ldp/test_ldp_emitter.py tests/ldp/test_ldp_cast_parity.py`\n4. TestGoGate: `go test ./...`\n5. TestLefthookGate: `lefthook run pre-commit`",
+    "parent": "tablespec-171e409c",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:ldp",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "ddx",
+          "body": "{\"resolved_provider\":\"codex\",\"resolved_model\":\"gpt-5.4-mini\",\"route_reason\":\"explicit_pin_discovery_unavailable\",\"fallback_chain\":[]}",
+          "created_at": "2026-06-08T16:07:05.928820241Z",
+          "kind": "routing",
+          "source": "legacy agent execute-bead",
+          "summary": "provider=codex model=gpt-5.4-mini reason=explicit_pin_discovery_unavailable"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"attempt_id\":\"20260608T154825-e2a19d9c\",\"harness\":\"codex\",\"model\":\"gpt-5.4-mini\",\"route_reason\":\"explicit_pin_discovery_unavailable\",\"input_tokens\":4088146,\"output_tokens\":27979,\"total_tokens\":4116125,\"cost_usd\":0,\"duration_ms\":1118489,\"exit_code\":0}",
+          "created_at": "2026-06-08T16:07:05.968146559Z",
+          "kind": "cost",
+          "source": "legacy agent execute-bead",
+          "summary": "tokens=4116125 model=gpt-5.4-mini"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T160718-5e036cc8",
+    "prompt": ".ddx/executions/20260608T160718-5e036cc8/prompt.md",
+    "manifest": ".ddx/executions/20260608T160718-5e036cc8/manifest.json",
+    "result": ".ddx/executions/20260608T160718-5e036cc8/result.json",
+    "checks": ".ddx/executions/20260608T160718-5e036cc8/checks.json",
+    "usage": ".ddx/executions/20260608T160718-5e036cc8/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-bc47a14e-20260608T160718-5e036cc8"
+  },
+  "prompt_sha": "2a14c41241c1ddc1b3c1484d1d16b86c2c1149d4c8fc80f47bb2e3247484b3ba"
+}
