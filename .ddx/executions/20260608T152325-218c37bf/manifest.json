@@ -1,0 +1,44 @@
+{
+  "attempt_id": "20260608T152325-218c37bf",
+  "bead_id": "tablespec-924c7384",
+  "base_rev": "b450a4f1374fee98361179581d93c297ebdbf241",
+  "created_at": "2026-06-08T15:23:26.92535282Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-924c7384",
+    "title": "Thread databricks through compile-path normalization",
+    "description": "PROBLEM: The compile/bootstrap path can receive dialect=databricks, but the artifact pipeline still mixes public and internal dialect handling, so the emitted ingest/dbt_ingest/LDP/manifest set can reject databricks or record the wrong dialect.\nROOT CAUSE: src/tablespec/e2e/compile.py:129 forwards the caller dialect to generate_dbt_dag_project, src/tablespec/e2e/compile.py:141 hard-codes generate_ldp_project(..., dialect=\"spark\"), src/tablespec/e2e/compile.py:193 calls generate_ingest_sql without a dialect, and src/tablespec/schemas/ingest_generator.py:214 hard-codes build_ingest_select(..., dialect=\"spark\").\nPROPOSED FIX: Thread the public databricks dialect through compile_umfs, normalize Spark-family emitters internally only where SQL is identical, keep dbt target selection as databricks, and preserve the public dialect in generated metadata while still emitting the pinned artifact layout.\nNON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No real Databricks workspace execution beyond existing opt-in tiers. GOVERNING ARTIFACTS: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84; docs/helix/03-test/conformance-acceptance.md:49; docs/helix/03-test/conformance-acceptance.md:85; docs/helix/03-test/conformance-acceptance.md:109. DEPENDENCIES: parent bead tablespec-ed74497c; no additional dependencies.",
+    "acceptance": "1. TestCompileUmfsAcceptsDatabricksDialect: add a compile-path test proving compile_umfs(..., dialect=\"databricks\") completes without ValueError and persists ingest, dbt_ingest, optional dbt_gold, LDP, and manifest artifacts under the pinned layout.\n2. TestCompileUmfsPreservesPublicDialectInManifest: add a regression test proving the generated metadata records the public databricks dialect while any Spark-family internal normalization remains invisible to downstream artifact consumers.\n3. TestPytestGate: `uv run pytest tests/unit/test_bootstrap.py tests/e2e/test_bootstrap_from_specs.py`\n4. TestGoGate: `go test ./...`\n5. TestLefthookGate: `lefthook run pre-commit`",
+    "parent": "tablespec-171e409c",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"decode readiness classification result: json: cannot unmarshal array into Go struct field preClaimIntakePromptRewrite.rewrite.acceptance of type string\",\"fingerprint\":\"4d3ef910fa5fa4ed32056aae58b6a22d70d8b7522ba884a15b06d485686c716e\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"4d3ef910fa5fa4ed32056aae58b6a22d70d8b7522ba884a15b06d485686c716e\"}",
+          "created_at": "2026-06-08T15:23:25.279954336Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T152325-218c37bf",
+    "prompt": ".ddx/executions/20260608T152325-218c37bf/prompt.md",
+    "manifest": ".ddx/executions/20260608T152325-218c37bf/manifest.json",
+    "result": ".ddx/executions/20260608T152325-218c37bf/result.json",
+    "checks": ".ddx/executions/20260608T152325-218c37bf/checks.json",
+    "usage": ".ddx/executions/20260608T152325-218c37bf/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-924c7384-20260608T152325-218c37bf"
+  },
+  "prompt_sha": "b41f8d309475cd2989c2a02cff5fdee329090595e3ebc748125cbbf03341857d"
+}
