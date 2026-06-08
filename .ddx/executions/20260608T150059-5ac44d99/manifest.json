@@ -1,0 +1,92 @@
+{
+  "attempt_id": "20260608T150059-5ac44d99",
+  "bead_id": "tablespec-f93fa257",
+  "base_rev": "e15662d32a5689bf912bedbbf916f169828c4e3b",
+  "created_at": "2026-06-08T15:01:00.979976564Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-f93fa257",
+    "title": "Fix Excel full round-trip type normalization",
+    "description": "PROBLEM: A workbook exported by UMFToExcelConverter cannot be imported back through ExcelToUMFConverter.convert() for a minimal valid UMF. Manual verification failed with UMF validation errors because imported columns used Spark type names IntegerType/StringType while UMF.model_validate() requires UMF data_type values INTEGER/VARCHAR/DECIMAL/etc. Existing tests assert helper extraction returns Spark names, but they do not call the full convert() path on an exported workbook.\n\nROOT CAUSE: src/tablespec/excel_converter.py _extract_columns normalizes raw Excel data types with map_to_gx_spark_type() and stores the Spark/GX type in col_dict[\"data_type\"]. That is appropriate for GX integration but wrong for the UMF import contract. The workbook itself exports UMF type spellings, so export/import should preserve UMF type names.\n\nPROPOSED FIX: Make Excel import return UMF-valid data_type values. Accept UMF spellings and reasonable SQL/Spark aliases as input, but normalize them to UMF names before UMF.model_validate(). Add a full export-to-file then ExcelToUMFConverter.convert() round-trip test that would fail on the current implementation.\n\nIn-scope files:\n- src/tablespec/excel_converter.py\n- tests/unit/test_excel_converter.py\n- docs/guide/excel.md only if behavior text needs a small correction\n\nOut-of-scope:\n- Advanced-field fidelity for fields not currently represented by the workbook contract.\n- Changing downstream Spark/GX type mapping behavior outside Excel import.\n- Implementing helper/status UI improvements.",
+    "acceptance": "1. test_excel_round_trip_full_convert_preserves_represented_umf_fields: export a rich UMF to .xlsx, import with ExcelToUMFConverter.convert(), assert the result is a valid UMF and preserves table_name, canonical_name, primary_key, column count, column names, UMF data types, length, precision, scale, nullable contexts, descriptions, sample values, format, notes, validation expectations represented by the workbook, relationships represented by the workbook, and file_format if present.\n2. test_excel_import_type_aliases_normalize_to_umf_types: workbook rows using INTEGER, VARCHAR, DECIMAL and accepted aliases such as IntegerType/StringType import to UMF data types INTEGER/VARCHAR/DECIMAL, not Spark class names.\n3. test_excel_import_decimal_requires_precision_scale: DECIMAL without precision or scale fails before UMF.model_validate() with sheet, row, and field context.\n4. Existing extraction tests are updated so they expect UMF type names at the Excel-to-UMF boundary.\n5. uv run pytest tests/unit/test_excel_converter.py -k \"Excel\" passes.",
+    "parent": "tablespec-03cab8b1",
+    "labels": [
+      "area:excel",
+      "area:umf",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"test_excel_round_trip_full_convert_preserves_represented_umf_fields: export a rich UMF to .xlsx, import with ExcelToUMFConverter.convert(), assert the result is a valid UMF and preserves table_name, canonical_name, primary_key, column count, column names, UMF data types, length, precision, scale, nullable contexts, descriptions, sample values, format, notes, validation expectations represented by the workbook, relationships represented by the workbook, and file_format if present.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"test_excel_import_type_aliases_normalize_to_umf_types: workbook rows using INTEGER, VARCHAR, DECIMAL and accepted aliases such as IntegerType/StringType import to UMF data types INTEGER/VARCHAR/DECIMAL, not Spark class names.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"test_excel_import_decimal_requires_precision_scale: DECIMAL without precision or scale fails before UMF.model_validate() with sheet, row, and field context.\",\"kind\":\"negative\",\"verifiable\":true},{\"ac\":4,\"text\":\"Existing extraction tests are updated so they expect UMF type names at the Excel-to-UMF boundary.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":5,\"text\":\"uv run pytest tests/unit/test_excel_converter.py -k \\\"Excel\\\" passes.\",\"kind\":\"prose\",\"verifiable\":false}]",
+          "created_at": "2026-06-08T07:35:30.329462265Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.20 threshold=0.50 verifiable=1/5"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T07:35:31.441912863Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-f93fa257\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T07:35:31.961249153Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"infrastructure\",\"decode_warnings\":[{\"field\":\"classification\",\"warning\":\"unknown classification\",\"raw_excerpt\":\"infrastructure\"},{\"field\":\"recommended_action\",\"warning\":\"unknown recommended_action\",\"raw_excerpt\":\"fix_infrastructure_retry\"}],\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"malformed\":true,\"rationale\":\"execution failed at pre-execute checkpoint due to git dirtiness check failure (exit status 128), indicating repository state or git configuration issue rather than a code or bead logic problem\",\"recommended_action\":\"fix_infrastructure_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T07:37:23.619104937Z",
+          "kind": "bead-quality.triage-warning",
+          "source": "ddx work",
+          "summary": "unusable triage classification: infrastructure"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128",
+          "created_at": "2026-06-08T07:37:23.668541644Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"test_excel_round_trip_full_convert_preserves_represented_umf_fields: export a rich UMF to .xlsx, import with ExcelToUMFConverter.convert(), assert the result is a valid UMF and preserves table_name, canonical_name, primary_key, column count, column names, UMF data types, length, precision, scale, nullable contexts, descriptions, sample values, format, notes, validation expectations represented by the workbook, relationships represented by the workbook, and file_format if present.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"test_excel_import_type_aliases_normalize_to_umf_types: workbook rows using INTEGER, VARCHAR, DECIMAL and accepted aliases such as IntegerType/StringType import to UMF data types INTEGER/VARCHAR/DECIMAL, not Spark class names.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"test_excel_import_decimal_requires_precision_scale: DECIMAL without precision or scale fails before UMF.model_validate() with sheet, row, and field context.\",\"kind\":\"negative\",\"verifiable\":true},{\"ac\":4,\"text\":\"Existing extraction tests are updated so they expect UMF type names at the Excel-to-UMF boundary.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":5,\"text\":\"uv run pytest tests/unit/test_excel_converter.py -k \\\"Excel\\\" passes.\",\"kind\":\"prose\",\"verifiable\":false}]",
+          "created_at": "2026-06-08T14:56:00.09904693Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.20 threshold=0.50 verifiable=1/5"
+        }
+      ],
+      "spec-id": "FEAT-009"
+    }
+  },
+  "governing": [
+    {
+      "id": "FEAT-009",
+      "path": "docs/helix/01-frame/features/FEAT-009-excel-conversion.md",
+      "title": "FEAT-009: Excel Bidirectional Conversion"
+    }
+  ],
+  "paths": {
+    "dir": ".ddx/executions/20260608T150059-5ac44d99",
+    "prompt": ".ddx/executions/20260608T150059-5ac44d99/prompt.md",
+    "manifest": ".ddx/executions/20260608T150059-5ac44d99/manifest.json",
+    "result": ".ddx/executions/20260608T150059-5ac44d99/result.json",
+    "checks": ".ddx/executions/20260608T150059-5ac44d99/checks.json",
+    "usage": ".ddx/executions/20260608T150059-5ac44d99/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-f93fa257-20260608T150059-5ac44d99"
+  },
+  "prompt_sha": "93fa0c84f82a2741e2bf6512db219a9e353ba2acfcb1166c73a7691c3ed26a93"
+}
