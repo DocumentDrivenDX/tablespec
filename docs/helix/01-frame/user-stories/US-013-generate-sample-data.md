@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] Sample data engine generates rows matching UMF column types and constraints
-- [ ] Foreign key relationships produce referentially consistent data across tables
-- [ ] Healthcare domain types (SSN, NPI, state codes) generate realistic values
-- [ ] Output available in CSV and JSON formats with configurable row counts
+- [ ] **US-013-AC1** - Sample data engine generates rows matching UMF column types and constraints
+- [ ] **US-013-AC2** - Foreign key relationships produce referentially consistent data across tables
+- [ ] **US-013-AC3** - Healthcare domain types (SSN, NPI, state codes) generate realistic values
+- [ ] **US-013-AC4** - Output available in CSV and JSON formats with configurable row counts

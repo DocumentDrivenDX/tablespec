@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `UMFToExcelConverter` produces a workbook with dropdown validation for data types and nullable values
-- [ ] `ExcelToUMFConverter` imports the workbook back to a valid UMF object
-- [ ] Round-trip (export then import) preserves all UMF fields
-- [ ] Invalid entries in Excel produce clear validation errors on import
+- [ ] **US-011-AC1** - `UMFToExcelConverter` produces a workbook with dropdown validation for data types and nullable values
+- [ ] **US-011-AC2** - `ExcelToUMFConverter` imports the workbook back to a valid UMF object
+- [ ] **US-011-AC3** - Round-trip (export then import) preserves all UMF fields
+- [ ] **US-011-AC4** - Invalid entries in Excel produce clear validation errors on import

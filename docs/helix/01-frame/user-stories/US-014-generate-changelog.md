@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `ChangelogGenerator` produces structured entries from git commits in a table directory
-- [ ] Each entry includes timestamp, author, change type, and affected components
-- [ ] YAML diff parsing detects column, validation, metadata, and relationship changes
-- [ ] `tablespec changelog` CLI command outputs formatted changelog
+- [ ] **US-014-AC1** - `ChangelogGenerator` produces structured entries from git commits in a table directory
+- [ ] **US-014-AC2** - Each entry includes timestamp, author, change type, and affected components
+- [ ] **US-014-AC3** - YAML diff parsing detects column, validation, metadata, and relationship changes
+- [ ] **US-014-AC4** - `tablespec changelog` CLI command outputs formatted changelog

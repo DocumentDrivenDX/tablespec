@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `BaselineService.capture()` records row counts, column distributions, and numeric stats (requires `tablespec[spark]`)
-- [ ] `BaselineService.compare()` produces drift metrics between two baselines
-- [ ] Distribution drift uses Jensen-Shannon divergence
-- [ ] Baselines are stored and retrievable via `BaselineWriter`
+- [ ] **US-016-AC1** - `BaselineService.capture()` records row counts, column distributions, and numeric stats (requires `tablespec[spark]`)
+- [ ] **US-016-AC2** - `BaselineService.compare()` produces drift metrics between two baselines
+- [ ] **US-016-AC3** - Distribution drift uses Jensen-Shannon divergence
+- [ ] **US-016-AC4** - Baselines are stored and retrievable via `BaselineWriter`

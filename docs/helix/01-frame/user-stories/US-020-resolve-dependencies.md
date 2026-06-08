@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `dependency_resolver.py` loads pipeline dependencies from metadata
-- [ ] Version constraint validation against packaging specifiers
-- [ ] Cycle detection in dependency graph
-- [ ] Clear error reporting for unresolved or conflicting dependencies
+- [ ] **US-020-AC1** - `dependency_resolver.py` loads pipeline dependencies from metadata
+- [ ] **US-020-AC2** - Version constraint validation against packaging specifiers
+- [ ] **US-020-AC3** - Cycle detection in dependency graph
+- [ ] **US-020-AC4** - Clear error reporting for unresolved or conflicting dependencies

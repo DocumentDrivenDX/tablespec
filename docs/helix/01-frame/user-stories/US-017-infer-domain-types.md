@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `DomainTypeInference` infers domain types from column name patterns
-- [ ] `DomainTypeRegistry` loads domain definitions from YAML
-- [ ] Inferred types integrate with sample data generation and validation
-- [ ] Unknown columns return no domain type rather than a false match
+- [ ] **US-017-AC1** - `DomainTypeInference` infers domain types from column name patterns
+- [ ] **US-017-AC2** - `DomainTypeRegistry` loads domain definitions from YAML
+- [ ] **US-017-AC3** - Inferred types integrate with sample data generation and validation
+- [ ] **US-017-AC4** - Unknown columns return no domain type rather than a false match

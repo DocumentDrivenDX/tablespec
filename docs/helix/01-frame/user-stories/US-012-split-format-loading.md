@@ -18,8 +18,8 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `UMFLoader` auto-detects split format from a directory containing `table.yaml` + `columns/`
-- [ ] `UMFLoader` auto-detects JSON format from a `.json` file
-- [ ] Loading from either format produces the same `UMF` object
-- [ ] `UMFLoader` converts between formats bidirectionally
-- [ ] Single-file YAML UMF documents require an explicit legacy migration path and are not auto-detected as canonical input
+- [ ] **US-012-AC1** - `UMFLoader` auto-detects split format from a directory containing `table.yaml` + `columns/`
+- [ ] **US-012-AC2** - `UMFLoader` auto-detects JSON format from a `.json` file
+- [ ] **US-012-AC3** - Loading from either format produces the same `UMF` object
+- [ ] **US-012-AC4** - `UMFLoader` converts between formats bidirectionally
+- [ ] **US-012-AC5** - Single-file YAML UMF documents require an explicit legacy migration path and are not auto-detected as canonical input

@@ -18,7 +18,7 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `UMFDiff` detects added, removed, and modified columns
-- [ ] Validation rule and metadata changes are identified separately
-- [ ] `UMFChangeApplier` can apply individual changes to produce intermediate UMF versions
-- [ ] Changes are typed (`UMFColumnChange`, `UMFMetadataChange`, `UMFValidationChange`)
+- [ ] **US-015-AC1** - `UMFDiff` detects added, removed, and modified columns
+- [ ] **US-015-AC2** - Validation rule and metadata changes are identified separately
+- [ ] **US-015-AC3** - `UMFChangeApplier` can apply individual changes to produce intermediate UMF versions
+- [ ] **US-015-AC4** - Changes are typed (`UMFColumnChange`, `UMFMetadataChange`, `UMFValidationChange`)

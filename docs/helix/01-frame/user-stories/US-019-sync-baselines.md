@@ -18,8 +18,8 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `sync_baseline.py` ensures all tables have required metadata columns
-- [ ] Baseline validations stay in sync with the baseline generator
-- [ ] User customizations (severity changes) are preserved
-- [ ] Conflicts (modified rule content) are detected and reported
-- [ ] Operation is idempotent
+- [ ] **US-019-AC1** - `sync_baseline.py` ensures all tables have required metadata columns
+- [ ] **US-019-AC2** - Baseline validations stay in sync with the baseline generator
+- [ ] **US-019-AC3** - User customizations (severity changes) are preserved
+- [ ] **US-019-AC4** - Conflicts (modified rule content) are detected and reported
+- [ ] **US-019-AC5** - Operation is idempotent

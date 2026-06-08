@@ -18,6 +18,6 @@ ddx:
 
 ## Acceptance Criteria
 
-- [ ] `merge.py` merges multiple Spark DataFrames using UMF metadata (requires `tablespec[spark]`)
-- [ ] Survivorship rules from UMF drive conflict resolution
-- [ ] Configurable deduplication strategy
+- [ ] **US-018-AC1** - `merge.py` merges multiple Spark DataFrames using UMF metadata (requires `tablespec[spark]`)
+- [ ] **US-018-AC2** - Survivorship rules from UMF drive conflict resolution
+- [ ] **US-018-AC3** - Configurable deduplication strategy
