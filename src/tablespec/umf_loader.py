@@ -2,9 +2,11 @@
 
 Split format: Directory structure for git-friendly development (default)
 JSON format: Single JSON file as canonical artifact standard
+Legacy inline YAML: single-file whole-UMF documents, migration-only
 
-Primary use: Loading UMF from any format via auto-detection
-Secondary use: Converting between formats
+Primary use: Loading UMF from supported authoring / artifact formats via
+auto-detection
+Secondary use: Converting between supported formats
 """
 
 from enum import Enum
@@ -22,7 +24,7 @@ class UMFFormat(str, Enum):
 
     SPLIT = "split"  # Directory structure (table.yaml + columns/) - default
     JSON = "json"  # Single JSON file (artifact standard)
-    INLINE = "inline"  # Single .yaml/.yml/.umf file (legacy whole-UMF document)
+    INLINE = "inline"  # Single .yaml/.yml/.umf file (legacy migration-only)
 
 
 class UMFLoader:
@@ -31,8 +33,10 @@ class UMFLoader:
     Supported formats:
     - Split: Directory structure with table.yaml + columns/*.yaml (default, git-friendly)
     - JSON: Single JSON file (artifact standard)
+    - Inline YAML: legacy single-file whole-UMF documents, accessible only via
+      explicit migration helpers
 
-    Primary purpose: Load UMF from any format with automatic format detection.
+    Primary purpose: Load UMF from supported formats with automatic format detection.
     """
 
     def __init__(self) -> None:
@@ -76,7 +80,9 @@ class UMFLoader:
 
         """
         if isinstance(obj, dict):
-            return {k: UMFLoader._convert_yaml_to_plain_strings(v) for k, v in obj.items()}
+            return {
+                k: UMFLoader._convert_yaml_to_plain_strings(v) for k, v in obj.items()
+            }
         if isinstance(obj, list):
             return [UMFLoader._convert_yaml_to_plain_strings(item) for item in obj]
         if isinstance(obj, str):
@@ -90,6 +96,8 @@ class UMFLoader:
         Supports all UMF formats:
         - JSON: Single JSON file (.json)
         - Split: Directory with table.yaml and columns/*.yaml
+        - Legacy inline YAML files are intentionally not auto-detected; use the
+          explicit migration helper for those.
 
         Args:
             path: Path to UMF source (file or directory)
@@ -154,7 +162,9 @@ class UMFLoader:
 
         # 3. Validate capture indices
         if num_groups > 0 and not pattern.captures:
-            errors.append("filename_pattern.captures is empty but regex has capture groups")
+            errors.append(
+                "filename_pattern.captures is empty but regex has capture groups"
+            )
             return errors
 
         # 4. Check each capture group exists in regex
@@ -206,10 +216,13 @@ class UMFLoader:
         if path.is_file():
             if path.suffix == ".json":
                 return UMFFormat.JSON
-            # Support legacy .yaml/.yml/.umf files: a single YAML file holds the
-            # whole UMF document (not a split-dir table.yaml). Load it inline.
             if path.suffix in {".yaml", ".yml", ".umf"}:
-                return UMFFormat.INLINE
+                msg = (
+                    f"Single-file YAML UMF documents are legacy-only and are not "
+                    f"auto-detected: {path}. Use migrate_legacy_inline_yaml() to "
+                    "convert it explicitly, or load a split-format directory / JSON file."
+                )
+                raise ValueError(msg)
 
         if path.is_dir():
             if not (path / "table.yaml").exists():
@@ -226,9 +239,34 @@ class UMFLoader:
 
         msg = (
             f"Cannot detect format for {path}. "
-            "Expected .json/.yaml/.yml file, or directory with table.yaml+columns/ (split)"
+            "Expected a .json file or a split-format directory with table.yaml+columns/"
         )
         raise ValueError(msg)
+
+    def migrate_legacy_inline_yaml(
+        self,
+        source: Path,
+        dest: Path,
+        target_format: UMFFormat | None = None,
+    ) -> None:
+        """Migrate a legacy single-file YAML UMF into a supported format.
+
+        This is the explicit compatibility path for `.yaml` / `.yml` / `.umf`
+        whole-document UMFs. Normal `load()` calls do not auto-detect those files.
+        """
+        source = Path(source)
+        dest = Path(dest)
+
+        if target_format is None:
+            target_format = (
+                UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
+            )
+        if target_format == UMFFormat.INLINE:
+            msg = "Legacy inline YAML can only be migrated to split or JSON formats."
+            raise ValueError(msg)
+
+        umf = self._load_inline_yaml(source)
+        self.save(umf, dest, target_format)
 
     def convert(
         self,
@@ -254,7 +292,9 @@ class UMFLoader:
         # Determine target format
         if target_format is None:
             # Infer from dest path: .json extension -> JSON, otherwise SPLIT (default)
-            target_format = UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
+            target_format = (
+                UMFFormat.JSON if dest.suffix == ".json" else UMFFormat.SPLIT
+            )
 
         # Load UMF
         umf = self._load(source, source_format)
@@ -287,10 +327,9 @@ class UMFLoader:
     def _load_inline_yaml(self, file_path: Path) -> UMF:
         """Load UMF from a single inline YAML document (.yaml/.yml/.umf).
 
-        Unlike the split format, the whole UMF lives in one YAML file. This is the
-        legacy single-file form and what the ``emit``/``generate`` CLIs accept for a
-        single-file source. Mirrors ``_load_json``'s legacy-field handling so YAML and
-        JSON single-file sources behave identically.
+        This is the legacy whole-document form used only by explicit migration
+        helpers. Mirrors ``_load_json``'s legacy-field handling so YAML and JSON
+        single-file sources behave identically during migration.
         """
         try:
             with file_path.open(encoding="utf-8") as f:
@@ -427,9 +466,9 @@ class UMFLoader:
                 umf_data["validation_rules"] = pending_validations
             elif pending_validations and "validation_rules" in umf_data:
                 if "pending_expectations" in pending_validations:
-                    umf_data["validation_rules"]["pending_expectations"] = pending_validations[
-                        "pending_expectations"
-                    ]
+                    umf_data["validation_rules"]["pending_expectations"] = (
+                        pending_validations["pending_expectations"]
+                    )
         except FileNotFoundError:
             pass
 
@@ -548,8 +587,11 @@ class UMFLoader:
         """
         if format == UMFFormat.JSON:
             self.save_json(umf, path)
-        else:
+        elif format == UMFFormat.SPLIT:
             self._save_split(umf, path)
+        else:
+            msg = "UMFFormat.INLINE is legacy-only; migrate inline YAML explicitly instead."
+            raise ValueError(msg)
 
     def save_json(self, umf: UMF, file_path: Path) -> None:
         """Save UMF as single JSON file (canonical artifact format).
@@ -637,27 +679,37 @@ class UMFLoader:
             rel = umf.relationships
             if hasattr(rel, "foreign_keys") and rel.foreign_keys:
                 relationships_data["foreign_keys"] = [
-                    fk.model_dump(exclude_none=True) if hasattr(fk, "model_dump") else fk
+                    fk.model_dump(exclude_none=True)
+                    if hasattr(fk, "model_dump")
+                    else fk
                     for fk in rel.foreign_keys
                 ]
             if hasattr(rel, "indexes") and rel.indexes:
                 relationships_data["indexes"] = [
-                    idx.model_dump(exclude_none=True) if hasattr(idx, "model_dump") else idx
+                    idx.model_dump(exclude_none=True)
+                    if hasattr(idx, "model_dump")
+                    else idx
                     for idx in rel.indexes
                 ]
             if hasattr(rel, "referenced_by") and rel.referenced_by:
                 relationships_data["referenced_by"] = [
-                    ref.model_dump(exclude_none=True) if hasattr(ref, "model_dump") else ref
+                    ref.model_dump(exclude_none=True)
+                    if hasattr(ref, "model_dump")
+                    else ref
                     for ref in rel.referenced_by
                 ]
             if hasattr(rel, "outgoing") and rel.outgoing:
                 relationships_data["outgoing"] = [
-                    out.model_dump(exclude_none=True) if hasattr(out, "model_dump") else out
+                    out.model_dump(exclude_none=True)
+                    if hasattr(out, "model_dump")
+                    else out
                     for out in rel.outgoing
                 ]
             if hasattr(rel, "incoming") and rel.incoming:
                 relationships_data["incoming"] = [
-                    inc.model_dump(exclude_none=True) if hasattr(inc, "model_dump") else inc
+                    inc.model_dump(exclude_none=True)
+                    if hasattr(inc, "model_dump")
+                    else inc
                     for inc in rel.incoming
                 ]
             if hasattr(rel, "summary") and rel.summary:
@@ -685,7 +737,8 @@ class UMFLoader:
         if umf.expectations and umf.expectations.expectations:
             # --- ADR-005 unified format: write expectations.yaml ---
             all_exps: list[dict[str, Any]] = [
-                exp.model_dump(exclude_none=True) for exp in umf.expectations.expectations
+                exp.model_dump(exclude_none=True)
+                for exp in umf.expectations.expectations
             ]
 
             def _is_cross_column(exp: dict) -> bool:
@@ -703,7 +756,8 @@ class UMFLoader:
                 expectations_data["expectations"] = cross_exps
             if umf.expectations.pending:
                 expectations_data["pending"] = [
-                    exp.model_dump(exclude_none=True) for exp in umf.expectations.pending
+                    exp.model_dump(exclude_none=True)
+                    for exp in umf.expectations.pending
                 ]
             if umf.expectations.thresholds:
                 expectations_data["thresholds"] = umf.expectations.thresholds
@@ -741,7 +795,9 @@ class UMFLoader:
                     ]
                 }
                 if cross_validations["expectations"]:
-                    self._write_yaml(dir_path / "validation_rules.yaml", cross_validations)
+                    self._write_yaml(
+                        dir_path / "validation_rules.yaml", cross_validations
+                    )
 
                 # Build column validation map from legacy expectations
                 for exp in expectations_list or []:
@@ -758,11 +814,15 @@ class UMFLoader:
                 ):
                     pending_expectations = umf.validation_rules.pending_expectations
                 elif isinstance(umf.validation_rules, dict):
-                    pending_expectations = umf.validation_rules.get("pending_expectations", [])
+                    pending_expectations = umf.validation_rules.get(
+                        "pending_expectations", []
+                    )
 
                 if pending_expectations:
                     pending_validations = {"pending_expectations": pending_expectations}
-                    self._write_yaml(dir_path / "pending_validations.yaml", pending_validations)
+                    self._write_yaml(
+                        dir_path / "pending_validations.yaml", pending_validations
+                    )
 
             quality_checks = getattr(umf, "quality_checks", None)
             if quality_checks:
@@ -802,7 +862,9 @@ class UMFLoader:
                     )
 
                 if quality_checks_data.get("checks"):
-                    self._write_yaml(dir_path / "quality_checks.yaml", quality_checks_data)
+                    self._write_yaml(
+                        dir_path / "quality_checks.yaml", quality_checks_data
+                    )
 
         # 4. Save columns/ directory
         if umf.columns:
@@ -827,7 +889,9 @@ class UMFLoader:
 
                 # Extract derivation from column dict (if present) to make it a sibling
                 derivation = (
-                    col_dict.pop("derivation", None) if isinstance(col_dict, dict) else None
+                    col_dict.pop("derivation", None)
+                    if isinstance(col_dict, dict)
+                    else None
                 )
 
                 col_data: dict[str, Any] = {"column": col_dict}
@@ -923,7 +987,9 @@ class UMFLoader:
         if isinstance(obj, dict):
             # Filter out None values, sort keys
             filtered = {k: v for k, v in obj.items() if v is not None}
-            return {k: self._sort_recursive(filtered[k]) for k in sorted(filtered.keys())}
+            return {
+                k: self._sort_recursive(filtered[k]) for k in sorted(filtered.keys())
+            }
 
         if isinstance(obj, list):
             # NEVER sort lists - order matters!

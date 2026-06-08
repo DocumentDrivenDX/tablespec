@@ -16,6 +16,7 @@ ddx:
 ## Description
 
 Typer-based CLI (`tablespec` command) for schema management, conversion, and validation workflows with Rich output formatting.
+Canonical authoring inputs are split-format UMF directories and JSON artifacts; single-file YAML UMF documents are legacy migration inputs only.
 
 ## Commands
 

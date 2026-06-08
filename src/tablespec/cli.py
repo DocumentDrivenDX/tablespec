@@ -143,7 +143,7 @@ if _HAS_VALIDATOR:
     def validate(
         path: Path = typer.Argument(
             ...,
-            help="UMF file or directory to validate",
+            help="UMF split directory or JSON file to validate",
             exists=True,
         ),
         verbose: bool = typer.Option(
@@ -166,7 +166,7 @@ if _HAS_VALIDATOR:
 
         Examples:
           tablespec validate tables/outreach_list/
-          tablespec validate outreach_list.umf.yaml -v
+          tablespec validate outreach_list.json -v
           tablespec validate tables/
 
         """
@@ -254,7 +254,7 @@ if _HAS_VALIDATOR:
     def info(
         path: Path = typer.Argument(
             ...,
-            help="UMF file or directory",
+            help="UMF split directory or JSON file",
             exists=True,
         ),
     ) -> None:
@@ -262,7 +262,7 @@ if _HAS_VALIDATOR:
 
         Examples:
           tablespec info tables/outreach_list/
-          tablespec info outreach_list.umf.yaml
+          tablespec info outreach_list.json
 
         """
         assert _validation_context is not None
@@ -430,7 +430,7 @@ def batch_convert(
 def generate(
     source: Path = typer.Argument(
         ...,
-        help="UMF file or directory to generate schema from",
+        help="UMF split directory or JSON file to generate schema from",
         exists=True,
     ),
     format: str = typer.Option(
@@ -446,9 +446,8 @@ def generate(
     The ``ingest`` format emits a committed raw->ingest SQL artifact (Databricks/Delta).
 
     Examples:
-      tablespec generate table.umf.yaml --format sql
       tablespec generate tables/claims/ -f pyspark > schema.py
-      tablespec generate table.umf.yaml -f json > schema.json
+      tablespec generate tables/claims/ -f json > schema.json
       tablespec generate tables/claims/ -f ingest > claims.ingest.sql
 
     """
@@ -501,7 +500,7 @@ def generate(
 def emit(
     source: Path = typer.Argument(
         ...,
-        help="UMF file or directory to emit a runnable project from",
+        help="UMF split directory or JSON file to emit a runnable project from",
         exists=True,
     ),
     out_dir: Path = typer.Argument(
@@ -537,7 +536,6 @@ def emit(
     it also invokes ``dbt build`` against the emitted project (requires dbt-duckdb).
 
     Examples:
-      tablespec emit table.umf.yaml out/ --backend dbt
       tablespec emit tables/ out/ --backend dbt --run
 
     """
@@ -596,7 +594,7 @@ def emit(
 def export_excel(
     source: Path = typer.Argument(
         ...,
-        help="Source UMF file or directory",
+        help="Source UMF split directory or JSON file",
         exists=True,
     ),
     dest: Path = typer.Argument(
@@ -618,7 +616,6 @@ def export_excel(
     - Support for all UMF features
 
     Examples:
-      tablespec export-excel table.umf.yaml table.xlsx
       tablespec export-excel tables/medical_claims/ claims.xlsx --force
 
     """
@@ -1246,7 +1243,7 @@ def validation_remove(
 def explore(
     path: Path = typer.Argument(
         ...,
-        help="Path to UMF file or directory of UMF YAML files",
+        help="Path to a UMF directory",
         exists=True,
     ),
 ) -> None:
@@ -1259,7 +1256,6 @@ def explore(
 
     Examples:
       tablespec explore tables/
-      tablespec explore my_table.umf.yaml
 
     """
     try:

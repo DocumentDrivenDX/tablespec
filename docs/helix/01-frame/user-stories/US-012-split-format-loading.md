@@ -14,7 +14,7 @@ ddx:
 
 **As a** data engineer using git for schema version control,
 **I want** store UMF specs as a directory of YAML files (one per column) and load them transparently,
-**So that** git diffs show per-column changes and merge conflicts are isolated.
+**So that** git diffs show per-column changes and merge conflicts are isolated, while legacy single-file YAML stays outside the canonical path.
 
 ## Acceptance Criteria
 
@@ -22,3 +22,4 @@ ddx:
 - [ ] `UMFLoader` auto-detects JSON format from a `.json` file
 - [ ] Loading from either format produces the same `UMF` object
 - [ ] `UMFLoader` converts between formats bidirectionally
+- [ ] Single-file YAML UMF documents require an explicit legacy migration path and are not auto-detected as canonical input
