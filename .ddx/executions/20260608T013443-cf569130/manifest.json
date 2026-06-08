@@ -1,0 +1,44 @@
+{
+  "attempt_id": "20260608T013443-cf569130",
+  "bead_id": "tablespec-9fad11d8",
+  "base_rev": "d7d60f981c116126bea0b59642918ae8de547b7f",
+  "created_at": "2026-06-08T01:34:45.824046692Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-9fad11d8",
+    "title": "Normalize legacy user-story acceptance criteria: part 2",
+    "description": "PROBLEM\nParent bead tablespec-dbf90b8d is too broad for one execution pass. This child owns part 2 of 2 of that parent scope.\n\nROOT CAUSE\nUS-001 through US-020 still use legacy unchecked acceptance bullets without stable US-NNN-ACx IDs. The Helix align checker currently reports 52/52 cited ACs, but those legacy bullets are not machine-addressable and are effectively outside the coverage matrix.\n\nPROPOSED FIX\nImplement only this child acceptance slice:\n- Implement the remaining bounded slice of the parent bead.\n\nNON-SCOPE\nDo not implement parent acceptance criteria assigned to sibling child beads. Preserve every parent non-scope constraint unless this child explicitly narrows it.",
+    "acceptance": "1. Implement the remaining bounded slice of the parent bead.\n2. cd cli \u0026\u0026 go test ./... passes.\n3. lefthook run pre-commit passes.",
+    "parent": "tablespec-dbf90b8d",
+    "labels": [
+      "spec",
+      "helix",
+      "traceability",
+      "decomposed"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"decode readiness classification result: json: cannot unmarshal array into Go struct field preClaimIntakePromptRewrite.rewrite.acceptance of type string\",\"fingerprint\":\"4d3ef910fa5fa4ed32056aae58b6a22d70d8b7522ba884a15b06d485686c716e\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"4d3ef910fa5fa4ed32056aae58b6a22d70d8b7522ba884a15b06d485686c716e\"}",
+          "created_at": "2026-06-08T01:32:40.725429472Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T013443-cf569130",
+    "prompt": ".ddx/executions/20260608T013443-cf569130/prompt.md",
+    "manifest": ".ddx/executions/20260608T013443-cf569130/manifest.json",
+    "result": ".ddx/executions/20260608T013443-cf569130/result.json",
+    "checks": ".ddx/executions/20260608T013443-cf569130/checks.json",
+    "usage": ".ddx/executions/20260608T013443-cf569130/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-9fad11d8-20260608T013443-cf569130"
+  },
+  "prompt_sha": "e2f15de063b384b00cf666119aa0cb1663aaaefbd7f5cf2f274b47eb515ba61b"
+}

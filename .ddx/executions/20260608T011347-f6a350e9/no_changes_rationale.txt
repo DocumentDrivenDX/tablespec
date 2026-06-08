@@ -1,0 +1,2 @@
+status: blocked
+reason: This worktree does not contain a `cli/` directory or any `go.mod`, so the required `cd cli && go test ./...` gate cannot be executed here. `lefthook run pre-commit` also has no lefthook config in this worktree, so the second required gate is not runnable as specified.

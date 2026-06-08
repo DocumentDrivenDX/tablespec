@@ -1,0 +1,61 @@
+{
+  "attempt_id": "20260608T011347-f6a350e9",
+  "bead_id": "tablespec-b474ae20",
+  "base_rev": "59bea1ed48dc82bcd603cd6f0cec5f66ebe682cd",
+  "created_at": "2026-06-08T01:13:47.93725566Z",
+  "requested": {
+    "prompt": "synthesized",
+    "min_power": 5
+  },
+  "bead": {
+    "id": "tablespec-b474ae20",
+    "title": "Normalize legacy user-story acceptance criteria: part 1",
+    "description": "PROBLEM\nParent bead tablespec-dbf90b8d is too broad for one execution pass. This child owns part 1 of 2 of that parent scope.\n\nROOT CAUSE\nUS-001 through US-020 still use legacy unchecked acceptance bullets without stable US-NNN-ACx IDs. The Helix align checker currently reports 52/52 cited ACs, but those legacy bullets are not machine-addressable and are effectively outside the coverage matrix.\n\nPROPOSED FIX\nImplement only this child acceptance slice:\n- Implement the first bounded slice of the parent bead.\n\nNON-SCOPE\nDo not implement parent acceptance criteria assigned to sibling child beads. Preserve every parent non-scope constraint unless this child explicitly narrows it.",
+    "acceptance": "1. Implement the first bounded slice of the parent bead.\n2. cd cli \u0026\u0026 go test ./... passes.\n3. lefthook run pre-commit passes.",
+    "parent": "tablespec-dbf90b8d",
+    "labels": [
+      "spec",
+      "helix",
+      "traceability",
+      "decomposed"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"ambiguous_scope: The bead is already decomposed into a child slice and has two concrete build-gate ACs, but AC1 is still placeholder prose ('first bounded slice') rather than a machine-addressable scope statement. Targeted metadata/AC edits can make it executable without changing intent, so this is refineable rather than a split or operator-blocker.\",\"fingerprint\":\"0d98334aa1edf1a2103f74d1a7d54fd3e7d6341c98dd61ba34aeea9a44c6a099\",\"policy_mode\":\"warn-only\",\"reason\":\"readiness_best_effort\",\"rule_id\":\"pre_claim_intake.readiness_best_effort\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"0d98334aa1edf1a2103f74d1a7d54fd3e7d6341c98dd61ba34aeea9a44c6a099\"}",
+          "created_at": "2026-06-08T01:08:53.289201457Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "readiness_best_effort"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"resolved_provider\":\"codex\",\"resolved_model\":\"gpt-5.4-mini\",\"route_reason\":\"explicit_pin_discovery_unavailable\",\"fallback_chain\":[]}",
+          "created_at": "2026-06-08T01:13:45.769963455Z",
+          "kind": "routing",
+          "source": "legacy agent execute-bead",
+          "summary": "provider=codex model=gpt-5.4-mini reason=explicit_pin_discovery_unavailable"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"attempt_id\":\"20260608T010854-c123202c\",\"harness\":\"codex\",\"model\":\"gpt-5.4-mini\",\"route_reason\":\"explicit_pin_discovery_unavailable\",\"input_tokens\":3302764,\"output_tokens\":17778,\"total_tokens\":3320542,\"cost_usd\":0,\"duration_ms\":289796,\"exit_code\":0}",
+          "created_at": "2026-06-08T01:13:45.777875639Z",
+          "kind": "cost",
+          "source": "legacy agent execute-bead",
+          "summary": "tokens=3320542 model=gpt-5.4-mini"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T011347-f6a350e9",
+    "prompt": ".ddx/executions/20260608T011347-f6a350e9/prompt.md",
+    "manifest": ".ddx/executions/20260608T011347-f6a350e9/manifest.json",
+    "result": ".ddx/executions/20260608T011347-f6a350e9/result.json",
+    "checks": ".ddx/executions/20260608T011347-f6a350e9/checks.json",
+    "usage": ".ddx/executions/20260608T011347-f6a350e9/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-b474ae20-20260608T011347-f6a350e9"
+  },
+  "prompt_sha": "047ce14b4a8c2e86a40f1856d02ce85333fcb140d234849b82293c01e355f605"
+}
