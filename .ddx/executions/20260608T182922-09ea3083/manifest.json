@@ -1,0 +1,45 @@
+{
+  "attempt_id": "20260608T182922-09ea3083",
+  "bead_id": "tablespec-0d64cd5d",
+  "base_rev": "92e905825264b67af667c0a041160e1e0a9db424",
+  "created_at": "2026-06-08T18:29:23.549225761Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-0d64cd5d",
+    "title": "Clarify Databricks alias in CLI dialect help",
+    "description": "PROBLEM: The CLI help text does not explain that Databricks uses the Spark-family dialect alias, so users cannot tell whether `databricks` is accepted or how it relates to `spark`. ROOT CAUSE: `src/tablespec/cli.py:525` lists `duckdb, spark, databricks` without describing the Spark-family normalization or alias semantics. PROPOSED FIX: Update the `--dialect` help/validation text to name the three accepted values, explicitly state that `databricks` is the Databricks-facing alias for Spark-family cast SQL, and keep the runtime behavior unchanged. NON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No broad documentation rewrite outside Databricks dialect guidance. GOVERNING ARTIFACTS: `docs/guide/bootstrap.md:10`; `README.md:139`; `docs/helix/03-test/conformance-acceptance.md:109`; `scripts/run_integration_tests_databricks.ipynb`. DEPENDENCIES: `tablespec-ed74497c`.",
+    "acceptance": "1. TestCliHelpExplainsDatabricksAlias: add a CLI help regression that verifies `--dialect` advertises `duckdb`, `spark`, and `databricks`, and explains that `databricks` is the Databricks-facing alias for Spark-family cast SQL.\\n2. TestCliValidationKeepsCanonicalValues: add a parser/validation regression that the accepted values remain stable and the help text does not imply a separate Databricks SQL dialect implementation.\\n3. go test ./...\\n4. lefthook run pre-commit.",
+    "parent": "tablespec-0fb0d1c2",
+    "labels": [
+      "area:cli",
+      "area:databricks",
+      "area:dialects",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"decode readiness classification result: json: cannot unmarshal array into Go struct field preClaimIntakePromptRewrite.rewrite.acceptance of type string\",\"fingerprint\":\"4d3ef910fa5fa4ed32056aae58b6a22d70d8b7522ba884a15b06d485686c716e\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"4d3ef910fa5fa4ed32056aae58b6a22d70d8b7522ba884a15b06d485686c716e\"}",
+          "created_at": "2026-06-08T18:27:17.259938707Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T182922-09ea3083",
+    "prompt": ".ddx/executions/20260608T182922-09ea3083/prompt.md",
+    "manifest": ".ddx/executions/20260608T182922-09ea3083/manifest.json",
+    "result": ".ddx/executions/20260608T182922-09ea3083/result.json",
+    "checks": ".ddx/executions/20260608T182922-09ea3083/checks.json",
+    "usage": ".ddx/executions/20260608T182922-09ea3083/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-0d64cd5d-20260608T182922-09ea3083"
+  },
+  "prompt_sha": "f2313b8e313267868488e9a841a2f598810537fba7a97e239cb1f647ed69c475"
+}
