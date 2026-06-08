@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: DOCS-01, DOCS-02
 **PRD Requirements**: FR-1.1
 **Priority**: P1
-**Status**: Planned
+**Status**: Implemented
 
 ## Story
 
@@ -19,7 +19,7 @@ ddx:
 
 ## Context
 
-The PRD does not define API documentation as a standalone product subsystem, but the docs expose the UMF model and generation surface that downstream teams consume. This story restores structural traceability for the planned documentation feature.
+The PRD does not define API documentation as a standalone product subsystem, but the docs expose the UMF model and generation surface that downstream teams consume. This story restores structural traceability for the documentation feature.
 
 ## Walkthrough
 

@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-023: Authoring Tools
 
-**Status**: Proposed
+**Status**: Implemented
 **Priority**: P1
 **Feature ID**: FEAT-023
 **Owner**: Platform / Data Engineering

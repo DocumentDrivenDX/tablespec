@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-022: Schema Compatibility Checker
 
-**Status**: Proposed
+**Status**: Implemented
 **Priority**: P1
 **Feature ID**: FEAT-022
 **Owner**: Platform / Data Engineering

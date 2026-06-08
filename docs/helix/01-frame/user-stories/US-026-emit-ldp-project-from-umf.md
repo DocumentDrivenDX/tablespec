@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: LDP-01, LDP-03, LDP-07, LDP-09, LDP-10, LDP-11, LDP-12
 **PRD Requirements**: FR-19.3 (LDP sibling emitter), FR-19.1 (shared target-agnostic core seam)
 **Priority**: P1
-**Status**: Approved
+**Status**: Implemented
 
 ## Story
 

@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-015: Browsable API Documentation
 
-**Status**: Planned
+**Status**: Implemented
 **Priority**: P1
 **Feature ID**: FEAT-015
 **Owner**: Platform / Data Engineering
@@ -34,5 +34,5 @@ The GitHub Pages site currently serves a PyPI package index, not documentation.
 
 ## Source
 
-- Configuration: `mkdocs.yml` (to be created)
+- Configuration: `mkdocs.yml`
 - Content: auto-generated from `src/tablespec/` docstrings

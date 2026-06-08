@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-017: Validation Pipeline Improvements
 
-**Status**: Proposed
+**Status**: Implemented
 **Priority**: P0
 **Feature ID**: FEAT-017
 **Owner**: Data-Quality Platform

@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-019: SQL Generator CTE Mode
 
-**Status**: Proposed
+**Status**: Implemented
 **Priority**: P1
 **Feature ID**: FEAT-019
 **Owner**: Platform / Compilation
