@@ -1,0 +1,33 @@
+{
+  "attempt_id": "20260608T192843-a3687948",
+  "bead_id": "tablespec-5e81f5e0",
+  "base_rev": "99478f40761beca0e1f9a4456caf6e3cf27ead8f",
+  "created_at": "2026-06-08T19:28:45.610050339Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-5e81f5e0",
+    "title": "Canonicalize bootstrap and README Databricks examples",
+    "description": "PROBLEM: The bootstrap-facing docs teach mixed dialect spelling, which leaves Databricks users unsure whether they should pass `spark` or `databricks`. ROOT CAUSE: `docs/guide/bootstrap.md:18` tells Databricks/Spark bootstrap users to pass `dialect=\"spark\"`, and `README.md:144-149` shows `bootstrap_from_tables` without any dialect guidance, so the canonical alias is not taught consistently. PROPOSED FIX: Update the bootstrap guide, README examples, and Databricks notebook/try-it-out docs to use `dialect=\"databricks\"` where that is the public Databricks-facing spelling, and explain that internal emitters may normalize to `spark` when the SQL is identical. NON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No broad documentation rewrite outside Databricks dialect guidance. GOVERNING ARTIFACTS: `docs/guide/bootstrap.md:10`; `README.md:139`; `docs/helix/03-test/conformance-acceptance.md:109`; `scripts/run_integration_tests_databricks.ipynb`. DEPENDENCIES: `tablespec-ed74497c`.",
+    "acceptance": "1. TestBootstrapDocsUseDatabricksAlias: add a docs traceability regression that scans `docs/guide/bootstrap.md`, `README.md`, and `scripts/run_integration_tests_databricks.ipynb` for canonical Databricks wording and the Spark-family alias explanation.\\n2. TestNoBootstrapDocRequiresSparkOnly: assert no public bootstrap example instructs Databricks users to pass only `dialect=\"spark\"` unless the sentence explicitly explains internal Spark-family normalization.\\n3. go test ./...\\n4. lefthook run pre-commit.",
+    "parent": "tablespec-0fb0d1c2",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:docs",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ]
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T192843-a3687948",
+    "prompt": ".ddx/executions/20260608T192843-a3687948/prompt.md",
+    "manifest": ".ddx/executions/20260608T192843-a3687948/manifest.json",
+    "result": ".ddx/executions/20260608T192843-a3687948/result.json",
+    "checks": ".ddx/executions/20260608T192843-a3687948/checks.json",
+    "usage": ".ddx/executions/20260608T192843-a3687948/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-5e81f5e0-20260608T192843-a3687948"
+  },
+  "prompt_sha": "1d1b5582c5f358f5a99241f88506e9af6801b5211e099504a8d16c0fbd809bc2"
+}
