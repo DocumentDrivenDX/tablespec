@@ -147,10 +147,10 @@ means where the compiler runs and where its committed artifacts execute.
 
 | Component | Infrastructure | Instances | Scaling | Backup / Recovery |
 |-----------|----------------|-----------|---------|-------------------|
-| Compiler (compile orchestrator) | CI runner or developer host; pure Python (no JVM) | Per compile invocation | N/A (batch) | Artifacts committed to Git; recompile is deterministic from UMF |
+| Compiler (compile orchestrator) | CI runner or developer host; pure Python (no JVM) | Per compile invocation | N/A (batch) | Artifacts committed to Git; recompile is deterministic from UMF and produces the installable wheel/sdist plus the committed JSON pipeline artifacts |
 | Committed artifacts | Git repository | One tree per compile | N/A | Git history = the recovery story; diffable, reviewable |
-| Runtime backbone (local) | DuckDB / classic Spark (JDK 17) / Sail (Connect, no JVM) | Per test/CI lane | Engine-native | Re-run from committed artifacts |
-| Runtime (production) | Databricks serverless / Spark Connect (env-v3, Python 3.12) | Workspace-managed | Serverless autoscale | Re-run from committed artifacts; runtime carries no tablespec dependency |
+| Runtime backbone (local) | DuckDB / classic Spark (JDK 17) / Sail (Connect, no JVM) | Per test/CI lane | Engine-native | Re-run from the committed artifact tree; useful for development bootstrap validation |
+| Runtime (production) | Databricks serverless / Spark Connect (env-v3, Python 3.12) | Workspace-managed | Serverless autoscale | Re-run from the committed artifact tree installed alongside the published `tablespec` wheel; runtime resolves `manifest.json` and the JSON pipeline artifacts and carries no source-time bootstrap/orchestration |
 
 ```mermaid
 graph TB

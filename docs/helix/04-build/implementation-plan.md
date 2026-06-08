@@ -25,6 +25,21 @@ make check          # Run canonical tracked-file lint + type-check + tests
 make format         # Format code with ruff
 ```
 
+## Artifact Handoff Validation
+
+The development pipeline has a separate artifact-handoff check from the runtime
+itself:
+
+```bash
+uv build
+uv run pytest tests/e2e/test_bootstrap_from_specs.py -k compile_persists_every_seam
+```
+
+`uv build` produces the installable wheel/sdist, and the `test_bootstrap_from_specs`
+contract validates the JSON pipeline artifacts expected by production: the
+serialized `manifest.json`, the compiled `validation/*.suite.json` files, and the
+rest of the pinned artifact tree that `CompiledArtifacts.load()` resolves from disk.
+
 ## Quality Gates
 
 All of the following must pass before merge:

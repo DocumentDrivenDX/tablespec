@@ -157,6 +157,10 @@ the data to enrich the compiled validation suite, and persists the full
 artifact tree in one call. The profiler enriches validation; it does not create
 UMF.
 
+This is the development bootstrap path. Production installs the published
+`tablespec` wheel and consumes the committed artifact tree through the manifest;
+it does not re-run the bootstrap orchestration from source-time Python.
+
 ## Documentation
 
 Full documentation is available at [easel.github.io/tablespec](https://easel.github.io/tablespec/):

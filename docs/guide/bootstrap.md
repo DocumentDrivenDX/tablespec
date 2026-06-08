@@ -3,6 +3,10 @@
 Use the public bootstrap facade when you already have an existing Spark table
 and want the full compiled artifact tree in one call.
 
+This is a development/bootstrap step. It produces the committed artifact tree
+that production will later install and run from via the manifest; production
+does not re-run the bootstrap orchestration from source checkout code.
+
 ```python
 from tablespec import bootstrap_from_tables
 
@@ -28,5 +32,10 @@ What the facade does:
 
 The profiler enriches validation. It does not create UMF. Schema reflection does
 that first step, and the facade handles the compile step for you.
+
+The returned `CompiledArtifacts` manifest is the production handoff: it points to
+the compiled `manifest.json`, the JSON pipeline artifacts (`validation/*.suite.json`
+and friends), and the rest of the pinned tree that a production job installs and
+loads from disk.
 
 When you only want the schema-only baseline suite, pass `profile=False`.
