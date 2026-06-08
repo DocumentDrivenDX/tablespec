@@ -12,6 +12,7 @@ from tablespec.cli import app
 
 pytestmark = pytest.mark.no_spark
 
+
 def _strip_ansi(text: str) -> str:
     """Strip ANSI escape codes from Rich CLI output."""
     return re.sub(r"\x1b\[[0-9;]*m", "", text)
@@ -121,8 +122,7 @@ class TestExportExcel:
 
     def test_export_dest_exists_no_force(self, tmp_path):
         """Refuse to overwrite without --force."""
-        source = tmp_path / "test.umf.yaml"
-        source.write_text("version: '1.0'")
+        source = _write_umf(tmp_path)
         dest = tmp_path / "test.xlsx"
         dest.write_text("existing")
 
@@ -160,7 +160,9 @@ class TestExportExcel:
 
     @patch("tablespec.cli.UMFLoader")
     @patch("tablespec.cli.UMFToExcelConverter")
-    def test_export_force_overwrites(self, mock_converter_cls, mock_loader_cls, tmp_path):
+    def test_export_force_overwrites(
+        self, mock_converter_cls, mock_loader_cls, tmp_path
+    ):
         """With --force, existing file is overwritten."""
         source = tmp_path / "test.umf.yaml"
         source.write_text("version: '1.0'")
@@ -194,7 +196,9 @@ class TestImportExcel:
 
     @patch("tablespec.cli.ExcelToUMFConverter")
     @patch("tablespec.cli.UMFLoader")
-    def test_import_dest_exists_no_force(self, mock_loader_cls, mock_converter_cls, tmp_path):
+    def test_import_dest_exists_no_force(
+        self, mock_loader_cls, mock_converter_cls, tmp_path
+    ):
         """Refuse to overwrite without --force."""
         source = tmp_path / "test.xlsx"
         source.write_text("fake")
@@ -286,7 +290,9 @@ class TestDomainsShow:
 
     def test_domains_show_json(self):
         """Show a real domain type in JSON format."""
-        result = runner.invoke(app, ["domains-show", "us_state_code", "--format", "json"])
+        result = runner.invoke(
+            app, ["domains-show", "us_state_code", "--format", "json"]
+        )
         assert result.exit_code == 0
         assert "us_state_code" in result.output
         assert '"us_state_code"' in result.output
@@ -306,7 +312,13 @@ class TestDomainsInfer:
         """Infer with column name and description."""
         result = runner.invoke(
             app,
-            ["domains-infer", "--column", "st", "--description", "US state abbreviation"],
+            [
+                "domains-infer",
+                "--column",
+                "st",
+                "--description",
+                "US state abbreviation",
+            ],
         )
         assert result.exit_code == 0
 
@@ -329,7 +341,9 @@ class TestImportExcelForceOverwrite:
 
     @patch("tablespec.cli.ExcelToUMFConverter")
     @patch("tablespec.cli.UMFLoader")
-    def test_import_force_removes_existing_dir(self, mock_loader_cls, mock_converter_cls, tmp_path):
+    def test_import_force_removes_existing_dir(
+        self, mock_loader_cls, mock_converter_cls, tmp_path
+    ):
         """With --force, existing directory is removed."""
         source = tmp_path / "test.xlsx"
         source.write_text("fake")
@@ -502,7 +516,9 @@ class TestBatchConvertAdditional:
             app,
             ["batch-convert", str(source_dir), str(dest_dir), "--format", "split"],
         )
-        assert "1 converted" in _strip_ansi(result.output) or "FAIL" in _strip_ansi(result.output)
+        assert "1 converted" in _strip_ansi(result.output) or "FAIL" in _strip_ansi(
+            result.output
+        )
 
     @patch("tablespec.cli.UMFLoader")
     def test_batch_convert_error_count(self, mock_loader_cls, tmp_path):
@@ -583,23 +599,25 @@ class TestDomainsInferErrors:
         assert "No domain type" in result.output
 
 
-MINIMAL_UMF_JSON = json.dumps({
-    "version": "1.0",
-    "table_name": "TestTable",
-    "columns": [
-        {
-            "name": "id",
-            "data_type": "INTEGER",
-            "nullable": {"MD": False, "MP": False, "ME": False},
-        },
-        {
-            "name": "name",
-            "data_type": "VARCHAR",
-            "length": 100,
-            "nullable": {"MD": True, "MP": True, "ME": True},
-        },
-    ],
-})
+MINIMAL_UMF_JSON = json.dumps(
+    {
+        "version": "1.0",
+        "table_name": "TestTable",
+        "columns": [
+            {
+                "name": "id",
+                "data_type": "INTEGER",
+                "nullable": {"MD": False, "MP": False, "ME": False},
+            },
+            {
+                "name": "name",
+                "data_type": "VARCHAR",
+                "length": 100,
+                "nullable": {"MD": True, "MP": True, "ME": True},
+            },
+        ],
+    }
+)
 
 
 def _write_umf(tmp_path: Path) -> Path:
@@ -638,3 +656,21 @@ class TestGenerate:
         assert "Unknown format" in result.output
 
 
+class TestCLIHelpExamples:
+    """Ensure help text does not promote legacy inline YAML as canonical input."""
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            ["validate"],
+            ["info"],
+            ["generate"],
+            ["emit"],
+            ["export-excel"],
+            ["explore"],
+        ],
+    )
+    def test_commands_do_not_show_table_umf_yaml_as_canonical(self, command):
+        result = runner.invoke(app, [*command, "--help"])
+        assert result.exit_code == 0
+        assert "table.umf.yaml" not in result.output

@@ -73,8 +73,9 @@ UMF via `SparkToUmfMapper`, and by default additionally profile it (native
 profiler + `ProfileToGxMapper`) and return profile-derived expectation lists so the
 compiled suite is data-enriched; `profile=False` SHALL yield the schema-only
 baseline path. (`src/tablespec/e2e/paths.py:43`)
-ORCH-02. Path B (`umfs_from_specs`) SHALL load each spec YAML into a UMF via
-`load_umf_from_yaml` with no Spark required to load. (`src/tablespec/e2e/paths.py:92`)
+ORCH-02. Path B (`umfs_from_specs`) SHALL load each authored spec directory or
+JSON artifact into a UMF with no Spark required to load; legacy single-file YAML
+is migration-only. (`src/tablespec/e2e/paths.py:92`)
 ORCH-03. Both paths SHALL return the same `list[UMF]` type so the orchestrator is
 path-agnostic; Path A's reflected dict SHALL be normalized to the strict UMF model
 shape (`version`, `Nullable`-shaped `nullable`). (`src/tablespec/e2e/paths.py:106`)

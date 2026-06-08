@@ -30,10 +30,10 @@ ORCH-10/20/21 (orchestration + manifest).
 
 ## Walkthrough
 
-1. User chooses Path A (an existing Spark table) or Path B (a UMF spec file).
+1. User chooses Path A (an existing Spark table) or Path B (an authored UMF spec directory or JSON artifact).
 2. Path A: the system reflects `spark.table(name)` into a UMF and, by default,
    profiles the data to build profile-derived expectations. Path B: the system
-   loads the spec YAML into a UMF. Both produce the same `list[UMF]`.
+   loads the authored spec into a UMF. Both produce the same `list[UMF]`.
 3. User calls the compile orchestrator on that UMF set with an output directory.
 4. System drives every compile seam and writes one committed artifact each under
    the pinned layout — ingest SQL, DDL, PySpark schema, JSON schema, compiled GX
@@ -45,7 +45,7 @@ ORCH-10/20/21 (orchestration + manifest).
 ## Acceptance Criteria
 
 - [ ] **US-023-AC1** — Given an existing Spark table, when the user runs Path A with `profile=True`, then a UMF is reflected for the table and a profile-derived expectation list is returned for it (`paths.py:43`).
-- [ ] **US-023-AC2** — Given a UMF spec YAML, when the user runs Path B, then the spec loads into a UMF with no Spark session required (`paths.py:92`).
+- [ ] **US-023-AC2** — Given an authored UMF spec directory or JSON artifact, when the user runs Path B, then the spec loads into a UMF with no Spark session required (`paths.py:92`).
 - [ ] **US-023-AC3** — Given a `list[UMF]` from either path, when the user calls `compile_umfs`, then one committed artifact is persisted per seam under the pinned layout and a `manifest.json` is written (`compile.py:72`, `manifest.py:239`).
 - [ ] **US-023-AC4** — Given a multi-table set with at least one gold-deriving table, when the set is compiled, then the multi-table gold dbt DAG and the per-target gold SQL plan are both emitted as distinct artifacts (`compile.py:127`, `:216`).
 - [ ] **US-023-AC5** — Given a written manifest, when the user calls `CompiledArtifacts.load(root)`, then every recorded path re-absolutizes against the root and resolves to an existing file/dir (`manifest.py:245`).
@@ -67,7 +67,7 @@ ORCH-10/20/21 (orchestration + manifest).
 | Scenario | AC ID | Input / State | Action | Expected Result |
 |----------|-------|---------------|--------|-----------------|
 | Path A reflect + profile | US-023-AC1 | An existing Spark table `member` | `umfs_from_tables(spark, ["member"], profile=True)` | `([UMF(member)], {"member": [expectation dicts]})` |
-| Path B load | US-023-AC2 | `member.umf.yaml` | `umfs_from_specs(["member.umf.yaml"])` | `[UMF(member)]`, no Spark used |
+| Path B load | US-023-AC2 | `member/` or `member.json` | `umfs_from_specs(["member/"])` | `[UMF(member)]`, no Spark used |
 | Compile emits full set | US-023-AC3 | `[UMF(member)]` + out dir | `compile_umfs(umfs, out, source="specs")` | ingest/ddl/pyspark/json/suite/dbt_ingest persisted; `manifest.json` exists |
 | Distinct gold artifacts | US-023-AC4 | set incl. `claim_enriched` (gold) | `compile_umfs(..., gold_targets=["claim_enriched"])` | `dbt_gold/` project AND `gold_plan/claim_enriched.plan.sql` both present |
 | Manifest round-trips | US-023-AC5 | a written compile tree | `CompiledArtifacts.load(root)` | all paths resolve; `member` bundle has existing files |

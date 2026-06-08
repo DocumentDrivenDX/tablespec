@@ -54,24 +54,22 @@ class TestFormatDetection:
 
     @pytest.mark.parametrize("suffix", [".yaml", ".yml", ".umf"])
     def test_detect_inline_yaml_file(self, tmp_path, suffix):
-        """A single .yaml/.yml/.umf file is detected as the INLINE (whole-doc) format."""
+        """A single .yaml/.yml/.umf file is rejected from normal auto-detection."""
         inline_file = tmp_path / f"table{suffix}"
         inline_file.write_text("version: '1.0'\ntable_name: t\ncolumns: []\n")
 
-        assert UMFLoader().detect_format(inline_file) == UMFFormat.INLINE
+        with pytest.raises(ValueError, match="legacy-only"):
+            UMFLoader().detect_format(inline_file)
 
 
-class TestInlineYamlLoading:
-    """Loading a single-file (inline) YAML/.umf UMF document."""
+class TestLegacyInlineYamlMigration:
+    """Legacy single-file YAML/.umf UMF migration helpers."""
 
     @pytest.mark.parametrize("suffix", [".yaml", ".yml", ".umf"])
-    def test_load_single_inline_yaml_file(self, tmp_path, suffix):
-        """UMFLoader.load() reads a whole-UMF YAML document from one file.
-
-        Regression: previously detect_format returned SPLIT for a single YAML file
-        and _load_column_centric tried ``<file>/table.yaml``, raising
-        NotADirectoryError. The new emit/generate single-file path depends on this.
-        """
+    def test_load_single_inline_yaml_file_rejected_by_default_load(
+        self, tmp_path, suffix
+    ):
+        """UMFLoader.load() rejects a whole-UMF YAML document from one file."""
         umf = UMF(
             version="1.0",
             table_name="metrics",
@@ -80,13 +78,13 @@ class TestInlineYamlLoading:
         inline_file = tmp_path / f"metrics.umf{suffix}"
         save_umf_to_yaml(umf, inline_file)
 
-        loaded = UMFLoader().load(inline_file)
+        with pytest.raises(ValueError, match="legacy-only"):
+            UMFLoader().load(inline_file)
 
-        assert loaded.table_name == "metrics"
-        assert [c.name for c in loaded.columns] == ["id"]
-
-    def test_load_inline_yaml_populates_expectations_from_legacy(self, tmp_path):
-        """Inline YAML honors the legacy validation_rules -> expectations migration."""
+    def test_migrate_legacy_inline_yaml_populates_expectations_from_legacy(
+        self, tmp_path
+    ):
+        """Explicit migration preserves the legacy validation_rules -> expectations behavior."""
         inline_file = tmp_path / "legacy.umf.yaml"
         inline_file.write_text(
             "version: '1.0'\n"
@@ -101,8 +99,10 @@ class TestInlineYamlLoading:
             "        column: id\n"
         )
 
-        loaded = UMFLoader().load(inline_file)
+        out_dir = tmp_path / "migrated"
+        UMFLoader().migrate_legacy_inline_yaml(inline_file, out_dir)
 
+        loaded = UMFLoader().load(out_dir)
         assert loaded.expectations is not None
 
 
@@ -1057,25 +1057,14 @@ class TestLoadColumnCentricEdgeCases:
         with pytest.raises(FileNotFoundError, match="Missing columns/ directory"):
             loader._load_column_centric(tmp_path)
 
-    def test_detect_yaml_file(self, tmp_path):
-        """A single .yaml file is detected as the INLINE (whole-doc) format.
-
-        Previously this returned SPLIT, which routed single YAML files into the
-        directory loader and raised NotADirectoryError on ``<file>/table.yaml``.
-        """
-        yaml_file = tmp_path / "test.yaml"
+    @pytest.mark.parametrize("suffix", [".yaml", ".yml"])
+    def test_detect_legacy_inline_yaml_file_is_rejected(self, tmp_path, suffix):
+        """A single legacy YAML file is rejected from normal auto-detection."""
+        yaml_file = tmp_path / f"test{suffix}"
         yaml_file.write_text("version: '1.0'")
         loader = UMFLoader()
-        fmt = loader.detect_format(yaml_file)
-        assert fmt == UMFFormat.INLINE
-
-    def test_detect_yml_file(self, tmp_path):
-        """A single .yml file is detected as the INLINE (whole-doc) format."""
-        yml_file = tmp_path / "test.yml"
-        yml_file.write_text("version: '1.0'")
-        loader = UMFLoader()
-        fmt = loader.detect_format(yml_file)
-        assert fmt == UMFFormat.INLINE
+        with pytest.raises(ValueError, match="legacy-only"):
+            loader.detect_format(yaml_file)
 
 
 class TestSortRecursive:

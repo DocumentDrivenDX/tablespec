@@ -22,6 +22,7 @@ Split-format UMF storage, schema diffing, atomic change application, and git-bas
 ### UMF Loader (`umf_loader.py`)
 - `UMFLoader` - Load UMF from split (directory) or JSON format with auto-detection
 - `UMFFormat` enum: SPLIT (default, git-friendly) and JSON (artifact standard)
+- Legacy single-file YAML UMF documents are migration-only and are not auto-detected
 - Bidirectional conversion between formats
 
 ### UMF Diff (`umf_diff.py`)
