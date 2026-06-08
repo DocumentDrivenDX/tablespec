@@ -20,7 +20,7 @@ Current boundary notes:
 
 - Split YAML UMF or JSON interchange is the canonical authoring surface. Inline
   YAML is legacy/migration-only.
-- Public Databricks-facing examples use `dialect="databricks"` for the
+- Databricks-facing compile UX accepts `dialect="databricks"` for the
   Spark-family SQL emitted by tablespec; internal emitters may normalize to
   `spark` when the rendered SQL is identical.
   The active bead trail is `tablespec-ed74497c` and child beads
@@ -200,7 +200,7 @@ artifacts = compile_umfs(
     out_dir="build/tablespec",
     source="tables",
     profile_enriched=True,
-    dialect="databricks",  # Public Databricks-facing spelling for Spark-family SQL.
+    dialect="databricks",  # Databricks-facing compile UX spelling for Spark-family SQL.
     gold_targets=["Claims_Summary"],
 )
 

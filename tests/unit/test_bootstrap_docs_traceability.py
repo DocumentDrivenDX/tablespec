@@ -1,4 +1,4 @@
-"""Trace the public bootstrap docs for the Databricks alias contract.
+"""Trace the public Databricks docs for the alias contract.
 
 @covers tablespec-5e81f5e0 AC1 AC2
 """
@@ -12,7 +12,8 @@ import pytest
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
-PUBLIC_BOOTSTRAP_DOCS = (
+PUBLIC_DATABRICKS_DOCS = (
+    "docs/helix/03-test/conformance-acceptance.md",
     "docs/guide/bootstrap.md",
     "docs/guide/happy-path.md",
     "README.md",
@@ -32,12 +33,13 @@ def _collapsed(text: str) -> str:
     return " ".join(text.split())
 
 
-def test_bootstrap_docs_use_the_public_databricks_spelling() -> None:
+def test_helix_docs_use_canonical_databricks_dialect_guidance() -> None:
     repo = Path(__file__).resolve().parents[2]
 
-    for rel in PUBLIC_BOOTSTRAP_DOCS:
+    for rel in PUBLIC_DATABRICKS_DOCS:
         text = _collapsed(_doc_text(repo / rel))
         assert 'dialect="databricks"' in text, rel
+        assert "Databricks-facing compile UX" in text, rel
         assert "Spark-family" in text, rel
         assert (
             "normalize to `spark`" in text
@@ -45,9 +47,9 @@ def test_bootstrap_docs_use_the_public_databricks_spelling() -> None:
         ), rel
 
 
-def test_public_bootstrap_docs_do_not_teach_spark_only_for_databricks() -> None:
+def test_helix_docs_do_not_teach_spark_only_for_databricks() -> None:
     repo = Path(__file__).resolve().parents[2]
 
-    for rel in PUBLIC_BOOTSTRAP_DOCS:
+    for rel in PUBLIC_DATABRICKS_DOCS:
         text = _collapsed(_doc_text(repo / rel))
         assert 'dialect="spark"' not in text, rel

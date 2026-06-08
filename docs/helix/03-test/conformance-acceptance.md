@@ -90,7 +90,7 @@ are gated by `databricks_e2e_availability`, which requires `DATABRICKS_HOST` (th
 opt-in switch) PLUS `DATABRICKS_HTTP_PATH` + `DATABRICKS_TOKEN` and the
 dbt-databricks adapter + databricks SQL connector/SDK importable.
 
-Public Databricks-facing bootstrap examples use `dialect="databricks"` for the
+Public Databricks-facing compile UX accepts `dialect="databricks"` for the
 Spark-family SQL emitted by tablespec; internal emitters may normalize the public
 spelling back to `spark` when the rendered SQL is identical.
 
@@ -158,8 +158,9 @@ Contract (`canonical.to_json` / `render_value` / `canonical_rows`):
    SAME `to_json` with the SAME `ts_precision` and the SAME decimal `scales` map.
    Decimals stay fixed at their declared scale; booleans `true`/`false`; NULL ->
    `"NULL"`; rows sorted by all canonical columns. No per-engine canonicalization.
-   The public Databricks spelling stays `dialect="databricks"`, while internal
-   emitters may normalize to `spark` when the SQL is byte-identical.
+   The public Databricks spelling accepted for compile UX stays
+   `dialect="databricks"`, while internal emitters may normalize to `spark` when
+   the SQL is byte-identical.
 4. **Backward compatibility (explicit, not hand-waved).** Switching the default
    to `ts_precision=6` is NOT byte-identical to the current second-resolution
    goldens: a whole-second `...:SS` becomes `...:SS.000000`. Two compatible paths,
