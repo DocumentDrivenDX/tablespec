@@ -1,0 +1,54 @@
+{
+  "bead_id": "tablespec-bc47a14e",
+  "attempt_id": "20260608T173835-51924cf9",
+  "base_rev": "5c53d0db5b0a0bc31eaddf4a47dbece4037abb20",
+  "result_rev": "c612dd418465f7b1285d099fde78cfb25f553d52",
+  "implementation_rev": "c612dd418465f7b1285d099fde78cfb25f553d52",
+  "outcome": "task_succeeded",
+  "status": "success",
+  "detail": "success",
+  "candidate_ref": "refs/ddx/iterations/20260608T173835-51924cf9/0",
+  "cycle_trace": [
+    {
+      "cycle_index": 0,
+      "attempt_id": "20260608T173835-51924cf9",
+      "result_rev": "c612dd418465f7b1285d099fde78cfb25f553d52",
+      "implementer_route": {
+        "harness": "codex",
+        "model": "gpt-5.4-mini"
+      },
+      "requested_route": {
+        "harness": "codex",
+        "model": "gpt-5.4-mini"
+      },
+      "actual_route": {
+        "harness": "codex",
+        "model": "gpt-5.4-mini"
+      },
+      "review_result": {},
+      "final_decision": "success",
+      "failure_class": "none",
+      "retry_action": "close",
+      "escalation_count": 0,
+      "review_status": "skipped",
+      "review_skip_reason": "review_not_configured",
+      "land_status": "landed",
+      "reconcile_status": "not_applicable"
+    }
+  ],
+  "harness": "codex",
+  "model": "gpt-5.4-mini",
+  "session_id": "eb-72c5570d",
+  "duration_ms": 2406996,
+  "tokens": 7306022,
+  "exit_code": 0,
+  "project_root": "/Users/erik/Projects/tablespec",
+  "execution_dir": ".ddx/executions/20260608T173835-51924cf9",
+  "prompt_file": ".ddx/executions/20260608T173835-51924cf9/prompt.md",
+  "manifest_file": ".ddx/executions/20260608T173835-51924cf9/manifest.json",
+  "result_file": ".ddx/executions/20260608T173835-51924cf9/result.json",
+  "usage_file": ".ddx/executions/20260608T173835-51924cf9/usage.json",
+  "rate_limit_budget": 300000000000,
+  "started_at": "2026-06-08T17:38:37.945815796Z",
+  "finished_at": "2026-06-08T18:18:44.942478203Z"
+}
