@@ -1,0 +1,60 @@
+{
+  "attempt_id": "20260608T005214-38fdb43c",
+  "bead_id": "tablespec-b9dec718",
+  "base_rev": "7476158f597960d840a3b159d3bff51263806ee9",
+  "created_at": "2026-06-08T00:52:15.714636295Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-b9dec718",
+    "title": "Align dev pipeline with installed JSON pipeline artifacts and wheels",
+    "description": "Align development and production pipeline semantics around installable pipeline artifacts. The production pipeline is intended to run from installed pipelines stored as JSON files, not from ad hoc source-time reconstruction or notebook-local Python composition. The development pipeline should therefore build wheel artifacts for installation and produce or validate the JSON pipeline definitions that production installs/runs. This is related to the bootstrap/compile facade work but distinct: bootstrap may author or compile artifacts, while production should consume installed JSON pipeline artifacts plus installed tablespec/package wheels.\n\nCurrent context:\n- Existing compile/runtime docs emphasize committed artifacts and runtime not re-deriving from UMF.\n- The desired production contract is stronger: installed pipelines live as JSON files, and the dev path builds wheels for installation.\n- Avoid a Databricks UX where users copy inline Python orchestration into production. The user-facing flow should make build/install/run boundaries explicit.\n\nIn-scope files:\n- docs/helix PRD/design/build docs that define production vs development pipeline boundaries\n- scripts or build tooling that package wheels and/or pipeline JSON artifacts\n- tests that verify the build artifacts expected by production exist and are installable/parseable\n- bootstrap/compile docs only where needed to describe handoff to production artifacts\n\nOut-of-scope for this bead:\n- Implementing the one-shot Databricks bootstrap facade itself\n- Removing inline YAML UMF support\n- Replacing the runtime backbone wholesale",
+    "acceptance": "1. Specs/docs explicitly state that production runs installed pipeline JSON artifacts and installed wheels, not source-time Python orchestration.\n2. The development pipeline has a documented command that builds wheel artifacts for installation and produces or verifies the pipeline JSON files expected by production.\n3. A test or build command such as uv build plus a JSON artifact validation test passes and is named in the implementation notes.\n4. Bootstrap/compile docs describe their output as inputs to the installable production pipeline contract rather than the production runtime itself.\n5. Any Databricks try-it-out instructions distinguish development bootstrap from production install/run.",
+    "labels": [
+      "area:pipeline",
+      "area:packaging",
+      "area:runtime",
+      "kind:architecture",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"Specs/docs explicitly state that production runs installed pipeline JSON artifacts and installed wheels, not source-time Python orchestration.\",\"kind\":\"mechanical\",\"verifiable\":true},{\"ac\":2,\"text\":\"The development pipeline has a documented command that builds wheel artifacts for installation and produces or verifies the pipeline JSON files expected by production.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"A test or build command such as uv build plus a JSON artifact validation test passes and is named in the implementation notes.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":4,\"text\":\"Bootstrap/compile docs describe their output as inputs to the installable production pipeline contract rather than the production runtime itself.\",\"kind\":\"mechanical\",\"verifiable\":true},{\"ac\":5,\"text\":\"Any Databricks try-it-out instructions distinguish development bootstrap from production install/run.\",\"kind\":\"prose\",\"verifiable\":false}]",
+          "created_at": "2026-06-08T00:45:24.33498284Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.40 threshold=0.50 verifiable=2/5"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: project root mutation rejected for bead tablespec-b9dec718 (changed existing dirty paths: .ddx/beads.jsonl, .ddx/executions/20260608T003110-68790f13/prose-findings.json, .ddx/metrics/locks.jsonl)\",\"fingerprint\":\"c08e96cf65230907c79dbc879568fecf132d8070d23e000b7e21a9ba71dbd53b\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"c08e96cf65230907c79dbc879568fecf132d8070d23e000b7e21a9ba71dbd53b\"}",
+          "created_at": "2026-06-08T00:50:11.663452734Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ],
+      "spec-id": "FEAT-026"
+    }
+  },
+  "governing": [
+    {
+      "id": "FEAT-026",
+      "path": "docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md",
+      "title": "Feature Specification: FEAT-026 — Compile Orchestrator \u0026 Bootstrap Pipeline"
+    }
+  ],
+  "paths": {
+    "dir": ".ddx/executions/20260608T005214-38fdb43c",
+    "prompt": ".ddx/executions/20260608T005214-38fdb43c/prompt.md",
+    "manifest": ".ddx/executions/20260608T005214-38fdb43c/manifest.json",
+    "result": ".ddx/executions/20260608T005214-38fdb43c/result.json",
+    "checks": ".ddx/executions/20260608T005214-38fdb43c/checks.json",
+    "usage": ".ddx/executions/20260608T005214-38fdb43c/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-b9dec718-20260608T005214-38fdb43c"
+  },
+  "prompt_sha": "13b4a71f7c9407b25169f1fc35471b56a2d5dc79b2baaba309cea12826765258"
+}
