@@ -1,18 +1,22 @@
 """Tests for CLI validation management commands: validation-remove."""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
 from tablespec.cli import app
+from tablespec.dialects import CAST_DIALECTS
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
+
 
 def _strip_ansi(text: str) -> str:
     """Strip ANSI escape codes from Rich CLI output."""
     import re
+
     return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
@@ -60,6 +64,11 @@ def _load_umf(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
+def _normalize_output(text: str) -> str:
+    """Collapse CLI output to make wrapped help text easy to assert against."""
+    return " ".join(text.split())
+
+
 def _umf_for_emit() -> dict:
     """A minimal single-table UMF the dbt emitter can render into a project."""
     return {
@@ -68,11 +77,56 @@ def _umf_for_emit() -> dict:
         "primary_key": ["metric_id"],
         "ingestion": {"mode": "incremental", "order_by": ["_load_ts"]},
         "columns": [
-            {"name": "metric_id", "data_type": "INTEGER", "nullable": {"default": False}},
+            {
+                "name": "metric_id",
+                "data_type": "INTEGER",
+                "nullable": {"default": False},
+            },
             {"name": "as_of_date", "data_type": "DATE", "format": "YYYYMMDD"},
             {"name": "label", "data_type": "VARCHAR", "length": 32},
         ],
     }
+
+
+class TestEmitDialectOption:
+    """Regression coverage for the public `emit --dialect` contract."""
+
+    def test_help_explains_databricks_alias(self) -> None:
+        result = runner.invoke(app, ["emit", "--help"])
+        assert result.exit_code == 0, result.output
+
+        assert re.search(
+            r"Cast dialect for emitted.*duckdb.*spark.*databricks",
+            result.output,
+            re.S,
+        )
+        assert re.search(
+            r"databricks.*Databricks-facing.*alias.*Spark-family.*cast SQL",
+            result.output,
+            re.S,
+        )
+
+    def test_invalid_value_lists_canonical_choices(self, tmp_path: Path) -> None:
+        umf_file = tmp_path / "metrics.json"
+        umf_file.write_text(json.dumps(_umf_for_emit()))
+        out_dir = tmp_path / "project"
+
+        result = runner.invoke(
+            app,
+            [
+                "emit",
+                str(umf_file),
+                str(out_dir),
+                "--dialect",
+                "postgres",
+            ],
+        )
+        assert result.exit_code != 0
+
+        output = _normalize_output(result.output)
+        for value in CAST_DIALECTS:
+            assert value in output
+        assert "Databricks-facing alias" not in output
 
 
 class TestEmitBackend:
@@ -215,7 +269,9 @@ class TestRemoveExpectationFunction:
         from tablespec.authoring.mutations import remove_expectation
         from tablespec.models.umf import Expectation, ExpectationMeta, ExpectationSuite
 
-        umf = UMFBuilder("test").column("id", "INTEGER").column("name", "VARCHAR").build()
+        umf = (
+            UMFBuilder("test").column("id", "INTEGER").column("name", "VARCHAR").build()
+        )
         suite = ExpectationSuite(
             expectations=[
                 Expectation(
@@ -231,7 +287,9 @@ class TestRemoveExpectationFunction:
             ]
         )
         umf = umf.model_copy(update={"expectations": suite})
-        updated, count = remove_expectation(umf, "expect_column_values_to_not_be_null", "id")
+        updated, count = remove_expectation(
+            umf, "expect_column_values_to_not_be_null", "id"
+        )
         assert count == 1
         assert len(updated.expectations.expectations) == 1
 

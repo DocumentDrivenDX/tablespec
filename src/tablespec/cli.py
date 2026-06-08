@@ -20,15 +20,17 @@ Examples:
 
 from pathlib import Path
 
-from pydantic import ValidationError
 import os
 
+import click
+from pydantic import ValidationError
 from rich.console import Console
 from rich.table import Table as RichTable
 import typer
 
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
+from tablespec.dialects import CAST_DIALECTS
 from tablespec.umf_loader import UMFFormat, UMFLoader
 
 # validator module is not yet ported; commands that depend on it will be
@@ -51,6 +53,10 @@ app = typer.Typer(
     help="Work with UMF (Universal Metadata Format) table schemas",
 )
 console = Console(no_color=bool(os.environ.get("NO_COLOR")))
+_EMIT_DIALECT_HELP = (
+    "Cast dialect for emitted models (duckdb, spark, databricks); "
+    "databricks is the Databricks-facing alias for Spark-family cast SQL"
+)
 
 # Module-level validation context (process lifetime caching) - only when validator is available
 _validation_context = ValidationContext() if _HAS_VALIDATOR else None
@@ -521,7 +527,8 @@ def emit(
     dialect: str = typer.Option(
         "duckdb",
         "--dialect",
-        help="Cast dialect for emitted models (duckdb, spark, databricks)",
+        help=_EMIT_DIALECT_HELP,
+        click_type=click.Choice(CAST_DIALECTS),
     ),
     run: bool = typer.Option(
         False,
