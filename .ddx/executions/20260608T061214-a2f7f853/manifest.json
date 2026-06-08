@@ -1,0 +1,164 @@
+{
+  "attempt_id": "20260608T061214-a2f7f853",
+  "bead_id": "tablespec-390cbf1f",
+  "base_rev": "9d8145721a1f981ce4cbb06a8813b18117dae739",
+  "created_at": "2026-06-08T06:12:15.476112724Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-390cbf1f",
+    "title": "Document end-to-end tablespec happy path",
+    "description": "Create a user-facing happy-path guide for tablespec that connects the major product workflows into one coherent story. The guide should show how a user starts from existing tables, generates UMF, generates sample data, validates real and sample data, generates table specification and validation Excel workbooks, defines a derived table, generates Spark/LDP/dbt pipelines, and runs those pipelines. This should be the canonical narrative that agents and users follow instead of discovering low-level APIs piecemeal.\n\nRequired story beats:\n1. Generate UMF from one or more existing Spark/Databricks tables.\n2. Generate sample data from the resulting UMF/spec artifacts.\n3. Validate both real source data and generated sample data.\n4. Generate table specification and validation XLSX files for review/editing.\n5. Define a derived table from source UMFs.\n6. Generate Spark, LDP, and dbt pipeline artifacts from the UMF set.\n7. Run the generated pipelines and distinguish development bootstrap from production install/run.\n\nThe guide must make current gaps explicit rather than hiding them: if a one-shot facade, inline YAML cleanup, Databricks dialect canonicalization, or production JSON/wheel packaging is still pending, point to the relevant DDx beads or state the current supported composition.\n\nIn-scope files:\n- docs/ user-facing happy-path guide and index links\n- docs/helix references only where needed for traceability\n- examples/scripts if a small runnable happy-path script is appropriate\n- tests or docs checks that prove commands/imports in the guide stay valid\n\nOut-of-scope for this bead:\n- Implementing missing facade/packaging/dialect/inline-format work\n- Rewriting all existing docs\n- Adding new runtime capabilities not already available or separately tracked",
+    "acceptance": "1. A user-facing happy-path document exists and covers all seven required story beats in order.\n2. The guide clearly distinguishes currently supported commands/API snippets from pending structural improvements tracked by DDx beads.\n3. The guide includes Databricks-safe testing/runtime notes and production install/run boundaries.\n4. Docs index or navigation links make the guide discoverable.\n5. A validation command such as a docs link check, markdown check, or targeted pytest/import check passes and is recorded.",
+    "labels": [
+      "area:docs",
+      "area:databricks",
+      "area:pipeline",
+      "kind:workflow",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"A user-facing happy-path document exists and covers all seven required story beats in order.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"The guide clearly distinguishes currently supported commands/API snippets from pending structural improvements tracked by DDx beads.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"The guide includes Databricks-safe testing/runtime notes and production install/run boundaries.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":4,\"text\":\"Docs index or navigation links make the guide discoverable.\",\"kind\":\"mechanical\",\"verifiable\":true},{\"ac\":5,\"text\":\"A validation command such as a docs link check, markdown check, or targeted pytest/import check passes and is recorded.\",\"kind\":\"mechanical\",\"verifiable\":true}]",
+          "created_at": "2026-06-08T01:55:11.538579795Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.40 threshold=0.50 verifiable=2/5"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T01:55:12.405437341Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-390cbf1f\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T01:57:15.465178557Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"recoverable\",\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"rationale\":\"Attempt failed before implementation during the pre-execute checkpoint while listing project dirtiness with exit status 128. Recent intake also reported system_unready from snapshotting project root dirtiness, so the evidence points to recoverable local/git checkpoint infrastructure rather than a bead-owned docs defect.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T01:57:45.103523574Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "recoverable: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\noutcome_reason=recoverable",
+          "created_at": "2026-06-08T01:57:45.123383722Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"A user-facing happy-path document exists and covers all seven required story beats in order.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"The guide clearly distinguishes currently supported commands/API snippets from pending structural improvements tracked by DDx beads.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"The guide includes Databricks-safe testing/runtime notes and production install/run boundaries.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":4,\"text\":\"Docs index or navigation links make the guide discoverable.\",\"kind\":\"mechanical\",\"verifiable\":true},{\"ac\":5,\"text\":\"A validation command such as a docs link check, markdown check, or targeted pytest/import check passes and is recorded.\",\"kind\":\"mechanical\",\"verifiable\":true}]",
+          "created_at": "2026-06-08T01:59:31.433450199Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.40 threshold=0.50 verifiable=2/5"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T01:59:32.611431967Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-390cbf1f\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T02:01:53.674064932Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"recoverable\",\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"rationale\":\"Execution failed during the pre-execute checkpoint with 'listing checkpoint dirt: exit status 128'. The intake system also reported 'system_unready' due to inability to snapshot project root dirtiness. Exit status 128 typically indicates a Git-related error (e.g., corrupted state, missing refs, or auth issues), not a logical failure of the bead's content. This is infrastructure/environmental, not a defect in the documentation task itself.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T02:02:10.604193126Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "recoverable: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\noutcome_reason=recoverable",
+          "created_at": "2026-06-08T02:02:10.639119654Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"A user-facing happy-path document exists and covers all seven required story beats in order.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"The guide clearly distinguishes currently supported commands/API snippets from pending structural improvements tracked by DDx beads.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"The guide includes Databricks-safe testing/runtime notes and production install/run boundaries.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":4,\"text\":\"Docs index or navigation links make the guide discoverable.\",\"kind\":\"mechanical\",\"verifiable\":true},{\"ac\":5,\"text\":\"A validation command such as a docs link check, markdown check, or targeted pytest/import check passes and is recorded.\",\"kind\":\"mechanical\",\"verifiable\":true}]",
+          "created_at": "2026-06-08T02:04:55.942938766Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.40 threshold=0.50 verifiable=2/5"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T02:04:58.760166941Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-390cbf1f\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T02:04:59.292745037Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"recoverable\",\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"rationale\":\"The attempt failed before implementation during the pre-execute checkpoint while listing checkpoint dirt, with git exit status 128. Recent events show the same system_unready snapshot failure, which is an infrastructure/worktree checkpoint problem rather than a bead-owned docs failure or acceptance issue.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T02:05:24.050955956Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "recoverable: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\noutcome_reason=recoverable",
+          "created_at": "2026-06-08T02:05:24.076089946Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"A user-facing happy-path document exists and covers all seven required story beats in order.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"The guide clearly distinguishes currently supported commands/API snippets from pending structural improvements tracked by DDx beads.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"The guide includes Databricks-safe testing/runtime notes and production install/run boundaries.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":4,\"text\":\"Docs index or navigation links make the guide discoverable.\",\"kind\":\"mechanical\",\"verifiable\":true},{\"ac\":5,\"text\":\"A validation command such as a docs link check, markdown check, or targeted pytest/import check passes and is recorded.\",\"kind\":\"mechanical\",\"verifiable\":true}]",
+          "created_at": "2026-06-08T06:07:41.888330685Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.40 threshold=0.50 verifiable=2/5"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T061214-a2f7f853",
+    "prompt": ".ddx/executions/20260608T061214-a2f7f853/prompt.md",
+    "manifest": ".ddx/executions/20260608T061214-a2f7f853/manifest.json",
+    "result": ".ddx/executions/20260608T061214-a2f7f853/result.json",
+    "checks": ".ddx/executions/20260608T061214-a2f7f853/checks.json",
+    "usage": ".ddx/executions/20260608T061214-a2f7f853/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-390cbf1f-20260608T061214-a2f7f853"
+  },
+  "prompt_sha": "e55ca64754222538390e0650615ebea89ade3553d4a2a72a5aa87c8d77516451"
+}
