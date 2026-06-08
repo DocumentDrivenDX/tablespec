@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+import json
 
 import openpyxl
 import pytest
@@ -16,11 +16,12 @@ from tablespec.excel_converter import (
 from tablespec.models.umf import (
     UMF,
     ForeignKey,
+    FileFormatSpec,
+    FilenamePattern,
     Nullable,
     OutgoingRelationship,
     Relationships,
     UMFColumn,
-    ValidationRule,
     ValidationRules,
 )
 
@@ -58,17 +59,17 @@ def _make_minimal_umf(**overrides) -> UMF:
     return UMF(**defaults)
 
 
-def _make_rich_umf() -> UMF:
+def _make_rich_umf(**overrides) -> UMF:
     """Create a UMF with validation rules, relationships, and various column types."""
-    return UMF(
-        version="2.0",
-        table_name="rich_table",
-        canonical_name="Rich Table",
-        description="A table with many features",
-        table_type="provided",
-        primary_key=["col_id"],
-        aliases=["rich", "Rich Table"],
-        columns=[
+    defaults = {
+        "version": "2.0",
+        "table_name": "rich_table",
+        "canonical_name": "Rich Table",
+        "description": "A table with many features",
+        "table_type": "provided",
+        "primary_key": ["col_id"],
+        "aliases": ["rich", "Rich Table"],
+        "columns": [
             UMFColumn(
                 name="col_id",
                 data_type="INTEGER",
@@ -108,7 +109,7 @@ def _make_rich_umf() -> UMF:
                 notes=["Must be after 2020-01-01", "Business calendar only"],
             ),
         ],
-        validation_rules=ValidationRules(
+        "validation_rules": ValidationRules(
             expectations=[
                 {
                     "type": "expect_column_values_to_not_be_null",
@@ -128,7 +129,7 @@ def _make_rich_umf() -> UMF:
                 },
             ],
         ),
-        relationships=Relationships(
+        "relationships": Relationships(
             foreign_keys=[
                 ForeignKey(
                     column="col_id",
@@ -147,7 +148,46 @@ def _make_rich_umf() -> UMF:
                 ),
             ],
         ),
-    )
+    }
+    defaults.update(overrides)
+    return UMF(**defaults)
+
+
+def _make_manual_workbook(column_rows: list[dict[str, object]]) -> openpyxl.Workbook:
+    """Create a minimal Excel workbook for importer-focused tests."""
+    wb = openpyxl.Workbook()
+    schema_ws = wb.active
+    schema_ws.title = ExcelConstants.SHEET_SCHEMA
+    schema_ws["A1"] = "Field"
+    schema_ws["B1"] = "Value"
+    schema_ws["A2"] = "table_name"
+    schema_ws["B2"] = "alias_table"
+    schema_ws["A3"] = "canonical_name"
+    schema_ws["B3"] = "Alias Table"
+
+    columns_ws = wb.create_sheet(ExcelConstants.SHEET_COLUMNS)
+    headers = [
+        "Name",
+        "Canonical Name",
+        "Aliases",
+        "Data Type",
+        "Length",
+        "Precision",
+        "Scale",
+    ]
+    for idx, header in enumerate(headers, start=1):
+        columns_ws.cell(1, idx).value = header
+
+    for row_idx, row in enumerate(column_rows, start=2):
+        columns_ws.cell(row_idx, 1).value = row["name"]
+        columns_ws.cell(row_idx, 2).value = row.get("canonical_name")
+        columns_ws.cell(row_idx, 3).value = row.get("aliases")
+        columns_ws.cell(row_idx, 4).value = row.get("data_type")
+        columns_ws.cell(row_idx, 5).value = row.get("length")
+        columns_ws.cell(row_idx, 6).value = row.get("precision")
+        columns_ws.cell(row_idx, 7).value = row.get("scale")
+
+    return wb
 
 
 @pytest.fixture()
@@ -428,14 +468,45 @@ class TestExcelToUMFConverterExtractColumns:
         assert columns[1]["name"] == "col_name"
 
     def test_extract_columns_data_types(self, minimal_umf):
-        """Data types are normalized to Spark types by the importer."""
+        """Data types are normalized to UMF spellings by the importer."""
         exporter = UMFToExcelConverter()
         wb = exporter.convert(minimal_umf)
         importer = ExcelToUMFConverter()
         columns = importer._extract_columns(wb)
-        # INTEGER maps to IntegerType, VARCHAR maps to StringType
-        assert columns[0]["data_type"] == "IntegerType"
-        assert columns[1]["data_type"] == "StringType"
+        assert columns[0]["data_type"] == "INTEGER"
+        assert columns[1]["data_type"] == "VARCHAR"
+
+    def test_extract_columns_normalizes_type_aliases(self):
+        wb = _make_manual_workbook(
+            [
+                {"name": "col_int_raw", "data_type": "INTEGER"},
+                {"name": "col_int_alias", "data_type": "IntegerType"},
+                {"name": "col_str_raw", "data_type": "VARCHAR", "length": 50},
+                {"name": "col_str_alias", "data_type": "StringType", "length": 50},
+                {
+                    "name": "col_dec_raw",
+                    "data_type": "DECIMAL",
+                    "precision": 10,
+                    "scale": 2,
+                },
+                {
+                    "name": "col_dec_alias",
+                    "data_type": "DecimalType",
+                    "precision": 12,
+                    "scale": 4,
+                },
+            ]
+        )
+        importer = ExcelToUMFConverter()
+        columns = importer._extract_columns(wb)
+        assert [col["data_type"] for col in columns] == [
+            "INTEGER",
+            "INTEGER",
+            "VARCHAR",
+            "VARCHAR",
+            "DECIMAL",
+            "DECIMAL",
+        ]
 
     def test_extract_columns_length(self, minimal_umf):
         exporter = UMFToExcelConverter()
@@ -558,6 +629,126 @@ class TestExcelToUMFConverterConvert:
         with pytest.raises(ValueError, match="Invalid Excel workbook"):
             importer.convert(out)
 
+    def test_excel_import_decimal_requires_precision_scale(self, tmp_path):
+        wb = _make_manual_workbook(
+            [
+                {
+                    "name": "col_amount",
+                    "data_type": "DECIMAL",
+                    "description": "Dollar amount",
+                }
+            ]
+        )
+        out = tmp_path / "decimal_missing_precision_scale.xlsx"
+        wb.save(out)
+
+        importer = ExcelToUMFConverter()
+        with pytest.raises(
+            ValueError,
+            match=r"Columns row 2: fields precision and scale are required for DECIMAL",
+        ):
+            importer.convert(out)
+
+    def test_excel_round_trip_full_convert_preserves_represented_umf_fields(
+        self, tmp_path
+    ):
+        umf = _make_rich_umf(
+            file_format=FileFormatSpec(
+                delimiter="|",
+                encoding="utf-8",
+                header=True,
+                quote_char='"',
+                escape_char="\\",
+                null_value="NULL",
+                skip_rows=1,
+                comment_char="#",
+                filename_pattern=FilenamePattern(
+                    regex=r"^claims_(\d{8})_(\w+)\.csv$",
+                    captures={1: "as_of_date", 2: "source_system"},
+                ),
+            )
+        )
+        exporter = UMFToExcelConverter()
+        workbook = exporter.convert(umf)
+        out = tmp_path / "round_trip.xlsx"
+        workbook.save(out)
+
+        importer = ExcelToUMFConverter()
+        round_tripped, review_notes = importer.convert(out)
+
+        assert review_notes == {}
+        validated = UMF.model_validate(round_tripped.model_dump())
+        assert isinstance(validated, UMF)
+        assert round_tripped.table_name == umf.table_name
+        assert round_tripped.canonical_name == umf.canonical_name
+        assert round_tripped.primary_key == umf.primary_key
+        assert len(round_tripped.columns) == len(umf.columns)
+        assert [col.name for col in round_tripped.columns] == [
+            col.name for col in umf.columns
+        ]
+
+        for original, imported in zip(umf.columns, round_tripped.columns):
+            assert imported.name == original.name
+            assert imported.data_type == original.data_type
+            assert imported.length == original.length
+            assert imported.precision == original.precision
+            assert imported.scale == original.scale
+            assert imported.description == original.description
+            assert imported.sample_values == original.sample_values
+            assert imported.format == original.format
+            assert imported.notes == original.notes
+            assert imported.canonical_name == original.canonical_name
+            assert imported.aliases == original.aliases
+            assert imported.reporting_requirement == original.reporting_requirement
+            if original.source is not None:
+                assert imported.source == original.source
+            if original.key_type is not None:
+                assert imported.key_type == original.key_type
+            assert (
+                imported.nullable.model_dump(exclude_none=True)
+                if imported.nullable
+                else None
+            ) == (
+                original.nullable.model_dump(exclude_none=True)
+                if original.nullable
+                else None
+            )
+
+        def _normalize_expectations(exps: list[dict]) -> list[dict]:
+            normalized = []
+            for exp in exps:
+                meta = dict(exp.get("meta", {}))
+                meta.pop("generated_from", None)
+                meta.pop("rule_index", None)
+                normalized.append(
+                    {
+                        "type": exp.get("type"),
+                        "kwargs": exp.get("kwargs", {}),
+                        "meta": meta,
+                    }
+                )
+            return sorted(normalized, key=lambda exp: json.dumps(exp, sort_keys=True))
+
+        assert _normalize_expectations(
+            round_tripped.validation_rules.expectations
+        ) == _normalize_expectations(umf.validation_rules.expectations)
+
+        assert round_tripped.relationships is not None
+        assert round_tripped.relationships.foreign_keys is not None
+        imported_fk = round_tripped.relationships.foreign_keys[0]
+        original_rel = umf.relationships.outgoing[0]
+        assert imported_fk.column == original_rel.source_column
+        assert imported_fk.references_table == original_rel.target_table
+        assert imported_fk.references_column == original_rel.target_column
+        assert imported_fk.confidence == pytest.approx(original_rel.confidence)
+        assert imported_fk.type == original_rel.type
+        assert imported_fk.detection_method == "ai"
+
+        assert round_tripped.file_format is not None
+        assert round_tripped.file_format.model_dump(
+            exclude_none=True
+        ) == umf.file_format.model_dump(exclude_none=True)
+
 
 # ---------------------------------------------------------------------------
 # Round-trip tests (export then manually verify sheet content)
@@ -666,7 +857,17 @@ class TestEdgeCases:
     def test_all_data_types_export(self):
         """Verify all UMF data types can be exported to Excel."""
         cols = []
-        for dtype in ["VARCHAR", "INTEGER", "DECIMAL", "DATE", "DATETIME", "BOOLEAN", "TEXT", "CHAR", "FLOAT"]:
+        for dtype in [
+            "VARCHAR",
+            "INTEGER",
+            "DECIMAL",
+            "DATE",
+            "DATETIME",
+            "BOOLEAN",
+            "TEXT",
+            "CHAR",
+            "FLOAT",
+        ]:
             extra = {}
             if dtype == "VARCHAR":
                 extra = {"length": 50}

@@ -22,3 +22,7 @@ from tablespec import ExcelToUMFConverter
 importer = ExcelToUMFConverter()
 umf, metadata = importer.convert("medical_claims.xlsx")
 ```
+
+The importer accepts UMF spellings such as `INTEGER`, `VARCHAR`, and `DECIMAL`,
+along with common Excel-friendly aliases like `IntegerType` and `StringType`,
+then normalizes the result back to UMF data type names before validation.

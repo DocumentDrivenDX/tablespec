@@ -30,6 +30,76 @@ from tablespec.naming import position_sort_key
 logger = logging.getLogger(__name__)
 
 
+UMF_DATA_TYPE_NAMES: frozenset[str] = frozenset(
+    {
+        "VARCHAR",
+        "DECIMAL",
+        "INTEGER",
+        "DATE",
+        "DATETIME",
+        "TIMESTAMP",
+        "BOOLEAN",
+        "TEXT",
+        "CHAR",
+        "FLOAT",
+    }
+)
+
+EXCEL_TO_UMF_DATA_TYPE_ALIASES: dict[str, str] = {
+    "STRINGTYPE": "VARCHAR",
+    "STRING": "VARCHAR",
+    "VARCHAR": "VARCHAR",
+    "CHARACTER VARYING": "VARCHAR",
+    "CHAR": "CHAR",
+    "TEXT": "TEXT",
+    "INTEGERTYPE": "INTEGER",
+    "INT": "INTEGER",
+    "INTEGER": "INTEGER",
+    "BIGINT": "INTEGER",
+    "LONGTYPE": "INTEGER",
+    "LONG": "INTEGER",
+    "SMALLINT": "INTEGER",
+    "SHORTTYPE": "INTEGER",
+    "TINYINT": "INTEGER",
+    "BYTETYPE": "INTEGER",
+    "DECIMALTYPE": "DECIMAL",
+    "DECIMAL": "DECIMAL",
+    "NUMERIC": "DECIMAL",
+    "FLOATTYPE": "FLOAT",
+    "FLOAT": "FLOAT",
+    "DOUBLETYPE": "FLOAT",
+    "DOUBLE": "FLOAT",
+    "REAL": "FLOAT",
+    "DATETYPE": "DATE",
+    "DATE": "DATE",
+    "TIMESTAMPTYPE": "TIMESTAMP",
+    "TIMESTAMPNTZTYPE": "TIMESTAMP",
+    "TIMESTAMP_LTZ": "TIMESTAMP",
+    "TIMESTAMP_NTZ": "TIMESTAMP",
+    "TIMESTAMP": "TIMESTAMP",
+    "DATETIME": "DATETIME",
+    "BOOLEANTYPE": "BOOLEAN",
+    "BOOLEAN": "BOOLEAN",
+    "BOOL": "BOOLEAN",
+}
+
+
+def normalize_excel_data_type(data_type: Any) -> str | None:
+    """Normalize an Excel column data type to a UMF data_type spellings."""
+    if data_type is None:
+        return None
+
+    normalized = str(data_type).strip()
+    if not normalized:
+        return None
+
+    base_type = normalized.split("(", 1)[0].rstrip(")").strip().upper()
+    if base_type in UMF_DATA_TYPE_NAMES:
+        return base_type
+
+    return EXCEL_TO_UMF_DATA_TYPE_ALIASES.get(base_type)
+
+
 class ExcelConstants:
     """Constants for Excel workbook structure."""
 
@@ -247,8 +317,6 @@ class ExcelValidator:
 
     def _validate_columns_sheet(self, workbook: openpyxl.Workbook) -> None:
         """Validate columns sheet contents."""
-        from tablespec.type_mappings import map_to_gx_spark_type
-
         ws = workbook[ExcelConstants.SHEET_COLUMNS]
 
         # Check that columns exist
@@ -261,34 +329,39 @@ class ExcelValidator:
         # Column layout: Name(0), Canonical Name(1), Aliases(2), Data Type(3), Length(4), Precision(5), Scale(6)
         for row_num, row in enumerate(data_rows, start=2):  # Start at 2 (skip header)
             col_name = self._get_cell_value(row, 0)
-            data_type = self._get_cell_value(row, 3)  # Data Type is now column D (index 3)
+            data_type = self._get_cell_value(
+                row, 3
+            )  # Data Type is now column D (index 3)
 
             if not col_name:
                 self.errors.append(f"Columns row {row_num}: Missing column name")
 
-            normalized_type = None
+            normalized_type = normalize_excel_data_type(data_type)
             if not data_type:
                 self.errors.append(f"Columns row {row_num}: Missing data type")
-            else:
-                # Accept both SparkSQL and SQL-style types (will be normalized during import)
-                normalized_type = map_to_gx_spark_type(data_type)
-                if normalized_type not in ExcelConstants.DATA_TYPES:
-                    self.errors.append(f"Columns row {row_num}: Invalid data type '{data_type}'")
+            elif normalized_type is None:
+                self.errors.append(
+                    f"Columns row {row_num}: Invalid data type '{data_type}'"
+                )
 
             # Validate type-specific requirements (use normalized type)
-            if data_type and normalized_type == "StringType":
-                length = self._get_cell_value(row, 4)  # Length is now column E (index 4)
+            if data_type and normalized_type == "VARCHAR":
+                length = self._get_cell_value(
+                    row, 4
+                )  # Length is now column E (index 4)
                 if not length:
                     self.warnings.append(
-                        f"Columns row {row_num}: StringType columns should specify length"
+                        f"Columns row {row_num}: VARCHAR columns should specify length"
                     )
 
-            elif data_type and normalized_type == "DecimalType":
-                precision = self._get_cell_value(row, 5)  # Precision is now column F (index 5)
+            elif data_type and normalized_type == "DECIMAL":
+                precision = self._get_cell_value(
+                    row, 5
+                )  # Precision is now column F (index 5)
                 scale = self._get_cell_value(row, 6)  # Scale is now column G (index 6)
                 if not precision or not scale:
                     self.errors.append(
-                        f"Columns row {row_num}: DECIMAL/DecimalType requires precision and scale"
+                        f"Columns row {row_num}: fields precision and scale are required for DECIMAL"
                     )
 
     def _validate_relationships_sheet(self, workbook: openpyxl.Workbook) -> None:
@@ -323,7 +396,9 @@ class ExcelValidator:
     def _get_data_rows(self, ws: Worksheet) -> list:
         """Get all data rows from sheet (skip header, skip empty rows)."""
         rows = []
-        for _row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=False), start=2):
+        for _row_num, row in enumerate(
+            ws.iter_rows(min_row=2, values_only=False), start=2
+        ):
             # Check if row has any data
             has_data = any(cell.value for cell in row)
             if has_data:
@@ -443,7 +518,9 @@ class UMFToExcelConverter:
         # Status
         ws["A3"] = "Validation Status:"
         ws["B3"] = "✓ Valid"  # Update based on validation
-        ws["B3"].font = Font(color="00B050", bold=True, size=self.constants.FONT_SIZE_DEFAULT)
+        ws["B3"].font = Font(
+            color="00B050", bold=True, size=self.constants.FONT_SIZE_DEFAULT
+        )
         self._apply_font_to_cell(ws["A3"], self._get_default_font())
 
         # Instructions
@@ -474,7 +551,9 @@ class UMFToExcelConverter:
         self._apply_font_to_cell(
             ws[f"A{row}"], Font(bold=True, size=self.constants.FONT_SIZE_DEFAULT)
         )
-        ws[f"A{row + 1}"] = "Run: tablespec convert-from-excel sheet.xlsx table.umf.yaml"
+        ws[f"A{row + 1}"] = (
+            "Run: tablespec convert-from-excel sheet.xlsx table.umf.yaml"
+        )
         self._apply_font_to_cell(ws[f"A{row + 1}"], self._get_default_font())
         ws[f"A{row + 2}"] = "Or: tablespec convert-from-excel sheet.xlsx table.umf.json"
         self._apply_font_to_cell(ws[f"A{row + 2}"], self._get_default_font())
@@ -498,7 +577,9 @@ class UMFToExcelConverter:
         filtered_table_aliases = []
         if umf.aliases:
             canonical_lower = umf.canonical_name.lower() if umf.canonical_name else ""
-            filtered_table_aliases = [a for a in umf.aliases if a.lower() != canonical_lower]
+            filtered_table_aliases = [
+                a for a in umf.aliases if a.lower() != canonical_lower
+            ]
 
         # Data
         data = [
@@ -506,7 +587,10 @@ class UMFToExcelConverter:
             ("canonical_name", umf.canonical_name),
             ("version", umf.version),
             ("description", umf.description or ""),
-            ("aliases", ", ".join(filtered_table_aliases) if filtered_table_aliases else ""),
+            (
+                "aliases",
+                ", ".join(filtered_table_aliases) if filtered_table_aliases else "",
+            ),
             ("source_file", umf.source_file or ""),
             ("source_sheet_name", umf.source_sheet_name or ""),
             ("table_type", umf.table_type or ""),
@@ -610,7 +694,9 @@ class UMFToExcelConverter:
             # Filter out canonical_name and table_name from aliases (case-insensitive)
             filtered_aliases = []
             if col.aliases:
-                canonical_lower = col.canonical_name.lower() if col.canonical_name else ""
+                canonical_lower = (
+                    col.canonical_name.lower() if col.canonical_name else ""
+                )
                 table_lower = umf.table_name.lower() if umf.table_name else ""
                 filtered_aliases = [
                     a
@@ -654,11 +740,17 @@ class UMFToExcelConverter:
             ws[f"{col_letter(source_idx)}{row}"] = col.source or "data"
             self._apply_font_to_cell(ws[f"{col_letter(source_idx)}{row}"], default_font)
             ws[f"{col_letter(key_type_idx)}{row}"] = col.key_type or ""
-            self._apply_font_to_cell(ws[f"{col_letter(key_type_idx)}{row}"], default_font)
+            self._apply_font_to_cell(
+                ws[f"{col_letter(key_type_idx)}{row}"], default_font
+            )
             ws[f"{col_letter(domain_type_idx)}{row}"] = col.domain_type or ""
-            self._apply_font_to_cell(ws[f"{col_letter(domain_type_idx)}{row}"], default_font)
+            self._apply_font_to_cell(
+                ws[f"{col_letter(domain_type_idx)}{row}"], default_font
+            )
             ws[f"{col_letter(reporting_idx)}{row}"] = col.reporting_requirement or ""
-            self._apply_font_to_cell(ws[f"{col_letter(reporting_idx)}{row}"], default_font)
+            self._apply_font_to_cell(
+                ws[f"{col_letter(reporting_idx)}{row}"], default_font
+            )
 
             # Format
             ws[f"{col_letter(format_idx)}{row}"] = col.format or ""
@@ -710,14 +802,18 @@ class UMFToExcelConverter:
 
         # Add header row with styling
         header_font = Font(name="Arial", size=11, bold=True)
-        header_fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")
+        header_fill = PatternFill(
+            start_color="D3D3D3", end_color="D3D3D3", fill_type="solid"
+        )
 
         for col_idx, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col_idx)
             cell.value = header
             cell.font = header_font
             cell.fill = header_fill
-            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.alignment = Alignment(
+                horizontal="center", vertical="center", wrap_text=True
+            )
 
         # Freeze top row
         ws.freeze_panes = "A2"
@@ -728,7 +824,8 @@ class UMFToExcelConverter:
 
         # Sort columns by position field using shared utility
         sorted_columns = sorted(
-            umf.columns, key=lambda col: position_sort_key(col.position, umf.columns.index(col))
+            umf.columns,
+            key=lambda col: position_sort_key(col.position, umf.columns.index(col)),
         )
 
         for col in sorted_columns:
@@ -743,7 +840,9 @@ class UMFToExcelConverter:
             ws.cell(row, 4).value = col.reporting_requirement or ""
 
             # Provenance
-            provenance = col.provenance_policy or "survivorship" if col.derivation else ""
+            provenance = (
+                col.provenance_policy or "survivorship" if col.derivation else ""
+            )
             ws.cell(row, 5).value = provenance
 
             # Strategy
@@ -806,11 +905,15 @@ class UMFToExcelConverter:
             if col.derivation and col.derivation.candidates:
                 first_candidate_row = row
 
-                for candidate in sorted(col.derivation.candidates, key=lambda c: c.priority):
+                for candidate in sorted(
+                    col.derivation.candidates, key=lambda c: c.priority
+                ):
                     ws.cell(row, 1).value = 2  # Level
                     ws.cell(row, 2).value = ""  # Column Name (blank for Level 2)
                     ws.cell(row, 3).value = ""  # Position (blank for Level 2)
-                    ws.cell(row, 4).value = ""  # Reporting Requirement (blank for Level 2)
+                    ws.cell(
+                        row, 4
+                    ).value = ""  # Reporting Requirement (blank for Level 2)
                     ws.cell(row, 5).value = ""  # Provenance (blank for Level 2)
                     ws.cell(row, 6).value = ""  # Strategy (blank for Level 2)
                     ws.cell(row, 7).value = candidate.priority  # Priority
@@ -820,7 +923,9 @@ class UMFToExcelConverter:
 
                     # Add table_instance as alias if present (e.g., "outreach_list_pcp (pcp_assigned)")
                     if candidate.table_instance:
-                        source_parts[0] = f"{candidate.table} ({candidate.table_instance})"
+                        source_parts[0] = (
+                            f"{candidate.table} ({candidate.table_instance})"
+                        )
 
                     # Add column or expression
                     if candidate.expression:
@@ -840,7 +945,9 @@ class UMFToExcelConverter:
                     ws.cell(row, 9).value = (
                         "\n\n".join(reason_parts) if reason_parts else ""
                     )  # Reason
-                    ws.cell(row, 9).alignment = Alignment(wrap_text=True, vertical="top")
+                    ws.cell(row, 9).alignment = Alignment(
+                        wrap_text=True, vertical="top"
+                    )
 
                     # Apply font and top alignment to Level 2 row
                     for col_idx in range(1, 10):
@@ -886,7 +993,9 @@ class UMFToExcelConverter:
 
             # Group Level 2 rows under Level 1 (collapsible)
             if first_candidate_row is not None and row > first_candidate_row:
-                ws.row_dimensions.group(first_candidate_row, row - 1, outline_level=1, hidden=False)
+                ws.row_dimensions.group(
+                    first_candidate_row, row - 1, outline_level=1, hidden=False
+                )
 
         # Set column widths
         ws.column_dimensions["A"].width = 8  # Level
@@ -897,7 +1006,9 @@ class UMFToExcelConverter:
         ws.column_dimensions["F"].width = 20  # Strategy
         ws.column_dimensions["G"].width = 10  # Priority
         ws.column_dimensions["H"].width = 30  # Source
-        ws.column_dimensions["I"].width = 100  # Explanation/Reason (very wide for readability)
+        ws.column_dimensions[
+            "I"
+        ].width = 100  # Explanation/Reason (very wide for readability)
 
     @staticmethod
     def _get_expectation_dicts_for_export(umf: "UMF") -> list[dict[str, Any]]:
@@ -1037,8 +1148,8 @@ class UMFToExcelConverter:
 
         exp_list = self._get_expectation_dicts_for_export(umf)
         if exp_list:
-            expectations_with_index, _ = self._prepare_validation_expectations_with_index(
-                exp_list
+            expectations_with_index, _ = (
+                self._prepare_validation_expectations_with_index(exp_list)
             )
 
             default_font = self._get_default_font()
@@ -1243,16 +1354,22 @@ class UMFToExcelConverter:
             format_str = ff.filename_pattern.regex
 
             # Replace capturing groups with field names in order
-            sorted_captures = sorted(ff.filename_pattern.captures.items(), key=lambda x: int(x[0]))
+            sorted_captures = sorted(
+                ff.filename_pattern.captures.items(), key=lambda x: int(x[0])
+            )
 
             for _group_num, field_name in sorted_captures:
                 # Replace the first capturing group with the field name
-                format_str = re.sub(r"\([^)]+\)", f"{{{field_name}}}", format_str, count=1)
+                format_str = re.sub(
+                    r"\([^)]+\)", f"{{{field_name}}}", format_str, count=1
+                )
 
             # Clean up regex syntax to make it human-readable
             format_str = format_str.replace("\\d", "").replace("\\", "")
             format_str = format_str.replace("^", "").replace("$", "")
-            format_str = format_str.replace("{3,10}", "").replace("{2}", "").replace("{8}", "")
+            format_str = (
+                format_str.replace("{3,10}", "").replace("{2}", "").replace("{8}", "")
+            )
             # Remove optional group markers like (?:...)? but keep the content
             format_str = re.sub(r"\(\?:", "", format_str)
             format_str = re.sub(r"\)\?", "", format_str)
@@ -1376,7 +1493,9 @@ class UMFToExcelConverter:
                 end_color=self.constants.COLOR_HEADER,
                 fill_type="solid",
             )
-            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            cell.alignment = Alignment(
+                horizontal="center", vertical="center", wrap_text=True
+            )
 
     def _add_data_validation_to_columns(
         self, ws: Worksheet, *, num_contexts: int = 3
@@ -1413,7 +1532,9 @@ class UMFToExcelConverter:
         ws.add_data_validation(dv_nullable)
 
         # Post-nullable column positions (0-based)
-        source_col = get_column_letter(NULLABLE_START + num_contexts + 2 + 1)  # +2 for Desc, Sample
+        source_col = get_column_letter(
+            NULLABLE_START + num_contexts + 2 + 1
+        )  # +2 for Desc, Sample
         key_type_col = get_column_letter(NULLABLE_START + num_contexts + 3 + 1)
         domain_type_col = get_column_letter(NULLABLE_START + num_contexts + 4 + 1)
 
@@ -1566,7 +1687,7 @@ class ExcelToUMFConverter:
         header_row = list(ws.iter_rows(min_row=1, max_row=1, values_only=True))[0]
         for idx, header in enumerate(header_row):
             if header and isinstance(header, str) and header.startswith("Nullable "):
-                context_key = header[len("Nullable "):]
+                context_key = header[len("Nullable ") :]
                 nullable_cols.append((idx, context_key))
         return nullable_cols
 
@@ -1593,8 +1714,6 @@ class ExcelToUMFConverter:
         located by their header names, so the reader handles any number
         of context columns.
         """
-        from tablespec.type_mappings import map_to_gx_spark_type
-
         ws = workbook[self.constants.SHEET_COLUMNS]
 
         # Detect nullable columns and build header index
@@ -1642,14 +1761,20 @@ class ExcelToUMFConverter:
                 if isinstance(aliases_value, str):
                     col_dict["aliases"] = [a.strip() for a in aliases_value.split(",")]
                 else:
-                    col_dict["aliases"] = [a.strip() for a in str(aliases_value).split(",")]
+                    col_dict["aliases"] = [
+                        a.strip() for a in str(aliases_value).split(",")
+                    ]
 
             # Normalize data type
             raw_type = row[3].value if len(row) > 3 else None
-            if raw_type and isinstance(raw_type, str):
-                normalized_type = map_to_gx_spark_type(raw_type)
-            else:
-                normalized_type = "StringType"
+            normalized_type = normalize_excel_data_type(raw_type)
+            if normalized_type is None:
+                if raw_type:
+                    normalized_type = (
+                        str(raw_type).strip().split("(", 1)[0].strip().upper()
+                    )
+                else:
+                    normalized_type = "VARCHAR"
             col_dict["data_type"] = normalized_type
 
             # Optional fields
@@ -1690,7 +1815,9 @@ class ExcelToUMFConverter:
             sample_val = _get(row, sample_idx)
             if sample_val:
                 if isinstance(sample_val, str):
-                    col_dict["sample_values"] = [s.strip() for s in sample_val.split(",")]
+                    col_dict["sample_values"] = [
+                        s.strip() for s in sample_val.split(",")
+                    ]
                 else:
                     col_dict["sample_values"] = [
                         s.strip() for s in str(sample_val).split(",")
@@ -1827,24 +1954,32 @@ class ExcelToUMFConverter:
 
             # Extract validation rule fields
             column = row[col_column].value if len(row) > col_column else None
-            severity = row[col_severity].value if len(row) > col_severity else "critical"
+            severity = (
+                row[col_severity].value if len(row) > col_severity else "critical"
+            )
             rule_type = row[col_rule_type].value if len(row) > col_rule_type else None
             rule_index = row[col_index].value if len(row) > col_index else None
-            description = row[col_description].value if len(row) > col_description else ""
+            description = (
+                row[col_description].value if len(row) > col_description else ""
+            )
             generated_from = (
                 row[col_generated_from].value if len(row) > col_generated_from else None
             )
             rule_id = row[col_rule_id].value if len(row) > col_rule_id else None
             lob = row[col_lob].value if len(row) > col_lob else None
             reason_unmappable = (
-                row[col_reason_unmappable].value if len(row) > col_reason_unmappable else None
+                row[col_reason_unmappable].value
+                if len(row) > col_reason_unmappable
+                else None
             )
             suggested_implementation = (
                 row[col_suggested_implementation].value
                 if len(row) > col_suggested_implementation
                 else None
             )
-            domain_type = row[col_domain_type].value if len(row) > col_domain_type else None
+            domain_type = (
+                row[col_domain_type].value if len(row) > col_domain_type else None
+            )
 
             # Rule type is required
             if not rule_type:
@@ -1967,7 +2102,9 @@ class ExcelToUMFConverter:
                     if isinstance(confidence, (int, float, str)):
                         confidence_float = float(confidence)
                         fk["confidence"] = (
-                            confidence_float / 100.0 if confidence_float > 1 else confidence_float
+                            confidence_float / 100.0
+                            if confidence_float > 1
+                            else confidence_float
                         )
 
             if rel_type:
@@ -2009,7 +2146,9 @@ class ExcelToUMFConverter:
             if field == "header":
                 value = bool(value)
             elif field == "skip_rows":
-                value = int(value) if value and isinstance(value, (int, float, str)) else 0
+                value = (
+                    int(value) if value and isinstance(value, (int, float, str)) else 0
+                )
             elif field == "filename_pattern":
                 # Parse JSON structure for filename_pattern
                 if value and isinstance(value, str):
@@ -2054,7 +2193,11 @@ class ExcelToUMFConverter:
 
             # Type conversions
             if field == "pipeline_phase":
-                value = int(value) if value and isinstance(value, (int, float, str)) else None
+                value = (
+                    int(value)
+                    if value and isinstance(value, (int, float, str))
+                    else None
+                )
 
             metadata[field] = value
 
