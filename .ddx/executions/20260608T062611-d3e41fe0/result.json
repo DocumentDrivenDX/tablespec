@@ -2,11 +2,15 @@
   "bead_id": "tablespec-0b146671",
   "attempt_id": "20260608T062611-d3e41fe0",
   "base_rev": "8c7411decaa1d9eda90410b43b68c8132ce96acb",
-  "result_rev": "b42298d7c21254d4dd7b1dd22a1fcf407ecac4b1",
+  "result_rev": "44fe34dc8ce6ed6a0a14a2db1258a9312e43af61",
   "implementation_rev": "b42298d7c21254d4dd7b1dd22a1fcf407ecac4b1",
-  "outcome": "task_succeeded",
+  "landed_rev": "44fe34dc8ce6ed6a0a14a2db1258a9312e43af61",
+  "landed_branch": "main",
+  "evidence_rev": "44fe34dc8ce6ed6a0a14a2db1258a9312e43af61",
+  "outcome": "merged",
   "status": "success",
   "detail": "success",
+  "orchestrator_status": "success",
   "candidate_ref": "refs/ddx/iterations/20260608T062611-d3e41fe0/0",
   "cycle_trace": [
     {
