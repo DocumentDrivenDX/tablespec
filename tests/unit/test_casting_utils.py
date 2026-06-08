@@ -11,6 +11,8 @@ import pytest
 from tablespec.casting_utils import (
     COMMON_DATE_FORMATS,
     COMMON_TIMESTAMP_FORMATS,
+    EPOCH_MS_FORMAT,
+    EXCEL_SERIAL_FORMAT,
     build_flexible_formats,
     cast_column_sql,
     convert_umf_format_to_duckdb,
@@ -87,7 +89,10 @@ class TestCastColumnSql:
 
     def test_unsupported_dialect_raises(self):
         """An unknown dialect raises ValueError."""
-        with pytest.raises(ValueError, match="Unsupported dialect"):
+        with pytest.raises(
+            ValueError,
+            match=r"Unsupported dialect: 'postgres' \(expected one of spark, databricks, duckdb\)",
+        ):
             cast_column_sql("col", "INTEGER", dialect="postgres")
 
     @pytest.mark.parametrize("dialect", ["spark", "duckdb"])
@@ -226,6 +231,28 @@ class TestCastColumnSqlSparkDialectExtras:
 
     def test_timestamp_without_format(self):
         assert cast_column_sql("ts", "TIMESTAMP") == "try_to_timestamp(ts)"
+
+
+class TestCastColumnSqlDatabricksAlias:
+    @pytest.mark.parametrize(
+        ("target_type", "fmt", "kwargs"),
+        [
+            ("INTEGER", None, {}),
+            ("DECIMAL", None, {"precision": 18, "scale": 2}),
+            ("DATE", "YYYY-MM-DD", {}),
+            ("TIMESTAMP", None, {}),
+            ("BOOLEAN", None, {}),
+            ("DATE", EPOCH_MS_FORMAT, {}),
+            ("TIMESTAMP", EPOCH_MS_FORMAT, {}),
+            ("DATE", EXCEL_SERIAL_FORMAT, {}),
+        ],
+    )
+    def test_databricks_alias_matches_spark(self, target_type, fmt, kwargs):
+        spark_sql = cast_column_sql("c", target_type, fmt, dialect="spark", **kwargs)
+        databricks_sql = cast_column_sql(
+            "c", target_type, fmt, dialect="databricks", **kwargs
+        )
+        assert databricks_sql == spark_sql
 
 
 class TestConvertUmfFormatToDuckdb:

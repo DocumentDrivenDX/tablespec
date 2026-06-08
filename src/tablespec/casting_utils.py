@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from pyspark.sql import Column
 
 from tablespec.date_formats import SUPPORTED_DATE_FORMATS, FormatType
+from tablespec.dialects import normalize_cast_dialect
 
 try:
     from pyspark.sql import functions as F
@@ -624,17 +625,12 @@ def cast_column_sql(
         "try_cast(nullif(trim(regexp_replace(age, '^\\$', '')), '') as INT)"
 
     """
-    if dialect not in ("spark", "databricks", "duckdb"):
-        msg = (
-            f"Unsupported dialect: {dialect!r} "
-            "(expected 'spark', 'databricks', or 'duckdb')"
-        )
-        raise ValueError(msg)
+    render_dialect = normalize_cast_dialect(dialect)
     # Databricks SQL == Spark SQL for our casts: try_to_timestamp + Java date
     # tokens. We keep 'databricks' as a distinct, explicitly-selectable named
     # dialect but render it through the identical Spark code path below, so the two
     # never drift. Everything past this point only distinguishes duckdb vs not.
-    is_duck = dialect == "duckdb"
+    is_duck = render_dialect == "duckdb"
     t = target_type.upper()
 
     # String types: raw landing data is already a string -- passthrough.

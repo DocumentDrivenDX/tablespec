@@ -20,8 +20,11 @@ Spark cast rendering. This module owns ONLY the profile YAML text; it lives in
 
 from __future__ import annotations
 
+from tablespec.dialects import PROFILE_TARGETS as _PROFILE_TARGETS
+from tablespec.dialects import validate_profile_target
+
 # Targets the generated profiles.yml can emit, each backed by a real dbt adapter.
-PROFILE_TARGETS: tuple[str, ...] = ("duckdb", "spark", "databricks")
+PROFILE_TARGETS: tuple[str, ...] = _PROFILE_TARGETS
 
 
 def render_profiles_yml(
@@ -41,12 +44,7 @@ def render_profiles_yml(
     Raises:
         ValueError: if *target* is not one of :data:`PROFILE_TARGETS`.
     """
-    if target not in PROFILE_TARGETS:
-        msg = (
-            f"Unsupported profile target: {target!r} "
-            f"(expected one of {', '.join(PROFILE_TARGETS)})"
-        )
-        raise ValueError(msg)
+    target = validate_profile_target(target)
 
     if target == "duckdb":
         # UTC-pinned so TIMESTAMP rendering is host-timezone independent and matches

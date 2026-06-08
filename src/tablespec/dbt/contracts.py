@@ -33,6 +33,7 @@ Pure text emission -- importing this module never imports any ``dbt`` package
 from __future__ import annotations
 
 from tablespec.core.schema_facts import ColumnContract
+from tablespec.dialects import normalize_cast_dialect
 
 # duckdb adapter SQL types keyed by the logical UMF type. These match the column
 # types the shared duckdb cast SELECT (``cast_column_sql(dialect="duckdb")``)
@@ -67,13 +68,9 @@ _SPARK_TYPE: dict[str, str] = {
     "TIMESTAMP": "TIMESTAMP",
 }
 
-# Databricks SQL types == Spark SQL types, so the Databricks dialect reuses the
-# Spark contract type map (kept as a distinct, explicitly-selectable key so a
-# Databricks target renders its contract under its own name without drifting).
 _TYPE_BY_DIALECT: dict[str, dict[str, str]] = {
     "duckdb": _DUCKDB_TYPE,
     "spark": _SPARK_TYPE,
-    "databricks": _SPARK_TYPE,
 }
 
 
@@ -85,13 +82,7 @@ def contract_sql_type(contract: ColumnContract, *, dialect: str = "duckdb") -> s
     length is declared (duckdb only -- spark renders bare ``STRING``), else the
     base type.
     """
-    if dialect not in _TYPE_BY_DIALECT:
-        msg = (
-            f"Unsupported contract dialect: {dialect!r} "
-            "(expected 'duckdb'/'spark'/'databricks')"
-        )
-        raise ValueError(msg)
-    table = _TYPE_BY_DIALECT[dialect]
+    table = _TYPE_BY_DIALECT[normalize_cast_dialect(dialect, label="contract dialect")]
     dt = contract.data_type.upper()
 
     if dt == "DECIMAL":

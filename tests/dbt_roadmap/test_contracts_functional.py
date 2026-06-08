@@ -26,6 +26,7 @@ from tablespec.dbt.contracts import (
     render_column_contract,
     render_contract_config_arg,
 )
+from tablespec.dbt.profiles import render_profiles_yml
 from tablespec.dbt.single_table import generate_dbt_project
 from tablespec.models.umf import UMF
 
@@ -92,12 +93,16 @@ def test_contract_sql_type_defaults_and_spark() -> None:
     text = ColumnContract(name="t", data_type="TEXT", not_null=False, length=20)
     assert contract_sql_type(text, dialect="duckdb") == "VARCHAR(20)"
     assert contract_sql_type(text, dialect="spark") == "STRING"
+    assert contract_sql_type(text, dialect="databricks") == "STRING"
     flt = ColumnContract(name="f", data_type="FLOAT", not_null=False)
     assert contract_sql_type(flt, dialect="duckdb") == "DOUBLE"
 
 
 def test_contract_sql_type_rejects_unknown_dialect() -> None:
-    with pytest.raises(ValueError, match="Unsupported contract dialect"):
+    with pytest.raises(
+        ValueError,
+        match=r"Unsupported contract dialect: 'postgres' \(expected one of spark, databricks, duckdb\)",
+    ):
         contract_sql_type(
             ColumnContract(name="x", data_type="INTEGER", not_null=False),
             dialect="postgres",
@@ -190,3 +195,11 @@ def test_contracts_module_imports_no_dbt() -> None:
             imported.add(node.module)
     dbt_imports = {m for m in imported if m == "dbt" or m.startswith("dbt.")}
     assert not dbt_imports, f"contracts.py must not import dbt: {sorted(dbt_imports)}"
+
+
+def test_profiles_yml_rejects_unknown_target() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"Unsupported profile target: 'postgres' \(expected one of duckdb, spark, databricks\)",
+    ):
+        render_profiles_yml("tablespec_ingest", target="postgres")

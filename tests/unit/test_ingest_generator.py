@@ -109,6 +109,16 @@ class TestBuildIngestSelect:
             "as DECIMAL(12,4))"
         )
 
+    def test_databricks_alias_uses_spark_rendering_path(self):
+        spark_ingest = build_ingest_select(_umf(columns=_COLS), dialect="spark")
+        dbx_ingest = build_ingest_select(_umf(columns=_COLS), dialect="databricks")
+        assert dbx_ingest.dialect == "databricks"
+        assert dbx_ingest.columns == spark_ingest.columns
+        assert dbx_ingest.mode == spark_ingest.mode
+        assert dbx_ingest.primary_key == spark_ingest.primary_key
+        assert dbx_ingest.order_by == spark_ingest.order_by
+        assert dbx_ingest.select_block == spark_ingest.select_block
+
     def test_has_dedup_only_for_incremental_with_pk(self):
         assert build_ingest_select(
             _umf(columns=_COLS, mode="incremental", primary_key=["id"])
@@ -150,6 +160,13 @@ class TestBuildIngestSelect:
         assert isinstance(ingest, IngestSelect)
         with pytest.raises((AttributeError, TypeError)):
             ingest.mode = "snapshot"  # type: ignore[misc]
+
+    def test_unsupported_dialect_raises_with_shared_message(self):
+        with pytest.raises(
+            ValueError,
+            match=r"Unsupported dialect: 'postgres' \(expected one of spark, databricks, duckdb\)",
+        ):
+            build_ingest_select(_umf(columns=[]), dialect="postgres")
 
 
 class TestGenerateIngestSqlStructure:

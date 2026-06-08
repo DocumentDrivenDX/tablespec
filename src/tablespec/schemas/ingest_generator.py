@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from tablespec.casting_utils import cast_column_sql
+from tablespec.dialects import normalize_cast_dialect
 from tablespec.schemas.generators import _resolve_nullable
 
 # Databricks/Spark-SQL-correct type names for the typed target table.
@@ -87,7 +88,8 @@ class IngestSelect:
         mode: ``"incremental"`` or ``"snapshot"``.
         primary_key: declared primary key columns (may be empty).
         order_by: provenance ordering columns for dedup-latest (newest wins).
-        dialect: ``"spark"`` or ``"duckdb"`` (selects the cast SQL flavour).
+        dialect: public dialect spelling (``"spark"``, ``"databricks"``, or
+            ``"duckdb"``). The Spark-family spellings share the same render path.
         select_block: aligned ``<cast> AS <name>`` lines, one per column, with the
             8-space indentation the artifact/dbt model bodies expect.
     """
@@ -145,7 +147,7 @@ def build_ingest_select(
     Args:
     ----
         umf_data: UMF table data (e.g. ``umf.model_dump(exclude_none=True)``).
-        dialect: ``"spark"`` (default) or ``"duckdb"``.
+        dialect: ``"spark"`` (default), ``"databricks"``, or ``"duckdb"``.
 
     Returns:
     -------
@@ -158,10 +160,11 @@ def build_ingest_select(
     ingestion = umf_data.get("ingestion") or {}
     mode = ingestion.get("mode", "incremental")  # snapshot | incremental
     order_by = ingestion.get("order_by") or _DEFAULT_ORDER_BY
+    render_dialect = normalize_cast_dialect(dialect)
 
-    cast_pad = max((len(_cast_for(c, dialect=dialect)) for c in cols), default=0)
+    cast_pad = max((len(_cast_for(c, dialect=render_dialect)) for c in cols), default=0)
     select_block = ",\n".join(
-        f"        {_cast_for(c, dialect=dialect):<{cast_pad}} AS {c['name']}"
+        f"        {_cast_for(c, dialect=render_dialect):<{cast_pad}} AS {c['name']}"
         for c in cols
     )
 
