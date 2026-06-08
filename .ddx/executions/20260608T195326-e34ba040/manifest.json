@@ -1,0 +1,33 @@
+{
+  "attempt_id": "20260608T195326-e34ba040",
+  "bead_id": "tablespec-b50b6f67",
+  "base_rev": "09387d45ac8f0925d2d3c06a4b318beb7cb0320e",
+  "created_at": "2026-06-08T19:53:27.867202082Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-b50b6f67",
+    "title": "Align helix conformance docs with Databricks dialect guidance",
+    "description": "PROBLEM: The helix conformance docs already describe Databricks dialect behavior, but that decision is not reflected consistently in the user-facing examples and traceability checks. ROOT CAUSE: `docs/helix/03-test/conformance-acceptance.md:85` and `docs/helix/03-test/conformance-acceptance.md:109` discuss Databricks dialect behavior without tying it back to the canonical public alias guidance used elsewhere. PROPOSED FIX: Update the helix conformance docs and their traceability expectations so they consistently say `dialect=\"databricks\"` is accepted for Databricks compile UX, while clarifying that generated casts may normalize to Spark-family SQL when the emitted SQL is identical. NON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No broad documentation rewrite outside Databricks dialect guidance. GOVERNING ARTIFACTS: `docs/guide/bootstrap.md:10`; `README.md:139`; `docs/helix/03-test/conformance-acceptance.md:109`; `scripts/run_integration_tests_databricks.ipynb`. DEPENDENCIES: `tablespec-ed74497c`.",
+    "acceptance": "1. TestHelixDocsUseCanonicalDatabricksDialectGuidance: add a docs traceability regression that scans `docs/helix/03-test/conformance-acceptance.md` and related Databricks helix references for canonical `dialect=\"databricks\"` guidance.\\n2. TestHelixDocsAvoidSparkOnlyMessaging: assert helix docs do not tell Databricks users to use only `dialect=\"spark\"` without the alias explanation.\\n3. go test ./...\\n4. lefthook run pre-commit.",
+    "parent": "tablespec-0fb0d1c2",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:docs",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ]
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T195326-e34ba040",
+    "prompt": ".ddx/executions/20260608T195326-e34ba040/prompt.md",
+    "manifest": ".ddx/executions/20260608T195326-e34ba040/manifest.json",
+    "result": ".ddx/executions/20260608T195326-e34ba040/result.json",
+    "checks": ".ddx/executions/20260608T195326-e34ba040/checks.json",
+    "usage": ".ddx/executions/20260608T195326-e34ba040/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-b50b6f67-20260608T195326-e34ba040"
+  },
+  "prompt_sha": "fabf26ea6f2d719adab2fed8e233f0d8f753c6b5745f8b6e0ca74693fcd020c0"
+}
