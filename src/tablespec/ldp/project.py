@@ -240,8 +240,10 @@ def generate_ldp_project(
     Args:
         umfs: the table set (UMF models).
         dialect: cast dialect for ingested dataset bodies. LDP runs on Databricks/
-            Spark, so the default is ``"spark"``; ``"duckdb"`` is accepted so the
-            cast-parity harness can prove the SELECT body is the shared cast.
+            Spark, so the default is ``"spark"``; ``"databricks"`` and
+            ``"spark"`` share the same Spark-family cast path, and ``"duckdb"`` is
+            accepted so the cast-parity harness can prove the SELECT body is the
+            shared cast.
         file_format: ``read_files`` format for the raw autoloader (e.g. ``csv``).
         out_dir: if given, files are also written under this directory.
 

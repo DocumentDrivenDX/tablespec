@@ -55,6 +55,22 @@ def _project() -> dict[str, str]:
     return generate_ldp_project(_umfs(), dialect="spark")
 
 
+def _select_body(ldp_sql: str) -> str:
+    """Extract the SELECT body from an emitted ingested-dataset SQL file."""
+    lines = ldp_sql.splitlines()
+    start = next(
+        i
+        for i, ln in enumerate(lines)
+        if ln.strip().endswith("SELECT") or ln.strip() == "SELECT"
+    )
+    body: list[str] = []
+    for ln in lines[start + 1 :]:
+        if ln.strip().upper().startswith("FROM "):
+            break
+        body.append(ln)
+    return "\n".join(body)
+
+
 # ---------------------------------------------------------------------------
 # materialization matches ingestion.mode
 # ---------------------------------------------------------------------------
@@ -233,6 +249,17 @@ def test_multi_column_sequence_by_uses_struct() -> None:
     files = generate_ldp_project([multi], dialect="spark")
     body = files["ingested/ingested_multi.sql"]
     assert "SEQUENCE BY STRUCT(seq, _load_ts)" in body
+
+
+def test_generate_ldp_project_accepts_databricks_alias() -> None:
+    """The public LDP emitter accepts databricks and emits Spark-family cast SQL."""
+    spark_sql = generate_ldp_project(_umfs(), dialect="spark")[
+        "ingested/ingested_claims.sql"
+    ]
+    databricks_sql = generate_ldp_project(_umfs(), dialect="databricks")[
+        "ingested/ingested_claims.sql"
+    ]
+    assert _select_body(databricks_sql) == _select_body(spark_sql)
 
 
 # ---------------------------------------------------------------------------

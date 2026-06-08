@@ -64,6 +64,13 @@ def _extract_select_body(ldp_sql: str) -> str:
     return "\n".join(body)
 
 
+def _project(dialect: str) -> dict[str, str]:
+    return generate_ldp_project(
+        [_load(t) for t in ["member", "claims", "events", "enriched"]],
+        dialect=dialect,
+    )
+
+
 def test_ldp_cast_body_is_identical_to_dbt_select_block() -> None:
     """The LDP ingested cast lines == the shared IngestSelect.select_block (no fork)."""
     for table in ["claims", "member", "events"]:
@@ -84,6 +91,11 @@ def test_ldp_cast_body_is_identical_to_dbt_select_block() -> None:
             f"LDP cast body for {table} is not the shared cast layer.\n"
             f"--- shared ---\n{shared.select_block}\n--- emitted ---\n{emitted}"
         )
+
+
+def test_ldp_project_spark_and_databricks_payloads_are_identical() -> None:
+    """Spark and databricks emit byte-identical LDP payloads, not just cast SQL."""
+    assert _project("spark") == _project("databricks")
 
 
 def _connect():
