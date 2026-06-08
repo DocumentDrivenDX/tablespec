@@ -44,15 +44,24 @@ SPECS = [
 ]
 
 
-def test_compile_persists_every_seam(tmp_path: Path) -> None:
-    """The orchestrator writes every pinned artifact + a loadable manifest."""
+def _compile_specs(out_dir: Path, *, dialect: str) -> CompiledArtifacts:
     umfs = umfs_from_specs(SPECS)
-    artifacts = compile_umfs(
-        umfs, tmp_path, source="specs", gold_targets=["claim_enriched"]
+    return compile_umfs(
+        umfs,
+        out_dir,
+        source="specs",
+        dialect=dialect,
+        gold_targets=["claim_enriched"],
     )
+
+
+def test_compile_umfs_accepts_databricks_dialect(tmp_path: Path) -> None:
+    """The orchestrator writes every pinned artifact + a loadable manifest."""
+    artifacts = _compile_specs(tmp_path, dialect="databricks")
 
     # manifest + per-table bundles exist on disk.
     assert artifacts.manifest_path.exists()
+    assert artifacts.dialect == "databricks"
     for name in ("member", "claims", "claim_enriched"):
         ta = artifacts.table(name)
         for p in (
@@ -85,7 +94,46 @@ def test_compile_persists_every_seam(tmp_path: Path) -> None:
     # round-trips purely from disk.
     reloaded = CompiledArtifacts.load(tmp_path)
     assert reloaded.source == "specs"
+    assert reloaded.dialect == "databricks"
     assert set(reloaded.tables) == {"member", "claims", "claim_enriched"}
+
+
+def test_compile_umfs_preserves_public_dialect_in_manifest(
+    tmp_path: Path,
+) -> None:
+    """The manifest records the public dialect while Spark-family SQL stays shared."""
+    spark_artifacts = _compile_specs(tmp_path / "spark", dialect="spark")
+    databricks_artifacts = _compile_specs(tmp_path / "databricks", dialect="databricks")
+
+    spark_manifest = json.loads(spark_artifacts.manifest_path.read_text())
+    databricks_manifest = json.loads(databricks_artifacts.manifest_path.read_text())
+    assert spark_manifest["dialect"] == "spark"
+    assert databricks_manifest["dialect"] == "databricks"
+
+    # The public dialect is preserved in the manifest, but the shared Spark-family
+    # emitters stay byte-identical for the downstream SQL consumers.
+    assert (
+        spark_artifacts.table("member").ingest_sql.read_text()
+        == databricks_artifacts.table("member").ingest_sql.read_text()
+    )
+    assert (
+        spark_artifacts.table("member").dbt_ingest_project is not None
+        and databricks_artifacts.table("member").dbt_ingest_project is not None
+    )
+    assert (
+        spark_artifacts.table("member").dbt_ingest_project / "models" / "member.sql"
+    ).read_text() == (
+        databricks_artifacts.table("member").dbt_ingest_project
+        / "models"
+        / "member.sql"
+    ).read_text()
+    assert spark_artifacts.ldp_project is not None
+    assert databricks_artifacts.ldp_project is not None
+    assert (
+        spark_artifacts.ldp_project / "ingested" / "ingested_member.sql"
+    ).read_text() == (
+        databricks_artifacts.ldp_project / "ingested" / "ingested_member.sql"
+    ).read_text()
 
 
 def test_main_runs_backbone_green(tmp_path: Path, spark_session) -> None:  # noqa: ANN001

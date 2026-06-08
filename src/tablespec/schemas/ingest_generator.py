@@ -194,6 +194,7 @@ def generate_ingest_sql(
     *,
     raw_table: str | None = None,
     ingested_table: str | None = None,
+    dialect: str = "spark",
 ) -> str:
     """Generate the raw->ingest SQL artifact for a UMF table.
 
@@ -202,6 +203,9 @@ def generate_ingest_sql(
         umf_data: UMF table data (e.g. ``umf.model_dump(exclude_none=True)``).
         raw_table: Override for the landing table name (default ``raw_<table>``).
         ingested_table: Override for the target table name (default ``ingested_<table>``).
+        dialect: public cast dialect for the generated SELECT (``"spark"``,
+            ``"databricks"``, or ``"duckdb"``). The Spark-family spellings share
+            the same SQL render path.
 
     Returns:
     -------
@@ -214,7 +218,7 @@ def generate_ingest_sql(
     cols: list[dict[str, Any]] = umf_data["columns"]
 
     # Shared cast SELECT + dedup metadata (the single seam reused by dbt).
-    ingest = build_ingest_select(umf_data, dialect="spark")
+    ingest = build_ingest_select(umf_data, dialect=dialect)
     pk = ingest.primary_key
     mode = ingest.mode
     order_by = ingest.order_by

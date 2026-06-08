@@ -168,6 +168,9 @@ class CompiledArtifacts:
         profile_enriched: True iff Path A additionally ran ``NativeSparkProfiler``
             + ``ProfileToGxMapper`` so the compiled suites carry profile-derived
             expectations (False = schema-only inference).
+        dialect: public cast dialect requested for the compile run. Spark-family
+            spellings share the same SQL render path, but the manifest preserves the
+            caller's spelling for downstream consumers.
         tables: per-table artifact bundles, keyed by table name (insertion order
             preserved for deterministic iteration).
         dbt_gold_project: absolute root dir of the multi-table GOLD dbt DAG project
@@ -179,6 +182,7 @@ class CompiledArtifacts:
     root: Path
     source: str
     profile_enriched: bool
+    dialect: str = "duckdb"
     tables: dict[str, TableArtifacts] = field(default_factory=dict)
     dbt_gold_project: Path | None = None
     ldp_project: Path | None = None
@@ -217,6 +221,7 @@ class CompiledArtifacts:
             "root": str(self.root),
             "source": self.source,
             "profile_enriched": self.profile_enriched,
+            "dialect": self.dialect,
             "dbt_gold_project": rel(self.dbt_gold_project),
             "ldp_project": rel(self.ldp_project),
             "tables": {
@@ -270,6 +275,7 @@ class CompiledArtifacts:
             root=root,
             source=data["source"],
             profile_enriched=bool(data["profile_enriched"]),
+            dialect=data.get("dialect", "duckdb"),
             tables=tables,
             dbt_gold_project=absolute(data["dbt_gold_project"]),
             ldp_project=absolute(data["ldp_project"]),

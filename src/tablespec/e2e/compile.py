@@ -138,7 +138,7 @@ def compile_umfs(
 
     ldp_root: Path | None = None
     try:
-        generate_ldp_project(list(umfs), dialect="spark", out_dir=ldp_project_dir(root))
+        generate_ldp_project(list(umfs), dialect=dialect, out_dir=ldp_project_dir(root))
         ldp_root = ldp_project_dir(root)
     except Exception:
         ldp_root = None
@@ -147,6 +147,7 @@ def compile_umfs(
         root=root,
         source=source,
         profile_enriched=profile_enriched,
+        dialect=dialect,
         tables=tables,
         dbt_gold_project=dbt_gold_root,
         ldp_project=ldp_root,
@@ -190,13 +191,13 @@ def _compile_table(
     )
 
     # 1. ingest SQL (raw DDL + typed DDL + raw->ingested transform).
-    ingest = _write(ingest_sql_path(root, name), generate_ingest_sql(umf_data))
+    ingest = _write(
+        ingest_sql_path(root, name), generate_ingest_sql(umf_data, dialect=dialect)
+    )
 
     # 2. schema generators.
     ddl = _write(ddl_path(root, name), generate_sql_ddl(umf_data))
-    pyspark = _write(
-        pyspark_schema_path(root, name), generate_pyspark_schema(umf_data)
-    )
+    pyspark = _write(pyspark_schema_path(root, name), generate_pyspark_schema(umf_data))
     json_schema = _write(
         json_schema_path(root, name),
         json.dumps(generate_json_schema(umf_data), indent=2) + "\n",
@@ -204,9 +205,7 @@ def _compile_table(
 
     # 3. compiled validation suite (baseline OR profile-enriched, persisted verbatim).
     suite_exps = suite if suite is not None else _compile_baseline_suite(umf_data)
-    suite_json = _write(
-        suite_path(root, name), json.dumps(suite_exps, indent=2) + "\n"
-    )
+    suite_json = _write(suite_path(root, name), json.dumps(suite_exps, indent=2) + "\n")
 
     # 4. single-table ingest dbt project (writes its own tree under out_dir).
     dbt_ingest_root = dbt_ingest_project_dir(root, name)
