@@ -1,0 +1,59 @@
+{
+  "attempt_id": "20260608T003110-68790f13",
+  "bead_id": "tablespec-385c98f8",
+  "base_rev": "fd4edabb229daad90cff8cd08f02bad379c4ad93",
+  "created_at": "2026-06-08T00:31:11.805617136Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-385c98f8",
+    "title": "Add one-shot Databricks bootstrap facade",
+    "description": "Create a first-class public bootstrap API so users and agents do not compose lower-level internals manually. Current implementation has the ingredients but exposes them as separate pieces: src/tablespec/e2e/paths.py umfs_from_tables reflects Spark schema into UMF and optionally builds profile-derived GX suites; src/tablespec/e2e/compile.py compile_umfs persists compiled artifacts. This causes agents to hand-roll SparkToUmfMapper, NativeSparkProfiler, ProfileToGxMapper, and compile_umfs. Add a public, documented one-shot API that points at existing Databricks/Spark tables and returns/persists the full bootstrap result. The native profiler must remain data-profile-only; schema reflection creates UMF; ProfileToGxMapper creates validation expectations; compile persists the validation suite and artifacts.\\n\\nIn-scope files:\\n- src/tablespec/bootstrap.py or equivalent public bootstrap module\\n- src/tablespec/__init__.py exports\\n- docs/ or docs/helix user-facing Databricks bootstrap guidance\\n- tests covering the new facade\\n\\nOut-of-scope for this bead:\\n- Removing or renaming internal e2e/profiling APIs\\n- Inline UMF format removal\\n- Large refactors of sample_data internals",
+    "acceptance": "1. A test command such as uv run pytest tests/e2e/test_bootstrap_from_tables.py tests/unit -k bootstrap passes with coverage for the new public facade.\n2. The public API can bootstrap an existing Spark table with one call, using schema reflection for UMF and profile-derived GX expectations when profile=True.\n3. The compiled output includes the UMF snapshot and validation suite produced from the supplied suites.\n4. Public docs/examples show only the new facade for Databricks bootstrap and explain that the profiler enriches validation rather than creating UMF.",
+    "labels": [
+      "area:bootstrap",
+      "area:databricks",
+      "kind:api",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "",
+          "body": "[{\"ac\":1,\"text\":\"A test command such as uv run pytest tests/e2e/test_bootstrap_from_tables.py tests/unit -k bootstrap passes with coverage for the new public facade.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":2,\"text\":\"The public API can bootstrap an existing Spark table with one call, using schema reflection for UMF and profile-derived GX expectations when profile=True.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":3,\"text\":\"The compiled output includes the UMF snapshot and validation suite produced from the supplied suites.\",\"kind\":\"prose\",\"verifiable\":false},{\"ac\":4,\"text\":\"Public docs/examples show only the new facade for Databricks bootstrap and explain that the profiler enriches validation rather than creating UMF.\",\"kind\":\"mechanical\",\"verifiable\":true}]",
+          "created_at": "2026-06-08T00:25:01.732316028Z",
+          "kind": "ac-quality-low",
+          "source": "preclaim-ac-quality",
+          "summary": "score=0.25 threshold=0.50 verifiable=1/4"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: project root mutation rejected for bead tablespec-385c98f8 (changed existing dirty paths: .ddx/beads.jsonl)\",\"fingerprint\":\"90ba452b5afcf990b9332ace9dc3ad0ca4d7dcc1af45aa154ad32b2e114bb518\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"90ba452b5afcf990b9332ace9dc3ad0ca4d7dcc1af45aa154ad32b2e114bb518\"}",
+          "created_at": "2026-06-08T00:29:07.26399561Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ],
+      "spec-id": "FEAT-026"
+    }
+  },
+  "governing": [
+    {
+      "id": "FEAT-026",
+      "path": "docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md",
+      "title": "Feature Specification: FEAT-026 — Compile Orchestrator \u0026 Bootstrap Pipeline"
+    }
+  ],
+  "paths": {
+    "dir": ".ddx/executions/20260608T003110-68790f13",
+    "prompt": ".ddx/executions/20260608T003110-68790f13/prompt.md",
+    "manifest": ".ddx/executions/20260608T003110-68790f13/manifest.json",
+    "result": ".ddx/executions/20260608T003110-68790f13/result.json",
+    "checks": ".ddx/executions/20260608T003110-68790f13/checks.json",
+    "usage": ".ddx/executions/20260608T003110-68790f13/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-385c98f8-20260608T003110-68790f13"
+  },
+  "prompt_sha": "6ce4f241df23842b0c1d276a2eb333d8cb6c2073a40dac5955dbf3965c29fd88"
+}
