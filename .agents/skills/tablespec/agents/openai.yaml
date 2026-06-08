@@ -1,0 +1,4 @@
+interface:
+  display_name: "tablespec"
+  short_description: "Canonical tablespec workflows for agents"
+  default_prompt: "Use the tablespec skill to work on tablespec code, specs, Databricks bootstrap, UMF formats, profiling, validation, sample data, pipeline packaging, and DDx-tracked implementation tasks."

@@ -247,6 +247,8 @@ derby.log
 !.ddx/executions/*/usage.json
 .claude/skills/*/
 .agents/skills/*/
+!.agents/skills/tablespec/
+!.agents/skills/tablespec/**
 .codex/
 .agent/logs/
 .agent/sessions/
