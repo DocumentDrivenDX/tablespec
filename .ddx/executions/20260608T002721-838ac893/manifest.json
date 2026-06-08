@@ -1,0 +1,51 @@
+{
+  "attempt_id": "20260608T002721-838ac893",
+  "bead_id": "tablespec-aad04c07",
+  "base_rev": "2bb699d1b959298fd4457893c1b7bbdc387a4eca",
+  "created_at": "2026-06-08T00:27:22.943227876Z",
+  "requested": {
+    "prompt": "synthesized",
+    "min_power": 5
+  },
+  "bead": {
+    "id": "tablespec-aad04c07",
+    "title": "Reconcile spec status drift with implementation evidence",
+    "description": "Several feature and user-story statuses are stale or inconsistent with implementation evidence. Examples: FEAT-016/017/019/020/021/022/023 are Proposed while their linked stories and tests indicate implemented slices; FEAT-015 and US-028 are Planned while API docs traceability tests now exist; US-021/023/024/026 remain Approved despite test coverage and implemented feature surfaces.",
+    "acceptance": "Feature and user-story statuses use a consistent vocabulary; every status is backed by implementation/test evidence or explicitly remains planned/specified; stale Done/Approved/Proposed prose is normalized; helix_align_check --strict remains clean.",
+    "labels": [
+      "spec",
+      "helix",
+      "alignment"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "ddx",
+          "body": "{\"resolved_provider\":\"codex\",\"resolved_model\":\"gpt-5.4-mini\",\"route_reason\":\"explicit_pin_discovery_unavailable\",\"fallback_chain\":[]}",
+          "created_at": "2026-06-08T00:27:09.975517019Z",
+          "kind": "routing",
+          "source": "legacy agent execute-bead",
+          "summary": "provider=codex model=gpt-5.4-mini reason=explicit_pin_discovery_unavailable"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"attempt_id\":\"20260608T002244-850fd3eb\",\"harness\":\"codex\",\"model\":\"gpt-5.4-mini\",\"route_reason\":\"explicit_pin_discovery_unavailable\",\"input_tokens\":2294196,\"output_tokens\":15638,\"total_tokens\":2309834,\"cost_usd\":0,\"duration_ms\":263438,\"exit_code\":0}",
+          "created_at": "2026-06-08T00:27:09.992916036Z",
+          "kind": "cost",
+          "source": "legacy agent execute-bead",
+          "summary": "tokens=2309834 model=gpt-5.4-mini"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T002721-838ac893",
+    "prompt": ".ddx/executions/20260608T002721-838ac893/prompt.md",
+    "manifest": ".ddx/executions/20260608T002721-838ac893/manifest.json",
+    "result": ".ddx/executions/20260608T002721-838ac893/result.json",
+    "checks": ".ddx/executions/20260608T002721-838ac893/checks.json",
+    "usage": ".ddx/executions/20260608T002721-838ac893/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-aad04c07-20260608T002721-838ac893"
+  },
+  "prompt_sha": "dd1aa6a8467bd95bc094309923fffa480a3b15d83040b998fe32db6751545caa"
+}
