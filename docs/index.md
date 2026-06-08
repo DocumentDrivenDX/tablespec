@@ -56,6 +56,7 @@ print(ddl)
 
 Learn how to use each feature of tablespec:
 
+- **[Happy Path](guide/happy-path.md)** -- Canonical end-to-end workflow from existing tables to pipelines
 - **[UMF Format](guide/umf-format.md)** -- YAML schema structure and supported data types
 - **[Schema Generation](guide/schema-generation.md)** -- UMF models, schema generators, and type mappings
 - **[Great Expectations](guide/great-expectations.md)** -- Baseline generation, constraint extraction, and GX mapping

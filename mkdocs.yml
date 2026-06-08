@@ -26,6 +26,7 @@ plugins:
 nav:
   - Home: index.md
   - User Guide:
+    - Happy Path: guide/happy-path.md
     - UMF Format: guide/umf-format.md
     - Schema Generation: guide/schema-generation.md
     - Great Expectations: guide/great-expectations.md
