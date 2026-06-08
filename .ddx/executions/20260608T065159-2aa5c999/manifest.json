@@ -1,0 +1,141 @@
+{
+  "attempt_id": "20260608T065159-2aa5c999",
+  "bead_id": "tablespec-171e409c",
+  "base_rev": "c840f1017e70086fd557122467b6f9d685266def",
+  "created_at": "2026-06-08T06:51:59.984920621Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-171e409c",
+    "title": "Thread dialect=databricks through compile and LDP emitter paths",
+    "description": "PROBLEM: The documented compile/bootstrap path can receive dialect=databricks, but not every emitted artifact path proves that spelling end-to-end. Some compile seams hard-code spark or document only spark/duckdb, so a downstream validator can still reject databricks or silently bypass the requested dialect.\nROOT CAUSE: src/tablespec/e2e/compile.py:129 forwards the caller dialect to generate_dbt_dag_project, but src/tablespec/e2e/compile.py:141 hard-codes generate_ldp_project(..., dialect=\"spark\"). src/tablespec/e2e/compile.py:193 calls generate_ingest_sql without a dialect, and src/tablespec/schemas/ingest_generator.py:214 hard-codes build_ingest_select(..., dialect=\"spark\"). src/tablespec/ldp/project.py:242 documents LDP dialect as Spark with duckdb accepted for parity, but omits databricks even though LDP runs on Databricks.\nPROPOSED FIX: Make compile_umfs accept dialect=\"databricks\" across all relevant compile seams. Preserve dbt target behavior as databricks, and normalize Spark-family SQL emitters internally where SQL is identical. Either add a dialect argument to generate_ingest_sql or explicitly document/direct-test that direct ingest artifacts are Spark-family and stable under databricks compile. Update LDP generation to accept databricks as an alias for Spark-family casts.\nNON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No real Databricks workspace execution beyond existing opt-in tiers.\nGOVERNING ARTIFACTS: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84; docs/helix/03-test/conformance-acceptance.md:49; docs/helix/03-test/conformance-acceptance.md:85; docs/helix/03-test/conformance-acceptance.md:109.\nDEPENDENCIES: none inherited from parent.\nVERIFICATION: Add compile/emitter tests and run uv/pytest, go test, and lefthook gates.",
+    "acceptance": "1. TestCompileUmfsAcceptsDatabricksDialect: add a compile-path test proving compile_umfs(..., dialect=\"databricks\") completes without ValueError and persists ingest, dbt_ingest, optional dbt_gold, LDP, and manifest artifacts under the pinned layout.\n2. TestGenerateLdpProjectAcceptsDatabricksAlias: add an LDP unit/conformance test proving generate_ldp_project(..., dialect=\"databricks\") succeeds and emits the same Spark-family cast body as dialect=\"spark\".\n3. TestDatabricksCompileArtifactsStateNormalizationDecision: assert the implementation notes or generated metadata/comments state the decision: public dialect=\"databricks\" is accepted and Spark-family SQL emitters may normalize to spark internally because cast SQL is identical.\n4. Test gates: uv run pytest tests/unit/test_bootstrap.py tests/e2e/test_bootstrap_from_specs.py tests/ldp/test_ldp_emitter.py tests/ldp/test_ldp_cast_parity.py; go test ./...; lefthook run pre-commit.",
+    "parent": "tablespec-ed74497c",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:docs",
+      "kind:bug",
+      "ac-quality:needs-refinement"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T01:58:10.980939598Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-171e409c\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T01:58:11.481417322Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"recoverable\",\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"rationale\":\"The attempt failed before implementation during the pre-execute checkpoint while listing worktree/checkpoint dirtiness with git exit status 128. Recent intake evidence also reports system_unready from project root dirtiness snapshot failure, so this is infrastructure/preflight failure rather than a bead defect or code regression.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T01:58:41.59268296Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "recoverable: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\noutcome_reason=recoverable",
+          "created_at": "2026-06-08T01:58:41.620854787Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T02:02:40.533739039Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-171e409c\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T02:02:40.925914769Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"transport\",\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"rationale\":\"The bead failed during the pre-execute checkpoint with 'listing checkpoint dirt: exit status 128', which indicates a transient infrastructure/git state issue rather than a problem with the bead specification or code implementation. Recent intake events also report system_unready from project root dirtiness snapshot failure, confirming this is a transport/preflight failure. The bead quality triage already classified this as recoverable with release_claim_retry.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T02:02:55.960124675Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "transport: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\noutcome_reason=transport",
+          "created_at": "2026-06-08T02:02:55.986844748Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: snapshot project root dirtiness: exit status 128\",\"fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"65124584ad3f1c6e5900c0aafa8ce291c4e983f47acc8269b667040304b48266\"}",
+          "created_at": "2026-06-08T02:05:39.013526634Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"\",\"actual_model\":\"\",\"actual_power\":0,\"actual_provider\":\"\",\"attempt_id\":\"\",\"bead_id\":\"tablespec-171e409c\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"\",\"routing_intent_degraded\":true,\"routing_intent_note\":\"actual route facts unavailable\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T02:05:39.402200949Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard note=actual route facts unavailable"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"\",\"classification\":\"transport\",\"detail\":\"pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\",\"rationale\":\"The attempt failed before implementation during the pre-execute checkpoint while listing checkpoint dirtiness with git exit status 128. Recent events repeatedly show project-root dirtiness snapshot failure/system_unready, so the narrow cause is a transport/preflight infrastructure failure rather than a bead defect, implementation regression, or external blocker.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"\",\"session_id\":\"\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T02:05:57.526300135Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "transport: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "pre-execute-bead checkpoint: listing checkpoint dirt: exit status 128\noutcome_reason=transport",
+          "created_at": "2026-06-08T02:05:57.551086Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"system_unready: This is a single docs/CLI guidance task already split out from the broader Databricks dialect parent. The acceptance criteria are coherent and locally testable, the scope stays inside user-facing docs/help plus traceability tests, and the prior failures are transport/preflight noise rather than a specification blocker.\",\"fingerprint\":\"7a5c99fdc017101fd5cf4f50e8cfca4d003d6ef65585a9b8e791eed1f63e8cce\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"7a5c99fdc017101fd5cf4f50e8cfca4d003d6ef65585a9b8e791eed1f63e8cce\"}",
+          "created_at": "2026-06-08T06:49:55.960658623Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T065159-2aa5c999",
+    "prompt": ".ddx/executions/20260608T065159-2aa5c999/prompt.md",
+    "manifest": ".ddx/executions/20260608T065159-2aa5c999/manifest.json",
+    "result": ".ddx/executions/20260608T065159-2aa5c999/result.json",
+    "checks": ".ddx/executions/20260608T065159-2aa5c999/checks.json",
+    "usage": ".ddx/executions/20260608T065159-2aa5c999/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-171e409c-20260608T065159-2aa5c999"
+  },
+  "prompt_sha": "177ff8cb213fa244b980249bbde7e64901cae6176609923f28b292a3e904fc95"
+}
