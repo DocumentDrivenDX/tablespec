@@ -18,7 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from scripts import bootstrap_from_tables
+from scripts import bootstrap_from_tables as bootstrap_demo
+from tablespec.bootstrap import bootstrap_from_tables
 
 # Spark's py4j gateway leaves transient JVM-connection sockets to be GC'd lazily;
 # under ``filterwarnings = error`` those surface as unraisable ResourceWarnings at an
@@ -34,6 +35,57 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 MEMBER_CSV = FIXTURES / "member.raw.csv"
 
 
+def _seed_member_table(spark) -> None:  # noqa: ANN001
+    """Seed the shared member table fixture used by the bootstrap tests."""
+    df = (
+        spark.read.option("header", True)
+        .option("inferSchema", True)
+        .option("quote", '"')
+        .option("escape", '"')
+        .option("multiLine", True)
+        .csv(str(MEMBER_CSV))
+    )
+    for meta in ("_source_file", "_load_ts"):
+        if meta in df.columns:
+            df = df.drop(meta)
+    spark.sql("DROP TABLE IF EXISTS member")
+    df.write.mode("overwrite").saveAsTable("member")
+
+
+def test_public_bootstrap_from_tables_persists_profiled_validation(
+    tmp_path: Path, spark_session
+) -> None:  # noqa: ANN001
+    """The public facade reflects, profiles, and compiles in one call."""
+    _seed_member_table(spark_session)
+
+    out = tmp_path / "out"
+    artifacts = bootstrap_from_tables(
+        spark_session,
+        "member",
+        out,
+        profile=True,
+        dialect="spark",
+    )
+
+    assert artifacts.manifest_path.exists()
+    assert artifacts.root == out.resolve()
+    assert artifacts.source == "tables"
+    assert artifacts.profile_enriched is True
+
+    member = artifacts.table("member")
+    assert member.umf_snapshot.exists()
+    assert member.suite_json.exists()
+
+    suite = json.loads(member.suite_json.read_text())
+    provenance = {e.get("meta", {}).get("generated_from") for e in suite}
+    assert "profiling" in provenance
+
+    from tablespec.e2e.manifest import CompiledArtifacts
+
+    reloaded = CompiledArtifacts.load(out)
+    assert reloaded.table("member").umf_snapshot.exists()
+
+
 def test_main_profile_enriched_backbone_green(tmp_path: Path, spark_session) -> None:  # noqa: ANN001
     """Path A (profile-enriched default) compiles + runs the backbone to green.
 
@@ -41,7 +93,7 @@ def test_main_profile_enriched_backbone_green(tmp_path: Path, spark_session) -> 
     (cleanly torn down at session scope; the demo never stops what it adopts).
     """
     out = tmp_path / "out"
-    rc = bootstrap_from_tables.main(
+    rc = bootstrap_demo.main(
         [
             "--table",
             "member",
@@ -69,7 +121,7 @@ def test_main_profile_enriched_backbone_green(tmp_path: Path, spark_session) -> 
 def test_main_schema_only_backbone_green(tmp_path: Path, spark_session) -> None:  # noqa: ANN001
     """Path A with --no-profile emits the schema-only baseline suite + still runs."""
     out = tmp_path / "out"
-    rc = bootstrap_from_tables.main(
+    rc = bootstrap_demo.main(
         [
             "--table",
             "member",

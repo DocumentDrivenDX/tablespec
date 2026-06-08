@@ -7,7 +7,8 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - **Type-Safe UMF Models** -- Pydantic-based models with runtime validation
 - **Schema Generation** -- Generate SQL DDL, PySpark schemas, and JSON schemas from UMF
 - **Great Expectations Integration** -- Baseline expectation generation and constraint extraction
-- **Profiling Mappers** -- Convert Spark DataFrame profiles and Deequ profiles to UMF
+- **Profiling** -- Native Spark profiles feed GX validation; schema reflection
+  handles UMF creation for bootstrap
 - **Validation** -- Table validation against UMF specifications with Great Expectations
 - **Type Mappings** -- Convert between UMF, PySpark, JSON, and Great Expectations types
 - **LLM Prompt Generation** -- Generate structured prompts for documentation, validation rules, relationships, and survivorship logic
@@ -58,7 +59,8 @@ Learn how to use each feature of tablespec:
 - **[UMF Format](guide/umf-format.md)** -- YAML schema structure and supported data types
 - **[Schema Generation](guide/schema-generation.md)** -- UMF models, schema generators, and type mappings
 - **[Great Expectations](guide/great-expectations.md)** -- Baseline generation, constraint extraction, and GX mapping
-- **[Profiling](guide/profiling.md)** -- Convert Spark and Deequ profiles to UMF
+- **[Profiling](guide/profiling.md)** -- Native Spark profiling that feeds GX validation
+- **[Bootstrap](guide/bootstrap.md)** -- One-shot Spark-table bootstrap into compiled artifacts
 - **[LLM Prompts](guide/llm-prompts.md)** -- Generate prompts for documentation, validation, and relationships
 - **[CLI](guide/cli.md)** -- Command-line schema management and conversion
 - **[Excel Conversion](guide/excel.md)** -- Round-trip Excel export/import for domain experts

@@ -75,6 +75,7 @@ from tablespec.compatibility import (
     CompatibilityReport,
     check_compatibility,
 )
+from tablespec.bootstrap import bootstrap_from_tables
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
 from tablespec.sample_data import GenerationConfig, SampleDataGenerator
@@ -176,6 +177,7 @@ __all__ = [
     "check_compatibility",
     "CompatibilityReport",
     "CompatibilityIssue",
+    "bootstrap_from_tables",
 ]
 
 # SparkToUmfMapper and TableValidator are available only if pyspark is installed (via tablespec[spark])

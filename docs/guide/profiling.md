@@ -1,35 +1,25 @@
 # Profiling Integration
 
-tablespec converts profiling results from Spark DataFrames and Deequ into UMF format.
+tablespec profiles Spark DataFrames natively and turns the profile into Great
+Expectations expectations.
 
-## Spark DataFrame Profiling
+For Databricks / Spark-table bootstrap, use the one-shot facade in
+[Bootstrap from Spark Tables](bootstrap.md). That facade reflects schema into
+UMF, optionally profiles the data, and compiles the full artifact tree. The
+profiler enriches validation; it does not create UMF.
 
-```python
-from tablespec import SparkToUmfMapper  # Requires tablespec[spark]
-from tablespec import save_umf_to_yaml
-from pyspark.sql import DataFrame
-
-# Profile Spark DataFrame
-mapper = SparkToUmfMapper()
-umf = mapper.create_umf_from_dataframe(
-    df=spark_df,
-    table_name="Medical_Claims",
-    source_file="claims.parquet"
-)
-
-# UMF includes inferred types, nullability, and sample values
-save_umf_to_yaml(umf, "medical_claims.yaml")
-```
-
-## Deequ Profiling
+## Native Spark Profiling
 
 ```python
-from tablespec import DeequToUmfMapper
+from tablespec import NativeSparkProfiler, ProfileToGxMapper
 
-# Convert Deequ profile to UMF
-mapper = DeequToUmfMapper()
-umf = mapper.create_umf_from_profile(
-    profile_json="deequ_profile.json",
-    table_name="Medical_Claims"
-)
+profiler = NativeSparkProfiler(spark)
+profile = profiler.profile(spark_df)
+
+gx_mapper = ProfileToGxMapper(strictness="medium")
+expectations = gx_mapper.build_expectations(profile)
 ```
+
+`profile` carries completeness, cardinality, numeric stats, quantiles, string
+stats, and detected patterns. `ProfileToGxMapper` turns that profile into the
+validation expectations that the bootstrap facade persists when `profile=True`.

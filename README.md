@@ -7,7 +7,8 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - **Type-Safe UMF Models**: Pydantic-based models with runtime validation
 - **Schema Generation**: Generate SQL DDL, PySpark schemas, and JSON schemas from UMF
 - **Great Expectations Integration**: Baseline expectation generation and constraint extraction
-- **Profiling Mappers**: Convert Spark DataFrame profiles and Deequ profiles to UMF
+- **Profiling**: Native Spark profiles feed GX validation; schema reflection
+  handles UMF creation for bootstrap
 - **Validation**: Table validation against UMF specifications with Great Expectations
 - **Type Mappings**: Convert between UMF, PySpark, JSON, and Great Expectations types
 - **LLM Prompt Generation**: Generate structured prompts for documentation, validation rules, relationships, and survivorship logic
@@ -134,6 +135,27 @@ print(spark_schema)
 json_schema = generate_json_schema(umf_dict)
 print(json_schema)
 ```
+
+### Bootstrapping from Existing Spark Tables
+
+```python
+from tablespec import bootstrap_from_tables
+
+artifacts = bootstrap_from_tables(
+    spark,
+    ["member"],
+    "/tmp/tablespec-bootstrap",
+    profile=True,
+)
+
+print(artifacts.manifest_path)
+print(artifacts.table("member").suite_json)
+```
+
+`bootstrap_from_tables` reflects each Spark table into UMF, optionally profiles
+the data to enrich the compiled validation suite, and persists the full
+artifact tree in one call. The profiler enriches validation; it does not create
+UMF.
 
 ## Documentation
 

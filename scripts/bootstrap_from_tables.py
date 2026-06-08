@@ -11,8 +11,8 @@ compiled artifacts. Doubles as the asserted Path A pytest e2e
 
 Pipeline:
     spark.table(t)
-      -> tablespec.e2e.paths.umfs_from_tables  (SparkToUmfMapper [+ profiler])
-      -> tablespec.e2e.compile.compile_umfs     (persist artifacts + manifest)
+      -> tablespec.bootstrap.bootstrap_from_tables
+         (schema reflection + optional profiling + compile)
       -> tablespec.e2e.backbone.run_backbone    (execute the compiled artifacts)
 
 The demo SEEDS each named table from a sibling ``<table>.raw.csv`` (the corpus
@@ -68,8 +68,7 @@ def _seed_table(spark, table: str, csv_path: Path) -> None:  # noqa: ANN001
 def main(argv: list[str] | None = None) -> int:
     """Run the Path A bootstrap demo. Returns a process exit code (0 = ok)."""
     from tablespec.e2e.backbone import run_backbone
-    from tablespec.e2e.compile import compile_umfs
-    from tablespec.e2e.paths import umfs_from_tables
+    from tablespec.bootstrap import bootstrap_from_tables
 
     args = _parse_args(argv)
     tables = list(args.table) if args.table else list(_DEFAULT_SEEDS)
@@ -95,23 +94,18 @@ def main(argv: list[str] | None = None) -> int:
         raw_batches[table] = [csv]
         print(f"seeded table {table} from {csv}")
 
-    # 1. REFLECT (+ optionally PROFILE) the tables into a UMF set (Path A entry).
-    umfs, suites = umfs_from_tables(spark, tables, profile=profile)
-    print(f"\nreflected {len(umfs)} UMF(s); profile-enriched suites: {sorted(suites)}")
-
-    # 2. COMPILE -> persist artifacts + manifest.
-    artifacts = compile_umfs(
-        umfs,
+    # 1. REFLECT (+ optionally PROFILE) and COMPILE in one public step.
+    artifacts = bootstrap_from_tables(
+        spark,
+        tables,
         out_dir,
-        source="tables",
-        profile_enriched=profile,
+        profile=profile,
         dialect=args.dialect,
-        suites=suites or None,
     )
     print(f"\n-- compiled artifacts under {artifacts.root} --")
     _print_artifacts(artifacts)
 
-    # 3. BACKBONE: execute the COMPILED artifacts.
+    # 2. BACKBONE: execute the COMPILED artifacts.
     print(f"\n-- backbone ({args.backend}) consuming compiled artifacts --")
     result = run_backbone(
         artifacts, spark=spark, raw_batches=raw_batches, backend=args.backend

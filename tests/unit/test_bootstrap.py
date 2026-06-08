@@ -1,0 +1,75 @@
+"""Tests for the public bootstrap facade."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from unittest.mock import sentinel
+
+
+def test_bootstrap_from_tables_reflects_profiles_and_compiles(monkeypatch, tmp_path):
+    from tablespec.bootstrap import bootstrap_from_tables
+
+    seen: dict[str, object] = {}
+
+    def fake_umfs_from_tables(spark, table_names, *, profile):  # noqa: ANN001
+        seen["umfs"] = (spark, table_names, profile)
+        return ["umf-member"], {"member": [{"type": "profiled"}]}
+
+    def fake_compile_umfs(umfs, out_dir, **kwargs):  # noqa: ANN001
+        seen["compile"] = (umfs, Path(out_dir), kwargs)
+        return sentinel.compiled
+
+    monkeypatch.setattr("tablespec.bootstrap.umfs_from_tables", fake_umfs_from_tables)
+    monkeypatch.setattr("tablespec.bootstrap.compile_umfs", fake_compile_umfs)
+
+    result = bootstrap_from_tables(
+        "spark-session",
+        "member",
+        tmp_path / "out",
+        profile=True,
+        dialect="spark",
+        gold_targets=("claim_enriched",),
+    )
+
+    assert result is sentinel.compiled
+    assert seen["umfs"] == ("spark-session", ["member"], True)
+
+    umfs, out_dir, kwargs = seen["compile"]
+    assert umfs == ["umf-member"]
+    assert out_dir == tmp_path / "out"
+    assert kwargs["source"] == "tables"
+    assert kwargs["profile_enriched"] is True
+    assert kwargs["dialect"] == "spark"
+    assert kwargs["gold_targets"] == ["claim_enriched"]
+    assert kwargs["suites"] == {"member": [{"type": "profiled"}]}
+
+
+def test_bootstrap_from_tables_schema_only_disables_profile_enrichment(
+    monkeypatch, tmp_path
+):
+    from tablespec.bootstrap import bootstrap_from_tables
+
+    def fake_umfs_from_tables(spark, table_names, *, profile):  # noqa: ANN001
+        assert spark == "spark-session"
+        assert table_names == ["member"]
+        assert profile is False
+        return ["umf-member"], {}
+
+    def fake_compile_umfs(umfs, out_dir, **kwargs):  # noqa: ANN001
+        assert umfs == ["umf-member"]
+        assert Path(out_dir) == tmp_path / "out"
+        assert kwargs["profile_enriched"] is False
+        assert kwargs["suites"] is None
+        return sentinel.compiled
+
+    monkeypatch.setattr("tablespec.bootstrap.umfs_from_tables", fake_umfs_from_tables)
+    monkeypatch.setattr("tablespec.bootstrap.compile_umfs", fake_compile_umfs)
+
+    result = bootstrap_from_tables(
+        "spark-session",
+        ["member"],
+        tmp_path / "out",
+        profile=False,
+    )
+
+    assert result is sentinel.compiled
