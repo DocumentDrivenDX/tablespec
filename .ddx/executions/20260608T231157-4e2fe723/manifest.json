@@ -1,0 +1,86 @@
+{
+  "attempt_id": "20260608T231157-4e2fe723",
+  "bead_id": "tablespec-c65a49de",
+  "base_rev": "170ce8fe33100a8e107a4f4046840877d7839794",
+  "created_at": "2026-06-08T23:11:58.252766958Z",
+  "requested": {
+    "prompt": "synthesized",
+    "min_power": 5
+  },
+  "bead": {
+    "id": "tablespec-c65a49de",
+    "title": "Document Spark-family normalization for databricks emitters",
+    "description": "PROBLEM: The implementation notes, comments, or generated metadata do not clearly explain why public dialect=\"databricks\" may be normalized internally by Spark-family SQL emitters, leaving the normalization behavior easy to misread as unsupported dialect handling.\nROOT CAUSE: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84 is the governing compile-orchestrator artifact, but the implementation notes and emitted metadata/comments do not state that public dialect=\"databricks\" is accepted while Spark-family emitters may normalize to spark internally because cast SQL is identical.\nPROPOSED FIX: Update implementation notes, comments, or generated metadata and bootstrap regression coverage to explicitly state the normalization decision: databricks remains accepted at the public contract boundary, and Spark-family SQL emitters may normalize internally to spark because the generated cast SQL is identical.\nNON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No real Databricks workspace execution beyond existing opt-in tiers. GOVERNING ARTIFACTS: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84; docs/helix/03-test/conformance-acceptance.md:49; docs/helix/03-test/conformance-acceptance.md:85; docs/helix/03-test/conformance-acceptance.md:109. DEPENDENCIES: parent bead tablespec-ed74497c; no additional dependencies.",
+    "acceptance": "1. TestDatabricksCompileArtifactsStateNormalizationDecision: assert the implementation notes or generated metadata/comments state the decision that public dialect=\"databricks\" is accepted and Spark-family SQL emitters may normalize to spark internally because cast SQL is identical.\n2. TestPytestGate: `uv run pytest tests/docs/test_dialect_contract.py tests/unit/test_bootstrap.py`\n3. TestGoGate: `go test ./...`\n4. TestLefthookGate: `lefthook run pre-commit`",
+    "parent": "tablespec-943b21a5",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:docs",
+      "kind:bug",
+      "ac-quality:refined"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "ddx",
+          "body": "{\"resolved_provider\":\"sindri\",\"resolved_model\":\"dflash\",\"route_reason\":\"policy=cheap; score=135.0\",\"fallback_chain\":[],\"requested_min_power\":5}",
+          "created_at": "2026-06-08T23:04:19.404696255Z",
+          "kind": "routing",
+          "source": "legacy agent execute-bead",
+          "summary": "provider=sindri model=dflash reason=policy=cheap; score=135.0"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"attempt_id\":\"20260608T203946-dfb4f30c\",\"harness\":\"fiz\",\"provider\":\"sindri\",\"model\":\"dflash\",\"route_reason\":\"policy=cheap; score=135.0\",\"input_tokens\":778463,\"output_tokens\":6780,\"total_tokens\":785243,\"cost_usd\":0,\"duration_ms\":7004413,\"exit_code\":1}",
+          "created_at": "2026-06-08T23:04:19.435583756Z",
+          "kind": "cost",
+          "source": "legacy agent execute-bead",
+          "summary": "tokens=785243 model=dflash"
+        },
+        {
+          "actor": "ddx",
+          "body": "{\"actual_harness\":\"fiz\",\"actual_model\":\"dflash\",\"actual_power\":0,\"actual_provider\":\"sindri\",\"attempt_id\":\"20260608T203946-dfb4f30c\",\"bead_id\":\"tablespec-c65a49de\",\"estimated_difficulty\":\"\",\"rejected_route_pins\":null,\"requested_power_class\":\"standard\",\"requested_profile\":\"cheap\",\"routing_intent_degraded\":false,\"routing_intent_note\":\"\",\"routing_intent_source\":\"default\"}",
+          "created_at": "2026-06-08T23:04:26.172766253Z",
+          "kind": "execution-routing-intent",
+          "source": "ddx work",
+          "summary": "source=default powerClass=standard model=dflash harness=fiz"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"base_rev\":\"fdc7bdbe4faa6e08b34c658096b28203f1f1cb2f\",\"classification\":\"routing\",\"detail\":\"agent: provider error: openai: POST \\\"http://sindri:8080/v1/chat/completions\\\": 400 Bad Request {\\\"message\\\":\\\"prompt + max_tokens exceeds context window\\\",\\\"type\\\":\\\"invalid_request_error\\\"}\",\"rationale\":\"Attempt failed before implementation because the selected provider/model route rejected the request with context_overflow: prompt + max_tokens exceeded the model context window. This is a routing/capability mismatch, not evidence of a bead defect.\",\"recommended_action\":\"release_claim_retry\",\"result_rev\":\"fdc7bdbe4faa6e08b34c658096b28203f1f1cb2f\",\"session_id\":\"eb-18c13fca\",\"status\":\"execution_failed\",\"suggested_amendments\":[],\"suggested_followup_beads\":[]}",
+          "created_at": "2026-06-08T23:04:52.208727818Z",
+          "kind": "bead-quality.triage",
+          "source": "ddx work",
+          "summary": "routing: release_claim_retry"
+        },
+        {
+          "actor": "erik",
+          "body": "agent: provider error: openai: POST \"http://sindri:8080/v1/chat/completions\": 400 Bad Request {\"message\":\"prompt + max_tokens exceeds context window\",\"type\":\"invalid_request_error\"}\npowerClass=standard\ndecision_audit={\"failure_class\":\"routing\",\"retry_action\":\"retry\",\"escalation_count\":0,\"requested_route\":{\"harness\":\"fiz\",\"provider\":\"sindri\",\"model\":\"dflash\",\"profile\":\"cheap\",\"routing_intent_source\":\"default\",\"inferred_power_class\":\"standard\",\"requested_power_class\":\"standard\"},\"actual_route\":{\"harness\":\"fiz\",\"provider\":\"sindri\",\"model\":\"dflash\",\"route_reason\":\"default\"},\"review_status\":\"skipped\",\"review_skip_reason\":\"review_not_configured\",\"review_classification\":\"review_skipped\",\"land_status\":\"not_landed\",\"reconcile_status\":\"not_applicable\"}\nresult_rev=fdc7bdbe4faa6e08b34c658096b28203f1f1cb2f\nbase_rev=fdc7bdbe4faa6e08b34c658096b28203f1f1cb2f\noutcome_reason=routing",
+          "created_at": "2026-06-08T23:04:52.223330465Z",
+          "kind": "execute-bead",
+          "source": "ddx work",
+          "summary": "execution_failed"
+        },
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness check timed out after 5m0s (tablespec-c65a49de)\",\"fingerprint\":\"5de7b8ac14ec7cc443d4124ca65154c9cd7d86966f2771ef34df4f39db9e48a0\",\"policy_mode\":\"warn-only\",\"reason\":\"timeout\",\"rule_id\":\"pre_claim_intake.timeout\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"5de7b8ac14ec7cc443d4124ca65154c9cd7d86966f2771ef34df4f39db9e48a0\"}",
+          "created_at": "2026-06-08T23:09:53.833253303Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "timeout"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260608T231157-4e2fe723",
+    "prompt": ".ddx/executions/20260608T231157-4e2fe723/prompt.md",
+    "manifest": ".ddx/executions/20260608T231157-4e2fe723/manifest.json",
+    "result": ".ddx/executions/20260608T231157-4e2fe723/result.json",
+    "checks": ".ddx/executions/20260608T231157-4e2fe723/checks.json",
+    "usage": ".ddx/executions/20260608T231157-4e2fe723/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-c65a49de-20260608T231157-4e2fe723"
+  },
+  "prompt_sha": "44cd4b353ce5fe601b91168b09cf298ad0e3267b645bfe59c943ae327da5c5b4"
+}
