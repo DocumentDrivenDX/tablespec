@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from tablespec.expectation_utils import expectation_dicts_from_umf
 from tablespec.models import UMF, UMFColumn
 
 
@@ -334,17 +335,7 @@ class UMFDiff:
             List of expectation dicts
 
         """
-        # Prefer unified ExpectationSuite (ADR-005)
-        if umf.expectations and umf.expectations.expectations:
-            return [exp.to_gx_dict() for exp in umf.expectations.expectations]
-        # Fallback to legacy validation_rules
-        if not umf.validation_rules:
-            return []
-        if hasattr(umf.validation_rules, "expectations"):
-            return list(getattr(umf.validation_rules, "expectations", None) or [])
-        if isinstance(umf.validation_rules, dict):
-            return umf.validation_rules.get("expectations", [])
-        return []
+        return expectation_dicts_from_umf(umf)
 
     def _get_rule_key(self, exp: dict) -> tuple[str, str, int]:
         """Extract (column, rule_type, rule_index) key from expectation.
@@ -377,7 +368,9 @@ class UMFDiff:
         metadata_fields = ["description", "table_type"]
         # Include canonical_name and aliases only if present on the model
         for optional_field in ["canonical_name", "aliases"]:
-            if hasattr(self.old_umf, optional_field) or hasattr(self.new_umf, optional_field):
+            if hasattr(self.old_umf, optional_field) or hasattr(
+                self.new_umf, optional_field
+            ):
                 metadata_fields.append(optional_field)
 
         for field in metadata_fields:

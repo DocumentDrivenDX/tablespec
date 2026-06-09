@@ -491,7 +491,7 @@ class UMFToExcelConverter:
         self._create_columns_sheet(umf)
         self._create_survivorship_sheet(umf)
 
-        if (umf.expectations and umf.expectations.expectations) or umf.validation_rules:
+        if self._get_expectation_dicts_for_export(umf):
             self._create_validation_sheet(umf)
 
         if umf.relationships:
@@ -1013,11 +1013,9 @@ class UMFToExcelConverter:
     @staticmethod
     def _get_expectation_dicts_for_export(umf: "UMF") -> list[dict[str, Any]]:
         """Get expectation dicts for Excel export, preferring ExpectationSuite."""
-        if umf.expectations and umf.expectations.expectations:
-            return [exp.to_gx_dict() for exp in umf.expectations.expectations]
-        if umf.validation_rules and umf.validation_rules.expectations:
-            return umf.validation_rules.expectations
-        return []
+        from tablespec.expectation_utils import expectation_dicts_from_umf
+
+        return expectation_dicts_from_umf(umf)
 
     def _prepare_validation_expectations_with_index(
         self, expectations: list[dict[str, Any]]

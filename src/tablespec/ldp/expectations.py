@@ -50,6 +50,7 @@ from enum import Enum
 from typing import Any
 
 from tablespec.core.schema_facts import accepted_values_tests, relationship_tests
+from tablespec.expectation_utils import expectation_dicts_from_umf_data
 
 
 class OnViolation(str, Enum):
@@ -204,21 +205,8 @@ def _accepted_values_meta(umf_data: dict[str, Any]) -> dict[str, dict[str, Any]]
     severity drives the constraint action regardless of which field carries it.
     """
     by_col: dict[str, dict[str, Any]] = {}
-    suite = umf_data.get("expectations") or {}
-    for exp in suite.get("expectations") or []:
-        if not isinstance(exp, dict):
-            continue
+    for exp in expectation_dicts_from_umf_data(umf_data):
         if exp.get("type") != "expect_column_values_to_be_in_set":
-            continue
-        col = (exp.get("kwargs") or {}).get("column")
-        if col and col not in by_col:
-            by_col[col] = exp.get("meta") or {}
-    legacy = (umf_data.get("validation_rules") or {}).get("expectations") or []
-    for exp in legacy:
-        if not isinstance(exp, dict):
-            continue
-        etype = exp.get("type") or exp.get("expectation_type")
-        if etype != "expect_column_values_to_be_in_set":
             continue
         col = (exp.get("kwargs") or {}).get("column")
         if col and col not in by_col:

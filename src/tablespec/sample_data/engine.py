@@ -9,6 +9,7 @@ import re
 from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 from tablespec import GXConstraintExtractor
+from tablespec.expectation_utils import expectation_dicts_from_umf_data
 
 try:
     from tablespec.inference.domain_types import DomainTypeRegistry
@@ -130,15 +131,21 @@ class SampleDataGenerator:
 
         # Initialize components in correct order
         self.gx_extractor = GXConstraintExtractor()
-        self.domain_type_registry = DomainTypeRegistry() if DomainTypeRegistry is not None else None
+        self.domain_type_registry = (
+            DomainTypeRegistry() if DomainTypeRegistry is not None else None
+        )
         self.key_registry = KeyRegistry(config, self.gx_extractor)
         self.generators = HealthcareDataGenerators(config, self.key_registry)
         self.validation_processor = ValidationRuleProcessor(self.generators)
         self.constraint_handlers = ConstraintHandlers()
         self.graph = RelationshipGraph()
         self.generated_data: dict[str, list[dict]] = {}
-        self.gx_expectations_cache: dict[str, dict[str, Any]] = {}  # Cache loaded expectations
-        self.debug_logged_columns: set[tuple[str, str]] = set()  # Track (table, column) debug logs
+        self.gx_expectations_cache: dict[
+            str, dict[str, Any]
+        ] = {}  # Cache loaded expectations
+        self.debug_logged_columns: set[tuple[str, str]] = (
+            set()
+        )  # Track (table, column) debug logs
         self.column_value_generator = ColumnValueGenerator(
             gx_extractor=self.gx_extractor,
             domain_type_registry=self.domain_type_registry,
@@ -149,7 +156,9 @@ class SampleDataGenerator:
             debug_logged_columns=self.debug_logged_columns,
         )
         self.filename_generator = FilenameGenerator(self.logger)
-        self._generated_filenames: dict[str, str] = {}  # filename -> table_name that wrote it
+        self._generated_filenames: dict[
+            str, str
+        ] = {}  # filename -> table_name that wrote it
 
     def load_umf_files(self) -> dict[str, dict]:
         """Load all UMF files from input directory using standard UMF discovery.
@@ -190,7 +199,9 @@ class SampleDataGenerator:
                 # Convert UMF model to dict for compatibility with rest of code
                 umf_files[table_name] = umf.model_dump(mode="json", exclude_none=True)
                 format_type = "directory" if item.is_dir() else "JSON file"
-                self.logger.debug(f"Loaded UMF for {table_name} from {format_type}: {item.name}")
+                self.logger.debug(
+                    f"Loaded UMF for {table_name} from {format_type}: {item.name}"
+                )
             except (ValueError, FileNotFoundError):
                 # Not a valid UMF file/directory - skip silently
                 continue
@@ -206,13 +217,17 @@ class SampleDataGenerator:
         """Build relationship graph from UMF relationship data."""
         # Filter out generated tables (they use survivorship, not dependency ordering)
         filtered_tables = {
-            name: data for name, data in umf_files.items() if data.get("table_type") != "generated"
+            name: data
+            for name, data in umf_files.items()
+            if data.get("table_type") != "generated"
         }
 
         excluded_count = len(umf_files) - len(filtered_tables)
         if excluded_count > 0:
             excluded_names = [
-                name for name, data in umf_files.items() if data.get("table_type") == "generated"
+                name
+                for name, data in umf_files.items()
+                if data.get("table_type") == "generated"
             ]
             self.logger.info(
                 f"Excluded {excluded_count} generated tables from dependency graph: {excluded_names}"
@@ -314,7 +329,9 @@ class SampleDataGenerator:
         for column, fk in cross_fks.items():
             # Try to read from Gold table in Unity Catalog
             # Format: local_cha_gold.{pipeline}.{table}
-            table_path = f"local_cha_gold.{fk.references_pipeline}.{fk.references_table}"
+            table_path = (
+                f"local_cha_gold.{fk.references_pipeline}.{fk.references_table}"
+            )
 
             try:
                 df = self.spark.table(table_path)
@@ -338,7 +355,9 @@ class SampleDataGenerator:
 
             except Exception as e:
                 # Table doesn't exist yet or other error - use normal generation
-                self.logger.debug(f"Could not load cross-pipeline seeds from {table_path}: {e}")
+                self.logger.debug(
+                    f"Could not load cross-pipeline seeds from {table_path}: {e}"
+                )
 
         return seeds
 
@@ -350,9 +369,7 @@ class SampleDataGenerator:
 
         # Load GX expectations for this table from UMF (cached)
         if table_name not in self.gx_expectations_cache:
-            # Extract expectations from UMF validation_rules
-            validation_rules = umf_data.get("validation_rules", {})
-            expectations_list = validation_rules.get("expectations", [])
+            expectations_list = expectation_dicts_from_umf_data(umf_data)
 
             if expectations_list:
                 # Create GX suite dict format for compatibility with extractor
@@ -414,8 +431,10 @@ class SampleDataGenerator:
                     validated_values = sample_values
                     if filename_pattern_regex and captures:
                         # Find which capture group this column corresponds to
-                        capture_group_pattern = self._get_capture_group_pattern_for_column(
-                            col_name, captures, filename_pattern_regex
+                        capture_group_pattern = (
+                            self._get_capture_group_pattern_for_column(
+                                col_name, captures, filename_pattern_regex
+                            )
                         )
                         if capture_group_pattern:
                             # Filter sample_values to only those matching the capture group pattern
@@ -423,7 +442,9 @@ class SampleDataGenerator:
                             validated_values = [
                                 v
                                 for v in sample_values
-                                if re.fullmatch(capture_group_pattern, str(v), re.IGNORECASE)
+                                if re.fullmatch(
+                                    capture_group_pattern, str(v), re.IGNORECASE
+                                )
                             ]
                             if not validated_values:
                                 self.logger.warning(
@@ -452,10 +473,14 @@ class SampleDataGenerator:
 
         if gx_expectations:
             column_equality_constraints = (
-                self.gx_extractor.extract_column_pair_equality_constraints(gx_expectations)
+                self.gx_extractor.extract_column_pair_equality_constraints(
+                    gx_expectations
+                )
             )
             unique_within_record_constraints = (
-                self.gx_extractor.extract_unique_within_record_constraints(gx_expectations)
+                self.gx_extractor.extract_unique_within_record_constraints(
+                    gx_expectations
+                )
             )
 
             if column_equality_constraints:
@@ -482,7 +507,9 @@ class SampleDataGenerator:
             )
             for record in forced_records:
                 if len(primary_key) > 1:
-                    composite_pk_tracker.add(tuple(record.get(pk_col) for pk_col in primary_key))
+                    composite_pk_tracker.add(
+                        tuple(record.get(pk_col) for pk_col in primary_key)
+                    )
             records.extend(forced_records)
             num_records = max(0, num_records - len(forced_records))
 
@@ -532,7 +559,9 @@ class SampleDataGenerator:
                 # Check composite primary key uniqueness if applicable
                 if len(primary_key) > 1:
                     # Extract composite key values
-                    composite_key_values = tuple(record.get(pk_col) for pk_col in primary_key)
+                    composite_key_values = tuple(
+                        record.get(pk_col) for pk_col in primary_key
+                    )
 
                     # Check if this combination already exists
                     if composite_key_values in composite_pk_tracker:
@@ -543,7 +572,9 @@ class SampleDataGenerator:
                             # Find a non-FK PK column to add suffix to (prefer non-member_id columns)
                             suffix_col = None
                             for pk_col in primary_key:
-                                col_meta = next((c for c in columns if c["name"] == pk_col), None)
+                                col_meta = next(
+                                    (c for c in columns if c["name"] == pk_col), None
+                                )
                                 if col_meta:
                                     # Skip FK columns and member_id columns
                                     key_type = col_meta.get("key_type", "")
@@ -557,7 +588,8 @@ class SampleDataGenerator:
                             if suffix_col is None:
                                 for pk_col in primary_key:
                                     col_meta = next(
-                                        (c for c in columns if c["name"] == pk_col), None
+                                        (c for c in columns if c["name"] == pk_col),
+                                        None,
                                     )
                                     if (
                                         col_meta
@@ -631,11 +663,15 @@ class SampleDataGenerator:
                 else:
                     # For compound keys, register the first data column (skip filename columns)
                     for pk_col in primary_key:
-                        col_meta = next((c for c in columns if c["name"] == pk_col), None)
+                        col_meta = next(
+                            (c for c in columns if c["name"] == pk_col), None
+                        )
                         if col_meta and col_meta.get("source") == "data":
                             key_value = record.get(pk_col)
                             if key_value is not None:
-                                self.key_registry.register_primary_key(table_name, key_value)
+                                self.key_registry.register_primary_key(
+                                    table_name, key_value
+                                )
                             break
 
         return records
@@ -898,7 +934,9 @@ class SampleDataGenerator:
             value, record, constraint_columns, current_col, enable_debug
         )
 
-    def _calculate_table_record_count(self, table_name: str, umf_data: dict[str, Any]) -> int:
+    def _calculate_table_record_count(
+        self, table_name: str, umf_data: dict[str, Any]
+    ) -> int:
         """Calculate appropriate number of records based on relationship cardinality.
 
         Uses the relationship graph to identify base tables (no dependencies) and
@@ -937,12 +975,16 @@ class SampleDataGenerator:
                 if cardinality == "one_to_one":
                     record_count = self.config.num_members
                 elif cardinality == "one_to_zero_or_one":
-                    record_count = int(self.config.num_members * self.config.relationship_density)
+                    record_count = int(
+                        self.config.num_members * self.config.relationship_density
+                    )
                 elif cardinality in ["one_to_many", "one_to_zero_or_many"]:
                     # Average 2-5 records per member
                     multiplier = random.uniform(2.0, 5.0)
                     record_count = int(
-                        self.config.num_members * multiplier * self.config.relationship_density
+                        self.config.num_members
+                        * multiplier
+                        * self.config.relationship_density
                     )
                 else:
                     # Unknown cardinality, use default
@@ -977,9 +1019,13 @@ class SampleDataGenerator:
             Generated filename with pattern or simple {table_name}.txt as fallback
 
         """
-        return self.filename_generator.generate_filename_from_pattern(table_name, umf_data, records)
+        return self.filename_generator.generate_filename_from_pattern(
+            table_name, umf_data, records
+        )
 
-    def save_data(self, table_name: str, records: list[dict], umf_data: dict[str, Any]) -> None:
+    def save_data(
+        self, table_name: str, records: list[dict], umf_data: dict[str, Any]
+    ) -> None:
         """Save generated data as pipe-delimited text files.
 
         Args:
@@ -998,14 +1044,18 @@ class SampleDataGenerator:
         # Get column names from UMF, only including data columns
         # Filename-sourced and metadata columns will be added during Bronze.Raw ingestion
         umf_columns_data_unsorted = [
-            col for col in umf_data.get("columns", []) if col.get("source", "data") in ["data"]
+            col
+            for col in umf_data.get("columns", [])
+            if col.get("source", "data") in ["data"]
         ]
 
         # Sort columns by position to ensure correct output file column order
         # Position comes from explicit 'position' field or first Excel column alias (A-ZZ)
         # This is critical for provided tables where column order must match source file format
         # Create index map before sorting for stable fallback ordering
-        original_indices = {id(col): idx for idx, col in enumerate(umf_columns_data_unsorted)}
+        original_indices = {
+            id(col): idx for idx, col in enumerate(umf_columns_data_unsorted)
+        }
         umf_columns_data = sorted(
             umf_columns_data_unsorted,
             key=lambda c: position_sort_key(
@@ -1028,14 +1078,18 @@ class SampleDataGenerator:
                 self.logger.error(
                     f"Record {idx} for {table_name} missing columns: {sorted(missing_cols)}"
                 )
-                msg = f"Generated record missing required columns: {sorted(missing_cols)}"
+                msg = (
+                    f"Generated record missing required columns: {sorted(missing_cols)}"
+                )
                 raise ValueError(msg)
 
         # Check for extra columns (warning only, check first record)
         # Filename-sourced columns are expected in records but excluded from CSV output
         # Metadata columns (meta_*) are also expected in UMF but not generated
         filename_cols = {
-            col["name"] for col in umf_data.get("columns", []) if col.get("source") == "filename"
+            col["name"]
+            for col in umf_data.get("columns", [])
+            if col.get("source") == "filename"
         }
         extra_cols = (
             set(records[0].keys())
@@ -1070,7 +1124,9 @@ class SampleDataGenerator:
 
         # Save as delimited text file with UMF column order
         # CSV headers use canonical_name if available, otherwise use name
-        csv_fieldnames = [col.get("canonical_name", col["name"]) for col in umf_columns_data]
+        csv_fieldnames = [
+            col.get("canonical_name", col["name"]) for col in umf_columns_data
+        ]
 
         txt_file = self.output_dir / filename
         with open(txt_file, "w", newline="", encoding="utf-8") as f:
@@ -1084,7 +1140,9 @@ class SampleDataGenerator:
             # Write canonical names as headers instead of using writeheader()
             f.write(delimiter.join(csv_fieldnames) + "\n")
             writer.writerows(records)
-        self.logger.debug(f"Saved delimited file: {txt_file} ({len(umf_columns)} columns)")
+        self.logger.debug(
+            f"Saved delimited file: {txt_file} ({len(umf_columns)} columns)"
+        )
 
         # Create symlink with simple table name for load-raw compatibility
         # load-raw expects files named {table}.txt, but we generate pattern-based names
@@ -1109,7 +1167,9 @@ class SampleDataGenerator:
             "tables_generated": {},
             "key_statistics": {
                 "total_tables": len(self.generated_data),
-                "total_records": sum(len(records) for records in self.generated_data.values()),
+                "total_records": sum(
+                    len(records) for records in self.generated_data.values()
+                ),
                 "unique_member_ids": len(self.generators.member_ids),
             },
         }
@@ -1176,7 +1236,9 @@ class SampleDataGenerator:
 
             # Log foreign key pool statistics
             fk_manager = self.key_registry.foreign_key_manager
-            self.logger.info(f"Foreign key pools ready: {len(fk_manager.pools)} equivalence groups")
+            self.logger.info(
+                f"Foreign key pools ready: {len(fk_manager.pools)} equivalence groups"
+            )
             for group_id, pool in fk_manager.pools.items():
                 # Find all columns in this group
                 columns = fk_manager.get_columns_for_group(group_id)

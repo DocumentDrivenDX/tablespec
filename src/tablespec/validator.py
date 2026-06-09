@@ -22,6 +22,7 @@ from tablespec.completeness_validator import (
     validate_provenance_columns,
 )
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
+from tablespec.expectation_utils import expectation_dicts_from_umf
 from tablespec.models import UMF, save_umf_to_yaml
 from tablespec.naming_validator import validate_naming_conventions
 from tablespec.relationship_validator import RelationshipValidator
@@ -40,11 +41,7 @@ _UMF_JSON_SCHEMA: dict[str, Any] = UMF.model_json_schema()
 
 def _get_expectation_dicts(umf: UMF) -> list[dict[str, Any]]:
     """Get expectation dicts from ExpectationSuite, falling back to legacy fields."""
-    if umf.expectations and umf.expectations.expectations:
-        return [exp.to_gx_dict() for exp in umf.expectations.expectations]
-    if umf.validation_rules and umf.validation_rules.expectations:
-        return umf.validation_rules.expectations
-    return []
+    return expectation_dicts_from_umf(umf)
 
 
 @dataclass
@@ -178,12 +175,18 @@ def validate_table(
         if table_dir.is_dir() and (table_dir / "table.yaml").exists():
             parent_dir = table_dir.parent
             for subdir in parent_dir.iterdir():
-                if subdir.is_dir() and (subdir / "table.yaml").exists() and subdir != table_dir:
+                if (
+                    subdir.is_dir()
+                    and (subdir / "table.yaml").exists()
+                    and subdir != table_dir
+                ):
                     try:
                         sibling = context.load_umf(subdir)
                         all_umf_tables.append(sibling)
                     except Exception:
-                        context.logger.debug("Failed to load sibling UMF from %s", subdir)
+                        context.logger.debug(
+                            "Failed to load sibling UMF from %s", subdir
+                        )
 
         # Build table name lookup (includes aliases)
         table_names = {t.table_name.lower() for t in all_umf_tables}
@@ -219,7 +222,9 @@ def validate_table(
 
                 # Validate expectation with GX library using actual kwargs
                 if gx_executor is not None:
-                    is_valid, gx_error = gx_executor.validate_expectation(exp_type, kwargs, meta)
+                    is_valid, gx_error = gx_executor.validate_expectation(
+                        exp_type, kwargs, meta
+                    )
                     if not is_valid and gx_error:
                         errors.append(f"Expectation {i} ({exp_type}): {gx_error}")
 
@@ -278,10 +283,14 @@ def validate_table(
             rel_errors = rel_validator.validate_all_relationships(all_umf_tables)
             for table_name, error_list in rel_errors.items():
                 for error_type, message in error_list:
-                    errors.append(f"Relationship error in {table_name}: [{error_type}] {message}")
+                    errors.append(
+                        f"Relationship error in {table_name}: [{error_type}] {message}"
+                    )
 
         # 7. Validate survivorship rules for generated tables
-        all_tables_map = {t.table_name: [col.name for col in t.columns] for t in all_umf_tables}
+        all_tables_map = {
+            t.table_name: [col.name for col in t.columns] for t in all_umf_tables
+        }
         if hasattr(umf, "derivations") and umf.derivations:
             is_valid, surv_errors = SurvivorshipValidator.validate(
                 umf.derivations, all_tables=all_tables_map
@@ -412,8 +421,12 @@ def show_table_info(
             "expectation_count": len(_get_expectation_dicts(umf)),
         },
         "relationships": {
-            "foreign_keys": len(umf.relationships.foreign_keys or []) if umf.relationships else 0,
-            "referenced_by": len(umf.relationships.referenced_by or []) if umf.relationships else 0,
+            "foreign_keys": len(umf.relationships.foreign_keys or [])
+            if umf.relationships
+            else 0,
+            "referenced_by": len(umf.relationships.referenced_by or [])
+            if umf.relationships
+            else 0,
         },
         "file_format": {
             "has_pattern": bool(umf.file_format and umf.file_format.filename_pattern),
@@ -605,7 +618,9 @@ def _import_with_atomic_commits(
     # Detect all changes in-memory
     diff = UMFDiff(old_umf, new_umf)
     all_changes = (
-        diff.get_column_changes() + diff.get_validation_changes() + diff.get_metadata_changes()
+        diff.get_column_changes()
+        + diff.get_validation_changes()
+        + diff.get_metadata_changes()
     )
 
     if not all_changes:
@@ -630,7 +645,11 @@ def _import_with_atomic_commits(
 
     for review_note, changes in grouped.items():
         # Apply this group's changes (in-place modifications preserve order)
-        from tablespec.umf_diff import UMFColumnChange, UMFMetadataChange, UMFValidationChange
+        from tablespec.umf_diff import (
+            UMFColumnChange,
+            UMFMetadataChange,
+            UMFValidationChange,
+        )
 
         for change in changes:
             if isinstance(change, UMFColumnChange):
@@ -650,7 +669,9 @@ def _import_with_atomic_commits(
         # Build detailed commit message with change descriptions
         table_name = current_umf.table_name
         change_details = _format_change_details(changes, table_name)
-        commit_message = f"{review_note}\n\n{change_details}" if change_details else review_note
+        commit_message = (
+            f"{review_note}\n\n{change_details}" if change_details else review_note
+        )
 
         # Commit with detailed message
         # Git will detect exactly which files changed in this step

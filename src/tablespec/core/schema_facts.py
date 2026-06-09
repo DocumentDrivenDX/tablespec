@@ -28,6 +28,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from tablespec.expectation_utils import expectation_dicts_from_umf_data
+
 # An expectation of this type carries a domain enum in ``kwargs["value_set"]``.
 _SET_MEMBERSHIP_TYPE = "expect_column_values_to_be_in_set"
 
@@ -213,17 +215,10 @@ def _iter_set_expectations(umf_data: dict[str, Any]) -> list[dict[str, Any]]:
     """
     found: list[dict[str, Any]] = []
 
-    suite = umf_data.get("expectations") or {}
-    for exp in suite.get("expectations") or []:
-        if isinstance(exp, dict) and exp.get("type") == _SET_MEMBERSHIP_TYPE:
+    for exp in expectation_dicts_from_umf_data(umf_data):
+        etype = exp.get("type") or exp.get("expectation_type")
+        if etype == _SET_MEMBERSHIP_TYPE:
             found.append(exp)
-
-    legacy = (umf_data.get("validation_rules") or {}).get("expectations") or []
-    for exp in legacy:
-        if isinstance(exp, dict):
-            etype = exp.get("type") or exp.get("expectation_type")
-            if etype == _SET_MEMBERSHIP_TYPE:
-                found.append(exp)
 
     return found
 

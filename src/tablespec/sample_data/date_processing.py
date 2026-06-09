@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from tablespec.date_formats import get_strftime_format, is_supported_format
+from tablespec.expectation_utils import expectation_dicts_from_umf_data
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,15 @@ def convert_umf_format_to_strftime(umf_format: str | None) -> str | None:
     # Skip warning and return None for non-date format patterns
     non_date_patterns = ["XXX", "(", ")", "#", "@", "phone", "fax"]
     # Also skip descriptive format strings (not actual date format specifiers)
-    descriptive_phrases = ["alphanumeric", "letters", "integer", "digits", "text", "string", "free"]
+    descriptive_phrases = [
+        "alphanumeric",
+        "letters",
+        "integer",
+        "digits",
+        "text",
+        "string",
+        "free",
+    ]
     if any(pattern in umf_format for pattern in non_date_patterns):
         return None
     if any(phrase in umf_format.lower() for phrase in descriptive_phrases):
@@ -100,7 +109,10 @@ def _dynamic_format_conversion(umf_format: str) -> str:
         ("dd", "%d"),  # 2-digit day (zero-padded, lowercase)
         ("HH", "%H"),  # 24-hour hour
         ("hh", "%I"),  # 12-hour hour (zero-padded)
-        ("mma", "%M%p"),  # Minutes + am/pm marker (combined to avoid partial match issues)
+        (
+            "mma",
+            "%M%p",
+        ),  # Minutes + am/pm marker (combined to avoid partial match issues)
         ("mmA", "%M%p"),  # Minutes + AM/PM marker
         ("mm", "%M"),  # Minutes (lowercase variant)
         ("ss", "%S"),  # Seconds (lowercase variant)
@@ -128,11 +140,17 @@ def _dynamic_format_conversion(umf_format: str) -> str:
     result = re.sub(
         r"(?<!%)(?<!%-)(?<![A-Za-z])d(?![A-Za-z])", "%-d", result
     )  # Day (no zero, lowercase)
-    result = re.sub(r"(?<!%)(?<!%-)(?<![A-Za-z])M(?![A-Za-z])", "%-m", result)  # Month (no zero)
-    return re.sub(r"(?<!%)(?<!%-)(?<![A-Za-z])h(?![A-Za-z])", "%-I", result)  # Hour 12h (no zero)
+    result = re.sub(
+        r"(?<!%)(?<!%-)(?<![A-Za-z])M(?![A-Za-z])", "%-m", result
+    )  # Month (no zero)
+    return re.sub(
+        r"(?<!%)(?<!%-)(?<![A-Za-z])h(?![A-Za-z])", "%-I", result
+    )  # Hour 12h (no zero)
 
 
-def extract_date_constraints(col_name: str, umf_data: dict[str, Any]) -> dict[str, str] | None:
+def extract_date_constraints(
+    col_name: str, umf_data: dict[str, Any]
+) -> dict[str, str] | None:
     """Extract min/max date constraints from validation expectations.
 
     Looks for expect_column_values_to_be_between expectations and pending
@@ -146,11 +164,7 @@ def extract_date_constraints(col_name: str, umf_data: dict[str, Any]) -> dict[st
         Dictionary with min_value and/or max_value keys if found, else None
 
     """
-    # Check GX expectations in validation_rules
-    validation_rules = umf_data.get("validation_rules", {})
-    expectations = validation_rules.get("expectations", [])
-
-    for expectation in expectations:
+    for expectation in expectation_dicts_from_umf_data(umf_data):
         exp_type = expectation.get("type", "")
         kwargs = expectation.get("kwargs", {})
 
