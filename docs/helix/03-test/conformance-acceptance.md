@@ -93,6 +93,8 @@ dbt-databricks adapter + databricks SQL connector/SDK importable.
 Public Databricks-facing compile UX accepts `dialect="databricks"` for the
 Spark-family SQL emitted by tablespec; internal emitters may normalize the public
 spelling back to `spark` when the rendered SQL is identical.
+That public `dialect="databricks"` spelling remains an accepted contract even when
+real Databricks workspace execution is available only through this opt-in tier.
 
 **What this tier proves ONLY against a real, configured workspace** (NOT run here —
 there is no cluster, so every leg SKIPS with the explicit `DATABRICKS_HOST not set`
@@ -127,6 +129,9 @@ are proven locally; only end-to-end EXECUTION on a real Databricks/LDP runtime i
 deferred to the opt-in tier.** No leg of this tier runs or passes in this repo's CI —
 it is skip-only here, and `test_e2e_tier_is_gated_off_here` fails loudly if a
 regression ever makes it "available" without a workspace.
+Local Spark-family parity proves the shared cast semantics; it does not replace or
+reject public `dialect="databricks"` acceptance, which remains part of the public
+compile UX contract.
 
 ---
 
