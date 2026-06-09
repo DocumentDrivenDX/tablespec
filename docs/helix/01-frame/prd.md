@@ -45,7 +45,8 @@ Healthcare data platforms work with table schemas across many tools and formats 
 - Real-time schema synchronization (compile is an explicit step, not a live watcher).
 - Shipping dbt or pysail as user-facing runtime dependencies (they are dev-group / test-only tooling).
 
-Deferred items tracked in `docs/helix/parking-lot.md`.
+Deferred items are tracked in DDx beads. Use `ddx bead ready --json` for
+execution-ready work and `ddx bead status --json` for tracker health.
 
 ## Users and Scope
 
