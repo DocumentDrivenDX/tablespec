@@ -1,0 +1,32 @@
+{
+  "attempt_id": "20260609T045718-15a5b887",
+  "bead_id": "tablespec-d73e83ed",
+  "base_rev": "8030d46f2b89dd4aa71ceb317bfa765d5f9f8263",
+  "created_at": "2026-06-09T04:57:18.877619196Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-d73e83ed",
+    "title": "Infer exact single-column advisory key candidates",
+    "description": "PROBLEM: NativeSparkProfiler computes per-column completeness and approximate cardinality, but it does not promote high-confidence single-column keys into advisory candidates. Users cannot distinguish a verified exact non-null unique identifier from the existing approximate uniqueness heuristic.\n\nROOT CAUSE: src/tablespec/profiling/native_profiler.py:165 batches completeness and approximate cardinality signals, src/tablespec/profiling/native_profiler.py:198 builds ColumnProfile objects, and src/tablespec/profiling/native_profiler.py:228 returns DataFrameProfile without any key candidate scoring, exact verification, nullable handling, or key_min_rows guard.\n\nPROPOSED FIX: When infer_key_candidates=True and row_count \u003e= key_min_rows, derive single-column candidate prefilters from existing completeness and approximate distinct signals, deterministic name/type hints, and penalties. Exact-verify only bounded prefiltered columns using Spark SQL/DataFrame aggregations that are Spark Connect-safe and do not use RDDs or SparkContext APIs. Emit primary_key_candidate only for non-null exact unique columns; emit unique_constraint_candidate or advisory nullable evidence for nullable exact-unique columns. Score deterministically in [0, 1], populate all evidence fields, and order candidates by score descending, key width ascending, then column-name tuple ascending.\n\nGOVERNING ARTIFACT: parent bead tablespec-cc4f665b.\n\nDEPENDENCY ID: tablespec-cc4f665b.\n\nNON-SCOPE: Composite key search and subset minimality beyond single-column minimal=true. Writing sidecar files or extending manifest layout; tracked by FEAT-026 child. Mutating UMF.primary_key or unique_constraints. Making sample data, dbt, or LDP consume inferred candidates. Implementing compound uniqueness execution in the validator; tracked by FEAT-007 child.",
+    "acceptance": "1. TestNativeProfilerSingleColumnKeys::test_native_profiler_single_column_exact_key_candidate uses a fixture with \u003e=100 rows, or explicitly overrides key_min_rows, and produces exactly one verified_exact primary_key_candidate for a non-null unique id with every documented evidence field present and score in [0, 1].\n2. TestNativeProfilerSingleColumnKeys::test_native_profiler_nullable_unique_is_not_pk verifies a nullable unique column produces no primary_key_candidate and is represented as unique_constraint_candidate or advisory evidence with nullable=true.\n3. TestNativeProfilerSingleColumnKeys::test_native_profiler_key_min_rows_prevents_noisy_inference verifies defaults produce no candidates below key_min_rows and an explicit key_min_rows override makes candidates non-empty on the same deterministic fixture.\n4. TestNativeProfilerSingleColumnKeys::test_single_column_candidate_ordering_is_total_and_stable verifies ordering by score descending, key width ascending, and column-name tuple ascending for tied or near-tied candidates.\n5. TestNativeProfilerSingleColumnKeys::test_single_column_exact_verification_uses_connect_safe_dataframe_operations verifies inference does not call RDDs or classic-only SparkContext APIs.\n6. TestQualityGates::test_single_column_go_test_gate documents and passes go test ./... or records operator_required when no Go module/toolchain exists.\n7. TestQualityGates::test_single_column_lefthook_gate documents and passes lefthook run pre-commit or records operator_required when lefthook is unavailable.\n8. Verification command passes: uv run pytest tests/unit/test_native_profiler_key_candidates.py tests/unit/test_profiler_connect_sail.py tests/unit -k gx_expectation.",
+    "parent": "tablespec-29002b40",
+    "labels": [
+      "area:profiling",
+      "kind:feature",
+      "ac-quality:refined",
+      "parent:tablespec-cc4f665b"
+    ]
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260609T045718-15a5b887",
+    "prompt": ".ddx/executions/20260609T045718-15a5b887/prompt.md",
+    "manifest": ".ddx/executions/20260609T045718-15a5b887/manifest.json",
+    "result": ".ddx/executions/20260609T045718-15a5b887/result.json",
+    "checks": ".ddx/executions/20260609T045718-15a5b887/checks.json",
+    "usage": ".ddx/executions/20260609T045718-15a5b887/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-d73e83ed-20260609T045718-15a5b887"
+  },
+  "prompt_sha": "d2eb136bbc818a61a034b6dc1b6be8839ffc8b70401b7a7a1a8b3089ad013645"
+}

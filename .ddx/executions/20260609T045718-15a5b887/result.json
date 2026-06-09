@@ -1,0 +1,42 @@
+{
+  "bead_id": "tablespec-d73e83ed",
+  "attempt_id": "20260609T045718-15a5b887",
+  "base_rev": "8030d46f2b89dd4aa71ceb317bfa765d5f9f8263",
+  "result_rev": "1dbd5405e41371730429a8cb3ddfd658b6b658d4",
+  "implementation_rev": "1dbd5405e41371730429a8cb3ddfd658b6b658d4",
+  "outcome": "task_succeeded",
+  "status": "success",
+  "detail": "success",
+  "candidate_ref": "refs/ddx/iterations/20260609T045718-15a5b887/0",
+  "cycle_trace": [
+    {
+      "cycle_index": 0,
+      "attempt_id": "20260609T045718-15a5b887",
+      "result_rev": "1dbd5405e41371730429a8cb3ddfd658b6b658d4",
+      "implementer_route": {},
+      "requested_route": {},
+      "actual_route": {},
+      "review_result": {},
+      "final_decision": "success",
+      "failure_class": "none",
+      "retry_action": "close",
+      "escalation_count": 0,
+      "review_status": "skipped",
+      "review_skip_reason": "review_not_configured",
+      "review_classification": "review_skipped",
+      "land_status": "landed",
+      "reconcile_status": "not_applicable"
+    }
+  ],
+  "session_id": "eb-0efae538",
+  "duration_ms": 546107,
+  "exit_code": 0,
+  "project_root": "/Users/erik/Projects/tablespec",
+  "execution_dir": ".ddx/executions/20260609T045718-15a5b887",
+  "prompt_file": ".ddx/executions/20260609T045718-15a5b887/prompt.md",
+  "manifest_file": ".ddx/executions/20260609T045718-15a5b887/manifest.json",
+  "result_file": ".ddx/executions/20260609T045718-15a5b887/result.json",
+  "rate_limit_budget": 300000000000,
+  "started_at": "2026-06-09T04:57:18.892173644Z",
+  "finished_at": "2026-06-09T05:06:25.000117972Z"
+}
