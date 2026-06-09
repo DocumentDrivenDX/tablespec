@@ -251,10 +251,9 @@ class GXSuiteExecutor:
         ``_parse_validation_result`` produces, so downstream consumers (report.py,
         quality/executor.py, table_validator.py) are unaffected.
 
-        Unknown / unsupported expectation types are surfaced as a passing
-        ``ExpectationResult`` with an explanatory ``observed_value`` (GX itself
-        would error on a truly unknown type; baseline suites only emit handled
-        types).
+        Unknown / unsupported expectation types are surfaced as failed
+        ``ExpectationResult`` entries. The native path must fail closed so a
+        suite never reports enforcement for an expectation it did not execute.
         """
         from tablespec.validation import native_executor
 
@@ -271,10 +270,12 @@ class GXSuiteExecutor:
                     results.append(
                         ExpectationResult(
                             expectation_type=exp_type,
-                            success=True,
+                            success=False,
                             column=column,
                             observed_value=f"unsupported on native path: {exp_type}",
-                            details={"observed_value": f"unsupported: {exp_type}"},
+                            details={
+                                "error": f"unsupported native expectation: {exp_type}"
+                            },
                         )
                     )
                     continue

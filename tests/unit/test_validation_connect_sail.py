@@ -330,6 +330,38 @@ def test_values_to_be_unique(sail_spark):
     assert r.unexpected_values == [1]
 
 
+def test_compound_columns_to_be_unique(sail_spark):
+    exp = [
+        {
+            "type": "expect_compound_columns_to_be_unique",
+            "kwargs": {"column_list": ["member_id", "effective_date"]},
+        }
+    ]
+    schema = "member_id int, effective_date string"
+    clean = _by_type(
+        _run(
+            sail_spark,
+            exp,
+            [(1, "2026-01-01"), (1, "2026-01-02"), (2, "2026-01-01")],
+            schema,
+        )
+    )
+    assert clean["expect_compound_columns_to_be_unique"].success is True
+
+    dirty = _by_type(
+        _run(
+            sail_spark,
+            exp,
+            [(1, "2026-01-01"), (1, "2026-01-01"), (2, "2026-01-01")],
+            schema,
+        )
+    )
+    r = dirty["expect_compound_columns_to_be_unique"]
+    assert r.success is False
+    assert r.unexpected_count == 2
+    assert r.unexpected_values == [{"member_id": 1, "effective_date": "2026-01-01"}]
+
+
 def test_values_to_match_strftime_format(sail_spark):
     exp = [
         {

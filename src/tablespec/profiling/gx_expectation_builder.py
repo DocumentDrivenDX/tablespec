@@ -135,8 +135,10 @@ class ProfileToGxMapper:
         expectations.append(self._expect_table_column_count(profile))
 
         # Column-level expectations
-        for col_name, col_profile in profile.columns.items():
+        for col_profile in profile.columns.values():
             expectations.extend(self._build_column_expectations(col_profile, profile))
+
+        expectations.extend(self._key_candidate_expectations(profile))
 
         logger.info(
             f"Generated {len(expectations)} expectations from profile "
@@ -262,6 +264,43 @@ class ProfileToGxMapper:
             ):
                 return True
         return False
+
+    def _key_candidate_expectations(
+        self, profile: DataFrameProfile
+    ) -> list[dict[str, Any]]:
+        """Generate expectations from exact advisory key candidates."""
+        from tablespec.validation import native_executor
+
+        if not native_executor.is_natively_supported(
+            "expect_compound_columns_to_be_unique"
+        ):
+            return []
+
+        expectations: list[dict[str, Any]] = []
+        for candidate in profile.key_candidates or []:
+            if not (
+                candidate.verified_exact is True
+                and candidate.exact_unique is True
+                and candidate.emitted is True
+                and len(candidate.columns) > 1
+            ):
+                continue
+
+            expectations.append(
+                {
+                    "type": "expect_compound_columns_to_be_unique",
+                    "kwargs": {"column_list": list(candidate.columns)},
+                    "meta": {
+                        "description": (
+                            ", ".join(candidate.columns)
+                            + ": exact verified composite key candidate"
+                        ),
+                        "severity": "warning",
+                        "generated_from": "profiling_key_candidate",
+                    },
+                }
+            )
+        return expectations
 
     def _numeric_range_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:
         """Generate value-range expectations for numeric columns."""

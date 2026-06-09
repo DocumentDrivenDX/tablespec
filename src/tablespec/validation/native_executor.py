@@ -386,6 +386,63 @@ def _column_values_to_be_unique(
     )
 
 
+def _compound_columns_to_be_unique(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
+    columns = list(kwargs.get("column_list") or kwargs.get("columns") or [])
+    if len(columns) < 2:
+        raise ValueError(
+            "expect_compound_columns_to_be_unique requires at least two columns"
+        )
+
+    mostly = kwargs.get("mostly", 1.0)
+    scoped = _apply_compound_ignore_row_if(df, columns, kwargs)
+    element_count = scoped.count()
+    F = _functions_for(scoped)  # noqa: N806
+    grouped_cols = [_bcol(scoped, column) for column in columns]
+
+    dup_groups = (
+        scoped.groupBy(*grouped_cols)
+        .agg(F.count(F.lit(1)).alias("_dup_cnt"))
+        .filter(F.col("_dup_cnt") > 1)
+    )
+    dup_rows = dup_groups.collect()
+    unexpected_count = sum(int(row["_dup_cnt"]) for row in dup_rows)
+    samples = [
+        {column: row[column] for column in columns} for row in dup_rows[:_SAMPLE_LIMIT]
+    ]
+    return _result(
+        unexpected_count=unexpected_count,
+        element_count=element_count,
+        partial_unexpected_list=samples,
+        observed_value=unexpected_count,
+        mostly=mostly,
+    )
+
+
+def _apply_compound_ignore_row_if(
+    df: DataFrame, columns: list[str], kwargs: dict[str, Any]
+) -> DataFrame:
+    ignore_row_if = kwargs.get("ignore_row_if", "never")
+    column_refs = [_bcol(df, column) for column in columns]
+
+    if ignore_row_if == "never":
+        return df
+    if ignore_row_if == "any_value_is_missing":
+        cond = None
+        for col in column_refs:
+            present = col.isNotNull()
+            cond = present if cond is None else (cond & present)
+        return df.filter(cond) if cond is not None else df
+    if ignore_row_if == "all_values_are_missing":
+        cond = None
+        for col in column_refs:
+            present = col.isNotNull()
+            cond = present if cond is None else (cond | present)
+        return df.filter(cond) if cond is not None else df
+    return df
+
+
 def _column_values_to_match_strftime_format(
     df: DataFrame, kwargs: dict[str, Any]
 ) -> dict[str, Any]:
@@ -497,6 +554,7 @@ _TABLE_EVALUATORS = {
     "expect_table_row_count_to_be_between": _table_row_count_to_be_between,
     "expect_table_column_count_to_equal": _table_column_count_to_equal,
     "expect_table_columns_to_match_ordered_list": _table_columns_to_match_ordered_list,
+    "expect_compound_columns_to_be_unique": _compound_columns_to_be_unique,
 }
 
 _COLUMN_EVALUATORS = {
