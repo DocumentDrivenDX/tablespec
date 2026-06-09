@@ -2,8 +2,27 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
+
+
+@dataclass
+class KeyCandidateEvidence:
+    """Evidence attached to a key candidate."""
+
+    minimal: bool | None = None
+    reason: str | None = None
+
+
+@dataclass
+class KeyCandidate:
+    """A bounded advisory key candidate produced by the native profiler."""
+
+    columns: list[str]
+    verified_exact: bool = False
+    exact_unique: bool | None = None
+    emitted: bool = False
+    evidence: KeyCandidateEvidence = field(default_factory=KeyCandidateEvidence)
 
 
 @dataclass
@@ -56,3 +75,4 @@ class DataFrameProfile:
 
     num_records: int
     columns: dict[str, ColumnProfile]
+    key_candidates: list[KeyCandidate] | None = None

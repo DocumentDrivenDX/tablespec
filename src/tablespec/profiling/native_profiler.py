@@ -22,9 +22,15 @@ from __future__ import annotations
 
 import logging
 import re
+from itertools import combinations
 from typing import TYPE_CHECKING, Any
 
-from tablespec.profiling.types import ColumnProfile, DataFrameProfile
+from tablespec.profiling.types import (
+    ColumnProfile,
+    DataFrameProfile,
+    KeyCandidate,
+    KeyCandidateEvidence,
+)
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame, SparkSession
@@ -124,6 +130,10 @@ class NativeSparkProfiler:
         *,
         restrict_to_columns: list[str] | None = None,
         cache_inputs: bool = True,
+        infer_key_candidates: bool = False,
+        key_max_width: int = 3,
+        key_max_candidates: int = 12,
+        key_verification_pass_budget: int = 6,
     ) -> DataFrameProfile:
         """Profile a Spark DataFrame.
 
@@ -136,6 +146,17 @@ class NativeSparkProfiler:
         cache_inputs : bool, optional
             Whether to cache the DataFrame during profiling for performance.
             Defaults to True.
+        infer_key_candidates : bool, optional
+            Whether to infer bounded composite key candidates from profile
+            signals. Defaults to False.
+        key_max_width : int, optional
+            Maximum width of a candidate combination. Defaults to 3.
+        key_max_candidates : int, optional
+            Maximum number of pre-verification candidates to consider.
+            Defaults to 12.
+        key_verification_pass_budget : int, optional
+            Maximum number of exact verification passes to spend on candidates.
+            Defaults to 6.
 
         Returns
         -------
@@ -221,11 +242,254 @@ class NativeSparkProfiler:
 
             columns[col_name] = profile
 
+        profile = DataFrameProfile(num_records=num_records, columns=columns)
+
+        if infer_key_candidates:
+            profile.key_candidates = self._infer_key_candidates(
+                df,
+                profile,
+                columns_to_profile,
+                key_max_width=key_max_width,
+                key_max_candidates=key_max_candidates,
+                key_verification_pass_budget=key_verification_pass_budget,
+            )
+
         if cached:
             df.unpersist()
 
         logger.info(f"Profiling complete: {len(columns)} columns profiled")
-        return DataFrameProfile(num_records=num_records, columns=columns)
+        return profile
+
+    def _infer_key_candidates(
+        self,
+        df: DataFrame,
+        profile: DataFrameProfile,
+        columns_to_profile: list[str],
+        *,
+        key_max_width: int,
+        key_max_candidates: int,
+        key_verification_pass_budget: int,
+    ) -> list[KeyCandidate]:
+        """Infer bounded advisory key candidates from cheap profile signals."""
+        ranked_columns = self._rank_key_candidate_columns(
+            profile, columns_to_profile, profile.num_records
+        )
+        if not ranked_columns or key_max_width < 1 or key_max_candidates < 1:
+            return []
+
+        pool_size = min(
+            len(ranked_columns), max(8, key_max_width + 1, key_max_candidates)
+        )
+        search_pool = ranked_columns[:pool_size]
+        column_order = {
+            col_name: idx for idx, col_name in enumerate(columns_to_profile)
+        }
+        candidate_specs = self._build_key_candidate_specs(
+            profile,
+            search_pool,
+            key_max_width,
+            profile.num_records,
+            column_order,
+        )
+        selected_specs = candidate_specs[:key_max_candidates]
+
+        candidates: list[KeyCandidate] = []
+        exact_results: dict[tuple[str, ...], bool] = {}
+        passes_used = 0
+
+        for columns in selected_specs:
+            candidate = KeyCandidate(columns=list(columns))
+            if passes_used < key_verification_pass_budget:
+                passes_used += 1
+                candidate.verified_exact = True
+                candidate.exact_unique = self._exact_unique_for_columns(
+                    df, columns, num_records=profile.num_records
+                )
+                exact_results[columns] = bool(candidate.exact_unique)
+            else:
+                candidate.evidence = KeyCandidateEvidence(
+                    minimal=None,
+                    reason="verification budget exhausted",
+                )
+            candidates.append(candidate)
+
+        self._finalize_key_candidates(candidates, exact_results)
+        return candidates
+
+    def _rank_key_candidate_columns(
+        self,
+        profile: DataFrameProfile,
+        columns_to_profile: list[str],
+        num_records: int,
+    ) -> list[str]:
+        """Rank columns by how promising they look as key members."""
+        ranked: list[tuple[str, float, int]] = []
+        for col_name in columns_to_profile:
+            column_profile = profile.columns.get(col_name)
+            if column_profile is None:
+                continue
+            if column_profile.completeness < 1.0:
+                continue
+            if column_profile.approximate_num_distinct is None:
+                continue
+
+            distinct_ratio = (
+                column_profile.approximate_num_distinct / num_records
+                if num_records > 0
+                else 0.0
+            )
+            ranked.append(
+                (col_name, distinct_ratio, column_profile.approximate_num_distinct)
+            )
+
+        ranked.sort(key=lambda item: (-item[1], -item[2], item[0]))
+        return [col_name for col_name, _, _ in ranked]
+
+    def _build_key_candidate_specs(
+        self,
+        profile: DataFrameProfile,
+        search_pool: list[str],
+        key_max_width: int,
+        num_records: int,
+        column_order: dict[str, int],
+    ) -> list[tuple[str, ...]]:
+        """Build bounded candidate combinations from a deterministic search pool."""
+        specs: list[tuple[str, ...]] = []
+        max_width = min(key_max_width, len(search_pool))
+        for width in range(1, max_width + 1):
+            width_specs = [
+                tuple(sorted(cols, key=lambda col: column_order.get(col, 10**9)))
+                for cols in combinations(search_pool, width)
+            ]
+            width_specs.sort(
+                key=lambda cols: (
+                    -self._key_candidate_score(profile, cols, num_records),
+                    len(cols),
+                    cols,
+                )
+            )
+            specs.extend(width_specs)
+        specs.sort(
+            key=lambda cols: (
+                -self._key_candidate_score(profile, cols, num_records),
+                len(cols),
+                cols,
+            )
+        )
+        return specs
+
+    def _key_candidate_score(
+        self,
+        profile: DataFrameProfile,
+        columns: tuple[str, ...],
+        num_records: int,
+    ) -> float:
+        """Score a candidate using cheap per-column profile signals."""
+        if not columns or num_records <= 0:
+            return 0.0
+
+        distinct_ratios = []
+        for col_name in columns:
+            column_profile = profile.columns.get(col_name)
+            if (
+                column_profile is None
+                or column_profile.approximate_num_distinct is None
+            ):
+                continue
+            distinct_ratios.append(
+                column_profile.approximate_num_distinct / num_records
+            )
+
+        if not distinct_ratios:
+            return 0.0
+
+        # Mild width bonus keeps promising composites visible without making the
+        # search exhaustive or unfairly preferring very wide tuples.
+        return sum(distinct_ratios) + 0.05 * (len(columns) - 1)
+
+    def _exact_unique_for_columns(
+        self, df: DataFrame, columns: tuple[str, ...], *, num_records: int
+    ) -> bool:
+        """Check exact uniqueness for a column tuple using Connect-safe ops."""
+        F = _functions_for(df)  # noqa: N806
+
+        if not columns:
+            return False
+
+        distinct_rows = (
+            df.select(*(F.col(f"`{col_name}`") for col_name in columns))
+            .distinct()
+            .count()
+        )
+        return distinct_rows == num_records
+
+    def _finalize_key_candidates(
+        self,
+        candidates: list[KeyCandidate],
+        exact_results: dict[tuple[str, ...], bool],
+    ) -> None:
+        """Populate emitted/minimal flags after exact verification completes."""
+        for candidate in candidates:
+            columns = tuple(candidate.columns)
+
+            if not candidate.verified_exact:
+                candidate.emitted = False
+                if candidate.evidence.reason is None:
+                    candidate.evidence.reason = "verification budget exhausted"
+                continue
+
+            if not candidate.exact_unique:
+                candidate.emitted = False
+                candidate.evidence.minimal = False
+                if candidate.evidence.reason is None:
+                    candidate.evidence.reason = "exact verification found duplicates"
+                continue
+
+            proper_subsets = [
+                subset
+                for subset in self._proper_subsets(columns)
+                if subset in exact_results
+            ]
+            if any(exact_results[subset] for subset in proper_subsets):
+                candidate.emitted = False
+                candidate.evidence.minimal = False
+                candidate.evidence.reason = (
+                    "nonminimal: exact unique subset already verified"
+                )
+                continue
+
+            if len(proper_subsets) == self._proper_subset_count(columns):
+                candidate.evidence.minimal = True
+                candidate.evidence.reason = (
+                    "all proper subsets exact-verified non-unique"
+                )
+            else:
+                candidate.evidence.minimal = None
+                candidate.evidence.reason = (
+                    "minimality unknown: subset verification incomplete"
+                )
+
+            candidate.emitted = True
+
+    @staticmethod
+    def _proper_subset_count(columns: tuple[str, ...]) -> int:
+        """Return the number of non-empty proper subsets for a candidate."""
+        width = len(columns)
+        if width <= 1:
+            return 0
+
+        total = 0
+        for subset_width in range(1, width):
+            total += len(list(combinations(columns, subset_width)))
+        return total
+
+    @staticmethod
+    def _proper_subsets(columns: tuple[str, ...]) -> list[tuple[str, ...]]:
+        """Enumerate all non-empty proper subsets of a candidate tuple."""
+        subsets: list[tuple[str, ...]] = []
+        for subset_width in range(1, len(columns)):
+            subsets.extend(combinations(columns, subset_width))
+        return subsets
 
     def _profile_numeric(
         self, df: DataFrame, col_name: str, profile: ColumnProfile

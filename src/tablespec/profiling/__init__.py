@@ -16,11 +16,18 @@ Spark-dependent components require installing tablespec[spark]:
 """
 
 from tablespec.profiling.gx_expectation_builder import ProfileToGxMapper
-from tablespec.profiling.types import ColumnProfile, DataFrameProfile
+from tablespec.profiling.types import (
+    ColumnProfile,
+    DataFrameProfile,
+    KeyCandidate,
+    KeyCandidateEvidence,
+)
 
 __all__ = [
     "ColumnProfile",
     "DataFrameProfile",
+    "KeyCandidate",
+    "KeyCandidateEvidence",
     "ProfileToGxMapper",
 ]
 

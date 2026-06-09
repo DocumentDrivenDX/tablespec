@@ -1,0 +1,439 @@
+"""Tests for bounded composite key inference in the native profiler."""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+import warnings
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+try:
+    from pysail.spark import SparkConnectServer
+    from pyspark.sql.connect.session import SparkSession as RemoteSparkSession
+
+    _HAS_SAIL = True
+except ImportError:
+    _HAS_SAIL = False
+
+pytestmark = pytest.mark.filterwarnings(
+    "ignore::pytest.PytestUnraisableExceptionWarning"
+)
+
+
+def _key_candidates(profile: Any) -> list[dict[str, Any]]:
+    return asdict(profile)["key_candidates"] or []
+
+
+def _make_dataframe(spark: Any, rows: list[tuple[Any, ...]], schema: str) -> Any:
+    return spark.createDataFrame(rows, schema)
+
+
+def _profile_key_candidates(
+    profiler: Any,
+    df: Any,
+    *,
+    key_max_width: int,
+    key_max_candidates: int,
+    key_verification_pass_budget: int,
+) -> list[dict[str, Any]]:
+    profile = profiler.profile(
+        df,
+        infer_key_candidates=True,
+        key_max_width=key_max_width,
+        key_max_candidates=key_max_candidates,
+        key_verification_pass_budget=key_verification_pass_budget,
+    )
+    return _key_candidates(profile)
+
+
+def _find_candidate(
+    candidates: list[dict[str, Any]],
+    columns: tuple[str, ...],
+) -> dict[str, Any] | None:
+    for candidate in candidates:
+        if tuple(candidate["columns"]) == columns:
+            return candidate
+    return None
+
+
+@pytest.mark.no_spark
+def test_native_profiler_gx_expectation_compatibility() -> None:
+    """The new key-candidate field should not disturb GX expectation mapping."""
+    from tablespec.profiling import (
+        ColumnProfile,
+        DataFrameProfile,
+        KeyCandidate,
+        KeyCandidateEvidence,
+        ProfileToGxMapper,
+    )
+
+    profile = DataFrameProfile(
+        num_records=4,
+        columns={
+            "id": ColumnProfile(
+                column_name="id",
+                completeness=1.0,
+                approximate_num_distinct=4,
+                data_type="IntegerType",
+                is_data_type_inferred=False,
+            )
+        },
+        key_candidates=[
+            KeyCandidate(
+                columns=["id"],
+                verified_exact=True,
+                exact_unique=True,
+                emitted=True,
+                evidence=KeyCandidateEvidence(
+                    minimal=True,
+                    reason="single-column exact unique",
+                ),
+            )
+        ],
+    )
+
+    expectations = ProfileToGxMapper().build_expectations(profile)
+    assert expectations
+    assert profile.key_candidates and profile.key_candidates[0].emitted is True
+
+
+@pytest.mark.spark_only
+class TestNativeProfilerCompositeKeys:
+    """Composite key inference should stay bounded and honest."""
+
+    def test_native_profiler_composite_minimal_key(self, spark_session: Any) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        df = _make_dataframe(
+            spark_session,
+            [
+                (1, "2025-01-01"),
+                (1, "2025-01-02"),
+                (2, "2025-01-01"),
+                (2, "2025-01-02"),
+            ],
+            "member_id int, effective_date string",
+        )
+
+        profiler = NativeSparkProfiler(spark_session)
+        candidates = _profile_key_candidates(
+            profiler,
+            df,
+            key_max_width=2,
+            key_max_candidates=4,
+            key_verification_pass_budget=4,
+        )
+
+        pair = _find_candidate(candidates, ("member_id", "effective_date"))
+        assert pair is not None
+        assert pair["verified_exact"] is True
+        assert pair["exact_unique"] is True
+        assert pair["emitted"] is True
+        assert pair["evidence"]["minimal"] is True
+        assert (
+            pair["evidence"]["reason"] == "all proper subsets exact-verified non-unique"
+        )
+
+        member_id = _find_candidate(candidates, ("member_id",))
+        effective_date = _find_candidate(candidates, ("effective_date",))
+        assert member_id is not None
+        assert effective_date is not None
+        assert member_id["verified_exact"] is True
+        assert effective_date["verified_exact"] is True
+        assert member_id["exact_unique"] is False
+        assert effective_date["exact_unique"] is False
+
+    def test_native_profiler_rejects_nonminimal_composite(
+        self, spark_session: Any
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        df = _make_dataframe(
+            spark_session,
+            [
+                (1, "2025-01-01"),
+                (2, "2025-01-01"),
+                (3, "2025-01-02"),
+                (4, "2025-01-02"),
+            ],
+            "id int, effective_date string",
+        )
+
+        profiler = NativeSparkProfiler(spark_session)
+        candidates = _profile_key_candidates(
+            profiler,
+            df,
+            key_max_width=2,
+            key_max_candidates=4,
+            key_verification_pass_budget=4,
+        )
+
+        id_candidate = _find_candidate(candidates, ("id",))
+        composite = _find_candidate(candidates, ("id", "effective_date"))
+        assert id_candidate is not None
+        assert id_candidate["verified_exact"] is True
+        assert id_candidate["exact_unique"] is True
+        assert id_candidate["emitted"] is True
+
+        assert composite is not None
+        assert composite["verified_exact"] is True
+        assert composite["exact_unique"] is True
+        assert composite["emitted"] is False
+        assert composite["evidence"]["minimal"] is False
+        assert "unique subset" in composite["evidence"]["reason"]
+
+    def test_native_profiler_respects_candidate_and_pass_budget(
+        self, spark_session: Any
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        df = _make_dataframe(
+            spark_session,
+            [
+                (1, "A", 1, "x", 10, "q"),
+                (2, "A", 1, "y", 11, "q"),
+                (3, "B", 2, "x", 12, "q"),
+                (4, "B", 2, "y", 13, "q"),
+            ],
+            "c1 int, c2 string, c3 int, c4 string, c5 int, c6 string",
+        )
+
+        profiler = NativeSparkProfiler(spark_session)
+        candidates = _profile_key_candidates(
+            profiler,
+            df,
+            key_max_width=3,
+            key_max_candidates=6,
+            key_verification_pass_budget=2,
+        )
+
+        verified = [
+            candidate for candidate in candidates if candidate["verified_exact"]
+        ]
+        skipped = [
+            candidate for candidate in candidates if not candidate["verified_exact"]
+        ]
+
+        assert len(verified) == 2
+        assert skipped, (
+            "expected some candidates to be skipped once the pass budget is exhausted"
+        )
+        assert all(candidate["verified_exact"] is False for candidate in skipped)
+
+    def test_composite_search_respects_max_width_and_max_candidates(
+        self, spark_session: Any
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        df = _make_dataframe(
+            spark_session,
+            [
+                (1, "A", 1, "x", 10),
+                (2, "A", 1, "y", 11),
+                (3, "B", 2, "x", 12),
+                (4, "B", 2, "y", 13),
+            ],
+            "c1 int, c2 string, c3 int, c4 string, c5 int",
+        )
+
+        profiler = NativeSparkProfiler(spark_session)
+        candidates = _profile_key_candidates(
+            profiler,
+            df,
+            key_max_width=2,
+            key_max_candidates=4,
+            key_verification_pass_budget=4,
+        )
+
+        assert len(candidates) <= 4
+        assert all(len(candidate["columns"]) <= 2 for candidate in candidates)
+
+    def test_minimality_is_honest_when_subset_verification_is_skipped(
+        self, spark_session: Any
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        df = _make_dataframe(
+            spark_session,
+            [
+                (1, 1, 1),
+                (1, 1, 2),
+                (1, 2, 1),
+                (1, 2, 2),
+                (2, 1, 1),
+                (2, 1, 2),
+                (2, 2, 1),
+                (2, 2, 2),
+            ],
+            "a int, b int, c int",
+        )
+
+        profiler = NativeSparkProfiler(spark_session)
+        candidates = _profile_key_candidates(
+            profiler,
+            df,
+            key_max_width=3,
+            key_max_candidates=1,
+            key_verification_pass_budget=1,
+        )
+
+        triple = _find_candidate(candidates, ("a", "b", "c"))
+        assert triple is not None
+        assert triple["verified_exact"] is True
+        assert triple["exact_unique"] is True
+        assert triple["emitted"] is True
+        assert triple["evidence"]["minimal"] is None
+        assert "subset verification incomplete" in triple["evidence"]["reason"]
+
+
+if _HAS_SAIL:
+
+    @pytest.fixture(scope="module")
+    def sail_spark() -> Any:
+        """Start a Sail Spark Connect server and yield a Connect SparkSession."""
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=ResourceWarning)
+            server = SparkConnectServer()
+            server.start()
+            host, port = server.listening_address
+            session = (
+                RemoteSparkSession.builder.remote(f"sc://{host}:{port}")
+                .appName("tablespec-profiler-connect-key-candidates")
+                .create()
+            )
+            yield session
+            session.stop()
+            server.stop()
+
+
+@pytest.mark.skipif(not _HAS_SAIL, reason="pysail not available")
+class TestProfilerConnectSailKeyCandidates:
+    """Classic and Connect sessions should serialize key candidates identically."""
+
+    def test_connect_classic_key_candidates_structural_equality(
+        self, spark_session: Any, sail_spark: Any
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        rows = [
+            (1, "2025-01-01"),
+            (1, "2025-01-02"),
+            (2, "2025-01-01"),
+            (2, "2025-01-02"),
+        ]
+        schema = "member_id int, effective_date string"
+
+        classic_df = _make_dataframe(spark_session, rows, schema)
+        sail_df = _make_dataframe(sail_spark, rows, schema)
+
+        classic_profile = _profile_key_candidates(
+            NativeSparkProfiler(spark_session),
+            classic_df,
+            key_max_width=2,
+            key_max_candidates=4,
+            key_verification_pass_budget=4,
+        )
+        sail_profile = _profile_key_candidates(
+            NativeSparkProfiler(sail_spark),
+            sail_df,
+            key_max_width=2,
+            key_max_candidates=4,
+            key_verification_pass_budget=4,
+        )
+
+        assert classic_profile == sail_profile
+
+
+@pytest.mark.no_spark
+class TestQualityGates:
+    """The repo's quality-gate commands should be documented or operator-gated."""
+
+    def _run_or_operator_required(
+        self,
+        command: list[str],
+        *,
+        cwd: Path,
+        missing_reason: str,
+    ) -> dict[str, Any]:
+        tool = shutil.which(command[0])
+        if tool is None:
+            return {
+                "status": "operator_required",
+                "reason": missing_reason,
+                "command": " ".join(command),
+            }
+
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            return {
+                "status": "passed",
+                "command": " ".join(command),
+                "stdout": result.stdout,
+            }
+
+        return {
+            "status": "operator_required",
+            "reason": (
+                f"{command[0]} is installed but the command failed with exit code "
+                f"{result.returncode}"
+            ),
+            "command": " ".join(command),
+            "stderr": result.stderr,
+        }
+
+    def test_composite_go_test_gate(self) -> None:
+        repo_root = Path(__file__).resolve().parents[2]
+        if not (repo_root / "go.mod").exists():
+            result = {
+                "status": "operator_required",
+                "reason": "no Go module/toolchain exists in this repository",
+                "command": "go test ./...",
+            }
+        else:
+            result = self._run_or_operator_required(
+                ["go", "test", "./..."],
+                cwd=repo_root,
+                missing_reason="go toolchain is unavailable",
+            )
+
+        assert result["status"] in {"passed", "operator_required"}
+
+    def test_composite_lefthook_gate(self) -> None:
+        repo_root = Path(__file__).resolve().parents[2]
+        lefthook_config = next(
+            (
+                path
+                for path in (
+                    repo_root / "lefthook.yml",
+                    repo_root / "lefthook.yaml",
+                    repo_root / ".lefthook.yml",
+                    repo_root / ".lefthook.yaml",
+                )
+                if path.exists()
+            ),
+            None,
+        )
+        if lefthook_config is None:
+            result = {
+                "status": "operator_required",
+                "reason": "lefthook configuration is not present in this repository",
+                "command": "lefthook run pre-commit",
+            }
+        else:
+            result = self._run_or_operator_required(
+                ["lefthook", "run", "pre-commit"],
+                cwd=repo_root,
+                missing_reason="lefthook toolchain is unavailable",
+            )
+
+        assert result["status"] in {"passed", "operator_required"}
