@@ -115,9 +115,7 @@ class ProfileToGxMapper:
         self._tolerance = tolerance
         self._pattern_confidence = pattern_confidence
 
-    def build_expectations(
-        self, profile: DataFrameProfile
-    ) -> list[dict[str, Any]]:
+    def build_expectations(self, profile: DataFrameProfile) -> list[dict[str, Any]]:
         """Build GX expectations from a complete DataFrameProfile.
 
         Parameters
@@ -146,9 +144,7 @@ class ProfileToGxMapper:
         )
         return expectations
 
-    def _expect_table_column_count(
-        self, profile: DataFrameProfile
-    ) -> dict[str, Any]:
+    def _expect_table_column_count(self, profile: DataFrameProfile) -> dict[str, Any]:
         """Expect the table to have the profiled number of columns."""
         return {
             "type": "expect_table_column_count_to_equal",
@@ -198,49 +194,74 @@ class ProfileToGxMapper:
         """Generate not-null expectations based on completeness."""
         col = cp.column_name
         if cp.completeness >= 1.0:
-            return [{
-                "type": "expect_column_values_to_not_be_null",
-                "kwargs": {"column": col},
-                "meta": {
-                    "description": f"{col}: 100% complete in profiling",
-                    "severity": "critical",
-                    "generated_from": "profiling",
-                },
-            }]
+            return [
+                {
+                    "type": "expect_column_values_to_not_be_null",
+                    "kwargs": {"column": col},
+                    "meta": {
+                        "description": f"{col}: 100% complete in profiling",
+                        "severity": "critical",
+                        "generated_from": "profiling",
+                    },
+                }
+            ]
         elif cp.completeness >= self._completeness_threshold:
-            return [{
-                "type": "expect_column_values_to_not_be_null",
-                "kwargs": {"column": col, "mostly": round(cp.completeness, 4)},
-                "meta": {
-                    "description": f"{col}: {cp.completeness:.1%} complete in profiling",
-                    "severity": "warning",
-                    "generated_from": "profiling",
-                },
-            }]
+            return [
+                {
+                    "type": "expect_column_values_to_not_be_null",
+                    "kwargs": {"column": col, "mostly": round(cp.completeness, 4)},
+                    "meta": {
+                        "description": f"{col}: {cp.completeness:.1%} complete in profiling",
+                        "severity": "warning",
+                        "generated_from": "profiling",
+                    },
+                }
+            ]
         return []
 
     def _uniqueness_expectations(
         self, cp: ColumnProfile, profile: DataFrameProfile
     ) -> list[dict[str, Any]]:
         """Generate uniqueness expectation if column appears unique."""
+        if self._has_verified_single_column_key_candidate(cp, profile):
+            return []
+
         if (
             cp.approximate_num_distinct is not None
             and profile.num_records > 0
-            and cp.approximate_num_distinct / profile.num_records >= self._uniqueness_threshold
+            and cp.approximate_num_distinct / profile.num_records
+            >= self._uniqueness_threshold
         ):
-            return [{
-                "type": "expect_column_values_to_be_unique",
-                "kwargs": {"column": cp.column_name},
-                "meta": {
-                    "description": (
-                        f"{cp.column_name}: ~{cp.approximate_num_distinct} distinct "
-                        f"out of {profile.num_records} rows"
-                    ),
-                    "severity": "warning",
-                    "generated_from": "profiling",
-                },
-            }]
+            return [
+                {
+                    "type": "expect_column_values_to_be_unique",
+                    "kwargs": {"column": cp.column_name},
+                    "meta": {
+                        "description": (
+                            f"{cp.column_name}: ~{cp.approximate_num_distinct} distinct "
+                            f"out of {profile.num_records} rows"
+                        ),
+                        "severity": "warning",
+                        "generated_from": "profiling",
+                    },
+                }
+            ]
         return []
+
+    def _has_verified_single_column_key_candidate(
+        self, cp: ColumnProfile, profile: DataFrameProfile
+    ) -> bool:
+        """Return true when exact key evidence supersedes approximate uniqueness."""
+        for candidate in profile.key_candidates or []:
+            if (
+                candidate.verified_exact is True
+                and candidate.exact_unique is True
+                and candidate.emitted is True
+                and len(candidate.columns) == 1
+                and candidate.columns[0] == cp.column_name
+            ):
+                return True
+        return False
 
     def _numeric_range_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:
         """Generate value-range expectations for numeric columns."""
@@ -279,18 +300,20 @@ class ProfileToGxMapper:
         min_val = round(min_val, 4) if isinstance(min_val, float) else min_val
         max_val = round(max_val, 4) if isinstance(max_val, float) else max_val
 
-        return [{
-            "type": "expect_column_values_to_be_between",
-            "kwargs": {"column": col, "min_value": min_val, "max_value": max_val},
-            "meta": {
-                "description": f"{col}: values in [{min_val}, {max_val}]",
-                "severity": "warning",
-                "generated_from": "profiling",
-                "strictness": self._strictness,
-                "observed_min": cp.minimum,
-                "observed_max": cp.maximum,
-            },
-        }]
+        return [
+            {
+                "type": "expect_column_values_to_be_between",
+                "kwargs": {"column": col, "min_value": min_val, "max_value": max_val},
+                "meta": {
+                    "description": f"{col}: values in [{min_val}, {max_val}]",
+                    "severity": "warning",
+                    "generated_from": "profiling",
+                    "strictness": self._strictness,
+                    "observed_min": cp.minimum,
+                    "observed_max": cp.maximum,
+                },
+            }
+        ]
 
     def _quantile_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:
         """Generate quantile-based distribution bounds (drift detection)."""
@@ -330,22 +353,24 @@ class ProfileToGxMapper:
         if not quantiles_list:
             return []
 
-        return [{
-            "type": "expect_column_quantile_values_to_be_between",
-            "kwargs": {
-                "column": col,
-                "quantile_ranges": {
-                    "quantiles": quantiles_list,
-                    "value_ranges": value_ranges,
+        return [
+            {
+                "type": "expect_column_quantile_values_to_be_between",
+                "kwargs": {
+                    "column": col,
+                    "quantile_ranges": {
+                        "quantiles": quantiles_list,
+                        "value_ranges": value_ranges,
+                    },
                 },
-            },
-            "meta": {
-                "description": f"{col}: distribution quantiles within tolerance",
-                "severity": "info",
-                "generated_from": "profiling",
-                "observed_quantiles": cp.quantiles,
-            },
-        }]
+                "meta": {
+                    "description": f"{col}: distribution quantiles within tolerance",
+                    "severity": "info",
+                    "generated_from": "profiling",
+                    "observed_quantiles": cp.quantiles,
+                },
+            }
+        ]
 
     def _value_set_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:
         """Generate value-set expectations for low-cardinality columns."""
@@ -370,14 +395,16 @@ class ProfileToGxMapper:
         if is_numeric_data_type(cp.data_type):
             meta["validation_stage"] = "ingested"
 
-        return [{
-            "type": "expect_column_values_to_be_in_set",
-            "kwargs": {
-                "column": cp.column_name,
-                "value_set": cp.distinct_values,
-            },
-            "meta": meta,
-        }]
+        return [
+            {
+                "type": "expect_column_values_to_be_in_set",
+                "kwargs": {
+                    "column": cp.column_name,
+                    "value_set": cp.distinct_values,
+                },
+                "meta": meta,
+            }
+        ]
 
     def _string_length_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:
         """Generate string length bounds."""
@@ -390,18 +417,20 @@ class ProfileToGxMapper:
         if cp.string_length_max is not None:
             kwargs["max_value"] = cp.string_length_max
 
-        return [{
-            "type": "expect_column_value_lengths_to_be_between",
-            "kwargs": kwargs,
-            "meta": {
-                "description": (
-                    f"{cp.column_name}: lengths in "
-                    f"[{cp.string_length_min}, {cp.string_length_max}]"
-                ),
-                "severity": "warning",
-                "generated_from": "profiling",
-            },
-        }]
+        return [
+            {
+                "type": "expect_column_value_lengths_to_be_between",
+                "kwargs": kwargs,
+                "meta": {
+                    "description": (
+                        f"{cp.column_name}: lengths in "
+                        f"[{cp.string_length_min}, {cp.string_length_max}]"
+                    ),
+                    "severity": "warning",
+                    "generated_from": "profiling",
+                },
+            }
+        ]
 
     def _pattern_expectations(self, cp: ColumnProfile) -> list[dict[str, Any]]:
         """Generate regex expectations from detected value patterns."""
@@ -410,23 +439,25 @@ class ProfileToGxMapper:
 
         regex = _pattern_to_regex(cp.value_pattern)
 
-        return [{
-            "type": "expect_column_values_to_match_regex",
-            "kwargs": {
-                "column": cp.column_name,
-                "regex": regex,
-                "mostly": self._pattern_confidence,
-            },
-            "meta": {
-                "description": (
-                    f"{cp.column_name}: values match pattern "
-                    f"'{cp.value_pattern}' → regex {regex}"
-                ),
-                "severity": "info",
-                "generated_from": "profiling",
-                "source_pattern": cp.value_pattern,
-            },
-        }]
+        return [
+            {
+                "type": "expect_column_values_to_match_regex",
+                "kwargs": {
+                    "column": cp.column_name,
+                    "regex": regex,
+                    "mostly": self._pattern_confidence,
+                },
+                "meta": {
+                    "description": (
+                        f"{cp.column_name}: values match pattern "
+                        f"'{cp.value_pattern}' → regex {regex}"
+                    ),
+                    "severity": "info",
+                    "generated_from": "profiling",
+                    "source_pattern": cp.value_pattern,
+                },
+            }
+        ]
 
     def _distribution_shape_expectations(
         self, cp: ColumnProfile
@@ -444,21 +475,23 @@ class ProfileToGxMapper:
         skew_tolerance = max(abs(cp.skewness) * 0.5, 1.0)
         max(abs(cp.kurtosis) * 0.5, 2.0)
 
-        return [{
-            "type": "expect_column_skewness_to_be_between",
-            "kwargs": {
-                "column": cp.column_name,
-                "min_value": round(cp.skewness - skew_tolerance, 4),
-                "max_value": round(cp.skewness + skew_tolerance, 4),
-            },
-            "meta": {
-                "description": (
-                    f"{cp.column_name}: skewness ~{cp.skewness} "
-                    f"(tolerance ±{skew_tolerance:.2f})"
-                ),
-                "severity": "info",
-                "generated_from": "profiling",
-                "observed_skewness": cp.skewness,
-                "observed_kurtosis": cp.kurtosis,
-            },
-        }]
+        return [
+            {
+                "type": "expect_column_skewness_to_be_between",
+                "kwargs": {
+                    "column": cp.column_name,
+                    "min_value": round(cp.skewness - skew_tolerance, 4),
+                    "max_value": round(cp.skewness + skew_tolerance, 4),
+                },
+                "meta": {
+                    "description": (
+                        f"{cp.column_name}: skewness ~{cp.skewness} "
+                        f"(tolerance ±{skew_tolerance:.2f})"
+                    ),
+                    "severity": "info",
+                    "generated_from": "profiling",
+                    "observed_skewness": cp.skewness,
+                    "observed_kurtosis": cp.kurtosis,
+                },
+            }
+        ]

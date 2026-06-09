@@ -60,6 +60,17 @@ def _find_candidate(
     return None
 
 
+def _uniqueness_expectations_for_column(
+    expectations: list[dict[str, Any]], column: str
+) -> list[dict[str, Any]]:
+    return [
+        expectation
+        for expectation in expectations
+        if expectation["type"] == "expect_column_values_to_be_unique"
+        and expectation["kwargs"]["column"] == column
+    ]
+
+
 @pytest.mark.no_spark
 def test_native_profiler_gx_expectation_compatibility() -> None:
     """The new key-candidate field should not disturb GX expectation mapping."""
@@ -99,6 +110,132 @@ def test_native_profiler_gx_expectation_compatibility() -> None:
     expectations = ProfileToGxMapper().build_expectations(profile)
     assert expectations
     assert profile.key_candidates and profile.key_candidates[0].emitted is True
+
+
+@pytest.mark.no_spark
+class TestProfileToGxKeyCandidateDedupe:
+    """Verified exact key candidates should dedupe approximate GX uniqueness."""
+
+    def _profile(
+        self,
+        *,
+        key_candidates: list[Any] | None = None,
+    ) -> Any:
+        from tablespec.profiling import ColumnProfile, DataFrameProfile
+
+        return DataFrameProfile(
+            num_records=100,
+            columns={
+                "id": ColumnProfile(
+                    column_name="id",
+                    completeness=1.0,
+                    approximate_num_distinct=100,
+                    data_type="IntegerType",
+                    is_data_type_inferred=False,
+                ),
+                "event_date": ColumnProfile(
+                    column_name="event_date",
+                    completeness=1.0,
+                    approximate_num_distinct=5,
+                    data_type="StringType",
+                    is_data_type_inferred=False,
+                ),
+            },
+            key_candidates=key_candidates,
+        )
+
+    def _expectations(self, profile: Any) -> list[dict[str, Any]]:
+        from tablespec.profiling import ProfileToGxMapper
+
+        return ProfileToGxMapper().build_expectations(profile)
+
+    def test_profile_to_gx_no_duplicate_uniqueness_when_infer_keys_enabled(
+        self,
+    ) -> None:
+        from tablespec.profiling import KeyCandidate
+
+        profile = self._profile(
+            key_candidates=[
+                KeyCandidate(
+                    columns=["id"],
+                    verified_exact=True,
+                    exact_unique=True,
+                    emitted=True,
+                )
+            ]
+        )
+
+        expectations = self._expectations(profile)
+
+        assert _uniqueness_expectations_for_column(expectations, "id") == []
+
+    def test_profile_to_gx_legacy_uniqueness_unchanged_when_infer_keys_disabled(
+        self,
+    ) -> None:
+        expectations_without_candidates = self._expectations(self._profile())
+        expectations_with_empty_candidates = self._expectations(
+            self._profile(key_candidates=[])
+        )
+
+        assert expectations_with_empty_candidates == expectations_without_candidates
+        assert (
+            len(
+                _uniqueness_expectations_for_column(
+                    expectations_without_candidates, "id"
+                )
+            )
+            == 1
+        )
+
+    def test_unverified_or_budget_skipped_candidate_does_not_suppress_legacy_uniqueness(
+        self,
+    ) -> None:
+        from tablespec.profiling import KeyCandidate, KeyCandidateEvidence
+
+        profile = self._profile(
+            key_candidates=[
+                KeyCandidate(
+                    columns=["id"],
+                    verified_exact=False,
+                    exact_unique=None,
+                    emitted=False,
+                    evidence=KeyCandidateEvidence(
+                        reason="verification budget exhausted"
+                    ),
+                )
+            ]
+        )
+
+        expectations = self._expectations(profile)
+
+        assert len(_uniqueness_expectations_for_column(expectations, "id")) == 1
+
+    def test_nullable_or_composite_candidate_does_not_suppress_single_column_legacy_uniqueness(
+        self,
+    ) -> None:
+        from tablespec.profiling import KeyCandidate, KeyCandidateEvidence
+
+        profile = self._profile(
+            key_candidates=[
+                KeyCandidate(
+                    columns=["id"],
+                    verified_exact=True,
+                    exact_unique=True,
+                    emitted=False,
+                    evidence=KeyCandidateEvidence(reason="nullable advisory key"),
+                ),
+                KeyCandidate(
+                    columns=["id", "event_date"],
+                    verified_exact=True,
+                    exact_unique=True,
+                    emitted=True,
+                ),
+            ]
+        )
+
+        expectations = self._expectations(profile)
+
+        assert len(_uniqueness_expectations_for_column(expectations, "id")) == 1
 
 
 @pytest.mark.spark_only
