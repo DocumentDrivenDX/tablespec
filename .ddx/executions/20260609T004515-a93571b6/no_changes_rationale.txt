@@ -1,0 +1,2 @@
+status: blocked
+reason: external blocker - `go test ./...` cannot run in this worktree because there is no Go module or Go source tree here; the command exits `pattern ./...: directory prefix . does not contain main module or its selected dependencies`.

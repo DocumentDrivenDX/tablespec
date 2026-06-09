@@ -1,0 +1,33 @@
+{
+  "attempt_id": "20260609T004515-a93571b6",
+  "bead_id": "tablespec-7d18b645",
+  "base_rev": "dc2ff514a32349e5ab5577bb548fe86fc43bef65",
+  "created_at": "2026-06-09T00:45:16.58108826Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-7d18b645",
+    "title": "Clarify conformance artifact accepted dialect list includes databricks",
+    "description": "PROBLEM: The conformance acceptance artifact can still be read as spark/duckdb-only at the public dialect contract boundary, so reviewers and validators may incorrectly reject dialect=\"databricks\" even though the implementation accepts it.\nROOT CAUSE: docs/helix/03-test/conformance-acceptance.md:49 describes the DbtDatabricks compile tier without explicitly tying it to the accepted public dialect list, and docs/helix/03-test/conformance-acceptance.md:93 documents the Databricks-facing compile UX separately from the spark/duckdb dialect contract.\nPROPOSED FIX: Update docs/helix/03-test/conformance-acceptance.md so the accepted public dialect wording explicitly includes databricks alongside spark and duckdb, while preserving that internal Spark-family renderers may normalize the spelling when SQL is identical. Add a focused docs regression that fails if the accepted dialect wording regresses to spark/duckdb-only or omits dialect=\"databricks\".\nNON-SCOPE: One-shot bootstrap facade implementation. Production pipeline JSON/wheel packaging contract. Inline UMF format cleanup. No real Databricks workspace execution beyond existing opt-in tiers. GOVERNING ARTIFACTS: docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md:84; docs/helix/03-test/conformance-acceptance.md:49; docs/helix/03-test/conformance-acceptance.md:85; docs/helix/03-test/conformance-acceptance.md:109. DEPENDENCIES: parent bead tablespec-ed74497c; child of tablespec-943b21a5; no additional dependencies.",
+    "acceptance": "1. TestConformanceAcceptedDialectListIncludesDatabricks: add or update tests/docs/test_dialect_contract.py so it reads docs/helix/03-test/conformance-acceptance.md and fails unless the accepted public dialect wording names spark, duckdb, and databricks and includes public dialect=\"databricks\".\n2. TestConformanceAcceptedDialectListRejectsSparkDuckdbOnly: add or update the same docs regression so it fails on spark/duckdb-only accepted dialect language that omits databricks.\n3. TestPytestGate: `uv run pytest tests/docs/test_dialect_contract.py tests/unit/test_bootstrap.py`\n4. TestGoGate: `go test ./...`\n5. TestLefthookGate: `lefthook run pre-commit`",
+    "parent": "tablespec-3ee3b466",
+    "labels": [
+      "area:databricks",
+      "area:dialects",
+      "area:docs",
+      "kind:bug",
+      "ac-quality:refined"
+    ]
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260609T004515-a93571b6",
+    "prompt": ".ddx/executions/20260609T004515-a93571b6/prompt.md",
+    "manifest": ".ddx/executions/20260609T004515-a93571b6/manifest.json",
+    "result": ".ddx/executions/20260609T004515-a93571b6/result.json",
+    "checks": ".ddx/executions/20260609T004515-a93571b6/checks.json",
+    "usage": ".ddx/executions/20260609T004515-a93571b6/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-7d18b645-20260609T004515-a93571b6"
+  },
+  "prompt_sha": "3d2ee1ef10965e5dbe4d178cb8e6d8ef6cf4ceb736f91f6660943fbc862cad63"
+}
