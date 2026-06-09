@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -52,6 +52,7 @@ from tablespec.e2e.manifest import (
     gold_plan_path,
     ingest_sql_path,
     json_schema_path,
+    key_candidates_path,
     ldp_project_dir,
     pyspark_schema_path,
     suite_path,
@@ -78,6 +79,10 @@ def compile_umfs(
     dialect: str = "duckdb",
     gold_targets: list[str] | None = None,
     suites: dict[str, list[dict]] | None = None,
+    infer_keys: str = "none",
+    key_candidates: dict[str, list[dict[str, Any]]] | None = None,
+    key_promotion_min_score: float = 0.9,
+    key_promotion_min_gap: float = 0.05,
 ) -> CompiledArtifacts:
     """Compile *umfs* into persisted runtime artifacts under *out_dir*.
 
@@ -97,6 +102,10 @@ def compile_umfs(
             table is present, its list is persisted verbatim as the compiled suite
             (this is how Path A injects profile-enriched expectations); otherwise
             the baseline suite is generated from the UMF here.
+        infer_keys: ``"none"``, ``"candidates"``, or ``"auto"``. Candidate mode
+            writes advisory sidecars only. Auto mode may promote one clear
+            candidate into the compiled UMF snapshot.
+        key_candidates: optional advisory key-candidate evidence keyed by table.
 
     Returns:
         The :class:`CompiledArtifacts` manifest (already written to disk).
@@ -107,6 +116,7 @@ def compile_umfs(
     root = Path(out_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
     suites = suites or {}
+    key_candidates = key_candidates or {}
     targets = set(gold_targets or [])
 
     # --- per-table seams ------------------------------------------------------
@@ -118,6 +128,10 @@ def compile_umfs(
             root,
             dialect=dialect,
             suite=suites.get(umf.table_name),
+            infer_keys=infer_keys,
+            key_candidates=key_candidates.get(umf.table_name),
+            key_promotion_min_score=key_promotion_min_score,
+            key_promotion_min_gap=key_promotion_min_gap,
             emit_gold_plan=umf.table_name in targets,
             related=related,
         )
@@ -162,6 +176,10 @@ def _compile_table(
     *,
     dialect: str,
     suite: list[dict] | None,
+    infer_keys: str,
+    key_candidates: list[dict[str, Any]] | None,
+    key_promotion_min_score: float,
+    key_promotion_min_gap: float,
     emit_gold_plan: bool,
     related: list[UMF],
 ) -> TableArtifacts:
@@ -183,6 +201,15 @@ def _compile_table(
 
     name = umf.table_name
     umf_data = umf.model_dump(exclude_none=True)
+    sorted_candidates = _sorted_key_candidates(key_candidates or [])
+    promotion = _promotion_decision(
+        sorted_candidates,
+        mode=infer_keys,
+        min_score=key_promotion_min_score,
+        min_gap=key_promotion_min_gap,
+    )
+    if promotion["promoted"]:
+        umf_data["primary_key"] = promotion["columns"]
 
     # 0. snapshot the UMF the compile ran against (audit + reproducibility).
     umf_snap = _write(
@@ -206,6 +233,18 @@ def _compile_table(
     # 3. compiled validation suite (baseline OR profile-enriched, persisted verbatim).
     suite_exps = suite if suite is not None else _compile_baseline_suite(umf_data)
     suite_json = _write(suite_path(root, name), json.dumps(suite_exps, indent=2) + "\n")
+    key_candidates_json: Path | None = None
+    if infer_keys in {"candidates", "auto"}:
+        sidecar = {
+            "table_name": name,
+            "mode": infer_keys,
+            "promotion": promotion,
+            "candidates": sorted_candidates,
+        }
+        key_candidates_json = _write(
+            key_candidates_path(root, name),
+            json.dumps(sidecar, indent=2, sort_keys=True) + "\n",
+        )
 
     # 4. single-table ingest dbt project (writes its own tree under out_dir).
     dbt_ingest_root = dbt_ingest_project_dir(root, name)
@@ -228,6 +267,7 @@ def _compile_table(
         pyspark_schema=pyspark,
         json_schema=json_schema,
         suite_json=suite_json,
+        key_candidates_json=key_candidates_json,
         dbt_ingest_project=dbt_ingest_root,
         gold_plan_sql=gold_plan,
     )
@@ -242,3 +282,89 @@ def _compile_baseline_suite(umf_data: dict) -> list[dict]:
     from tablespec.gx_baseline import BaselineExpectationGenerator
 
     return BaselineExpectationGenerator().generate_baseline_expectations(umf_data)
+
+
+def _sorted_key_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return candidates in deterministic promotion/sidecar order."""
+
+    def score(candidate: dict[str, Any]) -> float:
+        evidence = candidate.get("evidence") or {}
+        raw_score = evidence.get("score", 0.0)
+        return float(raw_score or 0.0)
+
+    return sorted(
+        candidates,
+        key=lambda candidate: (
+            -score(candidate),
+            len(candidate.get("columns") or []),
+            tuple(candidate.get("columns") or []),
+        ),
+    )
+
+
+def _promotion_decision(
+    candidates: list[dict[str, Any]],
+    *,
+    mode: str,
+    min_score: float,
+    min_gap: float,
+) -> dict[str, Any]:
+    """Decide whether an advisory candidate can become authoritative UMF PK."""
+    if mode != "auto":
+        return {
+            "promoted": False,
+            "reason": "mode is advisory-only",
+            "columns": [],
+        }
+
+    qualifying = [
+        candidate
+        for candidate in candidates
+        if _is_promotable_key_candidate(candidate, min_score=min_score)
+    ]
+    if not qualifying:
+        return {
+            "promoted": False,
+            "reason": "no candidate met auto-promotion criteria",
+            "columns": [],
+        }
+    if len(qualifying) > 1:
+        top_score = _candidate_score(qualifying[0])
+        runner_up_score = _candidate_score(qualifying[1])
+        if top_score - runner_up_score < min_gap:
+            return {
+                "promoted": False,
+                "reason": "candidate score gap below key_promotion_min_gap",
+                "columns": [],
+            }
+
+    winner = qualifying[0]
+    return {
+        "promoted": True,
+        "reason": "single clear verified key candidate promoted",
+        "columns": list(winner.get("columns") or []),
+        "downstream_effects": [
+            "sample data uniqueness tracking may change",
+            "dbt incremental MERGE unique_key may change",
+            "LDP APPLY CHANGES KEYS may change",
+        ],
+    }
+
+
+def _candidate_score(candidate: dict[str, Any]) -> float:
+    evidence = candidate.get("evidence") or {}
+    return float(evidence.get("score") or 0.0)
+
+
+def _is_promotable_key_candidate(
+    candidate: dict[str, Any], *, min_score: float
+) -> bool:
+    evidence = candidate.get("evidence") or {}
+    return (
+        candidate.get("kind") == "primary_key_candidate"
+        and candidate.get("verified_exact") is True
+        and candidate.get("exact_unique") is True
+        and evidence.get("nullable") is False
+        and evidence.get("minimal") is True
+        and _candidate_score(candidate) >= min_score
+    )

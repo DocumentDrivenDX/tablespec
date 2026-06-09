@@ -11,8 +11,21 @@ def test_bootstrap_from_tables_reflects_profiles_and_compiles(monkeypatch, tmp_p
 
     seen: dict[str, object] = {}
 
-    def fake_umfs_from_tables(spark, table_names, *, profile):  # noqa: ANN001
-        seen["umfs"] = (spark, table_names, profile)
+    def fake_umfs_from_tables(  # noqa: ANN001
+        spark,
+        table_names,
+        *,
+        profile,
+        infer_key_candidates,
+        key_candidates_out,
+    ):
+        seen["umfs"] = (
+            spark,
+            table_names,
+            profile,
+            infer_key_candidates,
+            key_candidates_out,
+        )
         return ["umf-member"], {"member": [{"type": "profiled"}]}
 
     def fake_compile_umfs(umfs, out_dir, **kwargs):  # noqa: ANN001
@@ -32,7 +45,14 @@ def test_bootstrap_from_tables_reflects_profiles_and_compiles(monkeypatch, tmp_p
     )
 
     assert result is sentinel.compiled
-    assert seen["umfs"] == ("spark-session", ["member"], True)
+    spark, tables, profile, infer_keys, key_candidates_out = seen["umfs"]
+    assert (spark, tables, profile, infer_keys) == (
+        "spark-session",
+        ["member"],
+        True,
+        False,
+    )
+    assert key_candidates_out == {}
 
     umfs, out_dir, kwargs = seen["compile"]
     assert umfs == ["umf-member"]
@@ -42,6 +62,8 @@ def test_bootstrap_from_tables_reflects_profiles_and_compiles(monkeypatch, tmp_p
     assert kwargs["dialect"] == "spark"
     assert kwargs["gold_targets"] == ["claim_enriched"]
     assert kwargs["suites"] == {"member": [{"type": "profiled"}]}
+    assert kwargs["infer_keys"] == "none"
+    assert kwargs["key_candidates"] == {}
 
 
 def test_bootstrap_from_tables_schema_only_disables_profile_enrichment(
@@ -49,10 +71,19 @@ def test_bootstrap_from_tables_schema_only_disables_profile_enrichment(
 ):
     from tablespec.bootstrap import bootstrap_from_tables
 
-    def fake_umfs_from_tables(spark, table_names, *, profile):  # noqa: ANN001
+    def fake_umfs_from_tables(  # noqa: ANN001
+        spark,
+        table_names,
+        *,
+        profile,
+        infer_key_candidates,
+        key_candidates_out,
+    ):
         assert spark == "spark-session"
         assert table_names == ["member"]
         assert profile is False
+        assert infer_key_candidates is False
+        assert key_candidates_out == {}
         return ["umf-member"], {}
 
     def fake_compile_umfs(umfs, out_dir, **kwargs):  # noqa: ANN001

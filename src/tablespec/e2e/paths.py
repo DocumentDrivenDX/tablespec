@@ -33,6 +33,7 @@ LOAD; the backbone still needs a session to EXECUTE the compiled artifacts.
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -45,6 +46,8 @@ def umfs_from_tables(
     table_names: list[str],
     *,
     profile: bool = True,
+    infer_key_candidates: bool = False,
+    key_candidates_out: dict[str, list[dict[str, Any]]] | None = None,
 ) -> tuple[list[UMF], dict[str, list[dict]]]:
     """Path A: infer a UMF set from existing Spark tables (optionally enriched).
 
@@ -58,6 +61,10 @@ def umfs_from_tables(
         spark: an active Spark (classic or Connect) session.
         table_names: tables to reflect + (optionally) profile.
         profile: enrich with profile-derived expectations (recommended default).
+        infer_key_candidates: ask the native profiler to attach advisory key
+            candidates when profiling runs.
+        key_candidates_out: optional mutable sink populated with serialized
+            candidates keyed by bare table name.
 
     Returns:
         ``(umfs, suites)`` where ``suites`` maps table name -> precompiled
@@ -83,8 +90,15 @@ def umfs_from_tables(
             from tablespec.profiling.gx_expectation_builder import ProfileToGxMapper
             from tablespec.profiling.native_profiler import NativeSparkProfiler
 
-            profile_result = NativeSparkProfiler(spark).profile(df)
+            profile_result = NativeSparkProfiler(
+                spark,
+                infer_key_candidates=infer_key_candidates,
+            ).profile(df)
             suites[table] = ProfileToGxMapper().build_expectations(profile_result)
+            if key_candidates_out is not None:
+                key_candidates_out[table] = [
+                    asdict(candidate) for candidate in profile_result.key_candidates
+                ]
 
     return umfs, suites
 

@@ -32,6 +32,8 @@ Directory layout (rooted at ``<out_dir>/``), per the corrected plan
                                             #   expectation list (raw + ingested
                                             #   stages co-mingled, classified at
                                             #   execute time by execute_staged)
+        <table>.keycandidates.json          # optional advisory key-candidate
+                                            #   evidence sidecar
       dbt_ingest/
         <table>/                            # single-table ingest dbt project
           dbt_project.yml, profiles.yml, models/..., (whole tree)
@@ -106,6 +108,11 @@ def suite_path(root: Path, table: str) -> Path:
     return root / VALIDATION_DIR / f"{table}.suite.json"
 
 
+def key_candidates_path(root: Path, table: str) -> Path:
+    """Absolute path of the optional advisory key-candidate sidecar for *table*."""
+    return root / VALIDATION_DIR / f"{table}.keycandidates.json"
+
+
 def dbt_ingest_project_dir(root: Path, table: str) -> Path:
     """Absolute root dir of the single-table ingest dbt project for *table*."""
     return root / DBT_INGEST_DIR / table
@@ -145,6 +152,7 @@ class TableArtifacts:
     pyspark_schema: Path
     json_schema: Path
     suite_json: Path
+    key_candidates_json: Path | None = None
     dbt_ingest_project: Path | None = None
     gold_plan_sql: Path | None = None
 
@@ -233,6 +241,7 @@ class CompiledArtifacts:
                     "pyspark_schema": rel(t.pyspark_schema),
                     "json_schema": rel(t.json_schema),
                     "suite_json": rel(t.suite_json),
+                    "key_candidates_json": rel(t.key_candidates_json),
                     "dbt_ingest_project": rel(t.dbt_ingest_project),
                     "gold_plan_sql": rel(t.gold_plan_sql),
                 }
@@ -268,6 +277,7 @@ class CompiledArtifacts:
                 pyspark_schema=_require(absolute(t["pyspark_schema"])),
                 json_schema=_require(absolute(t["json_schema"])),
                 suite_json=_require(absolute(t["suite_json"])),
+                key_candidates_json=absolute(t.get("key_candidates_json")),
                 dbt_ingest_project=absolute(t["dbt_ingest_project"]),
                 gold_plan_sql=absolute(t["gold_plan_sql"]),
             )
