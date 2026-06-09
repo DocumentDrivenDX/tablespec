@@ -1,147 +1,56 @@
-# Implementation Plan v2: Design Review Improvements
+---
+ddx:
+  id: implementation-plan-v2
+  kind: build-plan
+  informs:
+    - prd
+    - FEAT-016
+    - FEAT-017
+    - FEAT-024
+    - FEAT-026
+---
 
-**Version**: 1.0
-**Status**: Proposed
-**Last Updated**: 2026-03-17
+# Implementation Plan v2: Replacement Note
 
-**Requirements**: ../01-frame/prd.md
-**Architecture**: ../02-design/architecture.md
-**Test Plan**: ../03-test/test-plan.md
+**Version**: 2.1
+**Status**: Replaced by current specs and DDx beads
+**Last Updated**: 2026-06-09
 
-## Overview
+**Requirements**: [../01-frame/prd.md](../01-frame/prd.md)
+**Architecture**: [../02-design/architecture.md](../02-design/architecture.md)
+**Test Plan**: [../03-test/test-plan.md](../03-test/test-plan.md)
+**Current Build Plan**: [implementation-plan.md](implementation-plan.md)
 
-Phased implementation plan for improvements identified during design review. The dependency graph ensures each phase has its prerequisites satisfied before work begins.
+## Purpose
 
-## Dependency Graph
+This file is retained only as a pointer away from the old March 2026 phase
+narrative. Do not use the previous "Design Review Improvements" phase list as an
+execution plan. The shipped codebase and governing HELIX specs have moved past
+that snapshot, and executable work is now tracked in DDx beads.
 
-```
-Phase 0: Testing Infrastructure (FEAT-016)  <-- prerequisite for all
-  0a: GX DuckDB Harness (spike first, Pandas fallback)
-  0b: UMF Builder DSL
-  0c: Test discovery conventions + fast marker
-  0d: Golden file runner + Hypothesis strategies
+## Shipped Evidence
 
-Phase 1a: Unified Expectation Model (ADR-005, FEAT-017 partial)
-Phase 1b: Validation Pipeline (FEAT-017 remainder)
+The completed work that used to appear here as future phases is now governed by
+the following specs and source/test evidence:
 
-Phase 2: Custom GX Extensions (FEAT-018)
-Phase 3: SQL Generator CTE Mode (FEAT-019)
-Phase 4: Domain Type Improvements (FEAT-020)
-Phase 5: UMF Loader Improvements (FEAT-021)
-Phase 6: Authoring Tools (FEAT-023)
-Phase 7: Schema Compatibility Checker (FEAT-022)
-```
+| Area | Current status | Governing artifact | Evidence |
+| --- | --- | --- | --- |
+| Testing infrastructure | Implemented | [FEAT-016](../01-frame/features/FEAT-016-testing-infrastructure.md) | `tests/conftest.py`, `tests/builders.py`, `tests/strategies.py`, `tests/golden/`, `pyproject.toml` markers |
+| Unified expectation model and validation pipeline | Implemented, with remaining consumer-audit work tracked separately | [ADR-005](../02-design/adr/ADR-005-unified-expectation-model.md), [FEAT-017](../01-frame/features/FEAT-017-validation-pipeline.md) | `src/tablespec/models/umf.py`, `src/tablespec/validation/gx_executor.py`, `src/tablespec/validation/native_executor.py`, `tests/unit/test_expectation_suite.py`, `tests/unit/test_validation_connect_sail.py` |
+| Native Spark profiling and profile-derived GX expectations | Implemented | [FEAT-024](../01-frame/features/FEAT-024-native-spark-profiler.md) | `src/tablespec/profiling/native_profiler.py`, `src/tablespec/profiling/gx_expectation_builder.py`, `tests/unit/test_native_profiler_key_candidates.py`, `tests/unit/test_profiler_connect_sail.py` |
+| Compile orchestrator and bootstrap artifact handoff | Implemented as library/API surface | [FEAT-026](../01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md), [ADR-012](../02-design/adr/ADR-012-compile-orchestrator-runtime-consumes-committed-artifacts.md) | `src/tablespec/e2e/compile.py`, `src/tablespec/e2e/manifest.py`, `src/tablespec/bootstrap.py`, `tests/e2e/test_bootstrap_from_specs.py`, `tests/e2e/test_bootstrap_from_tables.py` |
+| Target-agnostic direct SQL, dbt, and LDP emission | Implemented under the PRD multi-target subsystem | [PRD FR-19](../01-frame/prd.md#subsystem-multi-target-emission), [ADR-013](../02-design/adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md) | `src/tablespec/core/`, `src/tablespec/dbt/`, `src/tablespec/ldp/`, `tests/dbt_dag/`, `tests/ldp/` |
 
-Phases 1-5 are parallelizable after Phase 0 completes. Phase 6 depends on Phases 1-5. Phase 7 is independent after Phase 0.
+## Remaining Work
 
-## Phase 0: Testing Infrastructure (FEAT-016)
+Do not add planned-work prose to this document. File or update DDx beads instead.
+As of this replacement, the relevant active beads are:
 
-**Prerequisite for all subsequent phases.** No feature work should begin without this foundation.
+| Bead | Scope |
+| --- | --- |
+| `hx-2c3c331f` | Audit ADR-005 Phase C consumers so runtime paths prefer `ExpectationSuite` and legacy `quality_checks` remains compatibility-only. |
+| `tablespec-62dbc8c6` | Resolve the PRD reference to the missing parking-lot artifact or replace it with the canonical DDx query. |
+| `tablespec-340da854` | Quantify weak NFR and acceptance evidence targets in the PRD and feature specs. |
 
-### 0a: GX DuckDB Harness
-
-1. **Spike** (timebox: 1 day): Verify GX 1.6+ SqlAlchemy + DuckDB integration.
-   - Create DuckDB datasource via `duckdb:///:memory:`.
-   - Load CSV batch, execute 3-5 representative expectations, verify result format.
-   - If spike fails: implement Pandas fallback and document semantic differences.
-2. Add `duckdb` and `duckdb-engine` to `[duckdb]` optional extra in `pyproject.toml`.
-3. Implement `GXTestHarness` class with `run()` method returning `GXTestResult`.
-4. Support `stage="raw"` (all VARCHAR) and `stage="ingested"` (typed) loading.
-
-### 0b: UMF Builder DSL
-
-1. Implement `UMFBuilder` in `tests/conftest.py` or `tests/builders.py`.
-2. Support `.column()`, `.expectation()`, `.build()`, `.as_dict()`.
-3. Verify all builder outputs pass Pydantic validation.
-4. Do NOT migrate existing tests -- builder is additive.
-
-### 0c: Test Discovery Conventions
-
-1. Register `@pytest.mark.fast` in `pyproject.toml`.
-2. Document source-to-test file mapping convention.
-3. Add `pytest -m fast` to Makefile as `make test-fast`.
-
-### 0d: Golden File Runner + Hypothesis Strategies
-
-1. Create `tests/golden/` directory structure.
-2. Implement golden file discovery and comparison fixture.
-3. Create `tests/strategies.py` with `umf_column()`, `umf_dict()`, `umf_object()`.
-4. Verify strategies produce Pydantic-valid outputs.
-
-## Phase 1a: Unified Expectation Model (ADR-005)
-
-1. Define `Expectation`, `ExpectationMeta`, `ExpectationSuite` in `models/umf.py`.
-2. Add `expectations` field to UMF model alongside existing `validation_rules` and `quality_checks`.
-3. Implement loader logic: populate `ExpectationSuite` from old format on read.
-4. Update `classify_validation_type()` to set `stage` on expectations.
-5. Write property test: any UMF with old-format rules loads with equivalent expectations in new model.
-
-## Phase 1b: Validation Pipeline (FEAT-017)
-
-1. Implement `GXSuiteExecutor` with batch execution and `execute_staged()`.
-2. Fix `BaselineExpectationGenerator` to stop producing redundant types.
-3. Implement profiling-to-expectations conversion (the TODO stub in `gx_baseline.py`).
-4. Implement `should_block_pipeline()` with severity/blocking/threshold logic.
-5. Implement `ValidationReport` class.
-
-## Phase 2: Custom GX Extensions (FEAT-018)
-
-1. Implement `ExpectColumnValuesToMatchDomainType` custom expectation.
-2. Implement `ExpectColumnPairDateOrder` custom expectation.
-3. Add registration property test.
-4. Test all custom expectations via GX harness against DuckDB.
-
-## Phase 3: SQL Generator CTE Mode (FEAT-019)
-
-1. Add `mode` parameter to `SQLPlanGenerator` (`"views"` default, `"cte"` new).
-2. Implement CTE generation for linear chains, diamond dependencies, fan-out/fan-in.
-3. Semantic equivalence tests: both modes produce same results on DuckDB.
-4. Golden file tests for ~15 representative CTE outputs.
-
-## Phase 4: Domain Type Improvements (FEAT-020)
-
-1. Add `COMMON_ABBREVIATIONS` dict and `expand_column_name()`.
-2. Replace bare string returns with `InferenceResult` dataclass.
-3. Update Excel converter to read from `DomainTypeRegistry`.
-4. Add regex validation on registry load.
-
-## Phase 5: UMF Loader Improvements (FEAT-021)
-
-1. Replace generic error messages with targeted diagnostics.
-2. Add expectation type validation with known-types registry.
-3. Write split format roundtrip property test.
-
-## Phase 6: Authoring Tools (FEAT-023)
-
-**Depends on Phases 1-5.** These tools compose features from earlier phases.
-
-1. Implement pure functions for column and validation mutation.
-2. Implement LLM response applier with deduplication and validation.
-3. Implement `tablespec preview` with staged display and `--against` dry-run.
-4. Implement Textual TUI (can be done incrementally, independent of CLI commands).
-
-## Phase 7: Schema Compatibility Checker (FEAT-022)
-
-**Independent after Phase 0.** Can be parallelized with Phases 1-5.
-
-1. Define `SAFE_WIDENINGS` type lattice.
-2. Implement nullable-aware context-by-context comparison.
-3. Implement `CompatibilityReport` with `CompatibilityIssue` details.
-4. Hypothesis properties: reflexivity, addition safety, removal detection.
-5. Golden files for ~15 compatibility scenarios.
-
-## Exit Criteria
-
-Each phase is complete when:
-
-- All tests pass (`make check`).
-- New code has 80%+ coverage.
-- Property tests run without failures for 1000+ examples.
-- Golden files (where applicable) produce exact matches.
-- No regressions in existing test suite.
-
-### Phase-Specific Exit Criteria
-
-- **Phase 0a**: GX DuckDB spike passes (3-5 expectations execute correctly against DuckDB) or Pandas fallback is implemented and semantic differences are documented.
-- **Phase 1a**: Backward-compatible loading of existing UMF files verified -- all existing YAML files in the repository load without errors and produce equivalent expectation suites.
-- **Phase 6**: User-facing acceptance criteria -- CLI commands produce correct output for documented use cases, `tablespec preview --against` validates sample CSV files, and LLM response applier correctly integrates generated expectations.
+Use `ddx bead ready --json` for the current execution queue and
+`ddx bead show <id> --json` for the authoritative acceptance criteria.
