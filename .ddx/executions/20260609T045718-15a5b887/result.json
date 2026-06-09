@@ -4,9 +4,13 @@
   "base_rev": "8030d46f2b89dd4aa71ceb317bfa765d5f9f8263",
   "result_rev": "1dbd5405e41371730429a8cb3ddfd658b6b658d4",
   "implementation_rev": "1dbd5405e41371730429a8cb3ddfd658b6b658d4",
-  "outcome": "task_succeeded",
+  "landed_rev": "1dbd5405e41371730429a8cb3ddfd658b6b658d4",
+  "landed_branch": "main",
+  "outcome": "merged",
   "status": "success",
-  "detail": "success",
+  "detail": "checkout_sync_deferred: .ddx/metrics/locks.jsonl",
+  "orchestrator_status": "success",
+  "reason": "checkout_sync_deferred: .ddx/metrics/locks.jsonl",
   "candidate_ref": "refs/ddx/iterations/20260609T045718-15a5b887/0",
   "cycle_trace": [
     {
