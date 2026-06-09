@@ -352,6 +352,86 @@ class TestProfileToGxKeyCandidateDedupe:
 
 
 @pytest.mark.spark_only
+class TestNativeProfilerKeyControls:
+    """Constructor-level key controls should stay opt-in and non-authoritative."""
+
+    def test_inference_disabled_preserves_existing_profile_shape(
+        self, spark_session: Any, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        def fail_if_called(*args: Any, **kwargs: Any) -> list[Any]:
+            raise AssertionError("key verification should not run when disabled")
+
+        monkeypatch.setattr(
+            NativeSparkProfiler,
+            "_infer_key_candidates",
+            fail_if_called,
+        )
+        df = _make_dataframe(
+            spark_session,
+            [(1, "A"), (2, "B")],
+            "id int, code string",
+        )
+
+        profile = NativeSparkProfiler(
+            spark_session,
+            infer_key_candidates=False,
+        ).profile(df, cache_inputs=False)
+
+        serialized = asdict(profile)
+        assert serialized["num_records"] == 2
+        assert set(serialized["columns"]) == {"id", "code"}
+        assert serialized["key_candidates"] == []
+
+    def test_key_thresholds_and_budgets_are_exposed(self, spark_session: Any) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        profiler = NativeSparkProfiler(
+            spark_session,
+            infer_key_candidates=True,
+            key_min_rows=25,
+            key_max_width=2,
+            key_max_candidates=5,
+            key_verification_pass_budget=3,
+            key_promotion_min_score=0.8,
+            key_promotion_min_gap=0.15,
+        )
+
+        assert profiler.key_inference_config == {
+            "infer_key_candidates": True,
+            "key_min_rows": 25,
+            "key_max_width": 2,
+            "key_max_candidates": 5,
+            "key_verification_pass_budget": 3,
+            "key_promotion_min_score": 0.8,
+            "key_promotion_min_gap": 0.15,
+        }
+
+    def test_key_controls_do_not_mutate_authoritative_umf_fields(
+        self, spark_session: Any
+    ) -> None:
+        from tablespec.profiling import NativeSparkProfiler
+
+        df = _make_dataframe(
+            spark_session,
+            [(1, "A"), (2, "B")],
+            "id int, code string",
+        )
+
+        profile = NativeSparkProfiler(
+            spark_session,
+            infer_key_candidates=True,
+            key_min_rows=999,
+        ).profile(df, cache_inputs=False)
+
+        serialized = asdict(profile)
+        assert serialized["key_candidates"] == []
+        assert "primary_key" not in serialized
+        assert "unique_constraints" not in serialized
+
+
+@pytest.mark.spark_only
 class TestNativeProfilerCompositeKeys:
     """Composite key inference should stay bounded and honest."""
 

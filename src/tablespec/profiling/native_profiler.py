@@ -106,6 +106,21 @@ class NativeSparkProfiler:
     quantile_accuracy : int, optional
         Accuracy parameter for percentile_approx (higher = more accurate but
         slower). Represents 1/relative_error. Defaults to 10000.
+    infer_key_candidates : bool, optional
+        Default for whether profile calls infer advisory key candidates.
+        Defaults to False.
+    key_min_rows : int, optional
+        Minimum row count before key inference runs. Defaults to 1.
+    key_max_width : int, optional
+        Default maximum candidate width. Defaults to 3.
+    key_max_candidates : int, optional
+        Default maximum number of pre-verification candidates. Defaults to 12.
+    key_verification_pass_budget : int, optional
+        Default exact-verification pass budget. Defaults to 6.
+    key_promotion_min_score : float, optional
+        Retained downstream promotion threshold for future bootstrap policy.
+    key_promotion_min_gap : float, optional
+        Retained downstream score-gap threshold for future bootstrap policy.
 
     """
 
@@ -117,12 +132,39 @@ class NativeSparkProfiler:
         histogram_bins: int = 20,
         sample_size: int = 10,
         quantile_accuracy: int = 10000,
+        infer_key_candidates: bool = False,
+        key_min_rows: int = 1,
+        key_max_width: int = 3,
+        key_max_candidates: int = 12,
+        key_verification_pass_budget: int = 6,
+        key_promotion_min_score: float = 0.9,
+        key_promotion_min_gap: float = 0.05,
     ) -> None:
         self._spark = spark
         self._low_card_threshold = low_cardinality_threshold
         self._histogram_bins = histogram_bins
         self._sample_size = sample_size
         self._quantile_accuracy = quantile_accuracy
+        self._infer_key_candidates_default = infer_key_candidates
+        self._key_min_rows = key_min_rows
+        self._key_max_width = key_max_width
+        self._key_max_candidates = key_max_candidates
+        self._key_verification_pass_budget = key_verification_pass_budget
+        self._key_promotion_min_score = key_promotion_min_score
+        self._key_promotion_min_gap = key_promotion_min_gap
+
+    @property
+    def key_inference_config(self) -> dict[str, int | float | bool]:
+        """Return the retained advisory key-inference defaults."""
+        return {
+            "infer_key_candidates": self._infer_key_candidates_default,
+            "key_min_rows": self._key_min_rows,
+            "key_max_width": self._key_max_width,
+            "key_max_candidates": self._key_max_candidates,
+            "key_verification_pass_budget": self._key_verification_pass_budget,
+            "key_promotion_min_score": self._key_promotion_min_score,
+            "key_promotion_min_gap": self._key_promotion_min_gap,
+        }
 
     def profile(
         self,
@@ -130,10 +172,11 @@ class NativeSparkProfiler:
         *,
         restrict_to_columns: list[str] | None = None,
         cache_inputs: bool = True,
-        infer_key_candidates: bool = False,
-        key_max_width: int = 3,
-        key_max_candidates: int = 12,
-        key_verification_pass_budget: int = 6,
+        infer_key_candidates: bool | None = None,
+        key_min_rows: int | None = None,
+        key_max_width: int | None = None,
+        key_max_candidates: int | None = None,
+        key_verification_pass_budget: int | None = None,
     ) -> DataFrameProfile:
         """Profile a Spark DataFrame.
 
@@ -148,15 +191,19 @@ class NativeSparkProfiler:
             Defaults to True.
         infer_key_candidates : bool, optional
             Whether to infer bounded composite key candidates from profile
-            signals. Defaults to False.
+            signals. Defaults to the constructor setting.
+        key_min_rows : int, optional
+            Minimum row count before key inference runs. Defaults to the
+            constructor setting.
         key_max_width : int, optional
-            Maximum width of a candidate combination. Defaults to 3.
+            Maximum width of a candidate combination. Defaults to the
+            constructor setting.
         key_max_candidates : int, optional
             Maximum number of pre-verification candidates to consider.
-            Defaults to 12.
+            Defaults to the constructor setting.
         key_verification_pass_budget : int, optional
             Maximum number of exact verification passes to spend on candidates.
-            Defaults to 6.
+            Defaults to the constructor setting.
 
         Returns
         -------
@@ -181,6 +228,27 @@ class NativeSparkProfiler:
         logger.info(
             f"Starting native profiling: {num_records} rows, "
             f"{len(columns_to_profile)} columns"
+        )
+        resolved_infer_key_candidates = (
+            self._infer_key_candidates_default
+            if infer_key_candidates is None
+            else infer_key_candidates
+        )
+        resolved_key_min_rows = (
+            self._key_min_rows if key_min_rows is None else key_min_rows
+        )
+        resolved_key_max_width = (
+            self._key_max_width if key_max_width is None else key_max_width
+        )
+        resolved_key_max_candidates = (
+            self._key_max_candidates
+            if key_max_candidates is None
+            else key_max_candidates
+        )
+        resolved_key_verification_pass_budget = (
+            self._key_verification_pass_budget
+            if key_verification_pass_budget is None
+            else key_verification_pass_budget
         )
 
         # --- Phase 1: Batch completeness & cardinality for ALL columns ---
@@ -244,14 +312,17 @@ class NativeSparkProfiler:
 
         profile = DataFrameProfile(num_records=num_records, columns=columns)
 
-        if infer_key_candidates:
+        if (
+            resolved_infer_key_candidates
+            and profile.num_records >= resolved_key_min_rows
+        ):
             profile.key_candidates = self._infer_key_candidates(
                 df,
                 profile,
                 columns_to_profile,
-                key_max_width=key_max_width,
-                key_max_candidates=key_max_candidates,
-                key_verification_pass_budget=key_verification_pass_budget,
+                key_max_width=resolved_key_max_width,
+                key_max_candidates=resolved_key_max_candidates,
+                key_verification_pass_budget=resolved_key_verification_pass_budget,
             )
 
         if cached:
