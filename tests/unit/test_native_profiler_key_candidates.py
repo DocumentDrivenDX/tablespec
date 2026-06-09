@@ -113,6 +113,119 @@ def test_native_profiler_gx_expectation_compatibility() -> None:
 
 
 @pytest.mark.no_spark
+class TestKeyCandidateModels:
+    """Advisory key-candidate models should be JSON-serializable dataclasses."""
+
+    def test_key_candidate_models_are_json_serializable(self) -> None:
+        from tablespec.profiling import (
+            ColumnProfile,
+            DataFrameProfile,
+            KeyCandidate,
+            KeyCandidateEvidence,
+        )
+
+        evidence = KeyCandidateEvidence(
+            row_count=10,
+            columns=["id"],
+            null_count_by_column={"id": 0},
+            exact_distinct_count=10,
+            approximate_distinct_count_by_column={"id": 10},
+            distinct_ratio=1.0,
+            completeness_by_column={"id": 1.0},
+            verified_exact=True,
+            nullable=False,
+            minimal=True,
+            subset_unique=False,
+            score=0.95,
+            score_components={"distinct_ratio": 1.0},
+            name_hints=["id"],
+            type_hints=["IntegerType"],
+            penalties=[],
+            verification_pass_count=1,
+            verification_query_count=1,
+            reason="single-column exact unique",
+        )
+        candidate = KeyCandidate(
+            columns=["id"],
+            kind="primary_key_candidate",
+            verified_exact=True,
+            exact_unique=True,
+            emitted=True,
+            evidence=evidence,
+        )
+        profile = DataFrameProfile(
+            num_records=10,
+            columns={
+                "id": ColumnProfile(
+                    column_name="id",
+                    completeness=1.0,
+                    approximate_num_distinct=10,
+                    data_type="IntegerType",
+                    is_data_type_inferred=False,
+                )
+            },
+            key_candidates=[candidate],
+        )
+
+        serialized = asdict(profile)
+        serialized_evidence = serialized["key_candidates"][0]["evidence"]
+
+        assert serialized["key_candidates"][0]["kind"] == "primary_key_candidate"
+        assert set(serialized_evidence) == {
+            "row_count",
+            "columns",
+            "null_count_by_column",
+            "exact_distinct_count",
+            "approximate_distinct_count_by_column",
+            "distinct_ratio",
+            "completeness_by_column",
+            "verified_exact",
+            "nullable",
+            "minimal",
+            "subset_unique",
+            "score",
+            "score_components",
+            "name_hints",
+            "type_hints",
+            "penalties",
+            "verification_pass_count",
+            "verification_query_count",
+            "reason",
+        }
+        assert 0 <= serialized_evidence["score"] <= 1
+
+        with pytest.raises(ValueError, match="Unsupported key candidate kind"):
+            KeyCandidate(columns=["id"], kind="foreign_key_candidate")  # type: ignore[arg-type]
+
+        with pytest.raises(ValueError, match="score must be between 0 and 1"):
+            KeyCandidateEvidence(score=1.1)
+
+    def test_dataframe_profile_default_key_candidates_isolated(self) -> None:
+        from tablespec.profiling import ColumnProfile, DataFrameProfile, KeyCandidate
+
+        columns = {
+            "id": ColumnProfile(
+                column_name="id",
+                completeness=1.0,
+                approximate_num_distinct=1,
+                data_type="IntegerType",
+                is_data_type_inferred=False,
+            )
+        }
+
+        first = DataFrameProfile(num_records=1, columns=columns)
+        second = DataFrameProfile(num_records=1, columns=columns)
+
+        assert first.key_candidates == []
+        assert second.key_candidates == []
+
+        first.key_candidates.append(KeyCandidate(columns=["id"]))
+
+        assert len(first.key_candidates) == 1
+        assert second.key_candidates == []
+
+
+@pytest.mark.no_spark
 class TestProfileToGxKeyCandidateDedupe:
     """Verified exact key candidates should dedupe approximate GX uniqueness."""
 

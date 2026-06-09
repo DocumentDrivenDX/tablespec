@@ -3,15 +3,39 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
+
+
+KeyCandidateKind = Literal["primary_key_candidate", "unique_constraint_candidate"]
 
 
 @dataclass
 class KeyCandidateEvidence:
     """Evidence attached to a key candidate."""
 
+    row_count: int | None = None
+    columns: list[str] = field(default_factory=list)
+    null_count_by_column: dict[str, int] = field(default_factory=dict)
+    exact_distinct_count: int | None = None
+    approximate_distinct_count_by_column: dict[str, int] = field(default_factory=dict)
+    distinct_ratio: float | None = None
+    completeness_by_column: dict[str, float] = field(default_factory=dict)
+    verified_exact: bool = False
+    nullable: bool | None = None
     minimal: bool | None = None
+    subset_unique: bool | None = None
+    score: float = 0.0
+    score_components: dict[str, float] = field(default_factory=dict)
+    name_hints: list[str] = field(default_factory=list)
+    type_hints: list[str] = field(default_factory=list)
+    penalties: list[str] = field(default_factory=list)
+    verification_pass_count: int = 0
+    verification_query_count: int = 0
     reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.score <= 1.0:
+            raise ValueError("KeyCandidateEvidence.score must be between 0 and 1")
 
 
 @dataclass
@@ -19,10 +43,15 @@ class KeyCandidate:
     """A bounded advisory key candidate produced by the native profiler."""
 
     columns: list[str]
+    kind: KeyCandidateKind = "primary_key_candidate"
     verified_exact: bool = False
     exact_unique: bool | None = None
     emitted: bool = False
     evidence: KeyCandidateEvidence = field(default_factory=KeyCandidateEvidence)
+
+    def __post_init__(self) -> None:
+        if self.kind not in {"primary_key_candidate", "unique_constraint_candidate"}:
+            raise ValueError(f"Unsupported key candidate kind: {self.kind}")
 
 
 @dataclass
@@ -75,4 +104,4 @@ class DataFrameProfile:
 
     num_records: int
     columns: dict[str, ColumnProfile]
-    key_candidates: list[KeyCandidate] | None = None
+    key_candidates: list[KeyCandidate] = field(default_factory=list)
