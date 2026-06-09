@@ -43,9 +43,12 @@ Stop generating these. Enforce via Hypothesis property test: no generated suite 
 
 NOTE: There is a codebase contradiction to reconcile. `REQUIRED_BASELINE_EXPECTATION_TYPES` in `gx_baseline.py` includes `expect_column_to_exist`, while `REDUNDANT_VALIDATION_TYPES` in `models/umf.py` lists it as redundant. The fix should remove `expect_column_to_exist` from `REQUIRED_BASELINE_EXPECTATION_TYPES` or reconcile these two sets so they are consistent.
 
-### Profiling to Expectations (`src/tablespec/gx_baseline.py`)
+### Profiling to Expectations (`src/tablespec/profiling/gx_expectation_builder.py`)
 
-Implement the TODO stub in `gx_baseline.py` that converts profiling statistics to expectations:
+Profile-derived expectation generation is implemented by `ProfileToGxMapper`
+(`src/tablespec/profiling/gx_expectation_builder.py`) and verified by
+`tests/unit/test_native_profiler_key_candidates.py` plus the Sail profiler lane.
+It converts profiling statistics to expectations:
 
 - High cardinality -> `expect_column_values_to_be_unique`
 - Min/max values -> `expect_column_values_to_be_between`

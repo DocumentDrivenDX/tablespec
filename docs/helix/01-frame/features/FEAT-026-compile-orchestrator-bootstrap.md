@@ -123,14 +123,19 @@ seams at run time. (asserted by `tests/e2e/test_bootstrap_from_specs.py:4`)
 
 ### Non-Functional Requirements
 
-- **Determinism**: Recompiling the same UMF set SHALL produce byte-identical
-  committed artifacts (drift target: zero; PRD Success Metric "UMF→artifact drift").
+- **Determinism**: Recompiling the same UMF set SHALL produce 0 byte diffs across
+  committed artifacts (drift target: zero; PRD Success Metric "UMF→artifact
+  drift"). Evidence: `uv run pytest tests/e2e/test_bootstrap_from_specs.py -k
+  compile_persists_every_seam`.
 - **Reproducibility**: Every compile SHALL persist the UMF snapshot it ran against
-  so an artifact tree is independently reproducible.
+  so an artifact tree is independently reproducible; 100% of per-table manifest
+  entries SHALL include a UMF snapshot path.
 - **Portability**: The compiled artifact tree SHALL be relocatable (manifest paths
-  relative to root) and consumable on DuckDB, classic Spark, and Sail (Connect).
+  relative to root) and consumable on DuckDB, classic Spark, and Sail (Connect);
+  relocation is verified by `CompiledArtifacts.load()`.
 - **Runtime independence**: The backbone SHALL run with no tablespec import at run
-  time (PRD Success Metric "Runtime independence").
+  time (PRD Success Metric "Runtime independence"); import-encapsulation tests
+  enforce 0 runtime imports of generation seams.
 ## User Stories
 
 - [US-023 — Bootstrap a runtime from a UMF set (Path A / Path B)](../user-stories/US-023-bootstrap-runtime-from-umf-set.md)
@@ -149,10 +154,11 @@ seams at run time. (asserted by `tests/e2e/test_bootstrap_from_specs.py:4`)
 
 ## Success Metrics
 
-- A single `compile_umfs` call emits the full committed artifact set + a loadable
-  manifest for a multi-table set (asserted: `tests/e2e/test_bootstrap_from_specs.py`).
+- A single `compile_umfs` call emits 100% of required committed artifact seams plus
+  a loadable manifest for a multi-table set, or records each omitted seam as an
+  explicit fail-closed omission (asserted: `tests/e2e/test_bootstrap_from_specs.py`).
 - A backbone run loads the manifest from disk and reports every stage green while
-  consuming only committed artifacts.
+  consuming only committed artifacts; generation seams are not imported at runtime.
 - The bootstrap pipeline is green across the DuckDB / Spark / Sail engine matrix
   (FR-18.5; `tests/e2e/test_e2e_matrix_*.py`).
 

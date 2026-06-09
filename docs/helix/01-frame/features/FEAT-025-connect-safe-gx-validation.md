@@ -63,10 +63,20 @@ VAL-CONNECT-09. When GX returns FEWER results than were fed (same-type collation
 
 ### Non-Functional Requirements
 
-- **Correctness**: Suite verdict for every supported expectation type is identical on classic Spark and Spark Connect (zero divergence in the conformance harness).
-- **Performance**: The native path materializes only aggregates and bounded samples (`.count()`, `limit(10)`), never the full dataset to the driver.
-- **Reliability**: A single failing expectation MUST NOT abort the suite; it is recorded as a failure with diagnostic detail.
-- **Compatibility**: No change to the `ExpectationResult` / `SuiteExecutionResult` shapes consumed downstream.
+- **Correctness**: Suite verdict, `unexpected_count`, and bounded
+  `partial_unexpected_list` samples for every supported expectation type SHALL
+  have zero divergence between classic Spark and Spark Connect. Evidence:
+  `uv run pytest tests/unit/test_validation_connect_sail.py
+  tests/unit/test_custom_gx_parity.py`.
+- **Performance**: The native path SHALL materialize only aggregates and bounded
+  samples (`.count()`, `limit(10)`); it MUST NOT collect full datasets to the
+  driver.
+- **Reliability**: 100% of per-expectation execution errors SHALL be represented
+  as failed `ExpectationResult` entries with diagnostic detail; one failing
+  expectation MUST NOT abort the suite.
+- **Compatibility**: No change to the `ExpectationResult` / `SuiteExecutionResult`
+  shapes consumed downstream; compatibility is enforced by existing report/table
+  validator tests.
 ## User Stories
 
 - [US-022 — Validate a Compiled Suite on Spark Connect Without Silent Failure](../user-stories/US-022-validate-suite-on-connect-without-silent-failure.md)
@@ -75,19 +85,31 @@ VAL-CONNECT-09. When GX returns FEWER results than were fed (same-type collation
 
 - **Connect build lacks `try_to_timestamp(col, fmt)`**: fall back to format-less `try_to_timestamp` behind a structural prefilter regex (`native_executor.py:424-445`), gated on the per-session capability probe.
 - **Numeric bounds against a string column**: cast to double (NULL-on-failure) so the comparison is numeric, not lexicographic (`native_executor.py:258-298`).
-- **Unknown expectation type on the native path**: surfaced as a passing result with an explanatory `observed_value`; baseline suites only emit handled types.
+- **Unknown expectation type on the native path**: surfaced as a failed result
+  with an explanatory `observed_value`; baseline suites only emit handled types.
 - **GX collates two same-type custom expectations into one result on clean data**: reconciliation re-evaluates each standalone so the benign case is not false-failed and a real failure is not masked.
 
 ## Success Metrics
 
-- Sail Connect lane (`tests/unit/test_validation_connect_sail.py`) passes every baseline + custom expectation type with verdicts equal to the classic `add_spark` path. The four custom expectations are additionally pinned to classic-vs-Connect parity — identical `success`, `unexpected_count`, AND `partial_unexpected_list` — by `tests/unit/test_custom_gx_parity.py` (VAL-CONNECT-08 / US-022-AC2 met for the custom surface).
-- Cross-engine conformance harness shows identical suite verdicts across classic Spark / Sail / Databricks serverless.
-- Zero observed silent false-negatives (`success=False`/`result={}` on a clean Connect DataFrame) after the routing change.
+- Sail Connect lane (`tests/unit/test_validation_connect_sail.py`) passes every
+  supported baseline + custom expectation type with verdicts equal to the classic
+  `add_spark` path. The four custom expectations are additionally pinned to
+  classic-vs-Connect parity — identical `success`, `unexpected_count`, and
+  `partial_unexpected_list` — by `tests/unit/test_custom_gx_parity.py`
+  (VAL-CONNECT-08 / US-022-AC2 met for the custom surface).
+- Cross-engine conformance harness shows 0 suite-verdict divergence across
+  classic Spark / Sail / Databricks serverless when the opt-in workspace tier is
+  configured.
+- Zero observed silent false-negatives (`success=False`/`result={}` on a clean
+  Connect DataFrame) after the routing change; unsupported native expectations
+  fail closed instead of passing.
 
 ## Constraints and Assumptions
 
 - Requires `tablespec[spark]` (a Spark or Sail session) at execution time; the suite artifact itself is produced without Spark.
-- Native evaluators must stay in GX-semantic parity; adding a baseline expectation type requires adding a native evaluator (or it falls to the unsupported-passing stub).
+- Native evaluators must stay in GX-semantic parity; adding a baseline expectation
+  type requires adding a native evaluator or accepting an explicit fail-closed
+  unsupported result until the evaluator exists.
 - This feature applies the Runtime-Platform contract (ADR-010) to GX execution; it does not own the per-session capability probing or `_functions_for` dispatch seam.
 
 ## Dependencies

@@ -157,14 +157,17 @@ build. (`src/tablespec/cli.py`)
 
 ### Non-Functional Requirements
 
-- **Determinism**: Re-emitting from an unchanged UMF produces byte-identical project files
-  (golden-testable as `{relative_path: contents}` without touching the filesystem).
+- **Determinism**: Re-emitting from an unchanged UMF produces 0 byte diffs in
+  project files (golden-testable as `{relative_path: contents}` without touching
+  the filesystem).
 - **Encapsulation**: `tablespec.core` never imports `tablespec.dbt`; the dbt and direct-SQL
   backends never import each other (enforced by `tests/test_core_encapsulation.py`).
-- **Import-safety**: Importing `tablespec.dbt` and calling any generator must not require the
-  dbt runtime packages to be installed.
-- **Multi-engine parity**: Generated projects build on the DuckDB, local Spark (session), and
-  compile-only Databricks targets with equivalent cast results (conformance harness).
+- **Import-safety**: Importing `tablespec.dbt` and calling any generator must not
+  require the dbt runtime packages to be installed; generation-time dependency
+  violations are a test failure.
+- **Multi-engine parity**: Generated projects build on the DuckDB and local Spark
+  session tiers with byte-identical canonical cast results; Databricks compile
+  output is pinned by golden tests and Databricks execution is opt-in.
 ## User Stories
 
 - [US-025 — Emit a dbt Project from UMF](../user-stories/US-025-emit-dbt-project-from-umf.md)
@@ -184,12 +187,14 @@ build. (`src/tablespec/cli.py`)
 
 ## Success Metrics
 
-- Zero drift: a recompiled dbt project diffs clean against the committed artifact for an
-  unchanged UMF (ties into the PRD Primary KPI).
-- The `unique`/`relationships`/`accepted_values`/`not_null` set emitted to `schema.yml`
-  matches the corresponding GX baseline constraint set for the same UMF (shared
-  `schema_facts`).
-- Generated projects build green on the DuckDB / Spark / Databricks conformance tiers.
+- Zero drift: a recompiled dbt project has 0 byte diffs against the committed
+  artifact for an unchanged UMF (ties into the PRD Primary KPI).
+- The `unique`/`relationships`/`accepted_values`/`not_null` set emitted to
+  `schema.yml` matches 100% of the corresponding GX baseline constraint set for
+  the same UMF (shared `schema_facts`).
+- Generated projects build green on the DuckDB and Spark conformance tiers, and
+  Databricks compile-golden tests stay green. Evidence: `uv run pytest
+  tests/dbt_dag tests/conformance -k "dbt or Dbt"`.
 
 ## Constraints and Assumptions
 

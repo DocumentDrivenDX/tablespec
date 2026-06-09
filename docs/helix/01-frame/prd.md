@@ -32,11 +32,11 @@ Healthcare data platforms work with table schemas across many tools and formats 
 
 | Metric | Target | Measurement Method |
 |--------|--------|--------------------|
-| UMF→artifact drift | Zero | Recompile + diff committed artifacts against UMF in CI |
-| Compile coverage | Full artifact set emitted per UMF | `tablespec.e2e.compile` manifest completeness check |
-| Multi-engine parity | Identical results across classic Spark / Sail / Databricks serverless | Cross-engine conformance harness (`tests/conformance/`) |
-| Runtime independence | No tablespec import at run time | Backbone executes committed artifacts only (`tablespec.e2e.backbone`) |
-| Manual-authoring reduction | Reduced transform/validation authoring time per table | Time-to-onboard tracking |
+| UMF→artifact drift | 0 byte diffs for unchanged UMF inputs | Recompile + diff committed artifacts against UMF in CI (`tests/e2e/test_bootstrap_from_specs.py`) |
+| Compile coverage | 100% of required artifact seams emitted or explicitly omitted with a fail-closed reason per manifest | `tablespec.e2e.compile` manifest completeness check |
+| Multi-engine parity | Byte-identical canonical rows across all required local row engines; Databricks serverless parity is required when opt-in credentials are configured | Cross-engine conformance harness (`tests/conformance/`) |
+| Runtime independence | 0 tablespec generation imports in runtime/backbone execution paths | Backbone executes committed artifacts only (`tablespec.e2e.backbone`); import-encapsulation tests |
+| Manual-authoring reduction | At least 50% lower transform/validation authoring time per onboarded table vs. hand-authored baseline, measured on a 3-table onboarding sample | Time-to-onboard tracking: compare elapsed minutes for manual authoring vs. bootstrap+compile+review workflow |
 
 ### Non-Goals
 
@@ -347,10 +347,17 @@ edits; do not renumber on edit.
 
 ## Success Criteria
 
-- One UMF compiles deterministically to the full committed artifact set; the runtime executes those artifacts with no tablespec dependency.
-- Profiling and validation run correctly on both classic Spark and Databricks serverless / Spark Connect.
-- Cross-engine conformance parity holds across classic Spark, Sail, and Databricks serverless.
-- Zero drift between UMF definitions and the committed artifacts downstream systems execute.
+- One UMF compiles deterministically to the full committed artifact set with 0 byte
+  diffs on recompilation from unchanged inputs; the runtime executes those
+  artifacts with 0 generation-seam imports.
+- Profiling and validation run correctly on both classic Spark and Databricks
+  serverless / Spark Connect with identical verdicts and observed values on the
+  covered Sail parity lanes.
+- Cross-engine conformance parity holds byte-for-byte across every required local
+  row engine; Databricks serverless parity is proven in the opt-in tier when
+  workspace credentials are configured.
+- Manual transform/validation authoring time is reduced by at least 50% on the
+  documented 3-table onboarding sample.
 
 ## Out of Scope
 

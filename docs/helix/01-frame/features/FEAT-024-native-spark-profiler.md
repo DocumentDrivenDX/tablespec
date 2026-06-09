@@ -107,13 +107,16 @@ consumable by suite composition (FR-4.3).
 
 ### Non-Functional Requirements
 
-- **Platform parity**: Identical profiling results across classic Spark, Sail
-  (local Connect), and Databricks serverless on the cross-engine conformance
-  harness (`tests/conformance/engines.py`).
+- **Platform parity**: Deterministic fixtures SHALL serialize to byte-identical
+  `DataFrameProfile` / `key_candidates` structures across classic Spark and Sail
+  (local Connect); Databricks serverless follows the same contract in the opt-in
+  tier. Evidence: `uv run pytest tests/unit/test_profiler_connect_sail.py
+  tests/unit/test_native_profiler_key_candidates.py -k "connect or key"`.
 - **Query efficiency**: Completeness + cardinality for all columns SHALL be
   computed in a single batched `df.select` pass (Phase 1), and per-column numeric
   stats + quantiles in one `df.select` each, not one job per statistic
-  (`src/tablespec/profiling/native_profiler.py:175-263`).
+  (`src/tablespec/profiling/native_profiler.py:175-263`). The budget is
+  O(columns) profiling jobs, never O(columns × statistics).
 - **Runtime/env**: SHALL run on the env-v3 / Python 3.12 model
   (`pyproject.toml:10` `requires-python = ">=3.12"`); no JVM is required on
   serverless/Connect.
@@ -135,10 +138,12 @@ consumable by suite composition (FR-4.3).
 
 ## Success Metrics
 
-- Native profiler produces a complete `DataFrameProfile` on all three engine
-  tiers (classic Spark, Sail, Databricks serverless) with matching results.
-- Zero references to PyDeequ remain in the default profiling path (the Deequ
-  mapper file was removed; see ADR-009 / commit `ad5a4d9`).
+- Native profiler produces a complete `DataFrameProfile` on classic Spark and
+  Sail with byte-identical serialized values for deterministic fixtures; the
+  Databricks serverless tier uses the same evidence contract when opt-in
+  credentials are configured.
+- Zero references to PyDeequ remain in the default profiling path. Evidence:
+  `rg -n "from .*deequ|pydeequ|DeequToUmfMapper" src/tablespec/profiling`.
 
 ## Constraints and Assumptions
 

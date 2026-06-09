@@ -125,15 +125,15 @@ unknown relation in a gold plan MUST raise `UnknownDatasetError`
 
 ### Non-Functional Requirements
 
-- **Encapsulation**: Generating an LDP project MUST import no Databricks or Spark
-  runtime package; `tablespec.core` MUST NOT import `tablespec.ldp`, and
+- **Encapsulation**: Generating an LDP project MUST import 0 Databricks or Spark
+  runtime packages; `tablespec.core` MUST NOT import `tablespec.ldp`, and
   `tablespec.ldp` and `tablespec.dbt` MUST NOT import each other (enforced by
   `tests/test_core_encapsulation.py`).
-- **Determinism**: Re-compiling the same UMF set MUST produce byte-identical LDP
+- **Determinism**: Re-compiling the same UMF set MUST produce 0 byte diffs in LDP
   SQL (verified by structure goldens, `tests/golden/ldp/`).
 - **Cast parity**: The LDP ingested cast SELECT MUST produce the same canonical
-  rows as the dbt/direct path on real duckdb for at least one single-batch case
-  (`tests/conformance/test_ldp_tiers.py:97`).
+  rows as the dbt/direct path on real duckdb for every LDP conformance case that
+  has an executable local tier (`tests/conformance/test_ldp_tiers.py`).
 ## User Stories
 
 - [US-026 — Emit an LDP Project from a UMF Set](../user-stories/US-026-emit-ldp-project-from-umf.md)
@@ -149,10 +149,12 @@ unknown relation in a gold plan MUST raise `UnknownDatasetError`
 
 ## Success Metrics
 
-- LDP project emitted for 100% of tables in a compiled UMF set (no manual LDP
+- LDP project emitted for 100% of tables in a compiled UMF set, or an explicit
+  fail-closed omission is recorded for unsupported set shapes (no manual LDP
   authoring needed for the covered patterns).
 - Zero cast divergence: LDP ingested cast body equals the dbt path's
-  `select_block` on every conformance case.
+  `select_block` on every conformance case. Evidence: `uv run pytest
+  tests/ldp tests/conformance/test_ldp_tiers.py`.
 
 ## Constraints and Assumptions
 

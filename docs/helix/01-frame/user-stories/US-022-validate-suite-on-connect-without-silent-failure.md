@@ -40,7 +40,9 @@ Before this works, running a compiled GX suite on Spark Connect routes through G
 
 - **Connect build lacks `try_to_timestamp(col, fmt)`**: date-format expectations fall back to a format-less parse behind a structural prefilter regex, gated on the per-session capability probe.
 - **Numeric bound against a string-typed column**: the column is cast to double (NULL-on-failure) so the comparison is numeric, not lexicographic.
-- **Expectation type with no native evaluator**: surfaced as a passing result with an explanatory `observed_value`, not a crash.
+- **Expectation type with no native evaluator**: surfaced as a failed result with
+  an explanatory `observed_value`; unsupported expectations fail closed instead
+  of silently passing.
 
 ## Test Scenarios
 
