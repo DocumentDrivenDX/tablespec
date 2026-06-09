@@ -1,0 +1,2 @@
+status: proposed
+reason: The acceptance gate requires `go test ./...`, but this worktree contains no Go module or Go packages, so the command cannot execute here without repository changes outside the bead scope.
