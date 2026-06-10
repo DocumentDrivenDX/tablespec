@@ -38,7 +38,7 @@ We will route GX suite execution per-DataFrame-engine: Spark **Connect** DataFra
 | Type | Impact |
 |------|--------|
 | Positive | Compiled GX suites run with correct verdicts on classic Spark, Sail (local Connect), and Databricks serverless; the cross-engine conformance harness can assert parity; no silent false-negatives; downstream consumers (`report.py`, `quality/executor.py`, `table_validator.py`) need no change because the native path emits the identical `ExpectationResult` shape. |
-| Negative | The native executor must re-implement each baseline expectation type (`native_executor.py:496-511` dispatch tables) and keep GX-semantic parity (mostly threshold, non-null population, partial-unexpected sampling); adding a new baseline expectation type requires a native evaluator or it falls to the "unsupported on native path" passing stub. |
+| Negative | The native executor must re-implement each baseline expectation type (`native_executor.py:553-568` dispatch tables) and keep GX-semantic parity (mostly threshold, non-null population, partial-unexpected sampling); adding a new baseline expectation type requires a native evaluator or the native route reports an unsupported expectation as `success=False`. |
 | Neutral | The native path materializes only aggregates / small samples (`.count()`, `limit(_SAMPLE_LIMIT)`), not full datasets; the `_reconcile_dropped` re-evaluation runs the native validators even on the classic path when GX collates same-type results. |
 
 ## Risks
@@ -46,7 +46,7 @@ We will route GX suite execution per-DataFrame-engine: Spark **Connect** DataFra
 | Risk | Prob | Impact | Mitigation |
 |------|------|--------|------------|
 | Native evaluator semantics drift from GX `add_spark` | M | H | Cross-engine conformance harness asserts classic-vs-Connect parity; native result dict mirrors GX BASIC `result_format` (`native_executor.py:46-93`). |
-| A baseline expectation type added without a native evaluator passes silently as "unsupported" | M | M | Unsupported types surface an explanatory `observed_value`; the `is_natively_supported()` predicate (`native_executor.py:529-531`) lets callers assert coverage in tests. |
+| A baseline expectation type added without a native evaluator fails closed as "unsupported" | M | M | Unsupported types surface an explanatory `observed_value` and `success=False`; the `is_natively_supported()` predicate (`native_executor.py:587-589`) lets callers assert coverage in tests. |
 | GX drops same-type custom expectations from its results, masking a real failure | L | H | `_reconcile_dropped` re-evaluates each missing `(type, column)` standalone via the native validators and fails closed when it cannot (`gx_executor.py:411-489`). |
 
 ## Validation
@@ -70,7 +70,7 @@ We will route GX suite execution per-DataFrame-engine: Spark **Connect** DataFra
 - PRD FR-7.7 (Connect-safe suite execution with per-expectation routing), FR-7.8 (staged raw/ingested execution), FR-20.4 (Connect-safe validation path).
 - FEAT-025 (Connect-safe GX validation), FEAT-007 (Table Validation).
 - ADR-010 (Spark Connect / serverless runtime model — the platform contract this applies to GX execution), ADR-005 (unified expectation model — Bronze.Raw/Ingested stages).
-- `src/tablespec/validation/gx_executor.py:211-409`, `src/tablespec/validation/native_executor.py:1-531`.
+- `src/tablespec/validation/gx_executor.py:211-409`, `src/tablespec/validation/native_executor.py:1-589`.
 
 ## Review Checklist
 

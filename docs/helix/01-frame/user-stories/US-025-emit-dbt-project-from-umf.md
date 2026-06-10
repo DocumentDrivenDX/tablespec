@@ -100,8 +100,9 @@ dev/test-only tool), so the engineer can compile anywhere `tablespec` is present
 
 - Executing dbt at run time as a product surface (the runtime consumes committed artifacts).
 - `state:modified` CI selection and seed emission (covered by DBT-10/DBT-11; separate slices).
-- A `DbtRunner` opt-in execution entry point + CLI `--backend dbt` (ADR-008 roadmap item 6,
-  not yet shipped).
+- Production Databricks dbt execution as a supported runtime target; the shipped
+  `DbtRunner` and CLI `emit --backend dbt [--run]` path are opt-in dev/test
+  execution surfaces for generated projects.
 
 ## Review Checklist
 

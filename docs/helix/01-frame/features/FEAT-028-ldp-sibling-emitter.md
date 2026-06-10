@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-028 — LDP Sibling Emitter
 
 **Feature ID**: FEAT-028
-**Status**: Specified
+**Status**: Implemented
 **Priority**: P1
 **Owner**: Platform / Compilation
 **Covered PRD Subsystem(s)**: Multi-Target Emission

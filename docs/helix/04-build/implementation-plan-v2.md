@@ -44,13 +44,7 @@ the following specs and source/test evidence:
 ## Remaining Work
 
 Do not add planned-work prose to this document. File or update DDx beads instead.
-As of this replacement, the relevant active beads are:
-
-| Bead | Scope |
-| --- | --- |
-| `hx-2c3c331f` | Audit ADR-005 Phase C consumers so runtime paths prefer `ExpectationSuite` and legacy `quality_checks` remains compatibility-only. |
-| `tablespec-62dbc8c6` | Resolve the PRD reference to the missing parking-lot artifact or replace it with the canonical DDx query. |
-| `tablespec-340da854` | Quantify weak NFR and acceptance evidence targets in the PRD and feature specs. |
-
-Use `ddx bead ready --json` for the current execution queue and
-`ddx bead show <id> --json` for the authoritative acceptance criteria.
+This replacement note intentionally does not snapshot active beads, because that
+inventory drifts as work closes. Use `ddx bead ready --json` for the current
+execution queue, `ddx bead status --json` for tracker health, and
+`ddx bead show <id> --json` for authoritative acceptance criteria.

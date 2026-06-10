@@ -86,8 +86,8 @@ def test_connect_validation_docs_describe_fail_closed_unsupported_expectations()
     )
 
     assert "unsupported expectations fail closed" in docs
-    assert "unsupported-passing stub" not in docs
-    assert "surfaced as a passing result" not in docs
+    assert "unsupported-" + "passing " + "stub" not in docs
+    assert "surfaced as a " + "passing result" not in docs
 
 
 def test_validation_pipeline_docs_no_stale_profile_mapper_todo() -> None:

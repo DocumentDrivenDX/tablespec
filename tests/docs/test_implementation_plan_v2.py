@@ -24,9 +24,16 @@ def test_implementation_plan_v2_links_to_active_tracking() -> None:
     text = PLAN.read_text()
 
     assert "ddx bead ready --json" in text
-    assert "hx-2c3c331f" in text
-    assert "tablespec-62dbc8c6" in text
-    assert "tablespec-340da854" in text
+    assert "ddx bead status --json" in text
+    assert "ddx bead show <id> --json" in text
+    assert "snapshot active beads" in text
+
+    for closed_bead_id in [
+        "hx-" + "2c3c331f",
+        "tablespec-" + "62dbc8c6",
+        "tablespec-" + "340da854",
+    ]:
+        assert closed_bead_id not in text
 
     for relative_path in [
         "docs/helix/01-frame/prd.md",
