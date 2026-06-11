@@ -105,12 +105,38 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-index:
-    name: Build PyPI Index for GitHub Pages
+    name: Build Microsite and PyPI Index for GitHub Pages
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required by Hugo enableGitInfo.
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+          cache-dependency-path: website/go.sum
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Set up Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.160.0'
+          extended: true
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -118,101 +144,32 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Generate PyPI-compatible index
+      - name: Build Hugo microsite
+        working-directory: website
         run: |
-          mkdir -p pages/simple/tablespec
+          npm ci
+          hugo --gc --minify
 
-          # Create root index.html
-          cat > pages/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>tablespec - Private PyPI Repository</title>
-            <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 40px; }
-              h1 { color: #0366d6; }
-              code { background: #f6f8fa; padding: 2px 6px; border-radius: 3px; }
-              pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; }
-              .container { max-width: 800px; margin: 0 auto; }
-              .badge { display: inline-block; padding: 4px 8px; background: #0366d6; color: white; border-radius: 3px; font-size: 12px; margin: 4px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h1>📊 tablespec</h1>
-              <p><span class="badge">Python 3.12+</span> <span class="badge">Apache 2.0</span></p>
-              <p>Python library for working with table schemas in Universal Metadata Format (UMF)</p>
+      - name: Generate combined Pages artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          python scripts/build_pages_artifact.py \
+            --site-dir website/public \
+            --dist-dir dist \
+            --out-dir pages \
+            --repo "$GITHUB_REPOSITORY" \
+            --tag "$TAG" \
+            --include-github-releases
 
-              <h2>Installation</h2>
-              <pre>pip install tablespec --index-url https://easel.github.io/tablespec/simple/</pre>
-
-              <h2>Quick Start</h2>
-              <pre>
-          # Load and validate UMF schema
-          from tablespec import load_umf_from_yaml, generate_sql_ddl
-
-          umf = load_umf_from_yaml("schema.yaml")
-          ddl = generate_sql_ddl(umf)
-          print(ddl)
-
-          # With PySpark support
-          pip install tablespec[spark] --index-url https://easel.github.io/tablespec/simple/
-              </pre>
-
-              <h2>Available Packages</h2>
-              <ul>
-                <li><a href="simple/tablespec/">tablespec</a></li>
-              </ul>
-
-              <h2>Links</h2>
-              <ul>
-                <li><a href="https://github.com/easel/tablespec">GitHub Repository</a></li>
-              </ul>
-            </div>
-          </body>
-          </html>
-          EOF
-
-          # Create simple/index.html (PEP 503)
-          cat > pages/simple/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head><title>Simple Index</title></head>
-          <body>
-            <h1>Simple Index</h1>
-            <a href="tablespec/">tablespec</a><br/>
-          </body>
-          </html>
-          EOF
-
-          # Create package index with all versions
-          cat > pages/simple/tablespec/index.html << 'PKGEOF'
-          <!DOCTYPE html>
-          <html>
-          <head><title>Links for tablespec</title></head>
-          <body>
-            <h1>Links for tablespec</h1>
-          PKGEOF
-
-          # Add links to all distribution files
-          for file in dist/*; do
-            filename=$(basename "$file")
-            # Calculate SHA256 hash
-            hash=$(sha256sum "$file" | cut -d' ' -f1)
-            echo "    <a href=\"../../../releases/download/${GITHUB_REF#refs/tags/}/$filename#sha256=$hash\">$filename</a><br/>" >> pages/simple/tablespec/index.html
-          done
-
-          # Close HTML
-          cat >> pages/simple/tablespec/index.html << 'PKGEOF'
-          </body>
-          </html>
-          PKGEOF
-
-          # Create .nojekyll to disable Jekyll processing
-          touch pages/.nojekyll
-
-          echo "Generated index structure:"
-          find pages -type f -exec echo "  {}" \;
+      - name: Inspect Pages artifact
+        run: |
+          test -f pages/index.html
+          test -f pages/simple/index.html
+          test -f pages/simple/tablespec/index.html
+          echo "Generated Pages artifact:"
+          find pages -maxdepth 3 -type f -print | sort
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
