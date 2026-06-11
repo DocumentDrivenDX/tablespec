@@ -96,3 +96,17 @@ def test_release_workflow_builds_combined_pages_artifact() -> None:
     assert "hugo --gc --minify" in workflow
     assert "scripts/build_pages_artifact.py" in workflow
     assert "/simple/tablespec/index.html" in workflow
+
+
+def test_microsite_workflow_rebuilds_pages_without_dist_artifacts() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "publish-microsite.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "workflow_dispatch:" in workflow
+    assert "website/**" in workflow
+    assert "hugo --gc --minify" in workflow
+    assert "scripts/build_pages_artifact.py" in workflow
+    assert "--include-github-releases" in workflow
+    assert "--dist-dir" not in workflow
+    assert "actions/deploy-pages@v4" in workflow
