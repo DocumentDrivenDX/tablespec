@@ -28,6 +28,13 @@ For Databricks pipelines (Git folders + notebooks, DBR 17.x / Spark 4.0) the ing
 naturally pure SQL. We already commit generated SQL for Gold tables (`SQLPlanGenerator`);
 the raw->ingest step should be no different.
 
+This decision also makes the bronze boundary explicit. Raw storage preserves source
+bytes/records for audit and replay. The generated raw->ingest artifact preserves source
+semantics in a typed, validated, platform-native representation; it is still source-preserving
+because it does not perform cross-source conformance, survivorship, entity resolution, or
+business enrichment. It deliberately does not preserve avoidable source accidents such as
+flat-file string typing or dump-format quirks.
+
 ## Decision
 
 **The canonical raw->ingest transform is a committed, generated SQL artifact**, produced from

@@ -23,6 +23,8 @@ library), reviewable by the operator.
 | sample-data | library | `area:data` | Sample data is both a product feature (FEAT-011, `sample_data/`) and the seed mechanism for the dbt-seeds path and parity harnesses; generated data must be varied, deterministic, and clearly synthetic | Deterministic generation config; healthcare-domain generators; FK-graph-aware pools; never mixed with production data |
 | unity-catalog | library | `area:data`, `area:infra` | Compiled artifacts target Databricks Unity Catalog tables at runtime; UC naming/qualification affects SQL plan, dbt, and LDP emission | Three-part naming via the relation seam (`core/relations.py`); no hardcoded catalogs in emitted artifacts |
 | databricks-declarative-pipelines | library | `area:data` | The LDP sibling emitter (FEAT-028, ADR-013) emits Lakeflow Declarative Pipelines projects; LDP semantics (APPLY CHANGES, EXPECTATIONS) constrain the shared core seam | LDP generated from the core seam only; no Databricks runtime imports at generation time (`tests/test_core_encapsulation.py`) |
+| hugo-hextra | library | `area:docs`, `area:infra` | FEAT-030 introduces a Hugo/Hextra product microsite under `website/` and ADR-014 requires it to coexist with the Pages package index | Hugo extended pinned in CI; Hextra as Hugo Module; content under `website/`; Playwright screenshots; combined Pages artifact preserves `/simple/` |
+| product-microsite-ia | library | `area:docs` | The microsite must serve evaluators, first-time users, active users, and operators instead of exposing repository internals as a flat document tree | Separate Evaluate/Start/Decide/Operate paths; homepage answers product/category/value/action; top-level sections distinguish Why, Use, Concepts, Reference, and Demos |
 
 ## Slot Resolution
 
@@ -32,11 +34,11 @@ shipped-default → recorded-assumption:
 | Slot | Filler | Source | Rationale |
 |------|--------|--------|-----------|
 | language-runtime | python-uv | assumption | Shipped default (`typescript-bun`) contradicts the product: tablespec is a Python 3.12+ library (`pyproject.toml`). Recorded as assumption per resolution order. |
-| frontend-framework | — (not applicable) | assumption | No UI surface; PRD Non-Goals exclude GUI/web interfaces. |
-| e2e-framework | — (not applicable as browser e2e) | assumption | Non-UI library: the whole-stack exercise is the cross-engine conformance harness plus `examples/demo.py` (run by `tests/integration/test_demo.py`), substituting for browser e2e per the verification concern's library exception. |
+| frontend-framework | Hugo + Hextra for documentation | assumption | The product remains a non-UI library, but FEAT-030 adds a public documentation microsite. Hextra is the framework for that site only; it is not an operational app UI. |
+| e2e-framework | Playwright for microsite; conformance harness for library runtime | assumption | Browser e2e applies to FEAT-030 navigation and rendering. The product runtime remains covered by compile/backbone/conformance tests rather than browser flows. |
 | auth-provider | — (not applicable) | assumption | No accounts, tenants, or sign-in surface. |
 | datastore | — (not applicable) | assumption | The library holds no state of its own; compiled artifacts target the consumer's platform (Databricks/UC, DuckDB in tests). |
-| deploy-target | Python package (wheel/sdist) | assumption | Distributed as a library package; no service deployment. |
+| deploy-target | Python package plus GitHub Pages docs/package index | assumption | Releases publish wheel/sdist and the Pages package index; FEAT-030 adds a Hugo microsite to the same Pages artifact while preserving `/simple/`. |
 | architecture-style | target-agnostic core seam (project-local) | assumption | Governed by ADR-013: framework-agnostic `core/` IR with sibling emitters (`dbt/`, `ldp/`, SQL) and enforced import encapsulation. |
 
 ## Project Overrides
@@ -45,6 +47,7 @@ shipped-default → recorded-assumption:
 |---------|----------|----------|-----------|
 | sample-data | Seed via the stack's semantic faker library | tablespec's own `sample_data/` engine (FEAT-011) is the generator — it is domain-aware (healthcare LOBs, FK graphs) and itself under test | FEAT-011, ADR-008 (seeds path) |
 | testing | e2e = browser/HTTP flow against a running app | e2e = compile → committed artifacts → backbone execution on real engines (Spark, DuckDB, Sail; opt-in Databricks serverless) | TP-001, ADR-012 |
+| testing | e2e = browser/HTTP flow against a running app | For FEAT-030 only, browser e2e is applicable: Playwright verifies microsite navigation, responsive rendering, and screenshots. This does not replace the library/runtime conformance definition above. | FEAT-030, ADR-014 |
 
 ## Area Labels
 
@@ -53,6 +56,7 @@ This project uses the following area labels for concern scoping:
 - `area:api` — the public Python API surface (`src/tablespec/__init__.py`)
 - `area:cli` — the Typer CLI (`tablespec` entry point) and TUI
 - `area:data` — UMF models, emitters, profiling, validation, sample data
+- `area:docs` — source docs, API reference, Hugo microsite, and documentation IA
 - `area:infra` — CI, packaging, Spark/Databricks test environments
 
 ## Concern Conflicts

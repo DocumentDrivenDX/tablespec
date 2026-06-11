@@ -38,6 +38,11 @@ backends does not silently change the transform. Rules LDP cannot express as a
 single-dataset constraint (uniqueness, foreign keys) appear as honest comments,
 never as faked constraints.
 
+The `ingested/ingested_<t>.sql` dataset remains an LDP representation of the
+source-semantic ingested contract, not a silver-layer model. This feature preserves
+the existing dataset naming and clarifies that source preservation means preserving
+source meaning after typing, validation, keys, and relationships are made explicit.
+
 ## Problem Statement
 
 - **Current situation**: The compile step emits direct SQL, dbt projects, and GX

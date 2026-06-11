@@ -34,6 +34,11 @@ GX suite, so the dbt artifact and the GX artifact can never silently disagree. T
 can generate the project anywhere `tablespec` is installed — without dbt present — and only a
 CI/test lane that actually *runs* `dbt build` needs the dbt stack.
 
+The `ingested_<t>` model name is the existing dbt representation of the source-semantic
+ingested contract. It is not a silver-layer conformance model and this feature does not
+rename the model family; it renders the typed, validated source meaning already governed by
+FR-18/FR-19 into dbt artifacts.
+
 ## Problem Statement
 
 - **Current situation**: dbt models, `schema.yml` tests, contracts, sources, and project

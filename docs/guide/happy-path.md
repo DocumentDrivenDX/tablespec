@@ -20,6 +20,13 @@ Current boundary notes:
 
 - Split YAML UMF or JSON interchange is the canonical authoring surface. Inline
   YAML is legacy/migration-only.
+- Raw storage preserves source records for audit and replay. The compiled
+  ingested artifact set preserves source semantics in platform-native form:
+  typed columns, validation criteria, relationships, aliases, keys, raw-to-ingest
+  SQL, validation suites, and manifest entries.
+- Ingested is still source-preserving bronze, not silver. Cross-source
+  conformance, survivorship, entity resolution, enrichment, and dimensional
+  modeling remain downstream responsibilities.
 - Databricks-facing compile UX accepts `dialect="databricks"` for the
   Spark-family SQL emitted by tablespec; internal emitters may normalize to
   `spark` when the rendered SQL is identical.
@@ -47,6 +54,10 @@ umfs, suites = umfs_from_tables(
 `umfs_from_tables(...)` reflects each table into a strict UMF model. When
 `profile=True`, it also returns profile-derived expectation suites keyed by table
 name.
+
+Reflection captures the table's declared structure. Profiling enriches validation
+evidence. The compile step is what turns those source semantics into the
+committed ingested contract consumed downstream.
 
 If you do not need the intermediate `UMF` list, the convenience wrapper
 `bootstrap_from_tables(...)` reflects, profiles, compiles, and returns the
@@ -206,6 +217,10 @@ artifacts = compile_umfs(
 
 print(artifacts.manifest_path)
 ```
+
+The ingested outputs are the source-semantic bronze completion point. They make
+source meaning explicit without claiming to solve silver-layer conformance or
+entity-resolution concerns.
 
 If you only need one backend family, call the emitters directly:
 

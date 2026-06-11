@@ -84,6 +84,16 @@ activity gates, tracker semantics).
     catch-all utilities. This changes decisions when a generalized helper has no
     current requirement behind it.
 
+12. **Preserve source semantics, not source accidents.** Raw storage preserves
+    source bytes and records for audit and replay. The ingested contract
+    preserves the source table's meaning in platform-native artifacts: typed
+    columns, validation criteria, relationships, aliases, keys, emitted
+    raw→ingest SQL, and manifest entries. Do not carry forward avoidable source
+    accidents — flat-file string typing, ambiguous casts, dump-format quirks, or
+    undocumented relationships — merely because they appeared in the landing
+    format. This changes decisions when "source preserving" is mistaken for
+    preserving every source-system defect downstream.
+
 ## Tension Resolution
 
 When principles pull in opposite directions, document the resolution strategy

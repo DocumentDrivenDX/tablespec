@@ -19,6 +19,8 @@ Unlike **hand-maintaining each tool's schema and transforms separately (where de
 
 When tablespec succeeds, a healthcare data platform has exactly one place to change a table's truth: its UMF. From that UMF, a deterministic compile step emits the complete set of committed runtime artifacts — raw→ingest and gold SQL plans, dbt ingest and gold-DAG projects, LDP projects, and GX validation suites. The runtime never re-derives schema or transforms from UMF; it reads only the committed artifacts. Every change to a transform shows up as a reviewable diff, and the same UMF runs first-class on both classic Spark and Databricks serverless / Spark Connect. Schema drift between tools is structurally impossible because there is only one upstream source and one deterministic compiler.
 
+tablespec also gives teams a concrete definition of done for source-preserving bronze. Raw storage keeps the source bytes and records available for audit and replay. The compiled ingested contract captures the source table's meaning in Databricks / Unity Catalog / Delta-compatible artifacts: the UMF snapshot, typed ingested table definition, validation criteria, relationships, aliases, keys, generated raw→ingest SQL, and downstream manifest entries. That contract is still source-semantic, not silver: it does not perform cross-source conformance, survivorship, entity resolution, dimensional modeling, or business enrichment. It preserves source semantics without preserving avoidable source accidents such as flat-file string typing, ambiguous date encodings, or dump-format quirks.
+
 **North Star**: One UMF compiles, deterministically and losslessly, into every committed runtime artifact a healthcare platform needs — with zero drift between the UMF and what runs.
 
 ## User Experience
@@ -39,6 +41,7 @@ A data engineer onboards a new claims table by editing (or inferring) its UMF. T
 | Value Proposition | Customer Benefit |
 |-------------------|------------------|
 | UMF as single source of truth | One authoritative YAML per table; all schema representations derive from it (bidirectional where possible) |
+| Source-semantic bronze contract | Raw records remain auditable while `ingested` artifacts become the properly typed, validated, keyed, relationship-aware representation of the source for downstream consumption |
 | Compile to committed runtime artifacts | One UMF deterministically emits direct SQL (raw→ingest + gold plans), dbt projects (ingest + gold DAG), LDP projects, and GX suites — all reviewable as diffs |
 | Compile-once, run-from-artifacts | Runtimes read committed artifacts, never re-derive from UMF; the transform is diffable and the runtime has no tablespec dependency (realized by the compile orchestrator + bootstrap pipeline — FEAT-026, decision ADR-012) |
 | Multi-engine, Connect-safe execution | The same UMF runs first-class on classic Spark and on Databricks serverless / Spark Connect, with engine-correct dispatch and Connect-safe validation |

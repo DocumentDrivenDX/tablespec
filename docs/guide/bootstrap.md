@@ -7,6 +7,13 @@ This is a development/bootstrap step. It produces the committed artifact tree
 that production will later install and run from via the manifest; production
 does not re-run the bootstrap orchestration from source checkout code.
 
+The bootstrap path is tablespec's practical definition of done for ingested
+bronze. Raw source records remain auditable upstream; the compiled artifact tree
+captures the source table's semantics as typed columns, validation criteria,
+relationships, aliases, keys, raw-to-ingest SQL, validation suites, and manifest
+entries. Silver-layer work such as cross-source conformance, survivorship, entity
+resolution, enrichment, and dimensional modeling remains downstream.
+
 ```python
 from tablespec import bootstrap_from_tables
 

@@ -1,6 +1,6 @@
 # tablespec
 
-Python library for working with table schemas in Universal Metadata Format (UMF). Provides type-safe models, validation, profiling integration, and schema generation tools.
+Python library for working with table schemas in Universal Metadata Format (UMF). Provides type-safe models, validation, profiling integration, schema generation tools, and committed runtime artifacts for source-semantic ingested tables.
 
 ## Features
 
@@ -18,6 +18,19 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - **Sample Data Generation** -- Healthcare-specific, constraint-aware sample data from UMF specs
 - **Domain Type Inference** -- Automatic detection of domain types (SSN, NPI, phone, state codes, etc.)
 - **Change Management** -- UMF diffing, atomic change application, and git-based changelogs
+
+## Source-Semantic Bronze
+
+tablespec separates raw source preservation from ingested source semantics. Raw
+storage keeps the original records available for audit and replay. The compiled
+ingested artifact set makes the source usable downstream by defining types,
+validation criteria, relationships, aliases, keys, raw-to-ingest SQL, validation
+suites, and manifest entries in Databricks / Unity Catalog / Delta-compatible
+forms.
+
+That boundary is still source-preserving bronze: tablespec does not perform
+cross-source conformance, survivorship, entity resolution, enrichment, or
+dimensional modeling. Those concerns begin in silver and downstream layers.
 
 ## Installation
 

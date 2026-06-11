@@ -41,6 +41,7 @@ ddx:
 | FEAT-027 | [dbt Project Emitter](features/FEAT-027-dbt-emitter.md) | Deterministically emit a complete dbt project (models, contracts, tests, scaffolding) from UMF on the shared emission core seam. | Built | P0 | Platform / Compile Team | PRD: Multi-Target Emission (FR-19.2, FR-19.1) | 2026-06-10 |
 | FEAT-028 | [LDP Sibling Emitter](features/FEAT-028-ldp-sibling-emitter.md) | Emit a Lakeflow Declarative Pipelines project from a UMF set as a sibling backend on the shared target-agnostic core. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.3, FR-19.1) | 2026-06-10 |
 | FEAT-029 | [Runtime Platform](features/FEAT-029-runtime-platform.md) | Connect-safe session capability probing and engine-correct `functions` dispatch. | Built | P0 | Data Platform | PRD: Runtime Platform (FR-20.1, FR-20.2, FR-20.3) | 2026-06-10 |
+| FEAT-030 | [Product Microsite](features/FEAT-030-product-microsite.md) | Hugo/Hextra product microsite with reader-mode IA, source-semantic bronze explanation, demos, and Pages deployment that preserves `/simple/`. | Specified | P1 | Platform / Developer Experience | Vision/Principles (meta-feature; governed by ADR-014) | 2026-06-10 |
 
 ## Status Definitions
 
@@ -69,6 +70,7 @@ listed here.
 | FEAT-005 | FEAT-024 | Required | Native Connect-safe profiling is governed by FEAT-024; FEAT-005 retains only schema mapping and the legacy compatibility path. |
 | FEAT-025 | FEAT-024 | Required | Reuses the Connect-safe runtime substrate (engine-correct dispatch, serverless session acquisition) established by FEAT-024. |
 | FEAT-028 | FEAT-027 | Shared seam | Built on the shared target-agnostic core seam (FR-19.1), co-owned with the dbt emitter and governed at the seam by ADR-013. |
+| FEAT-030 | FEAT-015 | Documentation integration | The microsite may link or embed API reference output, but API reference generation remains governed by FEAT-015. |
 
 ## Trace Links
 
@@ -103,6 +105,7 @@ listed here.
 | FEAT-027 | [features/FEAT-027-dbt-emitter.md](features/FEAT-027-dbt-emitter.md) | — | — | — | — |
 | FEAT-028 | [features/FEAT-028-ldp-sibling-emitter.md](features/FEAT-028-ldp-sibling-emitter.md) | — | — | — | — |
 | FEAT-029 | [features/FEAT-029-runtime-platform.md](features/FEAT-029-runtime-platform.md) | — | — | — | — |
+| FEAT-030 | [features/FEAT-030-product-microsite.md](features/FEAT-030-product-microsite.md) | [user-stories/US-038-publish-product-microsite.md](user-stories/US-038-publish-product-microsite.md) | [../02-design/adr/ADR-014-product-microsite-pages-architecture.md](../02-design/adr/ADR-014-product-microsite-pages-architecture.md) | — | — |
 
 "—" means the link is not tracked at the registry level; per-feature stories,
 designs, and tests are recorded inside each feature specification (and in
@@ -150,6 +153,7 @@ designs, and tests are recorded inside each feature specification (and in
 ### Documentation and Testing
 - FEAT-015: Browsable API Documentation
 - FEAT-016: Testing Infrastructure for Agentic Development
+- FEAT-030: Product Microsite
 
 ## ID Rules
 

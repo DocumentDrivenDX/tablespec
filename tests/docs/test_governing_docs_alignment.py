@@ -81,3 +81,43 @@ def test_implementation_plan_v2_does_not_snapshot_closed_beads() -> None:
     assert "does not snapshot active beads" in text
     assert "ddx bead ready --json" in text
     assert "ddx bead status --json" in text
+
+
+def test_source_semantic_bronze_is_governed_without_new_fr_family() -> None:
+    principle_text = _read("docs/helix/01-frame/principles.md")
+    prd_text = _read("docs/helix/01-frame/prd.md")
+    vision_text = _read("docs/helix/00-discover/product-vision.md")
+
+    source_semantic = "source-" + "semantic"
+    assert "Preserve source semantics, not source accidents" in principle_text
+    assert source_semantic in prd_text
+    assert "FR-21" not in prd_text
+    assert "raw storage" in vision_text.lower()
+    assert "silver" in vision_text
+
+
+def test_product_microsite_governance_preserves_pages_package_index() -> None:
+    feat_text = _read("docs/helix/01-frame/features/FEAT-030-product-microsite.md")
+    story_text = _read(
+        "docs/helix/01-frame/user-stories/US-038-publish-product-microsite.md"
+    )
+    adr_text = _read(
+        "docs/helix/02-design/adr/ADR-014-product-microsite-pages-architecture.md"
+    )
+    registry_text = _read("docs/helix/01-frame/feature-registry.md")
+
+    assert "Hugo + Hextra" in feat_text
+    assert "FEAT-015 continues to own API reference generation" in adr_text
+    assert "/simple/tablespec/" in feat_text
+    assert "/simple/tablespec/index.html" in story_text
+    assert "FEAT-030" in registry_text
+    assert "ADR-014" in registry_text
+
+
+def test_microsite_concerns_reconcile_browser_testing_scope() -> None:
+    concerns_text = _read("docs/helix/01-frame/concerns.md")
+
+    assert "hugo-hextra" in concerns_text
+    assert "product-microsite-ia" in concerns_text
+    assert "Playwright for microsite" in concerns_text
+    assert "conformance harness for library runtime" in concerns_text

@@ -12,7 +12,7 @@ ddx:
 
 ## Summary
 
-tablespec is a Python library that makes Universal Metadata Format (UMF) the single source of truth for table schemas on healthcare data platforms, and acts as the compiler that turns one UMF into the full set of committed, reviewable runtime artifacts — direct SQL (raw→ingest + gold plans), dbt projects (ingest + gold DAG), Lakeflow Declarative Pipelines (LDP), and Great Expectations suites. Downstream runtimes consume only those committed artifacts (never re-deriving from UMF at run time), and the same UMF runs first-class on both classic Spark and Databricks serverless / Spark Connect. Top success metrics: zero drift between UMF and committed artifacts, multi-engine result parity on the conformance harness, and reduced manual transform/validation authoring per onboarded table.
+tablespec is a Python library that makes Universal Metadata Format (UMF) the single source of truth for table schemas on healthcare data platforms, and acts as the compiler that turns one UMF into the full set of committed, reviewable runtime artifacts — direct SQL (raw→ingest + gold plans), dbt projects (ingest + gold DAG), Lakeflow Declarative Pipelines (LDP), and Great Expectations suites. Downstream runtimes consume only those committed artifacts (never re-deriving from UMF at run time), and the same UMF runs first-class on both classic Spark and Databricks serverless / Spark Connect. The compiled ingested contract defines source-preserving bronze completion: raw records remain available for audit and replay, while ingested artifacts capture source semantics as typed, validated, keyed, relationship-aware Delta/Unity Catalog-compatible tables. Top success metrics: zero drift between UMF and committed artifacts, multi-engine result parity on the conformance harness, and reduced manual transform/validation authoring per onboarded table.
 
 ## Problem and Goals
 
@@ -20,10 +20,12 @@ tablespec is a Python library that makes Universal Metadata Format (UMF) the sin
 
 Healthcare data platforms work with table schemas across many tools and formats (SQL DDL, PySpark, JSON Schema, Great Expectations, dbt, LDP). Without a single authoritative schema format and a deterministic compile step, definitions drift between tools, validation rules diverge, transforms are not diffable, and onboarding a table requires redundant manual work in each system. Compounding this, the JVM-bound runtime assumptions of legacy tooling (PyDeequ profiling, GX `add_spark`) silently break on Databricks serverless / Spark Connect, where no classic `SparkContext` exists.
 
+The common medallion shorthand "bronze" is too loose to be actionable by itself. A table can be source-derived but still unsuitable for downstream consumption if every field is a string, cast failures are implicit, relationships are undocumented, keys are missing, or the only faithful representation is an obtuse source dump format. tablespec treats raw storage and ingested bronze as different contracts: raw preserves source bytes/records; ingested preserves source meaning in platform-native, typed, validated, reviewable artifacts.
+
 ### Goals
 
 1. Establish UMF as the single source of truth for table schema definitions.
-2. Compile one UMF deterministically into the full set of committed runtime artifacts (direct SQL, dbt projects, LDP, GX suites), with the runtime consuming only those artifacts.
+2. Compile one UMF deterministically into the full set of committed runtime artifacts (direct SQL, dbt projects, LDP, GX suites), with the runtime consuming only those artifacts and with the ingested artifact set serving as the source-semantic bronze contract.
 3. Run the same UMF first-class on both classic Spark and Databricks serverless / Spark Connect, with engine-correct dispatch and Connect-safe validation.
 4. Profile data with a native, dependency-light Spark-SQL profiler that works on serverless / Connect and feeds GX expectations directly.
 5. Keep schema generation, transforms, and baseline validation deterministic and lossless so committed artifacts are reviewable as diffs.
@@ -41,7 +43,7 @@ Healthcare data platforms work with table schemas across many tools and formats 
 ### Non-Goals
 
 - Database connectivity or interactive query execution as a product surface (the runtime executes committed artifacts; tablespec does not become an ETL engine).
-- GUI or web interface.
+- Application GUI or operational web interface. Product documentation and a public microsite are documentation surfaces, not a runtime product UI.
 - Real-time schema synchronization (compile is an explicit step, not a live watcher).
 - Shipping dbt or pysail as user-facing runtime dependencies (they are dev-group / test-only tooling).
 - General-purpose ETL: data-processing capabilities (merge, sample data, quality baselines, profiling, validation) are available via the `[spark]` extra but are scoped to UMF-driven, committed-artifact workflows.

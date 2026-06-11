@@ -24,6 +24,13 @@ realizes the PRD's central goal — "compile one UMF deterministically into the 
 set of committed runtime artifacts (direct SQL, dbt projects, LDP, GX suites), with
 the runtime consuming only those artifacts" (PRD Goal 2, FR-18.1/18.3).
 
+The orchestrator is also where the source-semantic bronze contract becomes
+concrete. It does not redefine artifact names or introduce a new runtime layer:
+the existing UMF snapshot, `ingest/`, `schemas/`, `validation/`, dbt/LDP outputs,
+and manifest entries together define when raw source capture has become a typed,
+validated, keyed, relationship-aware ingested artifact set suitable for downstream
+consumption.
+
 ## Ideal Future State
 
 A data engineer onboards a table by producing a UMF — either by pointing the
@@ -37,6 +44,12 @@ backbone then executes only those committed artifacts, resolved purely from disk
 via the manifest — it never re-derives schema or transforms from the UMF and never
 imports tablespec at run time. The compile is path-agnostic: both bootstrap paths
 converge on the same `list[UMF]` and the same compiled output.
+
+At that point the source has not become silver. Cross-source conformance,
+survivorship, entity resolution, dimensional modeling, and enrichment still belong
+to downstream layers. What has changed is that the source's semantics have been
+captured in Databricks / Unity Catalog / Delta-compatible artifacts rather than
+left as source-format accidents.
 
 ## Problem Statement
 
