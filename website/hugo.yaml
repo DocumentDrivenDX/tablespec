@@ -1,0 +1,56 @@
+baseURL: https://easel.github.io/tablespec/
+locale: en-us
+title: tablespec
+
+module:
+  imports:
+    - path: github.com/imfing/hextra
+
+enableRobotsTXT: true
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+
+menu:
+  main:
+    - name: Getting Started
+      pageRef: /getting-started
+      weight: 1
+    - name: Concepts
+      pageRef: /concepts
+      weight: 2
+    - name: CLI Reference
+      pageRef: /cli-reference
+      weight: 3
+    - name: API Reference
+      pageRef: /api-reference
+      weight: 4
+    - name: Demos
+      pageRef: /demos
+      weight: 5
+    - name: GitHub
+      url: https://github.com/easel/tablespec
+      weight: 10
+      params:
+        icon: github
+
+params:
+  description: A UMF compiler that defines the source-semantic ingested bronze contract for data platform teams.
+
+  navbar:
+    displayTitle: true
+    displayLogo: false
+
+  page:
+    width: wide
+
+  footer:
+    displayCopyright: true
+    displayPoweredBy: false
+
+  editURL:
+    enable: false

@@ -1,0 +1,10 @@
+/* Prevent code blocks from causing horizontal overflow on narrow viewports */
+.hextra-code-block pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Ensure main content doesn't overflow on mobile */
+main {
+  overflow-x: hidden;
+}
