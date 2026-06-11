@@ -8,10 +8,19 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
+FEATURE_DIR = ROOT / "docs/helix/01-frame/features"
 
 
 def _read(relative_path: str) -> str:
     return (ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def _legacy_feature_paths() -> list[Path]:
+    return [
+        path
+        for path in sorted(FEATURE_DIR.glob("FEAT-*.md"))
+        if 1 <= int(path.name.removeprefix("FEAT-")[:3]) <= 23
+    ]
 
 
 def test_helix_marker_parses_and_roots_exist() -> None:
@@ -39,6 +48,48 @@ def test_shipped_feature_specs_are_marked_approved() -> None:
         for stale in ("Specified", "Implemented"):
             stale_status = "**Status**: " + stale
             assert stale_status not in text, relative_path
+
+
+def test_legacy_feature_specs_follow_current_template_sections() -> None:
+    required_sections = [
+        "Overview",
+        "Ideal Future State",
+        "Problem Statement",
+        "Functional Areas",
+        "Requirements",
+        "User Stories",
+        "Edge Cases and Error Handling",
+        "Success Metrics",
+        "Constraints and Assumptions",
+        "Dependencies",
+        "Out of Scope",
+        "Review Checklist",
+    ]
+
+    for path in _legacy_feature_paths():
+        text = path.read_text(encoding="utf-8")
+        feature_id = path.name[:8]
+
+        assert text.startswith("---\n"), path
+        assert f"# Feature Specification: {feature_id} " in text, path
+        assert "### Existing Scope Evidence" in text, path
+        assert "source-preserving" in text, path
+        for section in required_sections:
+            assert f"\n## {section}\n" in text, f"{path}: missing {section}"
+
+
+def test_legacy_feature_registry_rows_reflect_template_backfill() -> None:
+    registry = _read("docs/helix/01-frame/feature-registry.md")
+
+    assert "**Last Updated**: 2026-06-11" in registry
+    for path in _legacy_feature_paths():
+        feature_id = path.name[:8]
+        row = next(
+            line
+            for line in registry.splitlines()
+            if line.startswith(f"| {feature_id} |")
+        )
+        assert row.endswith("| 2026-06-11 |"), row
 
 
 def test_adr_011_describes_unsupported_native_expectations_as_fail_closed() -> None:
