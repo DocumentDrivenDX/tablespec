@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: SRC-01, SRC-05, JDBC-01–JDBC-05, DISC-01–DISC-03
 **PRD Requirements**: FR-21.1, FR-21.4, FR-21.6
 **Priority**: P1
-**Status**: Approved (Docker lane green 2026-06-11, commit 224a8af; databricks_e2e lane wired and skip-gated pending a workspace-reachable Northwind — consumer-owned)
+**Status**: Approved (Docker lane green 2026-06-11, commit 224a8af; workspace flow proven on dbw-dev-eus2 via the repo demo notebooks — DBR 17.3 LTS/Spark 4 + SQL Server 2025 run 419590905072679 and DBR 16.4 LTS + SQL Server 2022 run 1039374257789724, both exit PASS with 13 tables; the pytest databricks_e2e lane remains wired for env-driven runs)
 
 ## Story
 
@@ -115,7 +115,10 @@ uses a test-local report bridge; shipping it is `tablespec-72c03317`.
   and `product_id → products.product_id`; `customers.customer_id` typed
   CHAR(5) NOT NULL.
 - Databricks lane: opt-in `databricks_e2e` tier runs the full US-039 flow
-  on a workspace when credentials are configured.
+  on a workspace when credentials are configured; additionally, the repo
+  demo notebooks (`notebooks/northwind-demo/`) run the flow as a workspace
+  job — proven green on both DBR 17.3/SQL 2025 and DBR 16.4/SQL 2022
+  (2026-06-11).
 
 ## Dependencies
 
