@@ -20,6 +20,81 @@ logger = logging.getLogger(__name__)
 # Note: expect_column_to_exist was removed because it is redundant with schema metadata
 REQUIRED_BASELINE_EXPECTATION_TYPES: frozenset[str] = frozenset()
 
+# ---------------------------------------------------------------------------
+# Raw-suite typing (FEAT-031 SUITE-01..03)
+# ---------------------------------------------------------------------------
+# String-shape checks assert facts about STRING-rendered values (character
+# length, regex shape, strftime format, string->type castability). They are
+# meaningful only against the all-STRING raw landing of text-landed sources
+# (ADR-007); against NATIVE-TYPED raw (parquet/jdbc, ADR-015) they are at best
+# meaningless and at worst force a typed column back through string parsing.
+#
+# Design choice (SUITE-01/02 seam): the raw-typing branch lives HERE, at suite
+# COMPOSITION time, keyed on the UMF's declared ``source.kind`` -- not in the
+# executor. Stage ROUTING stays data-driven via the existing classification
+# (``classify_validation_type`` / ``ExpectationMeta.stage``, SUITE-03):
+# composition decides WHAT belongs in a typed-raw suite, the executor keeps
+# deciding WHERE each expectation runs. Typed raw keeps its schema-type and
+# nullability conformance checks (structural column count/order + not-null)
+# and every ingested-stage check; only raw-stage string-shape checks are
+# withheld. Delimited / legacy UMFs (no ``source:`` block) are untouched.
+STRING_SHAPE_EXPECTATION_TYPES: frozenset[str] = frozenset(
+    {
+        # Character-length checks
+        "expect_column_value_lengths_to_be_between",
+        "expect_column_value_lengths_to_equal",
+        # Regex shape checks
+        "expect_column_values_to_match_regex",
+        "expect_column_values_to_match_regex_list",
+        "expect_column_values_to_not_match_regex",
+        "expect_column_values_to_not_match_regex_list",
+        # String date/time format checks
+        "expect_column_values_to_match_strftime_format",
+        # String->type castability (typed raw never string-parses, PARQ-02/JDBC-03)
+        "expect_column_values_to_cast_to_type",
+    }
+)
+
+
+def raw_stage_is_typed(umf_data: dict[str, Any]) -> bool:
+    """True when *umf_data* declares a source whose raw landing is native-typed.
+
+    Data-driven off the UMF's ``source.kind`` (SRC-04): ``jdbc`` and
+    ``parquet`` land typed raw; ``delimited`` (or no ``source:`` block at all,
+    the legacy spelling) lands all-STRING raw.
+    """
+    from tablespec.models.umf import TYPED_RAW_SOURCE_KINDS
+
+    source = umf_data.get("source") or {}
+    if not isinstance(source, dict):  # tolerate a model instance
+        source = {"kind": getattr(source, "kind", None)}
+    return source.get("kind") in TYPED_RAW_SOURCE_KINDS
+
+
+def drop_string_shape_raw_expectations(
+    expectations: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Remove RAW-stage string-shape checks from *expectations* (SUITE-01).
+
+    Only expectations that are BOTH string-shape typed AND effectively
+    raw-stage (explicit ``meta.validation_stage`` first, classification
+    fallback -- the same precedence the staged executor applies) are dropped;
+    an explicitly ingested-stage check always survives (SUITE-03).
+    """
+    from tablespec.models.umf import classify_validation_type
+
+    kept: list[dict[str, Any]] = []
+    for exp in expectations:
+        exp_type = exp.get("type", exp.get("expectation_type", ""))
+        if exp_type in STRING_SHAPE_EXPECTATION_TYPES:
+            stage = exp.get("meta", {}).get(
+                "validation_stage"
+            ) or classify_validation_type(exp_type)
+            if stage == "raw":
+                continue
+        kept.append(exp)
+    return kept
+
 
 class DomainTypeExpectationGenerator:
     """Generate expectations from domain type specifications.
@@ -47,7 +122,9 @@ class DomainTypeExpectationGenerator:
                 self._registry = None
         return self._registry
 
-    def generate_domain_type_expectations(self, column: dict[str, Any]) -> list[dict[str, Any]]:
+    def generate_domain_type_expectations(
+        self, column: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate expectations based on column's domain type.
 
         Args:
@@ -73,14 +150,19 @@ class DomainTypeExpectationGenerator:
         # Get validation specs from registry (can be multiple validations per domain)
         validation_specs = self.registry.get_validation_specs(domain_type)
         if not validation_specs:
-            self.logger.debug(f"No validation specs found for domain type: {domain_type}")
+            self.logger.debug(
+                f"No validation specs found for domain type: {domain_type}"
+            )
             return expectations
 
         # Create expectation for each validation spec
         for validation_spec in validation_specs:
             expectation = {
                 "type": validation_spec["type"],
-                "kwargs": {"column": column["name"], **validation_spec.get("kwargs", {})},
+                "kwargs": {
+                    "column": column["name"],
+                    **validation_spec.get("kwargs", {}),
+                },
                 "meta": {
                     "description": f"Column {column['name']} must conform to {domain_type} domain type standards",
                     "severity": validation_spec.get("severity", "warning"),
@@ -148,11 +230,20 @@ class BaselineExpectationGenerator:
         context_column = umf_data.get("context_column")
         for column in umf_data.get("columns", []):
             expectations.extend(
-                self.generate_baseline_column_expectations(column, context_column=context_column)
+                self.generate_baseline_column_expectations(
+                    column, context_column=context_column
+                )
             )
 
         # Cross-column expectations (date ordering, etc.)
         expectations.extend(self._generate_cross_column_expectations(umf_data))
+
+        # Raw-suite typing (FEAT-031 SUITE-01/02): sources that land
+        # NATIVE-TYPED raw (jdbc/parquet) never receive raw-stage string-shape
+        # checks; their schema-type/nullability and ingested-stage checks
+        # remain. Delimited / legacy UMFs are returned unchanged.
+        if raw_stage_is_typed(umf_data):
+            expectations = drop_string_shape_raw_expectations(expectations)
 
         return expectations
 
@@ -303,7 +394,9 @@ class BaselineExpectationGenerator:
         if nullable:
             if isinstance(nullable, dict):
                 # Dict format: {context: is_nullable} e.g. {"MD": False, "MP": True}
-                required_contexts = [ctx for ctx, is_null in nullable.items() if not is_null]
+                required_contexts = [
+                    ctx for ctx, is_null in nullable.items() if not is_null
+                ]
                 if required_contexts:
                     if context_column:
                         # Per-context expectations using row_condition
@@ -383,7 +476,9 @@ class BaselineExpectationGenerator:
                         "type": "expect_column_values_to_match_strftime_format",
                         "kwargs": {
                             "column": column_name,
-                            "strftime_format": convert_umf_format_to_strftime(strict_format),
+                            "strftime_format": convert_umf_format_to_strftime(
+                                strict_format
+                            ),
                         },
                         "meta": {
                             "description": f"Column {column_name} values must match format {strict_format}",
@@ -436,7 +531,9 @@ class BaselineExpectationGenerator:
                         "type": "expect_column_values_to_match_strftime_format",
                         "kwargs": {
                             "column": column_name,
-                            "strftime_format": convert_umf_format_to_strftime(strict_format),
+                            "strftime_format": convert_umf_format_to_strftime(
+                                strict_format
+                            ),
                         },
                         "meta": {
                             "description": f"Column {column_name} values must match format {strict_format}",
@@ -451,7 +548,11 @@ class BaselineExpectationGenerator:
             expectations.append(
                 {
                     "type": "expect_column_values_to_cast_to_type",
-                    "kwargs": {"column": column_name, "target_type": "INTEGER", "mostly": 1.0},
+                    "kwargs": {
+                        "column": column_name,
+                        "target_type": "INTEGER",
+                        "mostly": 1.0,
+                    },
                     "meta": {
                         "description": f"Column {column_name} values must successfully cast to INTEGER (no letters or decimals)",
                         "severity": "critical",
@@ -461,7 +562,11 @@ class BaselineExpectationGenerator:
             )
 
         # 6. Numeric casting validation (if FLOAT/DOUBLE/DECIMAL type)
-        if data_type in ("FloatType", "DoubleType", "DecimalType") or data_type.upper() in (
+        if data_type in (
+            "FloatType",
+            "DoubleType",
+            "DecimalType",
+        ) or data_type.upper() in (
             "FLOAT",
             "DOUBLE",
             "DECIMAL",
@@ -469,7 +574,11 @@ class BaselineExpectationGenerator:
             expectations.append(
                 {
                     "type": "expect_column_values_to_cast_to_type",
-                    "kwargs": {"column": column_name, "target_type": "DOUBLE", "mostly": 1.0},
+                    "kwargs": {
+                        "column": column_name,
+                        "target_type": "DOUBLE",
+                        "mostly": 1.0,
+                    },
                     "meta": {
                         "description": f"Column {column_name} values must successfully cast to numeric type",
                         "severity": "critical",
@@ -479,7 +588,9 @@ class BaselineExpectationGenerator:
             )
 
         # 7. Domain type expectations (if applicable)
-        domain_expectations = self.domain_type_generator.generate_domain_type_expectations(column)
+        domain_expectations = (
+            self.domain_type_generator.generate_domain_type_expectations(column)
+        )
         expectations.extend(domain_expectations)
 
         # 8. Profiling-based expectations (if profiling data attached to column)
@@ -520,11 +631,7 @@ class BaselineExpectationGenerator:
         # Uniqueness from high cardinality (use threshold for approximate counts)
         num_distinct = profiling.get("approximate_num_distinct")
         num_records = profiling.get("num_records")
-        if (
-            num_distinct
-            and num_records
-            and num_distinct >= 0.99 * num_records
-        ):
+        if num_distinct and num_records and num_distinct >= 0.99 * num_records:
             expectations.append(
                 {
                     "type": "expect_column_values_to_be_unique",
@@ -545,7 +652,11 @@ class BaselineExpectationGenerator:
             expectations.append(
                 {
                     "type": "expect_column_values_to_be_between",
-                    "kwargs": {"column": col_name, "min_value": minimum, "max_value": maximum},
+                    "kwargs": {
+                        "column": col_name,
+                        "min_value": minimum,
+                        "max_value": maximum,
+                    },
                     "meta": {
                         "description": f"Column {col_name} values between {minimum} and {maximum} based on profiling",
                         "severity": "warning",
@@ -638,7 +749,11 @@ class BaselineExpectationGenerator:
                 expectations.append(
                     {
                         "type": "expect_column_values_to_match_regex",
-                        "kwargs": {"column": col_name, "regex": primary_pattern, "mostly": 0.95},
+                        "kwargs": {
+                            "column": col_name,
+                            "regex": primary_pattern,
+                            "mostly": 0.95,
+                        },
                         "meta": {
                             "description": f"Column {col_name} values should match pattern {primary_pattern} based on profiling",
                             "severity": "warning",

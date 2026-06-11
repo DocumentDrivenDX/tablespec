@@ -299,6 +299,13 @@ SourceSpec = Annotated[
     Field(discriminator="kind"),
 ]
 
+#: Source kinds whose RAW stage lands NATIVE-TYPED data (FEAT-031 SRC-04 /
+#: ADR-015): ``parquet`` and ``jdbc``. ``delimited`` keeps the proven
+#: all-STRING raw landing (ADR-007). Suite composition consults this to keep
+#: string-shape raw checks (length/regex/strftime/castability) off typed raw
+#: (SUITE-01/SUITE-02) -- see ``tablespec.gx_baseline``.
+TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset({"jdbc", "parquet"})
+
 
 class Nullable(BaseModel):
     """Nullable configuration per context (e.g., Line of Business).
@@ -1616,6 +1623,7 @@ __all__ = [
     "INGESTED_QUALITY_CHECK_TYPES",
     "RAW_VALIDATION_TYPES",
     "REDUNDANT_VALIDATION_TYPES",
+    "TYPED_RAW_SOURCE_KINDS",
     "UMF",
     "Cardinality",
     "DelimitedSource",
