@@ -1,0 +1,39 @@
+{
+  "attempt_id": "20260611T021228-4fdbe595",
+  "bead_id": "tablespec-a169e060",
+  "base_rev": "c820627ecbacdbc4f73076017327397546359c9e",
+  "created_at": "2026-06-11T02:12:29.947794743Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-a169e060",
+    "title": "Implement Hugo/Hextra product microsite scaffold",
+    "description": "Implement FEAT-030/US-038 by adding a Hugo extended + Hextra microsite under website/. The site must be buildable without ../helix and should adapt any useful structure from ../helix only by copying into this repo with attribution in the commit notes. In-scope files: website/ configuration and content, website/package.json, website/e2e Playwright tests, repo docs links if needed. Out-of-scope: changing the GitHub Pages deployment workflow and package index preservation; that is tracked separately under ADR-014. Required content: Home, Getting Started, Core Concepts including raw vs ingested vs silver, CLI Reference, API Reference entry point, and Demos entry point. Keep API reference generation owned by FEAT-015.",
+    "acceptance": "1. cd website \u0026\u0026 hugo --gc --minify passes. 2. cd website \u0026\u0026 npm test passes or an equivalent Playwright script verifies homepage, top-level sections, representative deep pages, desktop/mobile screenshots, and navigation state. 3. The built site includes Home, Getting Started, Core Concepts, CLI Reference, API Reference entry point, and Demos pages. 4. The build succeeds when ../helix is absent.",
+    "labels": [
+      "area:docs",
+      "kind:feature"
+    ],
+    "metadata": {
+      "spec-id": "FEAT-030"
+    }
+  },
+  "governing": [
+    {
+      "id": "FEAT-030",
+      "path": "docs/helix/01-frame/features/FEAT-030-product-microsite.md",
+      "title": "Feature Specification: FEAT-030 — Product Microsite"
+    }
+  ],
+  "paths": {
+    "dir": ".ddx/executions/20260611T021228-4fdbe595",
+    "prompt": ".ddx/executions/20260611T021228-4fdbe595/prompt.md",
+    "manifest": ".ddx/executions/20260611T021228-4fdbe595/manifest.json",
+    "result": ".ddx/executions/20260611T021228-4fdbe595/result.json",
+    "checks": ".ddx/executions/20260611T021228-4fdbe595/checks.json",
+    "usage": ".ddx/executions/20260611T021228-4fdbe595/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-a169e060-20260611T021228-4fdbe595"
+  },
+  "prompt_sha": "27ec8a413e7daf981013973962fba798ace6ede729518e8bced0d5b17b3dae52"
+}
