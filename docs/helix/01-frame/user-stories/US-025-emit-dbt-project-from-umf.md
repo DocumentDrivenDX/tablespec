@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: DBT-01, DBT-02, DBT-03, DBT-05, DBT-08, DBT-09, DBT-12
 **PRD Requirements**: FR-19.2 (dbt emitter), FR-19.1 (shared core seam)
 **Priority**: P0
-**Status**: Done (acceptance criteria met; emitter + opt-in `DbtRunner` shipped — see FEAT-027 DBT-14/15/16)
+**Status**: Approved (acceptance criteria met; emitter + opt-in `DbtRunner` shipped — see FEAT-027 DBT-14/15/16)
 
 ## Story
 

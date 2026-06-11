@@ -26,16 +26,19 @@ def test_helix_marker_parses_and_roots_exist() -> None:
         assert (ROOT / flow["root"]).is_dir(), flow
 
 
-def test_shipped_feature_specs_are_marked_implemented() -> None:
+def test_shipped_feature_specs_are_marked_approved() -> None:
+    # Spec docs use the template enum (Approved); delivery stage (Built) is
+    # tracked in docs/helix/01-frame/feature-registry.md (decided 2026-06-10).
     for relative_path in [
         "docs/helix/01-frame/features/FEAT-024-native-spark-profiler.md",
         "docs/helix/01-frame/features/FEAT-026-compile-orchestrator-bootstrap.md",
         "docs/helix/01-frame/features/FEAT-028-ldp-sibling-emitter.md",
     ]:
         text = _read(relative_path)
-        assert "**Status**: Implemented" in text, relative_path
-        stale_status = "**Status**: " + "Specified"
-        assert stale_status not in text, relative_path
+        assert "**Status**: Approved" in text, relative_path
+        for stale in ("Specified", "Implemented"):
+            stale_status = "**Status**: " + stale
+            assert stale_status not in text, relative_path
 
 
 def test_adr_011_describes_unsupported_native_expectations_as_fail_closed() -> None:

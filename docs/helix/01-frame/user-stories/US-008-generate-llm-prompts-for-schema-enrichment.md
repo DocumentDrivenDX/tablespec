@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-006 — LLM Prompt Generation
 **PRD Requirements**: FR-6.1, FR-6.2, FR-6.3, FR-6.4, FR-6.5, FR-6.6, FR-6.7
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

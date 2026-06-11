@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-001
+---
+
 # ADR-001: DATE Type Maps to StringType (YYYYMMDD Strings)
 
 ## Status

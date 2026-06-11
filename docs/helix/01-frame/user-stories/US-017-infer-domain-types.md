@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-013 — Domain Type Inference
 **PRD Requirements**: FR-14.1, FR-14.2, FR-14.3, FR-14.4
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

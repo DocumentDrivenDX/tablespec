@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-007
+---
+
 # ADR-007: Raw-to-Ingest Transforms as Committed SQL Artifacts
 
 ## Status

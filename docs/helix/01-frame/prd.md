@@ -44,6 +44,7 @@ Healthcare data platforms work with table schemas across many tools and formats 
 - GUI or web interface.
 - Real-time schema synchronization (compile is an explicit step, not a live watcher).
 - Shipping dbt or pysail as user-facing runtime dependencies (they are dev-group / test-only tooling).
+- General-purpose ETL: data-processing capabilities (merge, sample data, quality baselines, profiling, validation) are available via the `[spark]` extra but are scoped to UMF-driven, committed-artifact workflows.
 
 Deferred items are tracked in DDx beads. Use `ddx bead ready --json` for
 execution-ready work and `ddx bead status --json` for tracker health.
@@ -240,6 +241,7 @@ edits; do not renumber on edit.
 - **FR-11.3** — Git-based changelog generation from commit history
 - **FR-11.4** — YAML diff parsing for detailed change detection
 - **FR-11.5** — Changelog models with structured change entries and types
+- **FR-11.6** — Schema compatibility checking: classify the changes between two UMF versions as compatible or breaking using a type-widening lattice (safe widenings allowed; narrowings, drops, and nullability tightenings reported as breaking), with a structured report consumable in CI
 
 ### Subsystem: Sample Data Generation
 
@@ -299,6 +301,7 @@ edits; do not renumber on edit.
 
 | Requirement | Scenario | Input | Expected Output |
 |-------------|----------|-------|-----------------|
+| FR-1.1/1.2 (FEAT-001, US-001) | Lossless UMF round-trip | A UMF YAML with full column metadata | Load → save round-trips losslessly with idempotent formatting; invalid YAML is rejected with a clear validation error naming the offending field |
 | FR-18.1/18.3 (FEAT-026, US-023/US-024, ADR-012) | Compile then run from artifacts | A list of UMF models | Full committed artifact set persisted under the pinned layout; backbone executes them with no tablespec import |
 | FR-5.1 | Native profiling on Connect | A Spark Connect DataFrame | Profile computed via Spark-SQL aggregations only; no JVM/Deequ; succeeds on serverless |
 | FR-7.7 | Connect-safe validation | A compiled suite + a Connect DataFrame | Data-scanning expectations route to the native executor and return real results (not silent `success=False`) |
@@ -358,11 +361,3 @@ edits; do not renumber on edit.
   workspace credentials are configured.
 - Manual transform/validation authoring time is reduced by at least 50% on the
   documented 3-table onboarding sample.
-
-## Out of Scope
-
-- Database connectivity or interactive query execution as a product surface.
-- GUI or web interface.
-- Real-time schema synchronization.
-
-**Note**: Data-processing capabilities (merge, sample data, quality baselines, profiling, validation) are available via the `[spark]` extra but are scoped to UMF-driven, committed-artifact workflows, not general-purpose ETL. dbt and pysail are dev-group / test-only tooling and are not user-facing runtime dependencies.

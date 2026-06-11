@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-001: UMF Models and I/O
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-001
 **Owner**: Platform / Data Engineering

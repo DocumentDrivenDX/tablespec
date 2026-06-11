@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-007: Table Validation
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-007
 **Owner**: Data-Quality Platform

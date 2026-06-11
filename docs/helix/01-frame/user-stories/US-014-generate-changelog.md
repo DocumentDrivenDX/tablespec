@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-010 — UMF Change Management
 **PRD Requirements**: FR-11.3, FR-11.4, FR-11.5
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

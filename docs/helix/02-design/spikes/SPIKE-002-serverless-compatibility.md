@@ -1,3 +1,8 @@
+---
+ddx:
+  id: SPIKE-002
+---
+
 # Serverless / Spark-Connect Compatibility Evaluation
 
 Date: 2026-06-06

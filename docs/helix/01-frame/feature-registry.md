@@ -1,0 +1,165 @@
+---
+ddx:
+  id: feature-registry
+---
+
+# Feature Registry
+
+**Status**: Active
+**Last Updated**: 2026-06-10
+
+## Active Features
+
+| ID | Name | Description | Status | Priority | Owner | Source | Updated |
+|----|------|-------------|--------|----------|-------|--------|---------|
+| FEAT-001 | [UMF Models and I/O](features/FEAT-001-umf-models.md) | Type-safe Pydantic models for UMF plus YAML serialization and deserialization. | Built | P0 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.1–FR-1.10) | 2026-06-10 |
+| FEAT-002 | [Schema Generation](features/FEAT-002-schema-generation.md) | Generate schema definitions in multiple output formats from UMF metadata. | Built | P0 | Platform / Data Engineering | PRD: Schema Generation (FR-2.1–FR-2.3) | 2026-06-10 |
+| FEAT-003 | [Type System Mappings](features/FEAT-003-type-mappings.md) | Central type conversion hub between UMF, PySpark, JSON Schema, and Great Expectations type systems. | Built | P0 | Platform / Data Engineering | PRD: Type Mappings (FR-3.1–FR-3.5) | 2026-06-10 |
+| FEAT-004 | [Great Expectations Integration](features/FEAT-004-gx-integration.md) | Bidirectional GX integration: baseline generation, constraint extraction, schema validation, suite processing. | Built | P0 | Data-Quality Platform | PRD: Great Expectations Integration (FR-4.1–FR-4.7) | 2026-06-10 |
+| FEAT-005 | [Profiling Integration (Schema Mapping + Legacy Path)](features/FEAT-005-profiling.md) | Map a Spark DataFrame's schema into UMF; legacy Deequ-style profile-to-UMF path retained as compatibility-only. | Built | P1 | Data Platform | PRD: Profiling Integration (FR-5.3, FR-5.4, FR-5.5) | 2026-06-10 |
+| FEAT-006 | [LLM Prompt Generation](features/FEAT-006-llm-prompts.md) | Structured prompts for LLM-based schema enrichment: documentation, validation, relationships, survivorship. | Built | P1 | Data-Quality Platform | PRD: LLM Prompt Generation (FR-6.1–FR-6.7) | 2026-06-10 |
+| FEAT-007 | [Table Validation](features/FEAT-007-validation.md) | Validate Spark DataFrames against UMF specs and UMF files against JSON schema; Connect-safe suite execution; includes table merge slice. | Built | P0 | Data-Quality Platform | PRD: Table Validation; Table Merge (FR-7.1–FR-7.8, FR-15.1–FR-15.3, with FR-20.4) | 2026-06-10 |
+| FEAT-008 | [CLI Interface](features/FEAT-008-cli.md) | Typer-based `tablespec` CLI for schema management, conversion, and validation workflows with Rich output. | Built | P0 | Platform / Data Engineering | PRD: CLI Interface (FR-8.1–FR-8.6) | 2026-06-10 |
+| FEAT-009 | [Excel Bidirectional Conversion](features/FEAT-009-excel-conversion.md) | Round-trip conversion between Excel workbooks and UMF schemas for non-technical domain expert collaboration. | Built | P1 | Data Stewardship | PRD: Excel Bidirectional Conversion (FR-9.1–FR-9.4) | 2026-06-10 |
+| FEAT-010 | [UMF Change Management](features/FEAT-010-change-management.md) | Split-format UMF storage, schema diffing, atomic change application, and git-based changelog generation. | Built | P0 | Platform / Data Engineering | PRD: Split-Format UMF; Schema Change Management (FR-10.1–FR-10.4, FR-11.1–FR-11.5) | 2026-06-10 |
+| FEAT-011 | [Sample Data Generation](features/FEAT-011-sample-data.md) | Generate realistic healthcare-specific sample data from UMF specs, respecting constraints, foreign keys, and domain types. | Built | P1 | Data-Quality Platform | PRD: Sample Data Generation (FR-12.1–FR-12.6) | 2026-06-10 |
+| FEAT-012 | [Quality Baselines](features/FEAT-012-quality-baselines.md) | Capture, store, and compare quality baselines from DataFrames for drift detection; requires PySpark. | Built | P1 | Data-Quality Platform | PRD: Quality Baselines (FR-13.1–FR-13.5) | 2026-06-10 |
+| FEAT-013 | [Domain Type Inference](features/FEAT-013-domain-inference.md) | Automatic detection of domain types from column names, descriptions, and sample values. | Built | P1 | Data Platform | PRD: Domain Type Inference (FR-14.1–FR-14.4) | 2026-06-10 |
+| FEAT-014 | [Naming and Formatting Utilities](features/FEAT-014-naming-formatting.md) | Naming conventions, date format definitions, and YAML formatting utilities. | Built | P2 | Platform / Data Engineering | PRD: Naming Utilities; Date Format System (FR-16.1–FR-16.3, FR-17.1–FR-17.3) | 2026-06-10 |
+| FEAT-015 | [Browsable API Documentation](features/FEAT-015-api-docs.md) | Auto-generated API documentation site (MkDocs + mkdocstrings) from docstrings and Pydantic Field descriptions. | Built | P1 | Platform / Data Engineering | Vision/Principles (meta-feature; documents the FR-1.x surface) | 2026-06-10 |
+| FEAT-016 | [Testing Infrastructure for Agentic Development](features/FEAT-016-testing-infrastructure.md) | Testing infrastructure for fast iteration, property-based testing, and test-first development workflows. | Built | P0 | Engineering Productivity | Vision/Principles (meta-feature; evidence tier for FR-20.3) | 2026-06-10 |
+| FEAT-017 | [Validation Pipeline Improvements](features/FEAT-017-validation-pipeline.md) | Fix structural validation pipeline issues: redundant expectations, missing execution paths, blocking behavior, reporting. | Built | P0 | Data-Quality Platform | PRD: Great Expectations Integration; Table Validation; Quality Baselines (FR-4.3, FR-7.5, FR-7.6, FR-13.3) | 2026-06-10 |
+| FEAT-018 | [Custom GX Extensions](features/FEAT-018-gx-extensions.md) | Custom Great Expectations expectation classes that bridge tablespec domain concepts into GX execution. | Built | P0 | Data-Quality Platform | PRD: Table Validation (FR-7.5) | 2026-06-10 |
+| FEAT-019 | [SQL Generator CTE Mode](features/FEAT-019-sql-cte-mode.md) | `mode` parameter on `SQLPlanGenerator` producing a single `WITH...SELECT` CTE statement instead of sequential temp views. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.4) | 2026-06-10 |
+| FEAT-020 | [Domain Type System Improvements](features/FEAT-020-domain-improvements.md) | Domain inference improvements: better matching accuracy, richer results, codebase-wide consistency. | Built | P1 | Data Platform | PRD: Domain Type Inference (FR-14.1–FR-14.4) | 2026-06-10 |
+| FEAT-021 | [UMF Loader & Validator Improvements](features/FEAT-021-loader-validator-improvements.md) | Improved error reporting and validation coverage in the UMF loading and validation pipeline. | Built | P1 | Platform / Data Engineering | PRD: UMF Model and I/O; Split-Format UMF (FR-1.7, FR-10.2, FR-10.3) | 2026-06-10 |
+| FEAT-022 | [Schema Compatibility Checker](features/FEAT-022-schema-compatibility.md) | Analyze two UMF versions for backward/forward compatibility, reporting breaking changes with explanations. | Built | P1 | Platform / Data Engineering | PRD: Schema Change Management (FR-11.6) | 2026-06-10 |
+| FEAT-023 | [Authoring Tools](features/FEAT-023-authoring-tools.md) | CLI commands, LLM integration, validation preview, and interactive TUI for authoring and managing UMF schemas. | Built | P1 | Platform / Data Engineering | PRD: CLI Interface; LLM Prompt Generation; Domain Type Inference (FR-8.1, FR-8.2, FR-6.2, FR-6.3, FR-14.4) | 2026-06-10 |
+| FEAT-024 | [Native Spark Profiler & Connect-Safe Runtime](features/FEAT-024-native-spark-profiler.md) | JVM-free, Connect-safe Spark-SQL profiling feeding GX suite composition; replaces the PyDeequ path (ADR-009). | Built | P0 | Data Platform | PRD: Profiling Integration (FR-5.1–FR-5.4) | 2026-06-10 |
+| FEAT-025 | [Connect-Safe GX Suite Validation](features/FEAT-025-connect-safe-gx-validation.md) | Compiled GX suites execute with correct verdicts on Spark Connect and Databricks serverless as well as classic Spark. | Built | P0 | Data-Quality Platform | PRD: Table Validation (FR-7.7, FR-7.8, with FR-20.4) | 2026-06-10 |
+| FEAT-026 | [Compile Orchestrator & Bootstrap Pipeline](features/FEAT-026-compile-orchestrator-bootstrap.md) | Compile a UMF set into the full set of committed runtime artifacts, with bootstrap Paths A/B producing the UMF set. | Built | P0 | Platform / Data Engineering | PRD: Compile Orchestration & Bootstrap (FR-18.1–FR-18.5) | 2026-06-10 |
+| FEAT-027 | [dbt Project Emitter](features/FEAT-027-dbt-emitter.md) | Deterministically emit a complete dbt project (models, contracts, tests, scaffolding) from UMF on the shared emission core seam. | Built | P0 | Platform / Compile Team | PRD: Multi-Target Emission (FR-19.2, FR-19.1) | 2026-06-10 |
+| FEAT-028 | [LDP Sibling Emitter](features/FEAT-028-ldp-sibling-emitter.md) | Emit a Lakeflow Declarative Pipelines project from a UMF set as a sibling backend on the shared target-agnostic core. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.3, FR-19.1) | 2026-06-10 |
+| FEAT-029 | [Runtime Platform](features/FEAT-029-runtime-platform.md) | Connect-safe session capability probing and engine-correct `functions` dispatch. | Built | P0 | Data Platform | PRD: Runtime Platform (FR-20.1, FR-20.2, FR-20.3) | 2026-06-10 |
+
+## Status Definitions
+
+- **Draft**: Requirements being gathered
+- **Specified**: Feature spec complete (Frame done)
+- **Designed**: Technical design complete (Design done)
+- **In Test**: Tests being written
+- **In Build**: Implementation in progress
+- **Built**: Implementation complete
+- **Deployed**: Released to production
+- **Deprecated**: Scheduled for removal
+- **Cancelled**: Will not be pursued
+
+This repository's feature specifications record the spec-lifecycle status
+**Approved** (per the feature-specification template enum); delivery stage is
+tracked here in the registry, where every approved feature is **Built**
+(decided 2026-06-10).
+
+## Dependencies
+
+Only dependencies explicitly recorded in the feature specification headers are
+listed here.
+
+| Feature | Depends On | Type | Notes |
+|---------|------------|------|-------|
+| FEAT-005 | FEAT-024 | Required | Native Connect-safe profiling is governed by FEAT-024; FEAT-005 retains only schema mapping and the legacy compatibility path. |
+| FEAT-025 | FEAT-024 | Required | Reuses the Connect-safe runtime substrate (engine-correct dispatch, serverless session acquisition) established by FEAT-024. |
+| FEAT-028 | FEAT-027 | Shared seam | Built on the shared target-agnostic core seam (FR-19.1), co-owned with the dbt emitter and governed at the seam by ADR-013. |
+
+## Trace Links
+
+| Feature | Spec | Stories | Designs | Tests | Release |
+|---------|------|---------|---------|-------|---------|
+| FEAT-001 | [features/FEAT-001-umf-models.md](features/FEAT-001-umf-models.md) | — | — | — | — |
+| FEAT-002 | [features/FEAT-002-schema-generation.md](features/FEAT-002-schema-generation.md) | — | — | — | — |
+| FEAT-003 | [features/FEAT-003-type-mappings.md](features/FEAT-003-type-mappings.md) | — | — | — | — |
+| FEAT-004 | [features/FEAT-004-gx-integration.md](features/FEAT-004-gx-integration.md) | — | — | — | — |
+| FEAT-005 | [features/FEAT-005-profiling.md](features/FEAT-005-profiling.md) | — | — | — | — |
+| FEAT-006 | [features/FEAT-006-llm-prompts.md](features/FEAT-006-llm-prompts.md) | — | — | — | — |
+| FEAT-007 | [features/FEAT-007-validation.md](features/FEAT-007-validation.md) | — | — | — | — |
+| FEAT-008 | [features/FEAT-008-cli.md](features/FEAT-008-cli.md) | — | — | — | — |
+| FEAT-009 | [features/FEAT-009-excel-conversion.md](features/FEAT-009-excel-conversion.md) | — | — | — | — |
+| FEAT-010 | [features/FEAT-010-change-management.md](features/FEAT-010-change-management.md) | — | — | — | — |
+| FEAT-011 | [features/FEAT-011-sample-data.md](features/FEAT-011-sample-data.md) | — | — | — | — |
+| FEAT-012 | [features/FEAT-012-quality-baselines.md](features/FEAT-012-quality-baselines.md) | — | — | — | — |
+| FEAT-013 | [features/FEAT-013-domain-inference.md](features/FEAT-013-domain-inference.md) | — | — | — | — |
+| FEAT-014 | [features/FEAT-014-naming-formatting.md](features/FEAT-014-naming-formatting.md) | — | — | — | — |
+| FEAT-015 | [features/FEAT-015-api-docs.md](features/FEAT-015-api-docs.md) | — | — | — | — |
+| FEAT-016 | [features/FEAT-016-testing-infrastructure.md](features/FEAT-016-testing-infrastructure.md) | — | — | — | — |
+| FEAT-017 | [features/FEAT-017-validation-pipeline.md](features/FEAT-017-validation-pipeline.md) | — | — | — | — |
+| FEAT-018 | [features/FEAT-018-gx-extensions.md](features/FEAT-018-gx-extensions.md) | — | — | — | — |
+| FEAT-019 | [features/FEAT-019-sql-cte-mode.md](features/FEAT-019-sql-cte-mode.md) | — | — | — | — |
+| FEAT-020 | [features/FEAT-020-domain-improvements.md](features/FEAT-020-domain-improvements.md) | — | — | — | — |
+| FEAT-021 | [features/FEAT-021-loader-validator-improvements.md](features/FEAT-021-loader-validator-improvements.md) | — | — | — | — |
+| FEAT-022 | [features/FEAT-022-schema-compatibility.md](features/FEAT-022-schema-compatibility.md) | — | — | — | — |
+| FEAT-023 | [features/FEAT-023-authoring-tools.md](features/FEAT-023-authoring-tools.md) | — | — | — | — |
+| FEAT-024 | [features/FEAT-024-native-spark-profiler.md](features/FEAT-024-native-spark-profiler.md) | — | — | — | — |
+| FEAT-025 | [features/FEAT-025-connect-safe-gx-validation.md](features/FEAT-025-connect-safe-gx-validation.md) | — | — | — | — |
+| FEAT-026 | [features/FEAT-026-compile-orchestrator-bootstrap.md](features/FEAT-026-compile-orchestrator-bootstrap.md) | — | — | — | — |
+| FEAT-027 | [features/FEAT-027-dbt-emitter.md](features/FEAT-027-dbt-emitter.md) | — | — | — | — |
+| FEAT-028 | [features/FEAT-028-ldp-sibling-emitter.md](features/FEAT-028-ldp-sibling-emitter.md) | — | — | — | — |
+| FEAT-029 | [features/FEAT-029-runtime-platform.md](features/FEAT-029-runtime-platform.md) | — | — | — | — |
+
+"—" means the link is not tracked at the registry level; per-feature stories,
+designs, and tests are recorded inside each feature specification (and in
+`user-stories/`).
+
+## Feature Categories
+
+### UMF Core and Change Management
+- FEAT-001: UMF Models and I/O
+- FEAT-010: UMF Change Management
+- FEAT-014: Naming and Formatting Utilities
+- FEAT-021: UMF Loader & Validator Improvements
+- FEAT-022: Schema Compatibility Checker
+
+### Schema Generation, Compilation, and Emission
+- FEAT-002: Schema Generation
+- FEAT-003: Type System Mappings
+- FEAT-019: SQL Generator CTE Mode
+- FEAT-026: Compile Orchestrator & Bootstrap Pipeline
+- FEAT-027: dbt Project Emitter
+- FEAT-028: LDP Sibling Emitter
+
+### Data Quality and Validation
+- FEAT-004: Great Expectations Integration
+- FEAT-007: Table Validation
+- FEAT-012: Quality Baselines
+- FEAT-017: Validation Pipeline Improvements
+- FEAT-018: Custom GX Extensions
+- FEAT-025: Connect-Safe GX Suite Validation
+
+### Profiling and Runtime Platform
+- FEAT-005: Profiling Integration (Schema Mapping + Legacy Path)
+- FEAT-024: Native Spark Profiler & Connect-Safe Runtime
+- FEAT-029: Runtime Platform
+
+### Authoring and Enrichment
+- FEAT-006: LLM Prompt Generation
+- FEAT-008: CLI Interface
+- FEAT-009: Excel Bidirectional Conversion
+- FEAT-011: Sample Data Generation
+- FEAT-013: Domain Type Inference
+- FEAT-020: Domain Type System Improvements
+- FEAT-023: Authoring Tools
+
+### Documentation and Testing
+- FEAT-015: Browsable API Documentation
+- FEAT-016: Testing Infrastructure for Agentic Development
+
+## ID Rules
+
+1. Sequential numbering: FEAT-XXX (zero-padded 3 digits)
+2. Never reuse IDs, even for cancelled features
+3. Do not encode category or priority into the ID
+4. Keep full behavior in Feature Specifications, not in this registry
+
+## Deprecated/Cancelled
+
+| ID | Name | Status | Reason | Date |
+|----|------|--------|--------|------|
+| None | None | None | None | None |

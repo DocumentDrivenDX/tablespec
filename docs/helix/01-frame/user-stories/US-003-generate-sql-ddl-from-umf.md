@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-002 — Schema Generation
 **PRD Requirements**: FR-2.1, FR-2.2, FR-2.3
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

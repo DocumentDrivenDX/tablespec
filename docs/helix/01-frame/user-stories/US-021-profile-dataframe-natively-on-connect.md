@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: PROF-01, PROF-02, PROF-04, DISP-01, DISP-02, GX-01
 **PRD Requirements**: FR-5.1, FR-5.2
 **Priority**: P0
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

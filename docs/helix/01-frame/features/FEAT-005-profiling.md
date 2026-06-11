@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-005: Profiling Integration (Schema Mapping + Legacy Path)
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-005
 **Owner**: Data Platform

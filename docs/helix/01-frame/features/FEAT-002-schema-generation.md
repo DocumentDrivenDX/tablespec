@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-002: Schema Generation
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-002
 **Owner**: Platform / Data Engineering

@@ -1,3 +1,8 @@
+---
+ddx:
+  id: SPIKE-001
+---
+
 # Phase 4 Evaluation: dbt+DuckDB vs Spark for the ingest parity suite
 
 Date: 2026-06-04

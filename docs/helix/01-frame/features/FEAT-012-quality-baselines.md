@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-012: Quality Baselines
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-012
 **Owner**: Data-Quality Platform

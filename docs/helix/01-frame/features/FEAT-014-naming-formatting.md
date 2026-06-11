@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-014: Naming and Formatting Utilities
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P2
 **Feature ID**: FEAT-014
 **Owner**: Platform / Data Engineering

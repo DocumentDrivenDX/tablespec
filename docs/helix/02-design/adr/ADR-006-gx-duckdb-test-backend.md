@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-006
+---
+
 # ADR-006: GX DuckDB Test Backend
 
 ## Status

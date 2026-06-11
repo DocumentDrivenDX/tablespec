@@ -103,3 +103,21 @@ and state how to decide.
   Resolve by making the *compiled artifact* deterministic and making the
   *executor* select an engine-correct, semantically-equivalent path — never by
   branching the artifact's content on the engine.
+
+- **Surface in Contracts (template `no_surface_leak`) vs. evidence-citing
+  backfill.** The HELIX templates require exact interface surface (CLI
+  commands, signatures, SQL, config keys) to live in Contract artifacts that
+  PRD/stories reference by ID; this corpus was largely backfilled from shipped
+  code and cites surface as evidence. Resolution (decided 2026-06-10): a
+  **ratchet** — the existing backfilled specs are waived as-is; any *new or
+  changed* surface from now on gets a Contract artifact under
+  `docs/helix/02-design/`, with the CLI contract as the first candidate when
+  the CLI surface next changes. Inline surface in a new spec without a
+  governing Contract is a review finding.
+
+- **Full PRD traceability vs. meta-features.** Every product capability a user
+  invokes anchors to a PRD functional requirement. Meta-features that verify
+  or document the product rather than extend it — FEAT-015 (API docs),
+  FEAT-016 (testing infrastructure) — anchor to the Product Vision and these
+  Principles instead (decided 2026-06-10). A feature that ships user-invocable
+  behavior may not use this exception (FEAT-022 received FR-11.6 under it).

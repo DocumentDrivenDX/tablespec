@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-004: Great Expectations Integration
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-004
 **Owner**: Data-Quality Platform

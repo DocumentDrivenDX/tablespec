@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: SQLCTE-01, SQLCTE-02
 **PRD Requirements**: FR-19.4
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-011: Sample Data Generation
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-011
 **Owner**: Data-Quality Platform

@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-003: Type System Mappings
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-003
 **Owner**: Platform / Data Engineering

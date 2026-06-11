@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-005 — Profiling Integration
 **PRD Requirements**: FR-5.3, FR-5.4, FR-5.5
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

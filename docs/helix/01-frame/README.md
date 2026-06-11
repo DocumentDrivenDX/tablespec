@@ -6,6 +6,8 @@ Requirements and problem definition for tablespec.
 
 - [PRD](prd.md) - Product Requirements Document
 - [Principles](principles.md) - Design principles
+- [Concerns](concerns.md) - Active project concerns
+- [Feature Registry](feature-registry.md) - Canonical feature index
 
 ## Feature Specifications
 
@@ -26,6 +28,23 @@ Requirements and problem definition for tablespec.
 - [FEAT-012](features/FEAT-012-quality-baselines.md) - Quality Baselines
 - [FEAT-013](features/FEAT-013-domain-inference.md) - Domain Type Inference
 - [FEAT-014](features/FEAT-014-naming-formatting.md) - Naming and Formatting Utilities
+- [FEAT-015](features/FEAT-015-api-docs.md) - Browsable API Documentation
+- [FEAT-016](features/FEAT-016-testing-infrastructure.md) - Testing Infrastructure for Agentic Development
+- [FEAT-017](features/FEAT-017-validation-pipeline.md) - Validation Pipeline Improvements
+- [FEAT-018](features/FEAT-018-gx-extensions.md) - Custom GX Extensions
+- [FEAT-019](features/FEAT-019-sql-cte-mode.md) - SQL Generator CTE Mode
+- [FEAT-020](features/FEAT-020-domain-improvements.md) - Domain Type System Improvements
+- [FEAT-021](features/FEAT-021-loader-validator-improvements.md) - UMF Loader & Validator Improvements
+- [FEAT-022](features/FEAT-022-schema-compatibility.md) - Schema Compatibility Checker
+- [FEAT-023](features/FEAT-023-authoring-tools.md) - Authoring Tools
+
+### Runtime & Compilation (serverless/Connect)
+- [FEAT-024](features/FEAT-024-native-spark-profiler.md) - Native Spark Profiler & Connect-Safe Runtime
+- [FEAT-025](features/FEAT-025-connect-safe-gx-validation.md) - Connect-Safe GX Suite Validation
+- [FEAT-026](features/FEAT-026-compile-orchestrator-bootstrap.md) - Compile Orchestrator & Bootstrap Pipeline
+- [FEAT-027](features/FEAT-027-dbt-emitter.md) - dbt Project Emitter
+- [FEAT-028](features/FEAT-028-ldp-sibling-emitter.md) - LDP Sibling Emitter
+- [FEAT-029](features/FEAT-029-runtime-platform.md) - Runtime Platform
 
 ## User Stories
 
@@ -75,7 +94,57 @@ Requirements and problem definition for tablespec.
 ### FEAT-013: Domain Type Inference
 - [US-017](user-stories/US-017-infer-domain-types.md) - Infer Domain Types for Columns
 
+### FEAT-014: Naming and Formatting Utilities
+- [US-027](user-stories/US-027-normalize-names-and-date-formats.md) - Normalize Names and Date Formats
+
+### FEAT-015: Browsable API Documentation
+- [US-028](user-stories/US-028-publish-browsable-api-docs.md) - Publish Browsable API Documentation
+
+### FEAT-016: Testing Infrastructure
+- [US-029](user-stories/US-029-maintain-agentic-test-infrastructure.md) - Maintain Agentic Test Infrastructure
+
+### FEAT-017: Validation Pipeline Improvements
+- [US-030](user-stories/US-030-run-validation-pipeline-with-blocking-reports.md) - Run Validation Pipeline with Blocking Reports
+
+### FEAT-018: Custom GX Extensions
+- [US-031](user-stories/US-031-validate-custom-gx-expectations.md) - Validate Custom GX Expectations
+
+### FEAT-019: SQL Generator CTE Mode
+- [US-032](user-stories/US-032-generate-single-statement-sql-plan.md) - Generate a Single-Statement SQL Plan
+
+### FEAT-020: Domain Type System Improvements
+- [US-033](user-stories/US-033-improve-domain-type-inference.md) - Improve Domain Type Inference
+
+### FEAT-021: UMF Loader & Validator Improvements
+- [US-034](user-stories/US-034-load-and-validate-umf-with-clear-errors.md) - Load and Validate UMF with Clear Errors
+
+### FEAT-022: Schema Compatibility Checker
+- [US-035](user-stories/US-035-check-schema-compatibility.md) - Check Schema Compatibility
+
+### FEAT-023: Authoring Tools
+- [US-036](user-stories/US-036-author-umf-with-cli-and-llm-assistance.md) - Author UMF with CLI and LLM Assistance
+
+### FEAT-024: Native Spark Profiler
+- [US-021](user-stories/US-021-profile-dataframe-natively-on-connect.md) - Profile a DataFrame Natively on Spark Connect
+
+### FEAT-025: Connect-Safe GX Validation
+- [US-022](user-stories/US-022-validate-suite-on-connect-without-silent-failure.md) - Validate a Compiled Suite on Spark Connect Without Silent Failure
+
+### FEAT-026: Compile Orchestrator & Bootstrap
+- [US-023](user-stories/US-023-bootstrap-runtime-from-umf-set.md) - Bootstrap a Runtime from a UMF Set (Path A / Path B)
+- [US-024](user-stories/US-024-runtime-consumes-only-compiled-artifacts.md) - Runtime Consumes Only Compiled Artifacts
+
+### FEAT-027: dbt Project Emitter
+- [US-025](user-stories/US-025-emit-dbt-project-from-umf.md) - Emit a dbt Project from UMF
+
+### FEAT-028: LDP Sibling Emitter
+- [US-026](user-stories/US-026-emit-ldp-project-from-umf.md) - Emit an LDP Project from a UMF Set
+
+### FEAT-029: Runtime Platform
+- [US-037](user-stories/US-037-engine-correct-runtime-dispatch.md) - Engine-Correct Runtime Dispatch
+
 ## Status
 
 - Frame phase backfilled from existing codebase and documentation (2026-03-15).
 - Updated for post-merge codebase with ~50 new source files across 4 new packages (2026-03-16).
+- Index refreshed to cover FEAT-001..FEAT-029 and US-001..US-037 (2026-06-10).

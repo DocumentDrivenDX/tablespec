@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: VAL-CONNECT-01, VAL-CONNECT-04, VAL-CONNECT-05, VAL-CONNECT-09
 **PRD Requirements**: FR-7.7, FR-7.8 (with FR-20.4)
 **Priority**: P0
-**Status**: Done (all acceptance criteria met; baseline + custom parity proven on the Sail Connect lane)
+**Status**: Approved (all acceptance criteria met; baseline + custom parity proven on the Sail Connect lane)
 
 ## Story
 

@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-010: UMF Change Management
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-010
 **Owner**: Platform / Data Engineering

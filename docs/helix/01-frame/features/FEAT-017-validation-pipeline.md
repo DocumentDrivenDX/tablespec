@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-017: Validation Pipeline Improvements
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-017
 **Owner**: Data-Quality Platform
@@ -41,7 +41,7 @@ This connects the existing `classify_validation_type()` function (currently unus
 
 Stop generating these. Enforce via Hypothesis property test: no generated suite contains redundant types.
 
-NOTE: There is a codebase contradiction to reconcile. `REQUIRED_BASELINE_EXPECTATION_TYPES` in `gx_baseline.py` includes `expect_column_to_exist`, while `REDUNDANT_VALIDATION_TYPES` in `models/umf.py` lists it as redundant. The fix should remove `expect_column_to_exist` from `REQUIRED_BASELINE_EXPECTATION_TYPES` or reconcile these two sets so they are consistent.
+Resolved: `REQUIRED_BASELINE_EXPECTATION_TYPES` (`gx_baseline.py:21`) is now an empty frozenset, so it no longer conflicts with `REDUNDANT_VALIDATION_TYPES` (`models/umf.py:65`) listing `expect_column_to_exist` as redundant.
 
 ### Profiling to Expectations (`src/tablespec/profiling/gx_expectation_builder.py`)
 

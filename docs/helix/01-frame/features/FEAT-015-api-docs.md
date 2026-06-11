@@ -5,12 +5,12 @@ ddx:
 
 # FEAT-015: Browsable API Documentation
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-015
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: UMF Model and I/O
-**Covered PRD Requirements**: FR-1.1
+**Covered PRD Requirements**: None — meta-feature anchored to the Product Vision and Principles per the traceability convention (principles.md §Tension Resolution, decided 2026-06-10); documents the UMF surface modeled under FR-1.x.
 **Cross-Subsystem Rationale**: Documentation support feature: API docs expose the modeled UMF surface rather than owning new product behavior.
 
 ## Description

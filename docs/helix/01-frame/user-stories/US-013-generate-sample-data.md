@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-011 — Sample Data Generation
 **PRD Requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

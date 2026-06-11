@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-020: Domain Type System Improvements
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-020
 **Owner**: Data Platform

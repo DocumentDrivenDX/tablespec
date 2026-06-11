@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ldp-sibling-emitter
+---
+
 # LDP as a Sibling Emitter on the Shared Core
 
 > **Status: Active — governed design note.** This emitter is a committed runtime
@@ -191,4 +196,3 @@ SELECT * FROM enriched;
 - **Encapsulation** (`tests/test_core_encapsulation.py`): core never imports
   `tablespec.ldp`; `tablespec.dbt` and `tablespec.ldp` never import each other; LDP
   is fed only by the core seam and imports no Databricks/Spark runtime to generate.
-```

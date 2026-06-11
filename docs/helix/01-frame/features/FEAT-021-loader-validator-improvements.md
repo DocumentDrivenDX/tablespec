@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-021: UMF Loader & Validator Improvements
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-021
 **Owner**: Platform / Data Engineering

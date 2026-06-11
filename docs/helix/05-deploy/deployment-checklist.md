@@ -1,3 +1,8 @@
+---
+ddx:
+  id: deployment-checklist
+---
+
 # Deployment Checklist: tablespec
 
 **Version**: 1.0

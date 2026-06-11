@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: ORCH-21, ORCH-30, ORCH-31
 **PRD Requirements**: FR-18.3
 **Priority**: P0
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

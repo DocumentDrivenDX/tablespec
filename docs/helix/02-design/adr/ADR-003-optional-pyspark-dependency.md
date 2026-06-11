@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-003
+---
+
 # ADR-003: PySpark Is an Optional Dependency Isolated to Specific Modules
 
 ## Status

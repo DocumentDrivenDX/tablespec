@@ -51,8 +51,8 @@ A data engineer onboards a new claims table by editing (or inferring) its UMF. T
 |--------|--------|
 | Primary KPI | Zero drift between UMF definitions and the committed runtime artifacts that downstream systems execute |
 | Compile coverage | One UMF compiles to the full committed artifact set (ingest SQL, DDL, PySpark, JSON Schema, GX suite, dbt ingest + gold DAG, LDP, gold plan) deterministically |
-| Multi-engine parity | Identical results across classic Spark, Sail (local Connect), and Databricks serverless on the cross-engine conformance harness |
-| Manual-authoring reduction | Reduction in hand-authored GX/dbt/SQL transform and validation time per onboarded table |
+| Multi-engine parity | Identical results across classic Spark, Sail (local Connect), and Databricks serverless on the cross-engine conformance harness (the serverless lane runs in the opt-in tier when workspace credentials are configured — see PRD Success Criteria) |
+| Manual-authoring reduction | At least 50% lower hand-authored GX/dbt/SQL transform and validation time per onboarded table, measured on the documented 3-table onboarding sample (see PRD Success Metrics) |
 | Runtime independence | Production runtimes execute committed artifacts with no tablespec import at run time |
 
 ## Why Now

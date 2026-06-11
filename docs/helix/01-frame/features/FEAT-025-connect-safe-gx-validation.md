@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-025 — Connect-Safe GX Suite Validation
 
 **Feature ID**: FEAT-025
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Owner**: Data-Quality Platform
 **Covered PRD Subsystem(s)**: Table Validation
@@ -120,7 +120,7 @@ VAL-CONNECT-09. When GX returns FEWER results than were fed (same-type collation
 
 ## Out of Scope
 
-- Per-session capability probing and engine-correct dispatch as a general mechanism (owned by the Runtime-Platform subsystem, ADR-010 / FR-20.x).
+- Per-session capability probing and engine-correct dispatch as a general mechanism (owned by the Runtime-Platform subsystem — FEAT-029, ADR-010 / FR-20.x).
 - The compile-time generation of the GX suite artifact (owned by FEAT-004 / FEAT-017).
 - Pipeline blocking behavior and reporting (owned by FEAT-017 / `quality/executor.py`).
 

@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: GXEXT-01, GXEXT-02
 **PRD Requirements**: FR-7.5
 **Priority**: P0
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

@@ -1,4 +1,13 @@
+---
+ddx:
+  id: gold-conformance-plan
+---
+
 # Gold Conformance Completion — Per-Item Plan
+
+Status: Completed — the branch merged to `main`; `tests/conformance/corpus/cases.yaml`
+no longer contains any `pending: true` cases and the planned variants landed
+(e.g. `gold_unpivot_dedup`). Retained as the historical plan record.
 
 Branch: `feat/gold-conformance-completion` (off `main`).
 

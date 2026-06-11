@@ -46,6 +46,7 @@ classic Spark to GX `add_spark` — because GX `add_spark` otherwise *silently* 
 | Validity (value set / range) | values in the UMF allowed set / numeric range | 0 out-of-set | n/a | Reject; numeric value-sets staged to INGESTED (`1.5 != "1.50"`) |
 | Consistency (cross-engine) | every engine reproduces the Spark-direct oracle byte-for-byte | 0 byte divergence | n/a | Conformance matrix blocks merge |
 | Consistency (cross-column) | UMF column-pair rules (e.g. `start <= end`) hold | 0 violations | n/a | Reject |
+| Timeliness / Freshness | **N/A** — tablespec is a compile-time library: it emits validation artifacts but runs no pipelines, so it cannot own arrival/staleness SLAs. Freshness is the consuming platform's runtime concern. Compiling freshness checks from UMF metadata (e.g. dbt `source freshness:`) would be new product scope requiring a PRD requirement first (decided 2026-06-10). | — | — | — |
 
 ### Test Framework and Tooling
 
@@ -302,7 +303,7 @@ prevent it.
 - [x] **Expectations are executable** — concrete GX expectation types + conformance assertions, not prose
 - [x] **Each expectation traces back** to UMF metadata and a PRD requirement (FR-4.x/FR-7.x)
 - [x] **Failure modes are explicit** — reject (fail-closed), warn (advisory), with stage-by-stage actions
-- [x] **SLA per layer** — synchronous per-stage gating; zero-silent-false-negative target on Connect
+- [x] **SLA per layer** — synchronous per-stage gating; zero-silent-false-negative target on Connect; timeliness/freshness SLAs explicitly N/A for a compile-time library (see Quality Dimensions)
 - [x] **Sampling vs exhaustive** — exhaustive batch evaluation with exact counts; byte-for-byte cross-engine parity
 - [x] **Cross-layer contracts** — RAW→INGESTED castability/completeness, staging correctness, INGESTED→GOLD FK, cross-engine determinism, runtime↔UMF zero-drift
 - [x] **Alert routing and escalation** defined per expectation class

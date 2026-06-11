@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: NAME-01, DATE-01, YAML-01
 **PRD Requirements**: FR-16.1, FR-16.2, FR-16.3, FR-17.1, FR-17.2, FR-17.3
 **Priority**: P2
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

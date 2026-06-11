@@ -22,7 +22,7 @@
 - docs/helix/02-design/adr/ADR-003, ADR-007, ADR-008, ADR-009..ADR-013
 - docs/helix/02-design/architecture.md, ldp-sibling-emitter.md
 - docs/helix/03-test/test-plan.md, conformance-acceptance.md, data-quality-expectations.md, dbt-roadmap-acceptance.md, gold-conformance-plan.md
-- docs/helix/05-evaluation/serverless-compatibility.md
+- docs/helix/02-design/spikes/SPIKE-002-serverless-compatibility.md
 - src/tablespec/{profiling/native_profiler.py, session.py, validation/gx_executor.py, validation/native_executor.py, e2e/*, dbt/*, ldp/*, core/*, schemas/ingest_generator.py}
 - tests/{conformance/*, e2e/*, unit/test_profiler_connect_sail.py, unit/test_validation_connect_sail.py, dbt_roadmap/*, ingest_parity/*}
 

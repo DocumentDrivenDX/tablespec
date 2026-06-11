@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-002
+---
+
 # ADR-002: Only Great Expectations 1.6+ Format Is Supported
 
 ## Status

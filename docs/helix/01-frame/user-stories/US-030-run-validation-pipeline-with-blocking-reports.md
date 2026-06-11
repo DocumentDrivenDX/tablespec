@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: VALPIPE-01, VALPIPE-02, VALPIPE-03
 **PRD Requirements**: FR-4.3, FR-7.5, FR-7.6, FR-13.3
 **Priority**: P0
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

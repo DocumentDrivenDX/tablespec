@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-013: Domain Type Inference
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-013
 **Owner**: Data Platform

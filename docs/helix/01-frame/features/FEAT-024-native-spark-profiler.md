@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-024 — Native Spark Profiler & Connect-Safe Runtime
 
 **Feature ID**: FEAT-024
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Owner**: Data Platform
 **Covered PRD Subsystem(s)**: Profiling Integration

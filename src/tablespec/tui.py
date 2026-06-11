@@ -1,7 +1,8 @@
 """Interactive TUI for UMF exploration and editing.
 
-.. warning:: **Experimental** — This module is not yet covered by a FEAT spec
-   and its API may change without notice. Use at your own risk.
+.. warning:: **Experimental** — This module is governed by FEAT-023
+   (authoring tools), but its API may change without notice. Use at your
+   own risk.
 
 Provides a Textual-based terminal UI for browsing UMF schemas, searching
 across columns, and performing inline edits. Requires the `tui` extra:

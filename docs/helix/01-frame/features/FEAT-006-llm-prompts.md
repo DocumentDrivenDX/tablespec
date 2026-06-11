@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-006: LLM Prompt Generation
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-006
 **Owner**: Data-Quality Platform

@@ -1,15 +1,20 @@
+---
+ddx:
+  id: conformance-acceptance
+---
+
 # Conformance Harness — Acceptance Criteria & Engine Matrix
 
-Status: Approved for implementation on `feat/conformance-harness`.
+Status: Implemented — the harness shipped to `main` (`tests/conformance/`, `tests/ingest_parity/`); retained as the acceptance record.
 Scope: a cross-engine conformance harness that proves every supported execution
 backend reproduces the **same** typed-ingest / gold-derivation result as the
 established Spark-direct oracle, byte-for-byte, under one shared canonicalization.
 
-This document is the **criteria-first** phase. It defines unambiguous,
+This document was written as the **criteria-first** phase. It defines unambiguous,
 machine-checkable acceptance for each engine, the canonicalization contract every
 engine MUST share, the fixture corpus + tags (including the cases still to add),
-and the matrix assertion the harness enforces. Items marked `(NEW)` do not exist
-yet and are the deliverable of the later implementation phases on this branch.
+and the matrix assertion the harness enforces. Items marked `(NEW)` were the
+deliverables of the implementation phases and have since shipped to `main`.
 
 > **Run prefix** (ALL python/pytest/dbt/uv commands):
 > `UV_PROJECT_ENVIRONMENT=/tmp/tsvenv JAVA_HOME=/home/linuxbrew/.linuxbrew/opt/openjdk@17 SPARK_LOCAL_IP=127.0.0.1 uv run <cmd>`

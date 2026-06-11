@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-018: Custom GX Extensions
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-018
 **Owner**: Data-Quality Platform

@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: AUTH-01, AUTH-02, AUTH-03
 **PRD Requirements**: FR-8.1, FR-8.2, FR-6.2, FR-6.3, FR-14.4
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

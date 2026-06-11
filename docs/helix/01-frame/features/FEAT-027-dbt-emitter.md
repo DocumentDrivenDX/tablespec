@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-027 — dbt Project Emitter
 
 **Feature ID**: FEAT-027
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Owner**: Platform / Compile Team
 **Covered PRD Subsystem(s)**: Multi-Target Emission

@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-008 — CLI Interface
 **PRD Requirements**: FR-8.1, FR-8.2, FR-8.3, FR-8.4, FR-8.5
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

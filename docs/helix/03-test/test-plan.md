@@ -30,7 +30,7 @@ provisioning; load/stress testing.
 (GX *custom*-expectation parity on Connect is now **covered** — all four customs are
 verdict- and value-equal across classic and Connect, asserted by
 `tests/unit/test_custom_gx_parity.py`. See
-[serverless-compatibility](../05-evaluation/serverless-compatibility.md).)
+[serverless-compatibility](../02-design/spikes/SPIKE-002-serverless-compatibility.md).)
 
 **Traceability Source**: PRD FR-5.x (profiling), FR-7.7/7.8 (Connect-safe
 validation), FR-18.x (compile/bootstrap), FR-19.x (multi-target emission),

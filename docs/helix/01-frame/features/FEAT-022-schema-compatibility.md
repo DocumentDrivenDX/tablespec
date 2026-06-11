@@ -5,12 +5,12 @@ ddx:
 
 # FEAT-022: Schema Compatibility Checker
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-022
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Schema Change Management
-**Covered PRD Requirements**: FR-11.1, FR-11.2
+**Covered PRD Requirements**: FR-11.6 (builds on FR-11.1 diffing owned by FEAT-010)
 **Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Description

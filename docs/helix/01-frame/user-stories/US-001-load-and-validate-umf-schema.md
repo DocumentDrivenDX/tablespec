@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-001 — UMF Models and I/O
 **PRD Requirements**: FR-1.1, FR-1.7, FR-1.8, FR-1.9
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 

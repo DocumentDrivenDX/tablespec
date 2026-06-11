@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-005
+---
+
 # ADR-005: Unified Expectation Model
 
 ## Status

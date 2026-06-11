@@ -91,7 +91,7 @@ src/tablespec/
 ├── profiling/
 │   ├── types.py            # Profile result types
 │   ├── spark_mapper.py     # Spark → UMF (requires PySpark)
-│   └── deequ_mapper.py     # Deequ → UMF
+│   └── native_profiler.py  # Connect-safe Spark-SQL profiler (ADR-009 removed the Deequ mapper)
 ├── prompts/                # LLM prompt generators
 └── validation/             # Table validation (requires PySpark)
 

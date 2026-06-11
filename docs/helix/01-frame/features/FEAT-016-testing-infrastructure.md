@@ -5,12 +5,12 @@ ddx:
 
 # FEAT-016: Testing Infrastructure for Agentic Development
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-016
 **Owner**: Engineering Productivity
 **Covered PRD Subsystem(s)**: Runtime Platform
-**Covered PRD Requirements**: FR-20.3
+**Covered PRD Requirements**: None — meta-feature anchored to the Product Vision and Principles per the traceability convention (principles.md §Tension Resolution, decided 2026-06-10); provides the evidence tier for FR-20.3's serverless/Connect target without owning runtime behavior.
 **Cross-Subsystem Rationale**: Verification support feature: test infrastructure proves supported runtime targets without owning runtime behavior.
 
 ## Description

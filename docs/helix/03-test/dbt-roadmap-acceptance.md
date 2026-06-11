@@ -1,6 +1,11 @@
+---
+ddx:
+  id: dbt-roadmap-acceptance
+---
+
 # dbt Roadmap — Acceptance Criteria & Test Matrix
 
-Status: Approved for implementation on `feat/dbt-roadmap`.
+Status: Implemented — roadmap items 2–5 shipped to `main` (`core/schema_facts.py`, `core/selection.py`, `dbt/{schema_tests,contracts,selection,seeds}.py`, `tests/fixtures/dbt_roadmap/`); retained as the acceptance record.
 Scope: roadmap items 2–5 of ADR-008 §4 (schema tests `accepted_values`+single-table
 `relationships`, model contracts, `state:modified` CI selection, sample_data→seeds).
 
@@ -11,12 +16,12 @@ at least one automated test; negative paths are explicit tests that **must fail*
 (orphan FK, out-of-set value, contract drift, wrong seed type) and must be asserted as
 failing.
 
-> **Phase note (criteria-first):** This is the acceptance-definition phase. Every
-> module, fixture, and test named below as `(NEW)` — `core/schema_facts.py`,
-> `core/selection.py`, `dbt/schema_tests.py`, `dbt/contracts.py`, `dbt/selection.py`,
-> `dbt/seeds.py`, the `tests/fixtures/dbt_roadmap/*` fixtures, and the `test_*`
-> functions — does **not** exist yet and is the deliverable of the later
-> implementation phases on `feat/dbt-roadmap`. Criteria are written against the
+> **Phase note (criteria-first, historical):** This document was authored in the
+> acceptance-definition phase. Every module, fixture, and test named below as
+> `(NEW)` — `core/schema_facts.py`, `core/selection.py`, `dbt/schema_tests.py`,
+> `dbt/contracts.py`, `dbt/selection.py`, `dbt/seeds.py`, the
+> `tests/fixtures/dbt_roadmap/*` fixtures, and the `test_*` functions — has since
+> shipped to `main`. Criteria were written against the
 > CURRENT real APIs (`UMFDiff(old,new)` per-table; `ForeignKey` scalar columns;
 > `Column.length`/`precision`/`scale`; `SampleDataGenerator(input_dir,output_dir,
 > config).generate()` writing `|`-delimited files) so the to-be-built code has an

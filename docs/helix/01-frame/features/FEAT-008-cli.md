@@ -5,7 +5,7 @@ ddx:
 
 # FEAT-008: CLI Interface
 
-**Status**: Implemented
+**Status**: Approved
 **Priority**: P0
 **Feature ID**: FEAT-008
 **Owner**: Platform / Data Engineering

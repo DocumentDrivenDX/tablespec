@@ -1,3 +1,8 @@
+---
+ddx:
+  id: ADR-004
+---
+
 # ADR-004: Unify DATETIME and TIMESTAMP as Equivalent UMF Types
 
 ## Status

@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-012 — Quality Baselines
 **PRD Requirements**: FR-13.1, FR-13.2, FR-13.3, FR-13.4
 **Priority**: P1
-**Status**: Implemented
+**Status**: Approved
 
 ## Story
 
