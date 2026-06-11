@@ -11,6 +11,7 @@ import pytest
 
 from tablespec.ingestion import (
     CsvReader,
+    JdbcReader,
     SourceReader,
     build_column_lookup,
     get_reader,
@@ -33,9 +34,10 @@ class TestGetReader:
         with pytest.raises(NotImplementedError, match="tablespec-61da147e"):
             get_reader(ParquetSource(kind="parquet"))
 
-    def test_jdbc_not_implemented_names_bead(self):
-        with pytest.raises(NotImplementedError, match="tablespec-4b65c810"):
-            get_reader(JdbcSource(kind="jdbc", url="jdbc:x", dbtable="dbo.t"))
+    def test_jdbc_dispatches_to_jdbc_reader(self):
+        reader = get_reader(JdbcSource(kind="jdbc", url="jdbc:x", dbtable="dbo.t"))
+        assert isinstance(reader, JdbcReader)
+        assert isinstance(reader, SourceReader)
 
     def test_unknown_kind_raises_value_error(self):
         with pytest.raises(ValueError, match="unknown source kind"):

@@ -2,9 +2,10 @@
 
 A :class:`SourceReader` turns a UMF ``source:`` spec (see
 ``tablespec.models.umf.SourceSpec``) into a Spark DataFrame. ``get_reader``
-dispatches on the spec's ``kind``; delimited flat files are delivered here,
-parquet and jdbc raise :class:`NotImplementedError` until their beads land
-(parquet: tablespec-61da147e, jdbc: tablespec-4b65c810).
+dispatches on the spec's ``kind``; delimited flat files (:class:`CsvReader`)
+and jdbc sources (:class:`JdbcReader`, bead tablespec-4b65c810) are delivered
+here, parquet raises :class:`NotImplementedError` until its bead lands
+(tablespec-61da147e).
 
 This package never imports PySpark at module import time -- readers receive an
 active session, keeping ``tablespec[spark]`` optional (ADR-003).
@@ -15,6 +16,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from tablespec.ingestion.constants import normalize_spark_encoding
+from tablespec.ingestion.jdbc import (
+    JdbcReader,
+    SecretResolutionError,
+    jdbc_connection_options,
+    jdbc_options,
+    quote_identifier,
+    resolve_secret_ref,
+    sanitize_identifier,
+)
 from tablespec.ingestion.raw_ingester import (
     HeaderMatch,
     build_column_lookup,
@@ -93,8 +103,7 @@ def get_reader(spec: SourceSpec) -> SourceReader:
         msg = "parquet source reading is delivered by bead tablespec-61da147e"
         raise NotImplementedError(msg)
     if kind == "jdbc":
-        msg = "jdbc source reading is delivered by bead tablespec-4b65c810"
-        raise NotImplementedError(msg)
+        return JdbcReader()
     msg = f"unknown source kind: {kind!r}"
     raise ValueError(msg)
 
@@ -102,10 +111,17 @@ def get_reader(spec: SourceSpec) -> SourceReader:
 __all__ = [
     "CsvReader",
     "HeaderMatch",
+    "JdbcReader",
+    "SecretResolutionError",
     "SourceReader",
     "build_column_lookup",
     "get_reader",
+    "jdbc_connection_options",
+    "jdbc_options",
     "map_headers",
     "normalize_spark_encoding",
+    "quote_identifier",
+    "resolve_secret_ref",
+    "sanitize_identifier",
     "spark_csv_options",
 ]

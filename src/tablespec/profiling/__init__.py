@@ -44,6 +44,16 @@ except ImportError:
     # pyspark not available - SparkToUmfMapper won't be exported
     pass
 
+# JdbcToUmfMapper discovers UMFs from a live database via Spark's JDBC
+# connector (FEAT-031 DISC-01..03); requires pyspark like SparkToUmfMapper.
+try:
+    from tablespec.profiling.jdbc_mapper import JdbcToUmfMapper  # noqa: F401
+
+    __all__.append("JdbcToUmfMapper")
+except ImportError:
+    # pyspark not available - JdbcToUmfMapper won't be exported
+    pass
+
 # NativeSparkProfiler requires only pyspark (works on Connect/serverless)
 try:
     from tablespec.profiling.native_profiler import NativeSparkProfiler  # noqa: F401

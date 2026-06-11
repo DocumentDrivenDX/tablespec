@@ -133,9 +133,7 @@ def test_src_never_imports_tests_package() -> None:
     offenders: dict[str, set[str]] = {}
     for path in sorted(SRC.rglob("*.py")):
         bad = {
-            m
-            for m in _imported_modules(path)
-            if m == "tests" or m.startswith("tests.")
+            m for m in _imported_modules(path) if m == "tests" or m.startswith("tests.")
         }
         if bad:
             offenders[str(path.relative_to(SRC))] = bad
@@ -310,6 +308,37 @@ def test_dbt_seeds_does_not_import_sample_data_engine() -> None:
     assert not bad, (
         "dbt.seeds must consume generated output, not import the generator: "
         f"{sorted(bad)}"
+    )
+
+
+def test_no_direct_database_driver_imports_anywhere() -> None:
+    """DISC-01 / ADR-015: tablespec NEVER imports a database driver.
+
+    All database connectivity -- reads AND discovery metadata queries -- rides
+    Spark's JDBC connector (``spark.read.format("jdbc")``). A direct driver
+    import (pyodbc / pymssql / JayDeBeApi) anywhere in ``src/tablespec`` would
+    create a second connectivity seam and pull credential handling into the
+    compile-time tool; the FEAT-031 operator decision also forbids them in
+    the test tree (the SQL Server integration lane loads fixtures via
+    ``docker exec sqlcmd``, not Python drivers).
+    """
+    forbidden = {"pyodbc", "pymssql", "jaydebeapi"}
+    tests_dir = Path(__file__).parent
+    offenders: dict[str, set[str]] = {}
+    scan_roots = [(SRC, SRC.parent.parent), (tests_dir, tests_dir.parent)]
+    for root, rel_base in scan_roots:
+        for path in sorted(root.rglob("*.py")):
+            bad = {
+                m
+                for m in _imported_modules(path)
+                if m.split(".")[0].lower() in forbidden
+            }
+            if bad:
+                offenders[str(path.relative_to(rel_base))] = bad
+    assert not offenders, (
+        "Direct database-driver imports are forbidden (all connectivity is "
+        "Spark's JDBC connector, per ADR-015/DISC-01):\n"
+        + "\n".join(f"  {mod}: {sorted(imps)}" for mod, imps in offenders.items())
     )
 
 

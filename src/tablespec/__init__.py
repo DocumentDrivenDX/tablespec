@@ -182,13 +182,14 @@ __all__ = [
 
 # SparkToUmfMapper and TableValidator are available only if pyspark is installed (via tablespec[spark])
 try:
-    from tablespec.profiling import SparkToUmfMapper  # noqa: F401
+    from tablespec.profiling import JdbcToUmfMapper, SparkToUmfMapper  # noqa: F401
     from tablespec.type_mappings import map_to_pyspark_type_obj  # noqa: F401
     from tablespec.validation import VALIDATION_ERROR_SCHEMA, TableValidator  # noqa: F401
 
     __all__.extend(
         [
             "VALIDATION_ERROR_SCHEMA",
+            "JdbcToUmfMapper",
             "SparkToUmfMapper",
             "TableValidator",
             "map_to_pyspark_type_obj",
