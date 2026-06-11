@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (seam phase implemented 2026-06-10; JDBC/dump/parquet phases planned)
+**Status**: Specified (seam + JDBC vertical implemented 2026-06-10/11 incl. the typed-raw SUITE slice; dump-dialect and parquet phases planned)
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -16,10 +16,12 @@ This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
 > **Phase status.** The ingestion seam + `source:` model (SRC-01..05,
-> DUMP-05) shipped 2026-06-10 (bead `tablespec-4bea5c6c`). The JDBC
-> vertical (JDBC-/DISC-), dump dialect options (DUMP-01..04), and parquet
-> typed-raw (PARQ-/SUITE-) requirements describe the TARGET state in SHALL
-> form and are not yet implemented.
+> DUMP-05) shipped 2026-06-10 (bead `tablespec-4bea5c6c`, commit 3a881cc).
+> The JDBC vertical (JDBC-01..05, DISC-01..03) and the typed-raw suite
+> slice of SUITE-01..03 shipped 2026-06-11 (beads `tablespec-4b65c810`
+> commit 08e7de5, `tablespec-8980c812` commit 224a8af) — US-039 is green
+> on the Docker lane. Dump dialect options (DUMP-01..04) and the parquet
+> typed-raw cast mode (PARQ-01..03) remain planned.
 
 ## Overview
 
