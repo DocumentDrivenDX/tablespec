@@ -71,6 +71,135 @@
       "title": "Cardinality",
       "type": "object"
     },
+    "DelimitedSource": {
+      "additionalProperties": false,
+      "description": "Delimited flat-file source: ``kind: delimited`` + the FileFormatSpec fields.\n\nThe ``source:`` spelling of :class:`FileFormatSpec`. ``path`` optionally\npins the file (or directory) to read; readers that are handed a spec\nwithout a path receive it from the caller per file.",
+      "properties": {
+        "delimiter": {
+          "default": "|",
+          "description": "Field delimiter character",
+          "title": "Delimiter",
+          "type": "string"
+        },
+        "encoding": {
+          "default": "utf-8",
+          "description": "File encoding",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "header": {
+          "default": true,
+          "description": "Whether file has header row",
+          "title": "Header",
+          "type": "boolean"
+        },
+        "quote_char": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Quote character for fields",
+          "title": "Quote Char"
+        },
+        "escape_char": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Escape character",
+          "title": "Escape Char"
+        },
+        "null_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "String representing NULL values",
+          "title": "Null Value"
+        },
+        "skip_rows": {
+          "default": 0,
+          "description": "Number of rows to skip at start",
+          "minimum": 0,
+          "title": "Skip Rows",
+          "type": "integer"
+        },
+        "comment_char": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Comment line prefix character",
+          "title": "Comment Char"
+        },
+        "filename_pattern": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FilenamePattern"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pattern for extracting metadata from filenames into table columns"
+        },
+        "source_directory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subdirectory name to look for files in (when different from table name). Used when files for multiple tables are stored in the same folder.",
+          "title": "Source Directory"
+        },
+        "kind": {
+          "const": "delimited",
+          "default": "delimited",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional file or directory path to read. Usually supplied at runtime by the caller rather than declared in the UMF.",
+          "title": "Path"
+        }
+      },
+      "title": "DelimitedSource",
+      "type": "object"
+    },
     "DerivationCandidate": {
       "description": "Source column candidate for survivorship derivation.",
       "properties": {
@@ -707,6 +836,166 @@
       "title": "IngestionExclusionRule",
       "type": "object"
     },
+    "JdbcSource": {
+      "additionalProperties": false,
+      "description": "JDBC source (JDBC-01). Reading lands with bead tablespec-4b65c810.\n\nCredentials are never inlined: ``password_secret_ref`` names a secret in\nthe runtime's secret store. A literal ``password`` field is rejected\n(``extra=\"forbid\"``).",
+      "properties": {
+        "kind": {
+          "const": "jdbc",
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "description": "JDBC connection URL (jdbc:...)",
+          "title": "Url",
+          "type": "string"
+        },
+        "dbtable": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Table (or subquery alias) to read. Mutually exclusive with 'query'.",
+          "title": "Dbtable"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL query to read. Mutually exclusive with 'dbtable'.",
+          "title": "Query"
+        },
+        "driver": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "JDBC driver class name override",
+          "title": "Driver"
+        },
+        "user": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Connection user name",
+          "title": "User"
+        },
+        "password_secret_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reference to the connection password in the runtime secret store (e.g. a Databricks secret scope/key). Plaintext passwords are rejected by design.",
+          "title": "Password Secret Ref"
+        },
+        "fetch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "JDBC fetch size hint",
+          "title": "Fetch Size"
+        },
+        "partition_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numeric column used for partitioned reads",
+          "title": "Partition Column"
+        },
+        "lower_bound": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Partitioned-read lower bound",
+          "title": "Lower Bound"
+        },
+        "upper_bound": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Partitioned-read upper bound",
+          "title": "Upper Bound"
+        },
+        "num_partitions": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of partitions for parallel reads",
+          "title": "Num Partitions"
+        }
+      },
+      "required": [
+        "kind",
+        "url"
+      ],
+      "title": "JdbcSource",
+      "type": "object"
+    },
     "JoinViaSpec": {
       "description": "Specification for joining through an intermediary lookup table.\n\nUsed when the source table's join key doesn't directly match the target's primary key.\nFor example, when a truncated key needs to be resolved through an intermediary\ntable to get the full identifier.",
       "properties": {
@@ -851,6 +1140,35 @@
         }
       },
       "title": "OutputConfig",
+      "type": "object"
+    },
+    "ParquetSource": {
+      "additionalProperties": false,
+      "description": "Parquet source (model stub; reading lands with bead tablespec-61da147e).",
+      "properties": {
+        "kind": {
+          "const": "parquet",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "File or directory path of the parquet data to read.",
+          "title": "Path"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ParquetSource",
       "type": "object"
     },
     "PostUpsertRule": {
@@ -2267,6 +2585,37 @@
       ],
       "default": null,
       "description": "File format specification for ingestion (delimiter, encoding, etc.)"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "delimited": "#/$defs/DelimitedSource",
+              "jdbc": "#/$defs/JdbcSource",
+              "parquet": "#/$defs/ParquetSource"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/DelimitedSource"
+            },
+            {
+              "$ref": "#/$defs/ParquetSource"
+            },
+            {
+              "$ref": "#/$defs/JdbcSource"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Source shape declaration (ADR-015), discriminated on 'kind' (delimited | parquet | jdbc). When absent the table is a delimited flat file described by file_format (or its defaults); resolve via effective_source().",
+      "title": "Source"
     },
     "validation_rules": {
       "anyOf": [

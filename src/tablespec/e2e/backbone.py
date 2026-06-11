@@ -58,9 +58,42 @@ from tablespec.canonical import to_json
 from tablespec.e2e.compiled import CompiledSchema, load_compiled_schema
 from tablespec.e2e.gating import databricks_e2e_availability
 from tablespec.e2e.sql_runtime import split_sql_statements
+from tablespec.ingestion import spark_csv_options
+from tablespec.models.umf import DelimitedSource
 
 if TYPE_CHECKING:
     from tablespec.e2e.manifest import CompiledArtifacts
+
+
+def _declared_delimited(umf_snapshot: Path) -> DelimitedSource | None:
+    """The delimited source the UMF snapshot DECLARES for raw loading, or None.
+
+    None means the snapshot declares neither ``source:`` nor ``file_format``;
+    the engines then preserve the historical comma-CSV raw-load behavior the
+    conformance corpus depends on. (A declared :class:`DelimitedSource`
+    defaults its delimiter to ``|``, so deriving options from an UNDECLARED
+    spec would silently flip every legacy comma-CSV case to pipes.)
+
+    Parses only the two source-shape keys rather than validating the whole
+    UMF -- stage-1 raw loading otherwise consumes COMPILED artifacts, never
+    the UMF snapshot.
+    """
+    import yaml
+
+    data = yaml.safe_load(umf_snapshot.read_text(encoding="utf-8")) or {}
+    declared = data.get("source")
+    if declared is not None:
+        if declared.get("kind") != "delimited":
+            raise NotImplementedError(
+                f"backbone raw loading supports only delimited sources; "
+                f"{umf_snapshot.name} declares kind={declared.get('kind')!r} "
+                "(parquet: bead tablespec-61da147e, jdbc: bead tablespec-4b65c810)"
+            )
+        return DelimitedSource.model_validate(declared)
+    file_format = data.get("file_format")
+    if file_format is not None:
+        return DelimitedSource.model_validate(file_format)
+    return None
 
 
 @dataclass(frozen=True)
@@ -197,7 +230,13 @@ class _SparkEngine(_BackboneEngine):
             if loc.exists():
                 shutil.rmtree(loc, ignore_errors=True)
 
-    def _load_raw(self, schema: CompiledSchema, csv_path: Path, raw_table: str) -> None:
+    def _load_raw(
+        self,
+        schema: CompiledSchema,
+        csv_path: Path,
+        raw_table: str,
+        fmt: DelimitedSource | None = None,
+    ) -> None:
         """Build the all-STRING raw landing relation (engines.py:527 schema).
 
         The raw shape is every business column as STRING plus ``_source_file`` +
@@ -208,6 +247,11 @@ class _SparkEngine(_BackboneEngine):
         any missing metadata (literal source-file + load timestamp) -- exactly as the
         DuckDB engine and conformance gold loader do. Without this, Sail's strict CSV
         reader rejects a 2-field row against a 4-field schema.
+
+        ``fmt`` is the UMF-DECLARED delimited source (``source:`` /
+        ``file_format``); when None (legacy corpus UMFs declare neither) the
+        historical comma-CSV read is preserved EXACTLY. Either way every
+        business column lands as STRING (ADR-007).
         """
         # ``pyspark.sql.functions`` resolves to the CLASSIC builtins, whose ``lit`` /
         # ``to_timestamp`` call ``_to_java_column`` and so need a live JVM
@@ -226,7 +270,13 @@ class _SparkEngine(_BackboneEngine):
         source_name = (
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
         )
-        header = csv_path.read_text().splitlines()[0].split(",")
+        if fmt is None:
+            header = csv_path.read_text().splitlines()[0].split(",")
+        elif fmt.header:
+            text = csv_path.read_text(encoding=fmt.encoding or "utf-8")
+            header = text.splitlines()[0].split(fmt.delimiter or "|")
+        else:  # headerless declared file: metadata can only be synthesized
+            header = []
         has_meta = "_source_file" in header
 
         read_cols = list(business_cols)
@@ -234,14 +284,19 @@ class _SparkEngine(_BackboneEngine):
             read_cols += ["_source_file", "_load_ts"]
         schema_ddl = ", ".join(f"`{n}` string" for n in read_cols)
 
-        df = (
-            self._spark.read.option("header", True)
-            .option("quote", '"')
-            .option("escape", '"')
-            .option("multiLine", True)
-            .schema(schema_ddl)
-            .csv(str(csv_path))
-        )
+        if fmt is None:
+            options: dict[str, Any] = {
+                "header": True,
+                "quote": '"',
+                "escape": '"',
+                "multiLine": True,
+            }
+        else:
+            options = spark_csv_options(fmt)
+            options.setdefault("quote", '"')
+            options.setdefault("escape", '"')
+            options["multiLine"] = True
+        df = self._spark.read.options(**options).schema(schema_ddl).csv(str(csv_path))
         if has_meta:
             df = df.withColumn(
                 "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
@@ -275,7 +330,9 @@ class _SparkEngine(_BackboneEngine):
     ) -> tuple[Any, Any, CompiledSchema]:
         sql = artifacts.table(table).ingest_sql.read_text()
         # Derive the raw-load schema, projection order, table names, and decimal
-        # scales from the COMPILED ingest SQL -- never the UMF snapshot.
+        # scales from the COMPILED ingest SQL -- never the UMF snapshot. The
+        # snapshot contributes ONLY the declared source shape (reader options).
+        fmt = _declared_delimited(artifacts.table(table).umf_snapshot)
         schema = load_compiled_schema(artifacts.table(table).ingest_sql, table)
         raw_table = schema.raw_table
         ingested_table = schema.ingested_table
@@ -297,7 +354,7 @@ class _SparkEngine(_BackboneEngine):
             # (the body already dedups on the PK), which is the single-batch invariant
             # the LDP cast-parity leg also asserts.
             for batch in batches:
-                self._load_raw(schema, batch, raw_table)
+                self._load_raw(schema, batch, raw_table, fmt)
             cast_select = _extract_merge_using_select(transform_stmt)
             self._spark.sql(f"DROP VIEW IF EXISTS {ingested_table}")
             self._spark.sql(
@@ -319,7 +376,7 @@ class _SparkEngine(_BackboneEngine):
             self._spark.sql(stmt)
 
         for batch in batches:
-            self._load_raw(schema, batch, raw_table)
+            self._load_raw(schema, batch, raw_table, fmt)
             self._spark.sql(transform_stmt)
 
         raw_df = self._spark.table(raw_table)
@@ -357,9 +414,18 @@ class _DuckDBEngine(_BackboneEngine):
         con.execute("SET TimeZone='UTC'")
         return con
 
-    def _load_raw(self, db_path: Path, schema: CompiledSchema, csv_path: Path) -> None:
+    def _load_raw(
+        self,
+        db_path: Path,
+        schema: CompiledSchema,
+        csv_path: Path,
+        fmt: DelimitedSource | None = None,
+    ) -> None:
         # The raw table name + business-column set come from the COMPILED ingest SQL
-        # (parsed into ``schema``), NOT the UMF snapshot.
+        # (parsed into ``schema``), NOT the UMF snapshot. ``fmt`` is the UMF-DECLARED
+        # delimited source; None preserves the historical comma-CSV read EXACTLY
+        # (the conformance corpus declares no file_format). Rows stay all-VARCHAR
+        # either way (ADR-007).
         raw_table = schema.raw_table
         source_name = (
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
@@ -370,7 +436,36 @@ class _DuckDBEngine(_BackboneEngine):
         # header: if present, project it through; otherwise SYNTHESIZE it (literal
         # source file + load timestamp) exactly as the conformance gold loader does,
         # so the compiled dbt model always sees the all-STRING + metadata raw shape.
-        header = csv_path.read_text().splitlines()[0].split(",")
+        if fmt is None:
+            header = csv_path.read_text().splitlines()[0].split(",")
+            read_csv = f"read_csv_auto('{csv_path}', header=true, all_varchar=true)"
+        else:
+            delimiter = fmt.delimiter or "|"
+            if fmt.header:
+                text = csv_path.read_text(encoding=fmt.encoding or "utf-8")
+                header = text.splitlines()[0].split(delimiter)
+            else:  # headerless declared file: metadata can only be synthesized
+                header = []
+
+            def _sq(value: str) -> str:
+                return value.replace("'", "''")
+
+            read_opts = [
+                f"header={'true' if fmt.header else 'false'}",
+                "all_varchar=true",
+                f"delim='{_sq(delimiter)}'",
+            ]
+            if not fmt.header:
+                # Headerless: bind the compiled business-column names by position.
+                names = ", ".join(f"'{_sq(c)}'" for c in cols)
+                read_opts.append(f"names=[{names}]")
+            if fmt.null_value is not None:
+                read_opts.append(f"nullstr='{_sq(fmt.null_value)}'")
+            if fmt.quote_char is not None:
+                read_opts.append(f"quote='{_sq(fmt.quote_char)}'")
+            if fmt.escape_char is not None:
+                read_opts.append(f"escape='{_sq(fmt.escape_char)}'")
+            read_csv = f"read_csv_auto('{csv_path}', {', '.join(read_opts)})"
         has_meta = "_source_file" in header
         con = self._connect(db_path)
         try:
@@ -383,11 +478,7 @@ class _DuckDBEngine(_BackboneEngine):
                 projection += ', "_source_file", cast("_load_ts" as timestamp)'
             else:
                 projection += f", '{source_name}.csv', TIMESTAMP '2026-01-01 00:00:00'"
-            con.execute(
-                f"INSERT INTO {raw_table} "
-                f"SELECT {projection} "
-                f"FROM read_csv_auto('{csv_path}', header=true, all_varchar=true)"
-            )
+            con.execute(f"INSERT INTO {raw_table} SELECT {projection} FROM {read_csv}")
         finally:
             con.close()
 
@@ -419,7 +510,9 @@ class _DuckDBEngine(_BackboneEngine):
         self, artifacts: CompiledArtifacts, table: str, batches: list[Path]
     ) -> tuple[Any, Any, CompiledSchema]:
         # Derive the raw-load schema, projection order, and table names from the
-        # COMPILED ingest SQL -- never the UMF snapshot.
+        # COMPILED ingest SQL -- never the UMF snapshot. The snapshot contributes
+        # ONLY the declared source shape (reader options).
+        fmt = _declared_delimited(artifacts.table(table).umf_snapshot)
         schema = load_compiled_schema(artifacts.table(table).ingest_sql, table)
         # Copy the compiled dbt ingest project into a scratch dir so the duckdb file
         # lives beside it (the project is read-only compile output).
@@ -433,7 +526,7 @@ class _DuckDBEngine(_BackboneEngine):
         self._ingested_table = table
 
         for batch in batches:
-            self._load_raw(db_path, schema, batch)
+            self._load_raw(db_path, schema, batch, fmt)
             self._run_dbt(project, db_path)
 
         # Raw stage validates the UNTYPED landing rows -> stringify (raw IS strings).

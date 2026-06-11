@@ -199,6 +199,107 @@ class FileFormatSpec(BaseModel):
 FileFormat = FileFormatSpec
 
 
+# =============================================================================
+# Source shape contract (FEAT-031 / ADR-015)
+# =============================================================================
+# A UMF may declare WHERE its rows come from via a discriminated ``source:``
+# block. ``file_format`` remains the backward-compatible spelling for
+# delimited flat files; ``UMF.effective_source()`` resolves the two without
+# ever mutating the loaded document (legacy UMFs must round-trip byte-
+# identically).
+
+
+class DelimitedSource(FileFormatSpec):
+    """Delimited flat-file source: ``kind: delimited`` + the FileFormatSpec fields.
+
+    The ``source:`` spelling of :class:`FileFormatSpec`. ``path`` optionally
+    pins the file (or directory) to read; readers that are handed a spec
+    without a path receive it from the caller per file.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["delimited"] = "delimited"
+    path: str | None = Field(
+        default=None,
+        description="Optional file or directory path to read. Usually supplied "
+        "at runtime by the caller rather than declared in the UMF.",
+    )
+
+
+class ParquetSource(BaseModel):
+    """Parquet source (model stub; reading lands with bead tablespec-61da147e)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["parquet"]
+    path: str | None = Field(
+        default=None,
+        description="File or directory path of the parquet data to read.",
+    )
+
+
+class JdbcSource(BaseModel):
+    """JDBC source (JDBC-01). Reading lands with bead tablespec-4b65c810.
+
+    Credentials are never inlined: ``password_secret_ref`` names a secret in
+    the runtime's secret store. A literal ``password`` field is rejected
+    (``extra=\"forbid\"``).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["jdbc"]
+    url: str = Field(description="JDBC connection URL (jdbc:...)")
+    dbtable: str | None = Field(
+        default=None,
+        description="Table (or subquery alias) to read. Mutually exclusive with 'query'.",
+    )
+    query: str | None = Field(
+        default=None,
+        description="SQL query to read. Mutually exclusive with 'dbtable'.",
+    )
+    driver: str | None = Field(
+        default=None, description="JDBC driver class name override"
+    )
+    user: str | None = Field(default=None, description="Connection user name")
+    password_secret_ref: str | None = Field(
+        default=None,
+        description="Reference to the connection password in the runtime secret "
+        "store (e.g. a Databricks secret scope/key). Plaintext passwords are "
+        "rejected by design.",
+    )
+    fetch_size: int | None = Field(
+        default=None, ge=1, description="JDBC fetch size hint"
+    )
+    partition_column: str | None = Field(
+        default=None, description="Numeric column used for partitioned reads"
+    )
+    lower_bound: int | str | None = Field(
+        default=None, description="Partitioned-read lower bound"
+    )
+    upper_bound: int | str | None = Field(
+        default=None, description="Partitioned-read upper bound"
+    )
+    num_partitions: int | None = Field(
+        default=None, ge=1, description="Number of partitions for parallel reads"
+    )
+
+    @model_validator(mode="after")
+    def validate_dbtable_xor_query(self) -> Self:
+        """Require exactly one of dbtable / query."""
+        if (self.dbtable is None) == (self.query is None):
+            msg = "JdbcSource requires exactly one of 'dbtable' or 'query'"
+            raise ValueError(msg)
+        return self
+
+
+SourceSpec = Annotated[
+    DelimitedSource | ParquetSource | JdbcSource,
+    Field(discriminator="kind"),
+]
+
+
 class Nullable(BaseModel):
     """Nullable configuration per context (e.g., Line of Business).
 
@@ -867,9 +968,7 @@ class Cardinality(BaseModel):
     type: str = Field(
         description="Cardinality type (e.g., many_to_one, one_to_many, one_to_one)"
     )
-    notation: str = Field(
-        description="Cardinality notation (e.g., 1:N, N:1, 1:1)"
-    )
+    notation: str = Field(description="Cardinality notation (e.g., 1:N, N:1, 1:1)")
     composite_key: bool = Field(
         default=False,
         description="Whether the relationship uses a composite key",
@@ -901,12 +1000,8 @@ class OutgoingRelationship(BaseModel):
     source_column: str = Field(
         description="Column in this table that references target table"
     )
-    target_column: str = Field(
-        description="Column in target table being referenced"
-    )
-    type: str = Field(
-        description="Relationship type (e.g., foreign_to_primary)"
-    )
+    target_column: str = Field(description="Column in target table being referenced")
+    type: str = Field(description="Relationship type (e.g., foreign_to_primary)")
     confidence: float = Field(
         ge=0.0, le=1.0, description="Confidence score for relationship"
     )
@@ -928,12 +1023,8 @@ class IncomingRelationship(BaseModel):
     source_column: str = Field(
         description="Column in source table that references this table"
     )
-    target_column: str = Field(
-        description="Column in this table being referenced"
-    )
-    type: str = Field(
-        description="Relationship type (e.g., foreign_to_foreign)"
-    )
+    target_column: str = Field(description="Column in this table being referenced")
+    type: str = Field(description="Relationship type (e.g., foreign_to_foreign)")
     confidence: float = Field(
         ge=0.0, le=1.0, description="Confidence score for relationship"
     )
@@ -948,9 +1039,7 @@ class IncomingRelationship(BaseModel):
 class RelationshipSummary(BaseModel):
     """Summary statistics for table relationships."""
 
-    total_relationships: int = Field(
-        ge=0, description="Total number of relationships"
-    )
+    total_relationships: int = Field(ge=0, description="Total number of relationships")
     total_incoming: int = Field(ge=0, description="Number of incoming relationships")
     total_outgoing: int = Field(ge=0, description="Number of outgoing relationships")
     hub_score: float = Field(
@@ -1285,6 +1374,13 @@ class UMF(BaseModel):
         default=None,
         description="File format specification for ingestion (delimiter, encoding, etc.)",
     )
+    source: SourceSpec | None = Field(
+        default=None,
+        description="Source shape declaration (ADR-015), discriminated on 'kind' "
+        "(delimited | parquet | jdbc). When absent the table is a delimited "
+        "flat file described by file_format (or its defaults); resolve via "
+        "effective_source().",
+    )
     validation_rules: ValidationRules | None = Field(
         default=None, description="Validation rules added by Phase 4"
     )
@@ -1330,6 +1426,21 @@ class UMF(BaseModel):
         "healthcare line-of-business, 'segment' for fintech). When set, nullable rules with "
         "per-context keys generate filtered expectations using row_condition.",
     )
+
+    def effective_source(self) -> "DelimitedSource | ParquetSource | JdbcSource":
+        """Resolve the effective source shape for this table (ADR-015).
+
+        Returns ``source`` when declared; otherwise derives a
+        :class:`DelimitedSource` from ``file_format`` (or pure defaults when
+        neither is declared). Never mutates the model -- a legacy UMF that
+        declares only ``file_format`` (or nothing) must round-trip
+        byte-identically through load -> save.
+        """
+        if self.source is not None:
+            return self.source
+        if self.file_format is not None:
+            return DelimitedSource(**self.file_format.model_dump())
+        return DelimitedSource()
 
     @field_validator("columns")
     @classmethod
@@ -1507,6 +1618,7 @@ __all__ = [
     "REDUNDANT_VALIDATION_TYPES",
     "UMF",
     "Cardinality",
+    "DelimitedSource",
     "DerivationCandidate",
     "FileFormat",
     "FileFormatSpec",
@@ -1516,16 +1628,19 @@ __all__ = [
     "Index",
     "IngestionConfig",
     "IngestionExclusionRule",
+    "JdbcSource",
     "JoinViaSpec",
     "Nullable",
     "OutgoingRelationship",
     "OutputConfig",
+    "ParquetSource",
     "PostUpsertRule",
     "QualityCheck",
     "QualityChecks",
     "ReferencedBy",
     "RelationshipSummary",
     "Relationships",
+    "SourceSpec",
     "Survivorship",
     "UMFColumn",
     "UMFColumnDerivation",

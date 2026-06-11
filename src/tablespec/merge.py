@@ -21,20 +21,8 @@ try:
 except ImportError:
     cast_timestamp_with_epoch_fallback = None  # type: ignore[assignment]
 
-try:
-    from tablespec.ingestion.constants import normalize_spark_encoding
-except ImportError:
-
-    def normalize_spark_encoding(encoding: str) -> str:  # type: ignore[misc]
-        """Fallback: return encoding as-is."""
-        return encoding
-
-
-try:
-    from tablespec.ingestion.raw_ingester import build_column_lookup, map_headers
-except ImportError:
-    build_column_lookup = None  # type: ignore[assignment]
-    map_headers = None  # type: ignore[assignment]
+from tablespec.ingestion import get_reader
+from tablespec.ingestion.raw_ingester import build_column_lookup, map_headers
 
 try:
     from tablespec.spark_factory import SparkSessionFactory
@@ -75,16 +63,17 @@ def merge_table_files(
         msg = "SparkSessionFactory is not available. Install tablespec[spark] for merge support."
         raise ImportError(msg)
 
-    if build_column_lookup is None or map_headers is None:
-        msg = "Ingestion utilities are not available. Ensure tablespec ingestion modules are installed."
-        raise ImportError(msg)
-
     spark_session = spark or SparkSessionFactory.create_session("tablespec-merge")
     timestamp_columns = _get_timestamp_columns(umf.columns)
-    delimiter = (umf.file_format.delimiter if umf.file_format else None) or "|"
-    null_token = umf.file_format.null_value if umf.file_format else None
-    has_header = umf.file_format.header if umf.file_format else True
-    encoding = (umf.file_format.encoding if umf.file_format else None) or "UTF-8"
+    source_spec = umf.effective_source()
+    if source_spec.kind != "delimited":
+        msg = (
+            f"merge_table_files only supports delimited sources; "
+            f"table {umf.table_name} declares kind={source_spec.kind!r}"
+        )
+        raise ValueError(msg)
+    delimiter = source_spec.delimiter or "|"
+    reader = get_reader(source_spec)
 
     lookup = build_column_lookup(umf, include_non_data=True)
     required_columns = set(umf.primary_key)
@@ -98,17 +87,15 @@ def merge_table_files(
             msg = f"Source file not found: {source}"
             raise ValueError(msg)
 
-        df = spark_session.read.options(
-            header=has_header,
-            sep=delimiter,
-            nullValue=null_token,
-            encoding=normalize_spark_encoding(encoding),
-            inferSchema=False,
-        ).csv(str(source))
+        df = reader.read(
+            source_spec.model_copy(update={"path": str(source)}), spark_session
+        )
 
         header_mapping = map_headers(df.columns, lookup)
         mapped_targets = {match.umf_column for match in header_mapping.values()}
-        missing_required = [col for col in required_columns if col not in mapped_targets]
+        missing_required = [
+            col for col in required_columns if col not in mapped_targets
+        ]
         if missing_required:
             missing_list = ", ".join(sorted(missing_required))
             msg = f"File {source} is missing required columns: {missing_list}"
@@ -132,7 +119,9 @@ def merge_table_files(
 
     combined = data_frames[0]
     for df in data_frames[1:]:
-        combined = combined.unionByName(df.select(combined.columns), allowMissingColumns=True)
+        combined = combined.unionByName(
+            df.select(combined.columns), allowMissingColumns=True
+        )
 
     scored = _apply_scoring(combined, umf.primary_key, timestamp_columns)
     winners = _select_winners(scored, umf.primary_key)
@@ -215,7 +204,9 @@ def _write_single_csv(df: DataFrame, output_path: Path, delimiter: str) -> None:
         shutil.move(part_files[0], output_path)
 
 
-def _ensure_no_audit_collision(columns: Iterable[str], audit_columns: list[str]) -> None:
+def _ensure_no_audit_collision(
+    columns: Iterable[str], audit_columns: list[str]
+) -> None:
     duplicates = [col for col in audit_columns if col in set(columns)]
     if duplicates:
         dup_list = ", ".join(sorted(duplicates))

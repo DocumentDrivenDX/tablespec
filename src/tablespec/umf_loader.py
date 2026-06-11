@@ -673,6 +673,15 @@ class UMFLoader:
                 else file_format
             )
 
+        # Add source if present (discriminated source shape, ADR-015)
+        source = getattr(umf, "source", None)
+        if source is not None:
+            table_data["source"] = (
+                source.model_dump(exclude_none=True)
+                if hasattr(source, "model_dump")
+                else source
+            )
+
         # Add relationships (now embedded in table.yaml, not separate file)
         if umf.relationships:
             relationships_data = {}
