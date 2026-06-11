@@ -219,6 +219,7 @@ sequenceDiagram
 | ADR-012: compile orchestrator; runtime consumes only committed artifacts | Accepted | Zero drift, diffable transforms, runtime carries no tablespec dependency | FEAT-026, US-023/024 |
 | ADR-013: target-agnostic core seam with sibling emitters | Accepted | One cast/IR truth; emitters import-isolated; LDP is the proof obligation for the seam | FEAT-027, FEAT-028, US-025/026 |
 | ADR-007: raw→ingest as a committed SQL artifact | Accepted | Transform is reviewable text, generated not wrapped at run time | FR-19.4 |
+| ADR-015: discriminated source-shape contract with kind-dependent raw typing | Accepted (seam implemented; JDBC/dumps/parquet planned) | One `source:` declaration (delimited/parquet/jdbc) drives readers, casts, and suites; typed sources land native-typed raw — never string-parsed; JDBC is compiled read specs via Spark's connector, with secret-referenced credentials only | FEAT-031, US-039 (Northwind goal), epic tablespec-ef91646f |
 | ADR-003: optional PySpark via `[spark]` extra | Accepted (extended by ADR-010) | Keeps the pure-Python core importable; boundary now also forbids assuming a `SparkContext` | dbt/pysail moved to dev group |
 | dbt + pysail in the dev (test-only) group, not user extras | Accepted | Generating dbt/LDP is pure-Python text; the stacks are only needed to EXECUTE generated projects in tests | `pyproject.toml` dev group; `test_src_never_imports_dbt` |
 

@@ -80,7 +80,9 @@ table, and `gold/gold_<t>.sql` for every table with cross-table derivations
 (`src/tablespec/ldp/project.py:276`).
 LDP-02. A raw landing table MUST be emitted as `CREATE OR REFRESH STREAMING TABLE
 raw_<t> ... FROM STREAM read_files(<landing_path>, format => ...)` (continuous
-file ingestion) (`src/tablespec/ldp/project.py:60`).
+file ingestion) (`src/tablespec/ldp/project.py:60`). *(Forward note: ADR-015 /
+FEAT-031 add non-file source kinds; LDP raw emission gains per-kind variants —
+`read_files` stays the file-source form.)*
 LDP-03. An incremental ingested dataset WITH a primary key MUST be emitted as a
 streaming-table shell carrying the EXPECTATIONS plus `APPLY CHANGES INTO
 ingested_<t> ... KEYS (<pk>) SEQUENCE BY <order_by>`, where KEYS equals the UMF

@@ -7,7 +7,11 @@ ddx:
 
 ## Status
 
-Accepted — default path for all pipelines going forward.
+Accepted — default path for all pipelines going forward. Generalized by
+ADR-015 (2026-06-10): the all-STRING raw landing below is the
+**delimited-text variant** of the kind-dependent source-shape contract;
+typed sources (parquet, JDBC) land native-typed raw with
+identity/safe-narrowing casts.
 
 ## Context
 

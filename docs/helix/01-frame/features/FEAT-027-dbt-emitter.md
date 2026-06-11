@@ -206,7 +206,7 @@ build. (`src/tablespec/cli.py`)
 - dbt-core 1.9+ / dbt-duckdb 1.9+ / dbt-spark 1.10+ / dbt-databricks 1.9+ (test-only).
 - The Databricks runtime these casts target runs on Delta (justifies pinned
   `file_format='delta'` for the spark family).
-- `raw_<t>` landing tables are all-STRING sources; one batch per run for keyless incremental.
+- `raw_<t>` landing tables are all-STRING sources; one batch per run for keyless incremental. *(Forward note: ADR-015 / FEAT-031 generalize this — typed sources will land native-typed raw with identity/safe-narrowing staging casts; the all-STRING constraint then applies to text-landed sources only.)*
 
 ## Dependencies
 

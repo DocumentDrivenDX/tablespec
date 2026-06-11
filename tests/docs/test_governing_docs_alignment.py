@@ -142,7 +142,12 @@ def test_source_semantic_bronze_is_governed_without_new_fr_family() -> None:
     source_semantic = "source-" + "semantic"
     assert "Preserve source semantics, not source accidents" in principle_text
     assert source_semantic in prd_text
-    assert "FR-21" not in prd_text
+    # The bronze-contract evolution lives inside existing FR families — no
+    # dedicated bronze FR family or subsystem. (FR-21 is Source Acquisition,
+    # a separate operator-directed family — ADR-015/FEAT-031 — and is
+    # intentionally NOT forbidden here.)
+    assert "Subsystem: Bronze" not in prd_text
+    assert "bronze FR" not in prd_text
     assert "raw storage" in vision_text.lower()
     assert "silver" in vision_text
 

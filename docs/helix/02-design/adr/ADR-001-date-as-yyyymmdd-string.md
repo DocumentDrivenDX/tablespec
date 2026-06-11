@@ -7,7 +7,10 @@ ddx:
 
 ## Status
 
-Accepted
+Accepted — scoped by ADR-015 (2026-06-10) to **text-landed sources only**
+(delimited files, database dumps). Typed sources (parquet, JDBC) map DATE
+natively under the kind-dependent raw contract; the YYYYMMDD-string
+convention below applies where data lands as text.
 
 ## Context
 

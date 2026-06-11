@@ -42,7 +42,7 @@ The common medallion shorthand "bronze" is too loose to be actionable by itself.
 
 ### Non-Goals
 
-- Database connectivity or interactive query execution as a product surface (the runtime executes committed artifacts; tablespec does not become an ETL engine).
+- Database connectivity or interactive query execution as a product surface (the runtime executes committed artifacts; tablespec does not become an ETL engine). Compiled artifacts may *describe* a JDBC read with secret-referenced credentials (FR-21.4); all connectivity is Spark's JDBC connector executed by the runtime — tablespec itself never opens a database connection, even for discovery (FR-21.6).
 - Application GUI or operational web interface. Product documentation and a public microsite are documentation surfaces, not a runtime product UI.
 - Real-time schema synchronization (compile is an explicit step, not a live watcher).
 - Shipping dbt or pysail as user-facing runtime dependencies (they are dev-group / test-only tooling).
@@ -86,6 +86,7 @@ Each requirement traces to the Product Vision and is specific enough to drive fe
 
 1. Cross-engine conformance parity across classic Spark, Sail, and Databricks serverless.
 2. CLI and Excel/split-format workflows for domain-expert collaboration.
+3. Multi-source ingestion per the source-shape contract (FR-21): ingestion seam + source model first, then the JDBC vertical (reader + database discovery, driven by the mssql-on-Databricks consumer with Northwind end-to-end as the acceptance goal), then dump dialects and parquet.
 
 ### Nice to Have (P2)
 
@@ -175,7 +176,7 @@ edits; do not renumber on edit.
 - **FR-7.5** — Business rule validation (uniqueness, format, value constraints).
 - **FR-7.6** — Structured validation error output with VALIDATION_ERROR_SCHEMA.
 - **FR-7.7** — **Connect-safe suite execution with per-expectation routing.** Execute a compiled GX suite in a single batch pass; route each expectation by DataFrame engine — Connect DataFrames to a native DataFrame-API executor, classic Spark to GX `add_spark` unchanged. This is required because GX 1.x `add_spark` / `SparkDFExecutionEngine` asserts an active `SparkContext` that does not exist on Connect, so data-scanning expectations otherwise silently return `success=False`/`result={}`.
-- **FR-7.8** — **Staged raw/ingested execution.** A compiled suite co-mingles raw (string) and ingested (typed) expectations; the executor stages them against the correct DataFrame (raw vs. typed) at execute time.
+- **FR-7.8** — **Staged raw/ingested execution.** A compiled suite co-mingles raw and ingested expectations; the executor stages them against the correct DataFrame at execute time. The raw stage's typing follows the source-shape contract (FR-21.1, ADR-015): all-STRING for text-landed sources, native-typed for typed sources — raw-stage expectation content varies accordingly (FR-21.5).
 
 ### Subsystem: Compile Orchestration & Bootstrap
 
@@ -194,7 +195,7 @@ edits; do not renumber on edit.
 - **FR-19.1** — **Shared target-agnostic core seam.** Direct-SQL, dbt, and LDP emitters are siblings on a framework-agnostic core (`tablespec.core` — the renderer Protocol + logical-plan IR); no emitter imports another, and importing the core never requires dbt/LDP runtime packages.
 - **FR-19.2** — **dbt emitter.** Emit a single-table ingest project and a multi-table gold dbt DAG project, including model contracts from schema facts, relationships + accepted_values schema tests, `state:modified` CI selection from UMF diff, and sample-data → dbt seeds.
 - **FR-19.3** — **LDP sibling emitter.** Emit an LDP (Lakeflow Declarative Pipelines) project as a committed artifact and as a conformance engine tier, proving the target-agnostic core seam with a second backend.
-- **FR-19.4** — **Raw→ingest committed SQL.** Emit the canonical raw→ingest transform as committed generated SQL (raw DDL + typed DDL + transform); Python generates the artifact, it does not wrap the transform at run time.
+- **FR-19.4** — **Raw→ingest committed SQL.** Emit the canonical raw→ingest transform as committed generated SQL (raw DDL + typed DDL + transform); Python generates the artifact, it does not wrap the transform at run time. The raw DDL's column typing follows the source-shape contract (FR-21.1, ADR-015).
 
 ### Subsystem: Runtime Platform
 
@@ -204,6 +205,17 @@ edits; do not renumber on edit.
 - **FR-20.2** — **Engine-correct functions dispatch.** Select the `functions` module / Column engine from the DataFrame in hand, never from a process-global `is_remote()`, so expressions stay session-correct when classic and Connect sessions coexist (the local Sail test lane) and behave identically in production.
 - **FR-20.3** — **First-class serverless / Connect target.** Databricks serverless / Spark Connect (env-v3, Python 3.12) and classic Spark are both first-class execution targets; no decision may assume a JVM `SparkContext`.
 - **FR-20.4** — **Connect-safe validation path.** Validation routing (FR-7.7) is the Runtime-Platform contract applied to GX execution.
+
+### Subsystem: Source Acquisition
+
+**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. The seam + model phase shipped 2026-06-10; JDBC, dump-dialect, and parquet phases are planned.*
+
+- **FR-21.1** — **Declared source shape.** UMF carries a discriminated `source:` block (`kind: delimited | parquet | jdbc`); today's `file_format` is the body of the `delimited` variant and remains a back-compat alias resolved via a non-persisting accessor. Raw landing typing follows the kind: all-STRING for text-landed sources, native-typed for typed sources.
+- **FR-21.2** — **Dump-dialect text landing.** The `delimited` variant covers database dump files: multi-character line terminators, `\N`-style null escapes, footer handling, and `skip_rows` honored end-to-end — every declared option actually consumed by the compiled readers.
+- **FR-21.3** — **Parquet typed-raw landing.** Parquet sources land native-typed raw; the raw→ingest transform runs in identity/safe-narrowing mode (never string-parsing typed columns — a typed DATE through a string format parse silently NULLs values).
+- **FR-21.4** — **JDBC compiled read spec.** JDBC sources compile to a committed read spec carrying connection parameters (url, dbtable/query, driver, fetch/partitioning) with credentials *only* as named secret references (Databricks secret scope or env-var name); a literal credential fails validation. tablespec never opens a connection — all connectivity is Spark's JDBC connector, executed by the runtime.
+- **FR-21.5** — **Raw-suite typing.** Raw-stage expectation suites vary by raw typing: string checks (length/regex/strftime/castability) apply only to all-STRING raw; typed raw receives schema-type expectations instead.
+- **FR-21.6** — **Database discovery.** Discover UMF specs from a live database: enumerate tables and read `INFORMATION_SCHEMA` metadata (columns, types, nullability, PKs, FKs) through Spark's JDBC connector, reusing the existing Spark schema→UMF mapping; emit one validated UMF per table so database onboarding is spec-driven rather than a blind bulk copy.
 
 ### Subsystem: CLI Interface
 
@@ -304,6 +316,7 @@ edits; do not renumber on edit.
 | Requirement | Scenario | Input | Expected Output |
 |-------------|----------|-------|-----------------|
 | FR-1.1/1.2 (FEAT-001, US-001) | Lossless UMF round-trip | A UMF YAML with full column metadata | Load → save round-trips losslessly with idempotent formatting; invalid YAML is rejected with a clear validation error naming the offending field |
+| FR-21.4/21.6 (FEAT-031, US-039, ADR-015 — planned) | Northwind end-to-end on Databricks | The Northwind database reachable via Spark JDBC | One validated UMF per table discovered; schema xlsx exported; sample data generated; validation report produced — no credentials in any UMF or artifact |
 | FR-18.1/18.3 (FEAT-026, US-023/US-024, ADR-012) | Compile then run from artifacts | A list of UMF models | Full committed artifact set persisted under the pinned layout; backbone executes them with no tablespec import |
 | FR-5.1 | Native profiling on Connect | A Spark Connect DataFrame | Profile computed via Spark-SQL aggregations only; no JVM/Deequ; succeeds on serverless |
 | FR-7.7 | Connect-safe validation | A compiled suite + a Connect DataFrame | Data-scanning expectations route to the native executor and return real results (not silent `success=False`) |

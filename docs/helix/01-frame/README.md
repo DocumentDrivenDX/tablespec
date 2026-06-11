@@ -45,6 +45,8 @@ Requirements and problem definition for tablespec.
 - [FEAT-027](features/FEAT-027-dbt-emitter.md) - dbt Project Emitter
 - [FEAT-028](features/FEAT-028-ldp-sibling-emitter.md) - LDP Sibling Emitter
 - [FEAT-029](features/FEAT-029-runtime-platform.md) - Runtime Platform
+- [FEAT-030](features/FEAT-030-product-microsite.md) - Product Microsite (Specified)
+- [FEAT-031](features/FEAT-031-multi-source-ingestion.md) - Multi-Source Ingestion (Specified; JDBC vertical toward the Northwind goal)
 
 ## User Stories
 
@@ -143,8 +145,14 @@ Requirements and problem definition for tablespec.
 ### FEAT-029: Runtime Platform
 - [US-037](user-stories/US-037-engine-correct-runtime-dispatch.md) - Engine-Correct Runtime Dispatch
 
+### FEAT-030: Product Microsite
+- [US-038](user-stories/US-038-publish-product-microsite.md) - Publish Product Microsite
+
+### FEAT-031: Multi-Source Ingestion
+- [US-039](user-stories/US-039-northwind-end-to-end.md) - Northwind End-to-End on Databricks (acceptance goal, Draft)
+
 ## Status
 
 - Frame phase backfilled from existing codebase and documentation (2026-03-15).
 - Updated for post-merge codebase with ~50 new source files across 4 new packages (2026-03-16).
-- Index refreshed to cover FEAT-001..FEAT-029 and US-001..US-037 (2026-06-10).
+- Index refreshed to cover FEAT-001..FEAT-031 and US-001..US-039 (2026-06-10).

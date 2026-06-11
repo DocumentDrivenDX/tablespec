@@ -13,7 +13,11 @@ layers map onto tablespec's pipeline as:
 
 - **Bronze = RAW landing** — the all-`STRING` raw table (`+ _source_file +
   _load_ts`) produced by the compiled split ingest SQL. Raw-stage expectations run
-  against the string DataFrame.
+  against the string DataFrame. *Forward note (ADR-015 / FEAT-031, planned):
+  this all-STRING contract is the text-landed variant; typed sources
+  (parquet, JDBC) will land native-typed raw, with raw-stage string checks
+  replaced by schema-type expectations (FR-21.5). The Bronze sections below
+  describe the text-landed regime.*
 - **Silver = INGESTED (typed)** — the typed table produced by the compiled cast +
   MERGE/INSERT transform. Ingested-stage expectations run against the typed
   DataFrame.
