@@ -1,0 +1,277 @@
+# Project-local HELIX graph contract for tablespec.
+#
+# This file makes the graph required by .helix.yml concrete in the repository.
+# It intentionally mirrors the HELIX library type catalog for the product flow
+# while keeping only the relationship edges tablespec relies on for authoring
+# order and review.
+version: 1
+methodology:
+  id: helix
+  library_version: ^1.0.0
+  validator_contract: 1
+  root: docs/helix/
+
+activities:
+  - id: 00-discover
+  - id: 01-frame
+  - id: 02-design
+  - id: 03-test
+  - id: 04-build
+  - id: 05-deploy
+  - id: 06-iterate
+
+nodes:
+  - id: business-case
+    type: library:business-case
+    activity: 00-discover
+    cardinality: many
+  - id: competitive-analysis
+    type: library:competitive-analysis
+    activity: 00-discover
+    cardinality: many
+  - id: opportunity-canvas
+    type: library:opportunity-canvas
+    activity: 00-discover
+    cardinality: many
+  - id: product-vision
+    type: library:product-vision
+    activity: 00-discover
+    cardinality: many
+  - id: resource-summary
+    type: library:resource-summary
+    activity: 00-discover
+    cardinality: many
+  - id: compliance-requirements
+    type: library:compliance-requirements
+    activity: 01-frame
+    cardinality: many
+  - id: concerns
+    type: library:concerns
+    activity: 01-frame
+    cardinality: many
+  - id: feasibility-study
+    type: library:feasibility-study
+    activity: 01-frame
+    cardinality: many
+  - id: feature-registry
+    type: library:feature-registry
+    activity: 01-frame
+    cardinality: many
+  - id: feature-specification
+    type: library:feature-specification
+    activity: 01-frame
+    cardinality: many
+  - id: parking-lot
+    type: library:parking-lot
+    activity: 01-frame
+    cardinality: many
+  - id: pr-faq
+    type: library:pr-faq
+    activity: 01-frame
+    cardinality: many
+  - id: prd
+    type: library:prd
+    activity: 01-frame
+    cardinality: many
+  - id: principles
+    type: library:principles
+    activity: 01-frame
+    cardinality: many
+  - id: research-plan
+    type: library:research-plan
+    activity: 01-frame
+    cardinality: many
+  - id: risk-register
+    type: library:risk-register
+    activity: 01-frame
+    cardinality: many
+  - id: security-requirements
+    type: library:security-requirements
+    activity: 01-frame
+    cardinality: many
+  - id: stakeholder-map
+    type: library:stakeholder-map
+    activity: 01-frame
+    cardinality: many
+  - id: threat-model
+    type: library:threat-model
+    activity: 01-frame
+    cardinality: many
+  - id: user-stories
+    type: library:user-stories
+    activity: 01-frame
+    cardinality: many
+  - id: validation-checklist
+    type: library:validation-checklist
+    activity: 01-frame
+    cardinality: many
+  - id: adr
+    type: library:adr
+    activity: 02-design
+    cardinality: many
+  - id: architecture
+    type: library:architecture
+    activity: 02-design
+    cardinality: many
+  - id: contract
+    type: library:contract
+    activity: 02-design
+    cardinality: many
+  - id: data-architecture
+    type: library:data-architecture
+    activity: 02-design
+    cardinality: many
+  - id: data-design
+    type: library:data-design
+    activity: 02-design
+    cardinality: many
+  - id: design-system
+    type: library:design-system
+    activity: 02-design
+    cardinality: many
+  - id: proof-of-concept
+    type: library:proof-of-concept
+    activity: 02-design
+    cardinality: many
+  - id: security-architecture
+    type: library:security-architecture
+    activity: 02-design
+    cardinality: many
+  - id: solution-design
+    type: library:solution-design
+    activity: 02-design
+    cardinality: many
+  - id: tech-spike
+    type: library:tech-spike
+    activity: 02-design
+    cardinality: many
+  - id: technical-design
+    type: library:technical-design
+    activity: 02-design
+    cardinality: many
+  - id: data-quality-expectations
+    type: library:data-quality-expectations
+    activity: 03-test
+    cardinality: many
+  - id: security-tests
+    type: library:security-tests
+    activity: 03-test
+    cardinality: many
+  - id: story-test-plan
+    type: library:story-test-plan
+    activity: 03-test
+    cardinality: many
+  - id: test-plan
+    type: library:test-plan
+    activity: 03-test
+    cardinality: many
+  - id: test-procedures
+    type: library:test-procedures
+    activity: 03-test
+    cardinality: many
+  - id: test-suites
+    type: library:test-suites
+    activity: 03-test
+    cardinality: many
+  - id: implementation-plan
+    type: library:implementation-plan
+    activity: 04-build
+    cardinality: many
+  - id: deployment-checklist
+    type: library:deployment-checklist
+    activity: 05-deploy
+    cardinality: many
+  - id: monitoring-setup
+    type: library:monitoring-setup
+    activity: 05-deploy
+    cardinality: many
+  - id: release-notes
+    type: library:release-notes
+    activity: 05-deploy
+    cardinality: many
+  - id: runbook
+    type: library:runbook
+    activity: 05-deploy
+    cardinality: many
+  - id: improvement-backlog
+    type: library:improvement-backlog
+    activity: 06-iterate
+    cardinality: many
+  - id: metric-definition
+    type: library:metric-definition
+    activity: 06-iterate
+    cardinality: many
+  - id: metrics-dashboard
+    type: library:metrics-dashboard
+    activity: 06-iterate
+    cardinality: many
+  - id: security-metrics
+    type: library:security-metrics
+    activity: 06-iterate
+    cardinality: many
+
+edges:
+  - from: product-vision
+    to: prd
+    kind: informs
+    required: true
+  - from: principles
+    to: prd
+    kind: informs
+    required: false
+  - from: concerns
+    to: feature-specification
+    kind: informs
+    required: false
+  - from: prd
+    to: feature-specification
+    kind: decomposes
+    required: true
+  - from: prd
+    to: user-stories
+    kind: decomposes
+    required: true
+  - from: feature-specification
+    to: user-stories
+    kind: decomposes
+    required: true
+  - from: feature-specification
+    to: adr
+    kind: informs
+    required: false
+  - from: feature-specification
+    to: solution-design
+    kind: informs
+    required: false
+  - from: adr
+    to: architecture
+    kind: informs
+    required: false
+  - from: feature-specification
+    to: test-plan
+    kind: informs
+    required: false
+  - from: user-stories
+    to: story-test-plan
+    kind: informs
+    required: false
+  - from: test-plan
+    to: implementation-plan
+    kind: informs
+    required: false
+  - from: adr
+    to: implementation-plan
+    kind: informs
+    required: false
+  - from: implementation-plan
+    to: deployment-checklist
+    kind: informs
+    required: false
+  - from: deployment-checklist
+    to: release-notes
+    kind: informs
+    required: false
+  - from: release-notes
+    to: improvement-backlog
+    kind: informs
+    required: false
