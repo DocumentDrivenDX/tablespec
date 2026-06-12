@@ -576,6 +576,7 @@ def cast_column_sql(
     precision: int | None = None,
     scale: int | None = None,
     dialect: str = "spark",
+    source_kind: str | None = None,
 ) -> str:
     """Return a SQL expression that casts *column* to *target_type*.
 
@@ -608,6 +609,9 @@ def cast_column_sql(
             Databricks dbt target reuses the Spark rendering. It exists as a named
             dialect purely so a Databricks compile/run target can be selected
             explicitly rather than masquerading as plain Spark.
+        source_kind: Optional UMF source kind. Typed raw sources such as parquet
+            and JDBC already carry native scalar/list values, so their generated
+            SQL uses direct type casts instead of string cleanup/parsing.
 
     Returns:
     -------
@@ -632,11 +636,33 @@ def cast_column_sql(
     # never drift. Everything past this point only distinguishes duckdb vs not.
     is_duck = render_dialect == "duckdb"
     t = target_type.upper()
+    typed_raw = (source_kind or "").lower() in {"jdbc", "parquet"}
 
     # String types: raw landing data is already a string -- passthrough.
     # Identical across both dialects.
     if t in ("STRING", "VARCHAR", "TEXT", "CHAR"):
         return column
+
+    if typed_raw:
+        if t == "INTEGER":
+            sql_type = "INT"
+        elif t == "DECIMAL":
+            sql_type = f"DECIMAL({precision or 10},{scale if scale is not None else 2})"
+        elif t in ("FLOAT", "DOUBLE"):
+            sql_type = "DOUBLE"
+        elif t == "BOOLEAN":
+            sql_type = "BOOLEAN"
+        elif t == "DATE":
+            sql_type = "date"
+        elif t in ("DATETIME", "TIMESTAMP"):
+            sql_type = "timestamp"
+        elif t == "EMBEDDING":
+            sql_type = "FLOAT[]" if is_duck else "ARRAY<FLOAT>"
+        else:
+            msg = f"Unsupported target_type for SQL cast: {target_type}"
+            raise ValueError(msg)
+        cast_kw = "try_cast" if is_duck else "cast"
+        return f"{cast_kw}({column} as {sql_type})"
 
     # Numerics: strip a leading "$", trim, and treat empty/whitespace strings as
     # NULL (cast fails on "") before casting -- mirrors cast_column_with_format.

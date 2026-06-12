@@ -33,7 +33,7 @@ from tablespec.ingestion.raw_ingester import (
     build_column_lookup,
     map_headers,
 )
-from tablespec.models.umf import DelimitedSource
+from tablespec.models.umf import DelimitedSource, ParquetSource
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame, SparkSession
@@ -175,7 +175,9 @@ def delimited_source_records(
             headers = [f"column{i}" for i in range(len(sample))]
 
     records: list[dict[str, str | None]] = []
-    reader = csv.DictReader(io.StringIO("\n".join(data_lines)), fieldnames=headers, **kwargs)
+    reader = csv.DictReader(
+        io.StringIO("\n".join(data_lines)), fieldnames=headers, **kwargs
+    )
     for row in reader:
         if row is None:
             continue
@@ -186,9 +188,11 @@ def delimited_source_records(
             if value is None:
                 normalized[key] = None
                 continue
-            if value == "\\N" or (
-                spec.null_value is not None and value == spec.null_value
-            ) or (spec.null_escape is not None and value == spec.null_escape):
+            if (
+                value == "\\N"
+                or (spec.null_value is not None and value == spec.null_value)
+                or (spec.null_escape is not None and value == spec.null_escape)
+            ):
                 normalized[key] = None
             else:
                 normalized[key] = value
@@ -241,14 +245,26 @@ class CsvReader:
         return spark.read.options(**options).csv(str(spec.path))
 
 
+class ParquetReader:
+    """Parquet reader backed by the active Spark session."""
+
+    def read(self, spec: SourceSpec, spark: SparkSession) -> DataFrame:
+        if not isinstance(spec, ParquetSource):
+            msg = f"ParquetReader requires a parquet source, got kind={spec.kind!r}"
+            raise TypeError(msg)
+        if spec.path is None:
+            msg = "ParquetSource.path must be set before reading"
+            raise ValueError(msg)
+        return spark.read.parquet(str(spec.path))
+
+
 def get_reader(spec: SourceSpec) -> SourceReader:
     """Build the :class:`SourceReader` for *spec*, dispatching on ``kind``."""
     kind = getattr(spec, "kind", None)
     if kind == "delimited":
         return CsvReader()
     if kind == "parquet":
-        msg = "parquet source reading is delivered by bead tablespec-61da147e"
-        raise NotImplementedError(msg)
+        return ParquetReader()
     if kind == "jdbc":
         return JdbcReader()
     msg = f"unknown source kind: {kind!r}"
@@ -259,6 +275,7 @@ __all__ = [
     "CsvReader",
     "HeaderMatch",
     "JdbcReader",
+    "ParquetReader",
     "SecretResolutionError",
     "create_string_dataframe",
     "delimited_source_has_text_quirks",

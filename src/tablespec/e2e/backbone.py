@@ -64,14 +64,14 @@ from tablespec.ingestion import (
     delimited_source_records,
     spark_csv_options,
 )
-from tablespec.models.umf import DelimitedSource
+from tablespec.models.umf import DelimitedSource, ParquetSource
 
 if TYPE_CHECKING:
     from tablespec.e2e.manifest import CompiledArtifacts
 
 
-def _declared_delimited(umf_snapshot: Path) -> DelimitedSource | None:
-    """The delimited source the UMF snapshot DECLARES for raw loading, or None.
+def _declared_source(umf_snapshot: Path) -> DelimitedSource | ParquetSource | None:
+    """The raw source the UMF snapshot DECLARES for loading, or None.
 
     None means the snapshot declares neither ``source:`` nor ``file_format``;
     the engines then preserve the historical comma-CSV raw-load behavior the
@@ -88,17 +88,30 @@ def _declared_delimited(umf_snapshot: Path) -> DelimitedSource | None:
     data = yaml.safe_load(umf_snapshot.read_text(encoding="utf-8")) or {}
     declared = data.get("source")
     if declared is not None:
-        if declared.get("kind") != "delimited":
-            raise NotImplementedError(
-                f"backbone raw loading supports only delimited sources; "
-                f"{umf_snapshot.name} declares kind={declared.get('kind')!r} "
-                "(parquet: bead tablespec-61da147e, jdbc: bead tablespec-4b65c810)"
-            )
-        return DelimitedSource.model_validate(declared)
+        kind = declared.get("kind")
+        if kind == "delimited":
+            return DelimitedSource.model_validate(declared)
+        if kind == "parquet":
+            return ParquetSource.model_validate(declared)
+        raise NotImplementedError(
+            f"backbone raw loading supports only delimited/parquet sources; "
+            f"{umf_snapshot.name} declares kind={kind!r}"
+        )
     file_format = data.get("file_format")
     if file_format is not None:
         return DelimitedSource.model_validate(file_format)
     return None
+
+
+def _declared_delimited(umf_snapshot: Path) -> DelimitedSource | None:
+    """Backward-compatible alias for callers that still import the old helper."""
+    source = _declared_source(umf_snapshot)
+    if source is None or isinstance(source, DelimitedSource):
+        return source
+    raise NotImplementedError(
+        f"backbone raw loading supports only delimited sources in this helper; "
+        f"{umf_snapshot.name} declares kind='parquet'"
+    )
 
 
 @dataclass(frozen=True)
@@ -240,7 +253,7 @@ class _SparkEngine(_BackboneEngine):
         schema: CompiledSchema,
         csv_path: Path,
         raw_table: str,
-        fmt: DelimitedSource | None = None,
+        fmt: DelimitedSource | ParquetSource | None = None,
     ) -> None:
         """Build the all-STRING raw landing relation (engines.py:527 schema).
 
@@ -275,58 +288,73 @@ class _SparkEngine(_BackboneEngine):
         source_name = (
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
         )
-        if fmt is None:
-            header = csv_path.read_text().splitlines()[0].split(",")
-        elif fmt.header:
-            header, _rows = delimited_source_records(fmt, csv_path)
-        else:  # headerless declared file: metadata can only be synthesized
-            header = []
-        has_meta = "_source_file" in header
-
-        read_cols = list(business_cols)
-        if has_meta:
-            read_cols += ["_source_file", "_load_ts"]
-        schema_ddl = ", ".join(f"`{n}` string" for n in read_cols)
-
-        if fmt is None:
-            options: dict[str, Any] = {
-                "header": True,
-                "quote": '"',
-                "escape": '"',
-                "multiLine": True,
-            }
+        source_suffix = ".parquet" if isinstance(fmt, ParquetSource) else ".csv"
+        if isinstance(fmt, ParquetSource):
+            df = self._spark.read.parquet(str(csv_path))
+            has_meta = "_source_file" in df.columns
         else:
-            options = spark_csv_options(fmt)
-            options.setdefault("quote", '"')
-            options.setdefault("escape", '"')
-            options["multiLine"] = True
-        if fmt is not None and delimited_source_has_text_quirks(fmt):
-            headers, rows = delimited_source_records(fmt, csv_path, fieldnames=read_cols)
+            if fmt is None:
+                header = csv_path.read_text().splitlines()[0].split(",")
+            elif fmt.header:
+                header, _rows = delimited_source_records(fmt, csv_path)
+            else:  # headerless declared file: metadata can only be synthesized
+                header = []
+            has_meta = "_source_file" in header
+
+            read_cols = list(business_cols)
             if has_meta:
-                df = create_string_dataframe(self._spark, rows, headers)
+                read_cols += ["_source_file", "_load_ts"]
+            schema_ddl = ", ".join(f"`{n}` string" for n in read_cols)
+
+            if fmt is None:
+                options: dict[str, Any] = {
+                    "header": True,
+                    "quote": '"',
+                    "escape": '"',
+                    "multiLine": True,
+                }
             else:
-                augmented = [
-                    {
-                        **row,
-                        "_source_file": f"{source_name}.csv",
-                        "_load_ts": "2026-01-01 00:00:00",
-                    }
-                    for row in rows
-                ]
-                df = create_string_dataframe(
-                    self._spark, augmented, [*business_cols, "_source_file", "_load_ts"]
+                options = spark_csv_options(fmt)
+                options.setdefault("quote", '"')
+                options.setdefault("escape", '"')
+                options["multiLine"] = True
+            if isinstance(fmt, DelimitedSource) and delimited_source_has_text_quirks(
+                fmt
+            ):
+                headers, rows = delimited_source_records(
+                    fmt, csv_path, fieldnames=read_cols
                 )
-                has_meta = True
-        else:
-            df = self._spark.read.options(**options).schema(schema_ddl).csv(
-                str(csv_path)
-            )
+                if has_meta:
+                    df = create_string_dataframe(self._spark, rows, headers)
+                else:
+                    augmented = [
+                        {
+                            **row,
+                            "_source_file": f"{source_name}{source_suffix}",
+                            "_load_ts": "2026-01-01 00:00:00",
+                        }
+                        for row in rows
+                    ]
+                    df = create_string_dataframe(
+                        self._spark,
+                        augmented,
+                        [*business_cols, "_source_file", "_load_ts"],
+                    )
+                    has_meta = True
+            else:
+                df = (
+                    self._spark.read.options(**options)
+                    .schema(schema_ddl)
+                    .csv(str(csv_path))
+                )
         if has_meta:
             df = df.withColumn(
                 "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
             )
         else:
-            df = df.withColumn("_source_file", lit(f"{source_name}.csv")).withColumn(
+            df = df.withColumn(
+                "_source_file", lit(f"{source_name}{source_suffix}")
+            ).withColumn(
                 "_load_ts",
                 to_timestamp(lit("2026-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss"),
             )
@@ -356,7 +384,7 @@ class _SparkEngine(_BackboneEngine):
         # Derive the raw-load schema, projection order, table names, and decimal
         # scales from the COMPILED ingest SQL -- never the UMF snapshot. The
         # snapshot contributes ONLY the declared source shape (reader options).
-        fmt = _declared_delimited(artifacts.table(table).umf_snapshot)
+        fmt = _declared_source(artifacts.table(table).umf_snapshot)
         schema = load_compiled_schema(artifacts.table(table).ingest_sql, table)
         raw_table = schema.raw_table
         ingested_table = schema.ingested_table
@@ -443,7 +471,7 @@ class _DuckDBEngine(_BackboneEngine):
         db_path: Path,
         schema: CompiledSchema,
         csv_path: Path,
-        fmt: DelimitedSource | None = None,
+        fmt: DelimitedSource | ParquetSource | None = None,
     ) -> None:
         # The raw table name + business-column set come from the COMPILED ingest SQL
         # (parsed into ``schema``), NOT the UMF snapshot. ``fmt`` is the UMF-DECLARED
@@ -455,12 +483,33 @@ class _DuckDBEngine(_BackboneEngine):
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
         )
         cols = schema.columns
+        source_suffix = ".parquet" if isinstance(fmt, ParquetSource) else ".csv"
         # The CSV may already carry the ingest metadata (conformance corpus) or be a
         # clean source extract without it (reflected source tables). Detect from the
         # header: if present, project it through; otherwise SYNTHESIZE it (literal
         # source file + load timestamp) exactly as the conformance gold loader does,
         # so the compiled dbt model always sees the all-STRING + metadata raw shape.
-        if fmt is None:
+        if isinstance(fmt, ParquetSource):
+
+            def _sq(value: str) -> str:
+                return value.replace("'", "''")
+
+            read_csv = f"read_parquet('{_sq(str(csv_path))}')"
+            projection = ", ".join(f'"{c}"' for c in cols)
+            projection += (
+                f", '{source_name}{source_suffix}' AS \"_source_file\", "
+                "TIMESTAMP '2026-01-01 00:00:00' AS \"_load_ts\""
+            )
+            con = self._connect(db_path)
+            try:
+                con.execute(f"DROP TABLE IF EXISTS {raw_table}")
+                con.execute(
+                    f"CREATE TABLE {raw_table} AS SELECT {projection} FROM {read_csv}"
+                )
+            finally:
+                con.close()
+            return
+        elif fmt is None:
             header = csv_path.read_text().splitlines()[0].split(",")
             read_csv = f"read_csv_auto('{csv_path}', header=true, all_varchar=true)"
         else:
@@ -500,8 +549,12 @@ class _DuckDBEngine(_BackboneEngine):
             if has_meta:
                 projection += ', "_source_file", cast("_load_ts" as timestamp)'
             else:
-                projection += f", '{source_name}.csv', TIMESTAMP '2026-01-01 00:00:00'"
-            if fmt is not None and delimited_source_has_text_quirks(fmt):
+                projection += (
+                    f", '{source_name}{source_suffix}', TIMESTAMP '2026-01-01 00:00:00'"
+                )
+            if isinstance(fmt, DelimitedSource) and delimited_source_has_text_quirks(
+                fmt
+            ):
                 headers, rows = delimited_source_records(fmt, csv_path, fieldnames=cols)
                 if has_meta:
                     insert_rows = rows
@@ -509,7 +562,7 @@ class _DuckDBEngine(_BackboneEngine):
                     insert_rows = [
                         {
                             **row,
-                            "_source_file": f"{source_name}.csv",
+                            "_source_file": f"{source_name}{source_suffix}",
                             "_load_ts": "2026-01-01 00:00:00",
                         }
                         for row in rows
@@ -523,7 +576,9 @@ class _DuckDBEngine(_BackboneEngine):
                     [[row.get(c) for c in insert_columns] for row in insert_rows],
                 )
             else:
-                con.execute(f"INSERT INTO {raw_table} SELECT {projection} FROM {read_csv}")
+                con.execute(
+                    f"INSERT INTO {raw_table} SELECT {projection} FROM {read_csv}"
+                )
         finally:
             con.close()
 
@@ -557,7 +612,7 @@ class _DuckDBEngine(_BackboneEngine):
         # Derive the raw-load schema, projection order, and table names from the
         # COMPILED ingest SQL -- never the UMF snapshot. The snapshot contributes
         # ONLY the declared source shape (reader options).
-        fmt = _declared_delimited(artifacts.table(table).umf_snapshot)
+        fmt = _declared_source(artifacts.table(table).umf_snapshot)
         schema = load_compiled_schema(artifacts.table(table).ingest_sql, table)
         # Copy the compiled dbt ingest project into a scratch dir so the duckdb file
         # lives beside it (the project is read-only compile output).

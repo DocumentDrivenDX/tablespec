@@ -36,6 +36,7 @@ def _umf(
     order_by: list[str] | None = None,
     table_name: str = "t",
     description: str | None = None,
+    source: dict | None = None,
 ) -> dict:
     data: dict = {
         "table_name": table_name,
@@ -48,6 +49,8 @@ def _umf(
         data["ingestion"]["order_by"] = order_by
     if description is not None:
         data["description"] = description
+    if source is not None:
+        data["source"] = source
     return data
 
 
@@ -195,6 +198,30 @@ class TestGenerateIngestSqlStructure:
         assert re.search(r"\b_source_file\s+STRING\b", raw_section)
         assert re.search(r"\b_load_ts\s+TIMESTAMP\b", raw_section)
         assert "USING DELTA" in raw_section
+
+    def test_parquet_raw_table_is_native_typed(self):
+        import re
+
+        cols = [
+            {"name": "id", "data_type": "INTEGER", "nullable": False},
+            {"name": "event_date", "data_type": "DATE"},
+            {"name": "amount", "data_type": "DECIMAL", "precision": 12, "scale": 4},
+        ]
+        sql = generate_ingest_sql(
+            _umf(
+                columns=cols,
+                primary_key=["id"],
+                source={"kind": "parquet", "path": "/data/events"},
+            )
+        )
+        raw_section = sql.split("-- 2.")[0]
+        assert re.search(r"\bid\s+INT\b", raw_section), raw_section
+        assert re.search(r"\bevent_date\s+DATE\b", raw_section), raw_section
+        assert re.search(r"\bamount\s+DECIMAL\(12,4\)", raw_section), raw_section
+        assert "id STRING" not in raw_section
+        assert "try_to_timestamp" not in sql
+        assert "try_strptime" not in sql
+        assert "cast(id as INT)" in sql or "try_cast(id as INT)" in sql
 
     def test_table_name_overrides(self):
         sql = generate_ingest_sql(

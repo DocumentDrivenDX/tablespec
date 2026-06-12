@@ -2,7 +2,8 @@
 
 The output is plain Spark SQL (Databricks/Delta dialect) with three parts:
 
-  1. a ``raw_<table>`` landing table (every column ``STRING`` + ingest metadata),
+  1. a ``raw_<table>`` landing table (``STRING`` for delimited sources, native
+     typed columns for typed raw sources + ingest metadata),
   2. a typed ``ingested_<table>`` target table, and
   3. a cast + write transform whose shape depends on ``ingestion.mode`` and
      ``primary_key``:
@@ -23,6 +24,7 @@ from typing import Any
 
 from tablespec.casting_utils import cast_column_sql
 from tablespec.dialects import normalize_cast_dialect
+from tablespec.models.umf import TYPED_RAW_SOURCE_KINDS
 from tablespec.schemas.generators import _resolve_nullable
 
 # Databricks/Spark-SQL-correct type names for the typed target table.
@@ -39,6 +41,7 @@ _SPARK_TYPE: dict[str, str] = {
     "DATE": "DATE",
     "DATETIME": "TIMESTAMP",
     "TIMESTAMP": "TIMESTAMP",
+    "EMBEDDING": "ARRAY<FLOAT>",
 }
 
 # Ingest provenance columns appended to the raw landing table.
@@ -61,7 +64,9 @@ def _typed_type(col: dict[str, Any]) -> str:
     return _SPARK_TYPE.get(dt, "STRING")
 
 
-def _cast_for(col: dict[str, Any], *, dialect: str = "spark") -> str:
+def _cast_for(
+    col: dict[str, Any], *, dialect: str = "spark", source_kind: str | None = None
+) -> str:
     """Canonical SQL cast expression for one column."""
     return cast_column_sql(
         col["name"],
@@ -70,7 +75,18 @@ def _cast_for(col: dict[str, Any], *, dialect: str = "spark") -> str:
         precision=col.get("precision"),
         scale=col.get("scale"),
         dialect=dialect,
+        source_kind=source_kind,
     )
+
+
+def _declared_source_kind(umf_data: dict[str, Any]) -> str | None:
+    """Return the declared source kind, when the UMF uses the discriminated form."""
+    source = umf_data.get("source")
+    if isinstance(source, dict):
+        kind = source.get("kind")
+    else:
+        kind = getattr(source, "kind", None)
+    return kind.lower() if isinstance(kind, str) else kind
 
 
 @dataclass(frozen=True)
@@ -161,10 +177,17 @@ def build_ingest_select(
     mode = ingestion.get("mode", "incremental")  # snapshot | incremental
     order_by = ingestion.get("order_by") or _DEFAULT_ORDER_BY
     render_dialect = normalize_cast_dialect(dialect)
+    source_kind = _declared_source_kind(umf_data)
 
-    cast_pad = max((len(_cast_for(c, dialect=render_dialect)) for c in cols), default=0)
+    cast_pad = max(
+        (
+            len(_cast_for(c, dialect=render_dialect, source_kind=source_kind))
+            for c in cols
+        ),
+        default=0,
+    )
     select_block = ",\n".join(
-        f"        {_cast_for(c, dialect=render_dialect):<{cast_pad}} AS {c['name']}"
+        f"        {_cast_for(c, dialect=render_dialect, source_kind=source_kind):<{cast_pad}} AS {c['name']}"
         for c in cols
     )
 
@@ -216,6 +239,8 @@ def generate_ingest_sql(
     raw = raw_table or f"raw_{name}"
     ingested = ingested_table or f"ingested_{name}"
     cols: list[dict[str, Any]] = umf_data["columns"]
+    source_kind = _declared_source_kind(umf_data)
+    typed_raw = source_kind in TYPED_RAW_SOURCE_KINDS
 
     # Shared cast SELECT + dedup metadata (the single seam reused by dbt).
     ingest = build_ingest_select(umf_data, dialect=dialect)
@@ -225,10 +250,19 @@ def generate_ingest_sql(
 
     pad = max((len(c["name"]) for c in cols), default=0)
 
-    # --- 1. raw landing table: every column STRING + ingest metadata ---
-    raw_body = [f"    {c['name']:<{pad}} STRING" for c in cols]
+    # --- 1. raw landing table: every column STRING for delimited sources or the
+    #         native typed width for parquet/JDBC + ingest metadata ---
+    raw_body = [
+        f"    {c['name']:<{pad}} {_typed_type(c) if typed_raw else 'STRING'}"
+        for c in cols
+    ]
     raw_body += [f"    {n:<{pad}} {t}" for n, t in _META_COLUMNS]
-    raw_ddl = _create_table(raw, raw_body, "Raw landing zone -- untyped, as received")
+    raw_comment = (
+        "Raw landing zone -- native typed, as received"
+        if typed_raw
+        else "Raw landing zone -- untyped, as received"
+    )
+    raw_ddl = _create_table(raw, raw_body, raw_comment)
 
     # --- 2. typed target table ---
     ing_body = []

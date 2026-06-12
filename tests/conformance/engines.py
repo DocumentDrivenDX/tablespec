@@ -49,7 +49,7 @@ from tablespec.ingestion import (
     delimited_source_has_text_quirks,
     delimited_source_records,
 )
-from tablespec.models.umf import DelimitedSource
+from tablespec.models.umf import DelimitedSource, ParquetSource
 from tablespec.e2e.gating import (
     DATABRICKS_E2E_REQUIRED_ENV,
     databricks_e2e_availability,
@@ -147,16 +147,19 @@ def _dbt_failure_detail(result: Any) -> str:
     )
 
 
-def _declared_delimited_source(umf: dict[str, Any]) -> DelimitedSource | None:
-    """Return the declared delimited source shape, or ``None`` for legacy corpus."""
+def _declared_source(umf: dict[str, Any]) -> DelimitedSource | ParquetSource | None:
+    """Return the declared raw source shape, or ``None`` for legacy corpus."""
     declared = umf.get("source")
     if declared is not None:
-        if declared.get("kind") != "delimited":
-            raise NotImplementedError(
-                f"conformance row loader only supports delimited sources; "
-                f"got kind={declared.get('kind')!r}"
-            )
-        return DelimitedSource.model_validate(declared)
+        kind = declared.get("kind")
+        if kind == "delimited":
+            return DelimitedSource.model_validate(declared)
+        if kind == "parquet":
+            return ParquetSource.model_validate(declared)
+        raise NotImplementedError(
+            f"conformance row loader only supports delimited/parquet sources; "
+            f"got kind={kind!r}"
+        )
     file_format = umf.get("file_format")
     if file_format is not None:
         return DelimitedSource.model_validate(file_format)
@@ -475,28 +478,51 @@ class SparkDirectEngine(Engine):
     def _load_raw(
         self, spark: SparkSession, umf: dict[str, Any], csv_path: Path, raw_table: str
     ) -> None:
-        from pyspark.sql.functions import to_timestamp
+        from pyspark.sql.functions import lit, to_timestamp
 
-        source = _declared_delimited_source(umf)
-        string_cols = [c["name"] for c in umf["columns"]] + ["_source_file"]
-        read_schema_fields = [(name, "string") for name in string_cols]
-        read_schema_fields.append(("_load_ts", "string"))
-        schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+        source = _declared_source(umf)
+        business_cols = [c["name"] for c in umf["columns"]]
+        source_name = (
+            raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
+        )
+        source_suffix = ".parquet" if isinstance(source, ParquetSource) else ".csv"
 
-        if source is not None and delimited_source_has_text_quirks(source):
-            headers, rows = delimited_source_records(source, csv_path, fieldnames=string_cols)
-            df = create_string_dataframe(spark, rows, headers)
+        if isinstance(source, ParquetSource):
+            df = spark.read.parquet(str(csv_path))
         else:
-            df = (
-                spark.read.option("header", True)
-                .option("quote", '"')
-                .option("escape", '"')
-                .option("multiLine", True)
-                .schema(schema_ddl)
-                .csv(str(csv_path))
+            string_cols = business_cols + ["_source_file"]
+            read_schema_fields = [(name, "string") for name in string_cols]
+            read_schema_fields.append(("_load_ts", "string"))
+            schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+
+            if isinstance(source, DelimitedSource) and delimited_source_has_text_quirks(
+                source
+            ):
+                headers, rows = delimited_source_records(
+                    source, csv_path, fieldnames=string_cols
+                )
+                df = create_string_dataframe(spark, rows, headers)
+            else:
+                df = (
+                    spark.read.option("header", True)
+                    .option("quote", '"')
+                    .option("escape", '"')
+                    .option("multiLine", True)
+                    .schema(schema_ddl)
+                    .csv(str(csv_path))
+                )
+        if "_load_ts" in df.columns:
+            df = df.withColumn(
+                "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
             )
-        df = df.withColumn("_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss"))
-        ordered = [c["name"] for c in umf["columns"]] + ["_source_file", "_load_ts"]
+        else:
+            df = df.withColumn(
+                "_load_ts",
+                to_timestamp(lit("2026-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss"),
+            )
+        if "_source_file" not in df.columns:
+            df = df.withColumn("_source_file", lit(f"{source_name}{source_suffix}"))
+        ordered = business_cols + ["_source_file", "_load_ts"]
         df = df.select(*ordered)
         spark.sql(f"DROP TABLE IF EXISTS {raw_table}")
         df.write.format("delta").mode("overwrite").saveAsTable(raw_table)
@@ -563,17 +589,37 @@ class DbtDuckDBEngine(Engine):
     def _load_raw(self, db_path: Path, umf: dict[str, Any], csv_path: Path) -> None:
         table = umf["table_name"]
         cols = [c["name"] for c in umf["columns"]]
-        source = _declared_delimited_source(umf)
+        source = _declared_source(umf)
+        source_name = table
+        source_suffix = ".parquet" if isinstance(source, ParquetSource) else ".csv"
+
+        def _sq(value: str) -> str:
+            return value.replace("'", "''")
+
         con = self._connect(db_path)
         try:
             con.execute(f"DROP TABLE IF EXISTS raw_{table}")
-            coldefs = ", ".join(f'"{c}" VARCHAR' for c in cols)
-            coldefs += ', "_source_file" VARCHAR, "_load_ts" TIMESTAMP'
-            con.execute(f"CREATE TABLE raw_{table} ({coldefs})")
-            if source is not None and delimited_source_has_text_quirks(source):
-                headers, rows = delimited_source_records(source, csv_path, fieldnames=cols)
+            if isinstance(source, ParquetSource):
+                projection = ", ".join(f'"{c}"' for c in cols)
+                projection += (
+                    f", '{source_name}{source_suffix}' AS \"_source_file\", "
+                    "TIMESTAMP '2026-01-01 00:00:00' AS \"_load_ts\""
+                )
+                con.execute(
+                    f"CREATE TABLE raw_{table} AS "
+                    f"SELECT {projection} FROM read_parquet('{_sq(str(csv_path))}')"
+                )
+            elif isinstance(
+                source, DelimitedSource
+            ) and delimited_source_has_text_quirks(source):
+                headers, rows = delimited_source_records(
+                    source, csv_path, fieldnames=cols
+                )
                 insert_columns = [*cols, "_source_file", "_load_ts"]
                 values = [[row.get(c) for c in insert_columns] for row in rows]
+                coldefs = ", ".join(f'"{c}" VARCHAR' for c in cols)
+                coldefs += ', "_source_file" VARCHAR, "_load_ts" TIMESTAMP'
+                con.execute(f"CREATE TABLE raw_{table} ({coldefs})")
                 if values:
                     placeholders = ", ".join(["?"] * len(insert_columns))
                     column_sql = ", ".join(f'"{c}"' for c in insert_columns)
@@ -582,12 +628,22 @@ class DbtDuckDBEngine(Engine):
                         values,
                     )
             else:
+                coldefs = ", ".join(f'"{c}" VARCHAR' for c in cols)
+                coldefs += ', "_source_file" VARCHAR, "_load_ts" TIMESTAMP'
+                con.execute(f"CREATE TABLE raw_{table} ({coldefs})")
+                header = csv_path.read_text().splitlines()[0].split(",")
                 projection = ", ".join(f'"{c}"' for c in cols)
-                projection += ', "_source_file", cast("_load_ts" as timestamp)'
+                if "_source_file" in header:
+                    projection += ', "_source_file", cast("_load_ts" as timestamp)'
+                else:
+                    projection += (
+                        f", '{source_name}{source_suffix}', "
+                        "TIMESTAMP '2026-01-01 00:00:00'"
+                    )
                 con.execute(
                     f"INSERT INTO raw_{table} "
                     f"SELECT {projection} "
-                    f"FROM read_csv_auto('{csv_path}', header=true, all_varchar=true)"
+                    f"FROM read_csv_auto('{_sq(str(csv_path))}', header=true, all_varchar=true)"
                 )
         finally:
             con.close()
@@ -675,29 +731,50 @@ class DbtSparkSessionEngine(Engine):
     def _load_raw(
         self, spark: SparkSession, umf: dict[str, Any], csv_path: Path
     ) -> None:
-        from pyspark.sql.functions import to_timestamp
+        from pyspark.sql.functions import lit, to_timestamp
 
-        source = _declared_delimited_source(umf)
+        source = _declared_source(umf)
         table = umf["table_name"]
-        string_cols = [c["name"] for c in umf["columns"]] + ["_source_file"]
-        read_schema_fields = [(name, "string") for name in string_cols]
-        read_schema_fields.append(("_load_ts", "string"))
-        schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+        business_cols = [c["name"] for c in umf["columns"]]
+        source_name = table
+        source_suffix = ".parquet" if isinstance(source, ParquetSource) else ".csv"
 
-        if source is not None and delimited_source_has_text_quirks(source):
-            headers, rows = delimited_source_records(source, csv_path, fieldnames=string_cols)
-            df = create_string_dataframe(spark, rows, headers)
+        if isinstance(source, ParquetSource):
+            df = spark.read.parquet(str(csv_path))
         else:
-            df = (
-                spark.read.option("header", True)
-                .option("quote", '"')
-                .option("escape", '"')
-                .option("multiLine", True)
-                .schema(schema_ddl)
-                .csv(str(csv_path))
+            string_cols = business_cols + ["_source_file"]
+            read_schema_fields = [(name, "string") for name in string_cols]
+            read_schema_fields.append(("_load_ts", "string"))
+            schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+
+            if isinstance(source, DelimitedSource) and delimited_source_has_text_quirks(
+                source
+            ):
+                headers, rows = delimited_source_records(
+                    source, csv_path, fieldnames=string_cols
+                )
+                df = create_string_dataframe(spark, rows, headers)
+            else:
+                df = (
+                    spark.read.option("header", True)
+                    .option("quote", '"')
+                    .option("escape", '"')
+                    .option("multiLine", True)
+                    .schema(schema_ddl)
+                    .csv(str(csv_path))
+                )
+        if "_load_ts" in df.columns:
+            df = df.withColumn(
+                "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
             )
-        df = df.withColumn("_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss"))
-        ordered = [c["name"] for c in umf["columns"]] + ["_source_file", "_load_ts"]
+        else:
+            df = df.withColumn(
+                "_load_ts",
+                to_timestamp(lit("2026-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss"),
+            )
+        if "_source_file" not in df.columns:
+            df = df.withColumn("_source_file", lit(f"{source_name}{source_suffix}"))
+        ordered = business_cols + ["_source_file", "_load_ts"]
         df = df.select(*ordered)
         # The generated sources.yml declares ``schema: main`` for the landing
         # tables; the model itself materializes into the ``default`` output schema.
@@ -1295,7 +1372,7 @@ class LdpStructureEngine(Engine):
         columns = [c["name"] for c in umf["columns"]]
         files = self.ldp_files(case)
         ldp_body = self._extract_select_body(files[f"ingested/ingested_{table}.sql"])
-        source = _declared_delimited_source(umf)
+        source = _declared_source(umf)
 
         con = duckdb.connect()
         try:
@@ -1307,7 +1384,9 @@ class LdpStructureEngine(Engine):
             proj += ', "_source_file", cast("_load_ts" as timestamp)'
             for batch in case.batches:
                 assert batch.exists(), f"missing raw batch: {batch}"
-                if source is not None and delimited_source_has_text_quirks(source):
+                if isinstance(
+                    source, DelimitedSource
+                ) and delimited_source_has_text_quirks(source):
                     headers, rows = delimited_source_records(
                         source, batch, fieldnames=columns
                     )
@@ -1448,9 +1527,13 @@ class DbtDatabricksE2EEngine(Engine):
         cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {self.RAW_SCHEMA}")
         cursor.execute(f"DROP TABLE IF EXISTS {self.RAW_SCHEMA}.raw_{table}")
         cursor.execute(f"CREATE TABLE {self.RAW_SCHEMA}.raw_{table} ({coldefs})")
-        source = _declared_delimited_source(umf)
-        if source is not None and delimited_source_has_text_quirks(source):
-            headers, rows = delimited_source_records(source, csv_path, fieldnames=src_cols)
+        source = _declared_source(umf)
+        if isinstance(source, DelimitedSource) and delimited_source_has_text_quirks(
+            source
+        ):
+            headers, rows = delimited_source_records(
+                source, csv_path, fieldnames=src_cols
+            )
         else:
             with csv_path.open(newline="") as fh:
                 reader = csvmod.DictReader(fh)

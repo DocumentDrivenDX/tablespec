@@ -31,9 +31,10 @@ class TestGetReader:
         assert isinstance(reader, CsvReader)
         assert isinstance(reader, SourceReader)
 
-    def test_parquet_not_implemented_names_bead(self):
-        with pytest.raises(NotImplementedError, match="tablespec-61da147e"):
-            get_reader(ParquetSource(kind="parquet"))
+    def test_parquet_dispatches_to_parquet_reader(self):
+        reader = get_reader(ParquetSource(kind="parquet"))
+        assert reader.__class__.__name__ == "ParquetReader"
+        assert isinstance(reader, SourceReader)
 
     def test_jdbc_dispatches_to_jdbc_reader(self):
         reader = get_reader(JdbcSource(kind="jdbc", url="jdbc:x", dbtable="dbo.t"))
@@ -172,6 +173,31 @@ class TestCsvReader:
                 "_load_ts": "2026-01-01 00:00:01",
             },
         ]
+
+
+class TestParquetReader:
+    def test_read_uses_parquet_path(self):
+        class _ParquetRead:
+            def __init__(self, sink: dict[str, object]) -> None:
+                self._sink = sink
+
+            def parquet(self, path):  # noqa: ANN001
+                self._sink["path"] = path
+                return "df"
+
+        class _Spark:
+            def __init__(self) -> None:
+                self.calls: dict[str, object] = {}
+
+            @property
+            def read(self):
+                return _ParquetRead(self.calls)
+
+        spark = _Spark()
+        spec = ParquetSource(kind="parquet", path="/data/events.parquet")
+        result = get_reader(spec).read(spec, spark)  # type: ignore[arg-type]
+        assert result == "df"
+        assert spark.calls["path"] == "/data/events.parquet"
 
 
 class TestNormalizeSparkEncoding:

@@ -77,6 +77,19 @@ def _raw_streaming_table(table: str, *, file_format: str) -> str:
     )
 
 
+def _read_files_format(umf: UMF, *, default: str) -> str:
+    """Return the LDP ``read_files`` format derived from the UMF source kind."""
+    source = umf.effective_source()
+    if source.kind == "parquet":
+        return "parquet"
+    if source.kind != "delimited":
+        raise LdpProjectError(
+            f"LDP raw landing only supports delimited/parquet sources; "
+            f"{umf.table_name} declares kind={source.kind!r}"
+        )
+    return default
+
+
 # ---------------------------------------------------------------------------
 # ingested datasets (the materialization branch)
 # ---------------------------------------------------------------------------
@@ -285,8 +298,9 @@ def generate_ldp_project(
         assert node.role is NodeRole.INGESTED
         umf_data = umf.model_dump(exclude_none=True)
         ingest = build_ingest_select(umf_data, dialect=dialect)
+        raw_file_format = _read_files_format(umf, default=file_format)
         files[f"raw/raw_{umf.table_name}.sql"] = _raw_streaming_table(
-            umf.table_name, file_format=file_format
+            umf.table_name, file_format=raw_file_format
         )
         files[f"ingested/ingested_{umf.table_name}.sql"] = _ingested_dataset_sql(
             umf, registry, ingest

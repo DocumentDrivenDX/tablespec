@@ -84,6 +84,17 @@ def test_raw_landing_is_streaming_table_with_read_files() -> None:
     assert "format => 'csv'" in raw
 
 
+def test_parquet_raw_landing_uses_parquet_format() -> None:
+    umf = UMF(
+        version="1.0",
+        table_name="events",
+        source={"kind": "parquet", "path": "/Volumes/main/raw/events"},
+        columns=[{"name": "event_id", "data_type": "INTEGER"}],
+    )
+    raw = generate_ldp_project([umf], dialect="spark")["raw/raw_events.sql"]
+    assert "format => 'parquet'" in raw
+
+
 def test_incremental_pk_uses_streaming_table_and_apply_changes() -> None:
     """incremental + primary_key -> STREAMING TABLE shell + APPLY CHANGES."""
     body = _project()["ingested/ingested_claims.sql"]
