@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
 
 import pytest
 from typer.testing import CliRunner
@@ -115,6 +116,68 @@ class TestBatchConvert:
             app, ["batch-convert", "/nonexistent/path", "/tmp/dest", "--format", "json"]
         )
         assert result.exit_code != 0
+
+
+class TestValidate:
+    """Test validate command path detection."""
+
+    def test_validate_split_table_dir_uses_single_table_path(self, tmp_path):
+        table_dir = tmp_path / "outreach_list"
+        table_dir.mkdir()
+        (table_dir / "table.yaml").write_text("table_name: outreach_list\n")
+
+        mock_context = MagicMock()
+        mock_context.load_umf.return_value = SimpleNamespace(
+            table_name="outreach_list",
+            canonical_name="OutreachList",
+            columns=[],
+            file_format=None,
+            expectations=None,
+            relationships=None,
+            derivations=None,
+            version="1.0",
+            description=None,
+        )
+
+        with (
+            patch("tablespec.cli._validation_context", mock_context),
+            patch("tablespec.cli.validate_table", return_value=(True, [])) as mock_validate_table,
+            patch("tablespec.cli.validate_pipeline") as mock_validate_pipeline,
+        ):
+            result = runner.invoke(app, ["validate", str(table_dir)])
+
+        assert result.exit_code == 0, result.output
+        assert "Valid" in result.output
+        assert "All 0 tables passed" not in result.output
+        mock_validate_table.assert_called_once_with(
+            table_dir, mock_context, verbose=False
+        )
+        mock_validate_pipeline.assert_not_called()
+
+    def test_validate_split_table_dir_invalid_exits_nonzero(self, tmp_path):
+        table_dir = tmp_path / "outreach_list"
+        table_dir.mkdir()
+        (table_dir / "table.yaml").write_text("table_name: outreach_list\n")
+
+        mock_context = MagicMock()
+
+        with (
+            patch("tablespec.cli._validation_context", mock_context),
+            patch(
+                "tablespec.cli.validate_table",
+                return_value=(False, ["boom"]),
+            ) as mock_validate_table,
+            patch("tablespec.cli.validate_pipeline") as mock_validate_pipeline,
+        ):
+            result = runner.invoke(app, ["validate", str(table_dir)])
+
+        assert result.exit_code != 0
+        assert "FAIL" in result.output
+        assert "All 0 tables passed" not in result.output
+        mock_validate_table.assert_called_once_with(
+            table_dir, mock_context, verbose=False
+        )
+        mock_validate_pipeline.assert_not_called()
 
 
 class TestExportExcel:

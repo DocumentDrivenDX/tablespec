@@ -181,7 +181,7 @@ if _HAS_VALIDATOR:
             console.print(f"[cyan]Validating[/cyan] {path}...")
 
             # Determine if path is single table or pipeline
-            if path.is_dir() and (path / "schema.yaml").exists():
+            if path.is_dir() and (path / "table.yaml").exists():
                 # Single table validation
                 success, errors = validate_table(
                     path, _validation_context, verbose=verbose
