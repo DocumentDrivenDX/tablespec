@@ -78,10 +78,10 @@ jobs:
 
           \`\`\`bash
           # From GitHub Pages index
-          pip install tablespec==${TAG#v} --index-url https://easel.github.io/tablespec/simple/
+          pip install tablespec==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/
 
           # With PySpark support
-          pip install tablespec[spark]==${TAG#v} --index-url https://easel.github.io/tablespec/simple/
+          pip install tablespec[spark]==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/
           \`\`\`
 
           ### What's Changed
@@ -210,7 +210,7 @@ jobs:
           VERSION=${TAG#v}
 
           # Try installing from GitHub Pages index
-          pip install --index-url https://easel.github.io/tablespec/simple/ tablespec==$VERSION || echo "GitHub Pages index not yet available"
+          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ tablespec==$VERSION || echo "GitHub Pages index not yet available"
 
       - name: Summary
         run: |
@@ -218,6 +218,6 @@ jobs:
           cat << EOF
           ✅ Release $TAG complete!
 
-          📄 GitHub Pages: https://easel.github.io/tablespec/
+          📄 GitHub Pages: https://documentdrivendx.github.io/tablespec/
           🏷️  GitHub Release: https://github.com/easel/tablespec/releases/tag/$TAG
           EOF
