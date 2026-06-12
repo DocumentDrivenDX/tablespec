@@ -43,7 +43,6 @@ from __future__ import annotations
 import csv
 import json
 import os
-import uuid
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -63,10 +62,12 @@ from tablespec.ingestion.raw_ingester import (  # noqa: E402
     build_column_lookup,
     map_headers,
 )
-from tablespec.models.quality import QualityCheckResult, QualityCheckRun  # noqa: E402
 from tablespec.sample_data import GenerationConfig, SampleDataGenerator  # noqa: E402
 from tablespec.umf_validator import UMFValidator  # noqa: E402
 from tablespec.validation.gx_executor import GXSuiteExecutor  # noqa: E402
+from tablespec.validation.staged_report import (  # noqa: E402
+    build_validation_report_from_staged_execution,
+)
 from tablespec.validation.report import ValidationReport  # noqa: E402
 
 from tests.integration.conftest import EXPECTED_TABLES, MSSQL_DRIVER  # noqa: E402
@@ -248,51 +249,6 @@ def _land_typed(umf: UMF, spark: Any) -> Any:
     )
 
 
-def _build_report(
-    table_name: str,
-    staged: Any,
-    expectations: list[dict[str, Any]],
-) -> ValidationReport:
-    """Per-table ValidationReport (FEAT-007/FEAT-017 report surface).
-
-    Bridges the staged executor's ``ExpectationResult`` entries into the
-    ``QualityCheckRun`` shape ``ValidationReport`` consumes, re-attaching
-    severity/description from the composed expectations by (type, column).
-    """
-    meta_by_key: dict[tuple[str, str | None], dict[str, Any]] = {}
-    for exp in expectations:
-        key = (exp.get("type", ""), exp.get("kwargs", {}).get("column"))
-        meta_by_key.setdefault(key, exp.get("meta", {}))
-
-    results: list[QualityCheckResult] = []
-    for stage, suite in (("raw", staged.raw), ("ingested", staged.ingested)):
-        for r in suite.results:
-            meta = meta_by_key.get((r.expectation_type, r.column), {})
-            results.append(
-                QualityCheckResult(
-                    check_id=f"{stage}:{r.expectation_type}:{r.column or '-'}",
-                    expectation_type=r.expectation_type,
-                    success=r.success,
-                    severity=meta.get("severity", "critical"),
-                    column_name=r.column,
-                    description=meta.get("description"),
-                    unexpected_count=r.unexpected_count,
-                    observed_value=r.observed_value,
-                    details=r.details,
-                    tags=[stage],
-                )
-            )
-
-    run = QualityCheckRun(
-        pipeline_name="northwind_e2e",
-        table_name=table_name,
-        run_id=uuid.uuid4().hex[:8],
-        results=results,
-        should_block=any(not r.success for r in results),
-    )
-    return ValidationReport(run)
-
-
 def _assert_staged_validation(
     discovered: dict[str, UMF], spark: Any
 ) -> dict[str, ValidationReport]:
@@ -349,7 +305,12 @@ def _assert_staged_validation(
             r.details.get("element_count") == FIXTURE_ROW_COUNTS[name] for r in executed
         ), f"no executed expectation observed the {name} rows"
 
-        report = _build_report(name, staged, expectations)
+        report = build_validation_report_from_staged_execution(
+            name,
+            staged,
+            expectations,
+            pipeline_name="northwind_e2e",
+        )
         reports[name] = report
         assert report.total == len(executed)
         # The fixture data is clean: every expectation must genuinely pass

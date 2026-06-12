@@ -11,6 +11,7 @@ __all__ = [
     "GXExpectationProcessor",
     "GXTableValidator",
     "TableValidator",
+    "build_validation_report_from_staged_execution",
     "ValidationBlockingError",
     "ValidationDeltaWriter",
     "ValidationResult",
@@ -37,5 +38,10 @@ except (ImportError, ValueError):
 
 try:
     from .gx_table_validator import GXTableValidator, ValidationBlockingError, ValidationResult
+except (ImportError, ValueError):
+    pass
+
+try:
+    from .staged_report import build_validation_report_from_staged_execution
 except (ImportError, ValueError):
     pass
