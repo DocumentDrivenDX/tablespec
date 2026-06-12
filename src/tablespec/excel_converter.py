@@ -597,6 +597,11 @@ class UMFToExcelConverter:
             ("primary_key", ", ".join(umf.primary_key) if umf.primary_key else ""),
         ]
 
+        if umf.source is not None:
+            data.append(
+                ("source", json.dumps(umf.source.model_dump(exclude_none=True)))
+            )
+
         row = 2
         for field, value in data:
             ws[f"A{row}"] = field
@@ -1294,25 +1299,55 @@ class UMFToExcelConverter:
         ]
         self._add_header_row(ws, headers)
 
+        relationship_rows: list[dict[str, Any]] = []
         if umf.relationships and umf.relationships.outgoing:
+            relationship_rows = [
+                {
+                    "source_column": rel.source_column,
+                    "references_table": rel.target_table,
+                    "references_column": rel.target_column,
+                    "confidence": rel.confidence,
+                    "type": rel.type,
+                    "cardinality": rel.cardinality.notation if rel.cardinality else "",
+                    "domain_context": rel.reasoning or "",
+                    "detection_method": "ai",
+                }
+                for rel in umf.relationships.outgoing
+            ]
+        elif umf.relationships and umf.relationships.foreign_keys:
+            relationship_rows = [
+                {
+                    "source_column": rel.column,
+                    "references_table": rel.references_table,
+                    "references_column": rel.references_column,
+                    "confidence": rel.confidence,
+                    "type": rel.type,
+                    "cardinality": "",
+                    "domain_context": rel.domain_context or "",
+                    "detection_method": rel.detection_method or "",
+                }
+                for rel in umf.relationships.foreign_keys
+            ]
+
+        if relationship_rows:
             default_font = self._get_default_font()
             row = 2
-            for fk in umf.relationships.outgoing:
-                ws[f"A{row}"] = fk.source_column
+            for rel in relationship_rows:
+                ws[f"A{row}"] = rel["source_column"]
                 self._apply_font_to_cell(ws[f"A{row}"], default_font)
-                ws[f"B{row}"] = fk.target_table
+                ws[f"B{row}"] = rel["references_table"]
                 self._apply_font_to_cell(ws[f"B{row}"], default_font)
-                ws[f"C{row}"] = fk.target_column
+                ws[f"C{row}"] = rel["references_column"]
                 self._apply_font_to_cell(ws[f"C{row}"], default_font)
-                ws[f"D{row}"] = fk.confidence or ""
+                ws[f"D{row}"] = rel["confidence"] or ""
                 self._apply_font_to_cell(ws[f"D{row}"], default_font)
-                ws[f"E{row}"] = fk.type or ""
+                ws[f"E{row}"] = rel["type"] or ""
                 self._apply_font_to_cell(ws[f"E{row}"], default_font)
-                ws[f"F{row}"] = fk.cardinality.notation if fk.cardinality else ""
+                ws[f"F{row}"] = rel["cardinality"]
                 self._apply_font_to_cell(ws[f"F{row}"], default_font)
-                ws[f"G{row}"] = fk.reasoning or ""
+                ws[f"G{row}"] = rel["domain_context"]
                 self._apply_font_to_cell(ws[f"G{row}"], default_font)
-                ws[f"H{row}"] = "ai"
+                ws[f"H{row}"] = rel["detection_method"]
                 self._apply_font_to_cell(ws[f"H{row}"], default_font)
                 row += 1
 
@@ -1671,6 +1706,13 @@ class ExcelToUMFConverter:
                     "source_sheet_name",
                 ):
                     schema[field] = value
+                elif field == "source" and isinstance(value, str):
+                    try:
+                        source_data = json.loads(value)
+                    except json.JSONDecodeError:
+                        continue
+                    if isinstance(source_data, dict):
+                        schema["source"] = source_data
 
         return schema
 

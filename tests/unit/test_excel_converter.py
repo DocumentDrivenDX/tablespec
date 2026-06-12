@@ -18,6 +18,7 @@ from tablespec.models.umf import (
     ForeignKey,
     FileFormatSpec,
     FilenamePattern,
+    JdbcSource,
     Nullable,
     OutgoingRelationship,
     Relationships,
@@ -748,6 +749,56 @@ class TestExcelToUMFConverterConvert:
         assert round_tripped.file_format.model_dump(
             exclude_none=True
         ) == umf.file_format.model_dump(exclude_none=True)
+
+    def test_excel_round_trip_preserves_source_and_foreign_keys(self, tmp_path):
+        umf = UMF(
+            version="1.0",
+            table_name="orders",
+            canonical_name="Orders",
+            columns=[
+                UMFColumn(name="order_id", data_type="INTEGER"),
+                UMFColumn(name="customer_id", data_type="VARCHAR", length=10),
+            ],
+            source=JdbcSource(
+                kind="jdbc",
+                url="jdbc:sqlserver://host:1433;databaseName=db",
+                dbtable="[dbo].[Orders]",
+                user="svc_reader",
+                password_secret_ref="scope/jdbc-password",
+            ),
+            relationships=Relationships(
+                foreign_keys=[
+                    ForeignKey(
+                        column="customer_id",
+                        references_table="customers",
+                        references_column="customer_id",
+                        confidence=1.0,
+                        type="foreign_key",
+                        detection_method="information_schema",
+                    )
+                ]
+            ),
+        )
+
+        exporter = UMFToExcelConverter()
+        workbook = exporter.convert(umf)
+        out = tmp_path / "source_round_trip.xlsx"
+        workbook.save(out)
+
+        importer = ExcelToUMFConverter()
+        round_tripped, review_notes = importer.convert(out)
+
+        assert review_notes == {}
+        assert round_tripped.source is not None
+        assert round_tripped.source.model_dump(exclude_none=True) == umf.source.model_dump(
+            exclude_none=True
+        )
+        assert round_tripped.relationships is not None
+        assert round_tripped.relationships.foreign_keys is not None
+        assert [
+            fk.model_dump(exclude_none=True)
+            for fk in round_tripped.relationships.foreign_keys
+        ] == [fk.model_dump(exclude_none=True) for fk in umf.relationships.foreign_keys]
 
 
 # ---------------------------------------------------------------------------

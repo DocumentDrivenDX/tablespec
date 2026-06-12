@@ -128,10 +128,9 @@ def _assert_excel_roundtrip(discovered: dict[str, UMF], out_dir: Path) -> None:
     """AC4: export every discovered UMF to xlsx, re-import, compare.
 
     The Excel converter's contract (FEAT-009) is ONE WORKBOOK PER TABLE; the
-    round-trip preserves table identity, column order, types, widths, and the
-    primary key. (Source blocks and discovered FK lists are outside the
-    workbook's round-trip surface -- the Relationships sheet carries
-    ``relationships.outgoing`` only.)
+    round-trip preserves table identity, column order, types, widths, the
+    primary key, the discovered ``source:`` block, and discovered
+    ``relationships.foreign_keys``.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     exporter = UMFToExcelConverter()
@@ -162,6 +161,24 @@ def _assert_excel_roundtrip(discovered: dict[str, UMF], out_dir: Path) -> None:
                 assert roundtripped.nullable.model_dump(exclude_none=True) == (
                     original.nullable.model_dump(exclude_none=True)
                 ), ctx
+
+        if umf.source is not None:
+            assert reimported.source is not None, name
+            assert (
+                reimported.source.model_dump(exclude_none=True)
+                == umf.source.model_dump(exclude_none=True)
+            ), name
+
+        if umf.relationships and umf.relationships.foreign_keys:
+            assert reimported.relationships is not None, name
+            assert reimported.relationships.foreign_keys is not None, name
+            assert [
+                fk.model_dump(exclude_none=True)
+                for fk in reimported.relationships.foreign_keys
+            ] == [
+                fk.model_dump(exclude_none=True)
+                for fk in umf.relationships.foreign_keys
+            ], name
 
 
 def _pinned_generation_config() -> GenerationConfig:
