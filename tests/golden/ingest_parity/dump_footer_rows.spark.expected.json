@@ -1,0 +1,16 @@
+{
+  "columns": [
+    "row_id",
+    "note"
+  ],
+  "rows": [
+    [
+      "f1",
+      "first"
+    ],
+    [
+      "f2",
+      "second"
+    ]
+  ]
+}

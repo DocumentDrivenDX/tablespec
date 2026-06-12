@@ -132,12 +132,52 @@
           "description": "String representing NULL values",
           "title": "Null Value"
         },
+        "null_escape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional null escape token used by dump files (e.g. '\\N')",
+          "title": "Null Escape"
+        },
         "skip_rows": {
           "default": 0,
           "description": "Number of rows to skip at start",
           "minimum": 0,
           "title": "Skip Rows",
           "type": "integer"
+        },
+        "footer_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of footer rows to ignore at end of file",
+          "title": "Footer Rows"
+        },
+        "line_terminator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Record terminator token or literal line separator (e.g. 'CRLF' or '||')",
+          "title": "Line Terminator"
         },
         "comment_char": {
           "anyOf": [
@@ -404,12 +444,52 @@
           "description": "String representing NULL values",
           "title": "Null Value"
         },
+        "null_escape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional null escape token used by dump files (e.g. '\\N')",
+          "title": "Null Escape"
+        },
         "skip_rows": {
           "default": 0,
           "description": "Number of rows to skip at start",
           "minimum": 0,
           "title": "Skip Rows",
           "type": "integer"
+        },
+        "footer_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of footer rows to ignore at end of file",
+          "title": "Footer Rows"
+        },
+        "line_terminator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Record terminator token or literal line separator (e.g. 'CRLF' or '||')",
+          "title": "Line Terminator"
         },
         "comment_char": {
           "anyOf": [

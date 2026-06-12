@@ -14,6 +14,7 @@ from tablespec.ingestion import (
     JdbcReader,
     SourceReader,
     build_column_lookup,
+    delimited_source_records,
     get_reader,
     map_headers,
     normalize_spark_encoding,
@@ -93,6 +94,85 @@ class TestCsvReader:
         with pytest.raises(ValueError, match="path"):
             CsvReader().read(DelimitedSource(), _StubSpark())  # type: ignore[arg-type]
 
+    def test_dump_reader_normalizes_skip_footer_and_null_escape(self, tmp_path):
+        path = tmp_path / "dump.csv"
+        path.write_text(
+            "skip one||skip two||row_id,note,_source_file,_load_ts||"
+            "d1,hello,dump.csv,2026-01-01 00:00:00||"
+            "d2,\\N,dump.csv,2026-01-01 00:00:01||"
+            "2||"
+        )
+        spec = DelimitedSource(
+            delimiter=",",
+            header=True,
+            line_terminator="||",
+            skip_rows=2,
+            footer_rows=1,
+            null_escape="\\N",
+            path=str(path),
+        )
+        headers, rows = delimited_source_records(spec, path)
+        assert headers == ["row_id", "note", "_source_file", "_load_ts"]
+        assert rows == [
+            {
+                "row_id": "d1",
+                "note": "hello",
+                "_source_file": "dump.csv",
+                "_load_ts": "2026-01-01 00:00:00",
+            },
+            {
+                "row_id": "d2",
+                "note": None,
+                "_source_file": "dump.csv",
+                "_load_ts": "2026-01-01 00:00:01",
+            },
+        ]
+
+    def test_dump_reader_uses_normalized_records(self, tmp_path):
+        path = tmp_path / "dump.csv"
+        path.write_text(
+            "skip one||skip two||row_id,note,_source_file,_load_ts||"
+            "d1,hello,dump.csv,2026-01-01 00:00:00||"
+            "d2,\\N,dump.csv,2026-01-01 00:00:01||"
+            "2||"
+        )
+        spec = DelimitedSource(
+            delimiter=",",
+            header=True,
+            line_terminator="||",
+            skip_rows=2,
+            footer_rows=1,
+            null_escape="\\N",
+            path=str(path),
+        )
+
+        class _Spark:
+            def __init__(self) -> None:
+                self.calls: dict[str, object] = {}
+
+            def createDataFrame(self, rows, schema):  # noqa: ANN001
+                self.calls["rows"] = rows
+                self.calls["schema"] = schema
+                return "df"
+
+        spark = _Spark()
+        result = CsvReader().read(spec, spark)  # type: ignore[arg-type]
+        assert result == "df"
+        assert spark.calls["rows"] == [
+            {
+                "row_id": "d1",
+                "note": "hello",
+                "_source_file": "dump.csv",
+                "_load_ts": "2026-01-01 00:00:00",
+            },
+            {
+                "row_id": "d2",
+                "note": None,
+                "_source_file": "dump.csv",
+                "_load_ts": "2026-01-01 00:00:01",
+            },
+        ]
+
 
 class TestNormalizeSparkEncoding:
     @pytest.mark.parametrize(
@@ -138,6 +218,10 @@ class TestSparkCsvOptions:
         assert opts["nullValue"] == "NA"
         assert opts["quote"] == "'"
         assert opts["escape"] == "\\"
+
+    def test_comment_character_is_included(self):
+        opts = spark_csv_options(DelimitedSource(comment_char="#"))
+        assert opts["comment"] == "#"
 
 
 def _umf() -> UMF:

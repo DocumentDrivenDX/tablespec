@@ -1,0 +1,20 @@
+{
+  "columns": [
+    "row_id",
+    "token"
+  ],
+  "rows": [
+    [
+      "n1",
+      "NULL"
+    ],
+    [
+      "n2",
+      "NULL"
+    ],
+    [
+      "n3",
+      "keep"
+    ]
+  ]
+}

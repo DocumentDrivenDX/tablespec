@@ -1,0 +1,18 @@
+table_name: dump_footer_rows
+description: >-
+  Footer coverage. The file ends with a single row-count footer that readers
+  must ignore rather than count as data.
+ingestion:
+  mode: snapshot
+source:
+  kind: delimited
+  delimiter: ","
+  header: true
+  footer_rows: 1
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  - name: note
+    data_type: VARCHAR
+    nullable: true

@@ -1,0 +1,18 @@
+table_name: dump_line_terminator
+description: >-
+  Multi-character record terminator coverage. The raw batch is separated with
+  the literal token "||" instead of newline characters.
+ingestion:
+  mode: snapshot
+source:
+  kind: delimited
+  delimiter: ","
+  header: true
+  line_terminator: "||"
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  - name: note
+    data_type: VARCHAR
+    nullable: true

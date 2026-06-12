@@ -58,7 +58,12 @@ from tablespec.canonical import to_json
 from tablespec.e2e.compiled import CompiledSchema, load_compiled_schema
 from tablespec.e2e.gating import databricks_e2e_availability
 from tablespec.e2e.sql_runtime import split_sql_statements
-from tablespec.ingestion import spark_csv_options
+from tablespec.ingestion import (
+    create_string_dataframe,
+    delimited_source_has_text_quirks,
+    delimited_source_records,
+    spark_csv_options,
+)
 from tablespec.models.umf import DelimitedSource
 
 if TYPE_CHECKING:
@@ -273,8 +278,7 @@ class _SparkEngine(_BackboneEngine):
         if fmt is None:
             header = csv_path.read_text().splitlines()[0].split(",")
         elif fmt.header:
-            text = csv_path.read_text(encoding=fmt.encoding or "utf-8")
-            header = text.splitlines()[0].split(fmt.delimiter or "|")
+            header, _rows = delimited_source_records(fmt, csv_path)
         else:  # headerless declared file: metadata can only be synthesized
             header = []
         has_meta = "_source_file" in header
@@ -296,7 +300,27 @@ class _SparkEngine(_BackboneEngine):
             options.setdefault("quote", '"')
             options.setdefault("escape", '"')
             options["multiLine"] = True
-        df = self._spark.read.options(**options).schema(schema_ddl).csv(str(csv_path))
+        if fmt is not None and delimited_source_has_text_quirks(fmt):
+            headers, rows = delimited_source_records(fmt, csv_path, fieldnames=read_cols)
+            if has_meta:
+                df = create_string_dataframe(self._spark, rows, headers)
+            else:
+                augmented = [
+                    {
+                        **row,
+                        "_source_file": f"{source_name}.csv",
+                        "_load_ts": "2026-01-01 00:00:00",
+                    }
+                    for row in rows
+                ]
+                df = create_string_dataframe(
+                    self._spark, augmented, [*business_cols, "_source_file", "_load_ts"]
+                )
+                has_meta = True
+        else:
+            df = self._spark.read.options(**options).schema(schema_ddl).csv(
+                str(csv_path)
+            )
         if has_meta:
             df = df.withColumn(
                 "_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss")
@@ -442,8 +466,7 @@ class _DuckDBEngine(_BackboneEngine):
         else:
             delimiter = fmt.delimiter or "|"
             if fmt.header:
-                text = csv_path.read_text(encoding=fmt.encoding or "utf-8")
-                header = text.splitlines()[0].split(delimiter)
+                header, _rows = delimited_source_records(fmt, csv_path)
             else:  # headerless declared file: metadata can only be synthesized
                 header = []
 
@@ -478,7 +501,29 @@ class _DuckDBEngine(_BackboneEngine):
                 projection += ', "_source_file", cast("_load_ts" as timestamp)'
             else:
                 projection += f", '{source_name}.csv', TIMESTAMP '2026-01-01 00:00:00'"
-            con.execute(f"INSERT INTO {raw_table} SELECT {projection} FROM {read_csv}")
+            if fmt is not None and delimited_source_has_text_quirks(fmt):
+                headers, rows = delimited_source_records(fmt, csv_path, fieldnames=cols)
+                if has_meta:
+                    insert_rows = rows
+                else:
+                    insert_rows = [
+                        {
+                            **row,
+                            "_source_file": f"{source_name}.csv",
+                            "_load_ts": "2026-01-01 00:00:00",
+                        }
+                        for row in rows
+                    ]
+                    has_meta = True
+                insert_columns = [*cols, "_source_file", "_load_ts"]
+                column_sql = ", ".join(f'"{c}"' for c in insert_columns)
+                placeholders = ", ".join(["?"] * len(insert_columns))
+                con.executemany(
+                    f"INSERT INTO {raw_table} ({column_sql}) VALUES ({placeholders})",
+                    [[row.get(c) for c in insert_columns] for row in insert_rows],
+                )
+            else:
+                con.execute(f"INSERT INTO {raw_table} SELECT {projection} FROM {read_csv}")
         finally:
             con.close()
 

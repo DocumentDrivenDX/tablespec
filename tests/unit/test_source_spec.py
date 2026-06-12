@@ -119,6 +119,23 @@ class TestFileFormatAlias:
         assert umf.source is None
         assert "source" not in umf.model_dump(exclude_none=True)
 
+    def test_file_format_derives_dump_options(self):
+        umf = UMF(
+            **_base(
+                file_format={
+                    "delimiter": ",",
+                    "line_terminator": "||",
+                    "footer_rows": 1,
+                    "null_escape": "\\N",
+                }
+            )
+        )
+        spec = umf.effective_source()
+        assert isinstance(spec, DelimitedSource)
+        assert spec.line_terminator == "||"
+        assert spec.footer_rows == 1
+        assert spec.null_escape == "\\N"
+
     def test_declared_source_wins_over_file_format(self):
         umf = UMF(
             **_base(
@@ -154,3 +171,25 @@ class TestFileFormatAlias:
         loaded = load_umf_from_yaml(path)
         assert isinstance(loaded.source, JdbcSource)
         assert loaded.source == umf.source
+
+    def test_delimited_source_round_trips_dump_fields(self, tmp_path):
+        umf = UMF(
+            **_base(
+                source={
+                    "kind": "delimited",
+                    "delimiter": ",",
+                    "line_terminator": "||",
+                    "skip_rows": 2,
+                    "footer_rows": 1,
+                    "null_escape": "\\N",
+                }
+            )
+        )
+        path = tmp_path / "umf.yaml"
+        save_umf_to_yaml(umf, path)
+        loaded = load_umf_from_yaml(path)
+        assert isinstance(loaded.source, DelimitedSource)
+        assert loaded.source.line_terminator == "||"
+        assert loaded.source.skip_rows == 2
+        assert loaded.source.footer_rows == 1
+        assert loaded.source.null_escape == "\\N"

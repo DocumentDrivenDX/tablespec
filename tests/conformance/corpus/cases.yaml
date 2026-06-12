@@ -160,6 +160,38 @@ cases:
     ts_precision: 0
     tags: [incremental, pk, multibatch]
 
+  - id: dump_line_terminator
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/dump_line_terminator.umf.yaml
+    batches: [tests/conformance/corpus/ingest/dump_line_terminator.raw.csv]
+    golden: tests/golden/ingest_parity/dump_line_terminator.spark.expected.json
+    ts_precision: 0
+    tags: [dump, snapshot, nopk]
+
+  - id: dump_null_escape
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/dump_null_escape.umf.yaml
+    batches: [tests/conformance/corpus/ingest/dump_null_escape.raw.csv]
+    golden: tests/golden/ingest_parity/dump_null_escape.spark.expected.json
+    ts_precision: 0
+    tags: [dump, snapshot, nopk]
+
+  - id: dump_footer_rows
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/dump_footer_rows.umf.yaml
+    batches: [tests/conformance/corpus/ingest/dump_footer_rows.raw.csv]
+    golden: tests/golden/ingest_parity/dump_footer_rows.spark.expected.json
+    ts_precision: 0
+    tags: [dump, snapshot, nopk]
+
+  - id: dump_skip_rows
+    kind: ingest
+    umf: tests/conformance/corpus/ingest/dump_skip_rows.umf.yaml
+    batches: [tests/conformance/corpus/ingest/dump_skip_rows.raw.csv]
+    golden: tests/golden/ingest_parity/dump_skip_rows.spark.expected.json
+    ts_precision: 0
+    tags: [dump, snapshot, nopk]
+
   # --------------------------------------------------------------------------
   # NEW gold-derivation cases (executed via generate_sql_plan on BOTH backends).
   # The golden is the SparkDirect oracle output for the gold model. The orphan-FK

@@ -138,8 +138,21 @@ class FileFormatSpec(BaseModel):
     null_value: str | None = Field(
         default=None, description="String representing NULL values"
     )
+    null_escape: str | None = Field(
+        default=None,
+        description="Optional null escape token used by dump files (e.g. '\\N')",
+    )
     skip_rows: int = Field(
         default=0, ge=0, description="Number of rows to skip at start"
+    )
+    footer_rows: int | None = Field(
+        default=None,
+        ge=0,
+        description="Number of footer rows to ignore at end of file",
+    )
+    line_terminator: str | None = Field(
+        default=None,
+        description="Record terminator token or literal line separator (e.g. 'CRLF' or '||')",
     )
     comment_char: str | None = Field(
         default=None, description="Comment line prefix character"

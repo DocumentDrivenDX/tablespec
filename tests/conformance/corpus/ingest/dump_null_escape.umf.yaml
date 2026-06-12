@@ -1,0 +1,19 @@
+table_name: dump_null_escape
+description: >-
+  Null escape coverage. The raw batch uses the dump-style \N escape alongside a
+  plain null token so readers must honor both forms.
+ingestion:
+  mode: snapshot
+source:
+  kind: delimited
+  delimiter: ","
+  header: true
+  null_value: "NULL"
+  null_escape: "\\N"
+columns:
+  - name: row_id
+    data_type: VARCHAR
+    nullable: false
+  - name: token
+    data_type: VARCHAR
+    nullable: true

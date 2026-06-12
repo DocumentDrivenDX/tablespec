@@ -1,0 +1,4 @@
+row_id,note,_source_file,_load_ts
+f1,first,dump_footer_rows.csv,2026-01-01 00:00:00
+f2,second,dump_footer_rows.csv,2026-01-01 00:00:01
+2

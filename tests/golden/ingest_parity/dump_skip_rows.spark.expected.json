@@ -1,0 +1,16 @@
+{
+  "columns": [
+    "row_id",
+    "note"
+  ],
+  "rows": [
+    [
+      "s1",
+      "alpha"
+    ],
+    [
+      "s2",
+      "beta"
+    ]
+  ]
+}
