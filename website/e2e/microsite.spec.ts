@@ -3,11 +3,13 @@ import { test, expect } from '@playwright/test'
 const article = (page: any) => page.locator('article')
 
 test.describe('Homepage', () => {
-  test('loads with hero describing UMF compiler and source-semantic bronze', async ({ page }) => {
+  test('loads with hero stating the compile-once promise and source-semantic bronze', async ({ page }) => {
     await page.goto('/')
 
     await test.step('verify hero headline', async () => {
-      await expect(page.getByRole('heading', { name: /UMF compiler/i }).first()).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: /Define the table once/i }).first(),
+      ).toBeVisible()
     })
 
     await test.step('verify product description mentions source-semantic bronze', async () => {

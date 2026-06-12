@@ -4,19 +4,20 @@ layout: hextra-home
 ---
 
 {{< hextra/hero-badge link="concepts/raw-ingested-silver" >}}
-  <span>Understand the boundary</span>
+  <span>Where bronze ends and silver begins</span>
   {{< icon name="arrow-circle-right" attributes="height=14" >}}
 {{< /hextra/hero-badge >}}
 
 {{< hextra/hero-headline >}}
-The UMF compiler for source-semantic&nbsp;bronze.
+Define the table once.&nbsp;Compile everything&nbsp;else.
 {{< /hextra/hero-headline >}}
 
 {{< hextra/hero-subtitle >}}
-tablespec defines the ingested bronze contract — the point where raw source
-data becomes a schema-governed, source-faithful table your platform can build
-on. It converts Universal Metadata Format (UMF) specs into SQL DDL, PySpark
-schemas, Great Expectations suites, and validation reports.
+tablespec turns one YAML spec per table into every artifact your pipeline
+needs — SQL DDL, ingest transforms, dbt projects, Lakeflow pipelines, and
+Great Expectations suites. A schema change becomes one reviewable diff
+instead of five tools quietly drifting apart. Runs on classic Spark and
+Databricks serverless.
 {{< /hextra/hero-subtitle >}}
 
 <div class="hx-mt-6 hx-mb-6">
@@ -28,15 +29,20 @@ schemas, Great Expectations suites, and validation reports.
 
 ## What tablespec does
 
-tablespec sits at the ingestion boundary. You write a UMF schema that mirrors
-your source — column names, types, nullability, and domain rules — and
-tablespec compiles it into the artifacts your pipeline needs.
+You describe each table in a Universal Metadata Format (UMF) spec — column
+names, types, nullability, keys, relationships, and quality rules — and
+tablespec compiles it, deterministically, into the artifacts your platform
+actually runs. Recompiling an unchanged spec produces byte-identical output,
+so drift between your schema and your pipeline is structurally impossible.
+
+Already have the data? Point tablespec at existing Spark tables or a live
+database and it writes the specs for you.
 
 {{< cards >}}
-  {{< card title="UMF Schema" subtitle="Author schemas in YAML with Pydantic validation. UMF is the single source of truth." icon="academic-cap" >}}
-  {{< card title="Schema Generation" subtitle="Compile UMF into SQL DDL, PySpark schemas, and JSON Schema in one command." icon="code" >}}
-  {{< card title="Validation" subtitle="Generate Great Expectations suites from UMF and validate DataFrames against the spec." icon="beaker" >}}
-  {{< card title="Profiling" subtitle="Profile Spark DataFrames and reverse-engineer UMF specs from existing tables." icon="chart-bar" >}}
+  {{< card title="One spec per table" subtitle="A YAML file, validated by Pydantic, holding structure, keys, relationships, and quality rules — the single source of truth." icon="academic-cap" >}}
+  {{< card title="Compile to everything" subtitle="SQL DDL, raw→ingest transforms, dbt projects, Lakeflow pipelines, PySpark and JSON schemas — all from one command, all diffable." icon="code" >}}
+  {{< card title="Validate anywhere" subtitle="Great Expectations suites generated from the spec, with correct verdicts on classic Spark and Databricks serverless alike." icon="beaker" >}}
+  {{< card title="Start from your data" subtitle="Profile Spark tables or discover a whole database over JDBC — one validated spec per table, no hand-typing." icon="chart-bar" >}}
 {{< /cards >}}
 
 <div class="hx-mt-12"></div>
