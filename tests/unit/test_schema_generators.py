@@ -98,6 +98,22 @@ class TestGenerateSQLDDL:
         assert "-- DDL for test_table" in ddl
         assert "-- Generated from UMF specification" in ddl
 
+    def test_without_source_file_modified_is_deterministic(self):
+        """Test repeated renders stay byte-identical without source file metadata."""
+        umf = {
+            "table_name": "test_table",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {"name": "name", "data_type": "STRING", "nullable": True},
+            ],
+        }
+
+        ddl1 = generate_sql_ddl(umf)
+        ddl2 = generate_sql_ddl(umf)
+
+        assert ddl1 == ddl2
+        assert "-- Source file modified:" not in ddl1
+
     def test_handles_nullable_columns(self, minimal_umf):
         """Test nullable vs NOT NULL columns."""
         ddl = generate_sql_ddl(minimal_umf)

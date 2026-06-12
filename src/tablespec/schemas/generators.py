@@ -45,24 +45,23 @@ def generate_sql_ddl(umf_data: dict[str, Any]) -> str:
     table_name = umf_data["table_name"]
     canonical_name = umf_data.get("canonical_name") or table_name
 
-    # Use source file modified time if available, otherwise use current time
+    # Use source file modified time if available. Otherwise omit the timestamp
+    # line so repeated renders of the same spec stay byte-identical.
     metadata = umf_data.get("metadata") or {}
     source_modified = metadata.get("source_file_modified") if metadata else None
-    if source_modified:
-        # Parse and format the ISO timestamp
-        from datetime import datetime as dt
-
-        timestamp = dt.fromisoformat(source_modified).strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
 
     ddl_lines = [
         f"-- DDL for {canonical_name}",
         "-- Generated from UMF specification",
-        f"-- Source file modified: {timestamp}",
         "",
         f"CREATE TABLE {table_name} (",
     ]
+    if source_modified:
+        # Parse and format the ISO timestamp
+        timestamp = datetime.fromisoformat(source_modified).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        ddl_lines.insert(2, f"-- Source file modified: {timestamp}")
 
     columns = []
     for col in umf_data["columns"]:
