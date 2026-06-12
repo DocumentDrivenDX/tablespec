@@ -2,25 +2,52 @@
 
 Python library for working with table schemas in Universal Metadata Format (UMF). Provides type-safe models, validation, profiling integration, and schema generation tools.
 
-## Project Architecture
+## Project Structure
 
-### Core Modules
+`src/tablespec/` is organized as a small public surface plus feature-focused subpackages:
 
-- **`models/`** - Pydantic models for UMF format (UMF, UMFColumn, ValidationRules, etc.)
-- **`schemas/`** - Schema generators (SQL DDL, PySpark, JSON Schema)
-- **`type_mappings.py`** - Type conversions between UMF, PySpark, JSON, and Great Expectations
-- **`gx_baseline.py`** - Generate baseline Great Expectations from UMF metadata
-- **`gx_constraint_extractor.py`** - Extract constraints from existing GX suites into UMF
-- **`gx_schema_validator.py`** - Validate schemas using Great Expectations
-- **`profiling/`** - Convert profiling results (Spark DataFrame, Deequ) to UMF format
-- **`validation/`** - Table validation engine with Great Expectations (requires PySpark)
-- **`prompts/`** - LLM prompt generators for documentation, validation rules, relationships
+- `authoring/` - Apply-response models and mutation/preview helpers for authoring flows.
+- `core/` - Shared IR, relation, registry, selection, and schema-fact primitives.
+- `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
+- `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
+- `formatting/` - YAML formatting helpers and shared formatting constants.
+- `inference/` - Domain-type inference and registry helpers.
+- `ingestion/` - Raw/JDBC ingestion helpers and ingestion constants.
+- `ldp/` - Local data-product project rendering and expectations.
+- `models/` - Pydantic UMF, quality, changelog, and pipeline models.
+- `profiling/` - Native profiler types plus Spark/JDBC profile-to-UMF mappers.
+- `prompts/` - LLM prompt templates for docs, validation, filenames, relationships, and survivorship.
+- `quality/` - Baseline capture/storage and quality execution helpers.
+- `sample_data/` - Synthetic data generation, registry, validation, and filename helpers.
+- `schemas/` - Schema generators, relationship resolution, and packaged JSON schema assets.
+- `validation/` - GX processors, staged reports, custom expectations, and the Spark-backed table validator.
 
-### Optional Dependencies
+Flat modules at the package root hold the remaining cross-cutting helpers and CLI entrypoints:
 
-- **`[spark]`** - PySpark support for SparkToUmfMapper and TableValidator
+- `bootstrap.py` - Bootstrap UMFs from tables.
+- `canonical.py` - Canonicalization helpers for stable field/value handling.
+- `casting_utils.py` - Dialect-aware casting and format conversion utilities.
+- `cli.py` - Typer CLI for validation, inspection, conversion, and TUI launch.
+- `compatibility.py` - Compatibility checks and report types.
+- `date_formats.py` - Shared date and timestamp format constants.
+- `dependency_resolver.py` - Dependency and relation resolution helpers.
+- `excel_converter.py` / `excel_import_git.py` - Excel import/export helpers.
+- `gx_baseline.py`, `gx_constraint_extractor.py`, `gx_schema_validator.py`, `gx_wrapper.py` - Great Expectations integration entrypoints.
+- `merge.py`, `relationship_validator.py`, `completeness_validator.py`, `validator.py` - Validation and merge orchestration.
+- `naming.py`, `naming_validator.py`, `type_lattice.py`, `type_mappings.py` - Naming and type-system utilities.
+- `output_formatting.py`, `survivorship_display.py`, `format_utils.py` - User-facing formatting helpers.
+- `session.py`, `spark_factory.py` - Spark session helpers and factory wiring.
+- `sync_baseline.py`, `umf_change_applier.py`, `umf_diff.py`, `umf_loader.py`, `umf_validator.py` - UMF diff/load/change-management utilities.
+- `tui.py` - Optional Textual-based terminal UI.
+
+## Optional Dependencies
+
+- **`[spark]`** - PySpark support for Spark session helpers, profiling, validation, and other Spark-backed APIs.
   - Install: `uv sync --extra spark`
-  - Required for: Spark profiling and validation features
+- **`[duckdb]`** - DuckDB plus SQLAlchemy support for local dbt/SQL execution paths and dialect parity checks.
+  - Install: `uv sync --extra duckdb`
+- **`[tui]`** - Textual support for the optional terminal UI.
+  - Install: `uv sync --extra tui`
 
 ## Development Workflow
 
@@ -74,30 +101,6 @@ from tablespec import UMF, load_umf_from_yaml, generate_sql_ddl
 
 # Available only with tablespec[spark]
 from tablespec import SparkToUmfMapper, TableValidator
-```
-
-## Project Structure
-
-```
-src/tablespec/
-├── __init__.py              # Public API exports
-├── models/
-│   └── umf.py              # Pydantic UMF models
-├── schemas/
-│   ├── generators.py       # SQL, PySpark, JSON schema generators
-│   └── *.schema.json       # JSON schemas for validation
-├── type_mappings.py        # Type system conversions
-├── gx_*.py                 # Great Expectations integration (baseline, extract, validate)
-├── profiling/
-│   ├── types.py            # Profile result types
-│   ├── spark_mapper.py     # Spark → UMF (requires PySpark)
-│   └── native_profiler.py  # Connect-safe Spark-SQL profiler (ADR-009 removed the Deequ mapper)
-├── prompts/                # LLM prompt generators
-└── validation/             # Table validation (requires PySpark)
-
-tests/
-├── unit/                   # Pure Python tests
-└── integration/            # Tests with external deps
 ```
 
 ## Common Tasks
