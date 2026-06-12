@@ -215,6 +215,14 @@ The original roadmap text is retained below for the rationale/effort record:
 Explicitly **out of scope** (stays native): `quality/` baselines, `profiling`
 mappers, `prompts/`, and all rich/stage-classified/statistical GX expectations.
 
+## Alternatives
+
+| Option | Pros | Cons | Evaluation |
+|--------|------|------|------------|
+| Keep the whole path native and do not add dbt support | No new dbt surface to maintain | Leaves dbt users hand-authoring the same schema tests, contracts, seeds, and selection logic; does not prove the seam is target-agnostic | Rejected: the product already needs a dbt path, and this would not answer the adoption question |
+| Add dbt as a separate forked implementation with its own logic | Clear package boundary | Duplicates cast and dependency logic, guaranteeing drift between backends | Rejected: duplication is exactly what the encapsulation seam is meant to prevent |
+| **Shared core + dbt sibling emitter + dev-group dependency model (selected)** | One shared source of truth, no core→dbt imports, dbt remains optional, and the roadmap can evolve in isolated modules | Requires the core seam and dbt emitter to stay aligned with each other and with the shipped artifact contract | **Selected: this is the only option that keeps dbt optional while preserving one shared core** |
+
 ## Consequences
 
 - **Positive:** one constraint truth (`schema_facts`) feeds GX and dbt; dbt is a
@@ -277,3 +285,18 @@ mappers, `prompts/`, and all rich/stage-classified/statistical GX expectations.
   `contracts.py`, `seeds.py`, `selection.py`, `emitter.py`, `runner.py`),
   `src/tablespec/cli.py` (`emit --backend dbt`), `src/tablespec/core/schema_facts.py`,
   `src/tablespec/core/selection.py`, `pyproject.toml:51`,`:63`.
+
+## Review Checklist
+
+- [x] Context names a specific problem — dbt adoption needs a shared core seam
+- [x] Decision statement is actionable — use shared core + sibling emitters
+- [x] At least two alternatives were evaluated
+- [x] Each alternative has concrete pros and cons, not vague assessments
+- [x] Selected option's rationale explains why it wins over the best alternative
+- [x] Consequences include both positive and negative impacts
+- [x] Negative consequences have documented mitigations
+- [x] Risks are specific with probability and impact assessments
+- [x] Validation section defines how we'll know if the decision was right
+- [x] Review triggers define conditions for reconsidering the decision
+- [x] Concern impact section is complete (or explicitly marked as no impact)
+- [x] ADR is consistent with the shipped dbt architecture and dependency model

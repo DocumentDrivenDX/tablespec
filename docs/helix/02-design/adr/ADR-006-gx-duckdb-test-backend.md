@@ -5,6 +5,10 @@ ddx:
 
 # ADR-006: GX DuckDB Test Backend
 
+| Date | Status | Deciders | Related | Confidence |
+|------|--------|----------|---------|------------|
+| 2026-06-12 | Accepted | — | ADR-003 | High |
+
 ## Status
 
 Accepted (spike completed 2026-03-17)
@@ -65,3 +69,56 @@ All tested expectation types (`expect_column_values_to_not_be_null`, `expect_col
 - Two-step pattern (DuckDB load → Pandas GX) is more complex than direct SqlAlchemy would have been.
 - Tests passing on Pandas do not guarantee identical behavior on Spark — integration tests with Spark remain necessary for production confidence.
 - Adds another optional dependency group to manage.
+
+## Alternatives
+
+| Option | Pros | Cons | Evaluation |
+|--------|------|------|------------|
+| Keep GX tests on Spark only | Maximum semantic fidelity to production | Heavy JVM dependency and slow iteration make lightweight CI harder | Rejected: the point of this backend is to make validation cheaper to run |
+| Use DuckDB through GX SqlAlchemy | One database-backed path | GX 1.15.1's DuckDB SqlAlchemy path fails in metric-bundle resolution | Rejected: the upstream GX/DuckDB gap makes this unreliable |
+| **DuckDB load + pandas GX engine (selected)** | Fast iteration; lightweight; works today with the supported GX expectations | Semantic differences from Spark and a two-step evaluation flow | **Selected: this is the working lightweight validation path until GX grows a better DuckDB integration** |
+
+## Risks
+
+| Risk | Prob | Impact | Mitigation |
+|------|------|--------|------------|
+| Pandas semantics drift from Spark semantics | M | M | Keep Spark integration tests as the production oracle and treat this backend as a lightweight test lane |
+| A future GX upgrade changes pandas execution behavior | M | M | Pin the tested GX release range and keep the spike tests pinned to the documented expectations |
+| The DuckDB dependency surface grows beyond the intended lightweight lane | L | L | Keep it as an optional extra and limit the backend to test code paths |
+
+## Validation
+
+| Success Metric | Review Trigger |
+|----------------|----------------|
+| `tests/unit/test_gx_duckdb_spike.py` continues to pass for the documented expectation types | A GX or DuckDB upgrade changes the spike result shape or breaks the working fallback |
+| DuckDB-backed validation remains available without pulling Spark into the test lane | The backend starts depending on Spark-specific behavior |
+
+## Supersession
+
+- **Supersedes**: None
+- **Superseded by**: None
+
+## Concern Impact
+
+- **No concern impact**: This ADR selects a test backend; it does not override a library concern practice.
+
+## References
+
+- `tests/unit/test_gx_duckdb_spike.py`
+- `tests/unit/test_gx_processor.py`
+- `tests/unit/test_expectation_suite.py`
+
+## Review Checklist
+
+- [x] Context names a specific problem — GX validation is too heavy for lightweight CI
+- [x] Decision statement is actionable — use DuckDB plus the pandas engine
+- [x] At least two alternatives were evaluated
+- [x] Each alternative has concrete pros and cons, not vague assessments
+- [x] Selected option's rationale explains why it wins over the best alternative
+- [x] Consequences include both positive and negative impacts
+- [x] Negative consequences have documented mitigations
+- [x] Risks are specific with probability and impact assessments
+- [x] Validation section defines how we'll know if the decision was right
+- [x] Review triggers define conditions for reconsidering the decision
+- [x] Concern impact section is complete (or explicitly marked as no impact)
+- [x] ADR is consistent with the lightweight GX test lane

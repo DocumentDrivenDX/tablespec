@@ -5,6 +5,10 @@ ddx:
 
 # ADR-002: Only Great Expectations 1.6+ Format Is Supported
 
+| Date | Status | Deciders | Related | Confidence |
+|------|--------|----------|---------|------------|
+| 2026-06-12 | Accepted | — | — | High |
+
 ## Status
 
 Accepted
@@ -47,3 +51,56 @@ Format validation runs before schema validation and GX library validation, provi
 - Users with existing legacy-format expectation suites must migrate them before tablespec can process them. There is no automatic conversion.
 - Pinning to 1.6+ format means any future GX format changes would require updates to the format validator, JSON schema, and processors.
 - The `pyproject.toml` dependency is `great-expectations>=0.18.0`, which is broader than the 1.6+ format requirement. Users on older GX versions that technically satisfy the dependency constraint may encounter format mismatches at runtime.
+
+## Alternatives
+
+| Option | Pros | Cons | Evaluation |
+|--------|------|------|------------|
+| Support both legacy and 1.6+ GX formats | Easier migration for existing users | Doubles the code path surface; requires format detection, conversion, and dual tests everywhere GX is consumed | Rejected: the extra complexity is not justified when the supported format already exists |
+| Auto-convert legacy suites on read | Hides the migration burden from users | Loses explicitness, makes round-trips harder to reason about, and can mask malformed legacy inputs | Rejected: migration should be visible and actionable |
+| **Require GX 1.6+ format and reject legacy input (selected)** | One format contract; fast failure with clear migration guidance; simpler validation and schema handling | Existing legacy suites must be updated first | **Selected: the library already generates the modern shape, so a single format contract is the safest boundary** |
+
+## Risks
+
+| Risk | Prob | Impact | Mitigation |
+|------|------|--------|------------|
+| Existing suites in the wild fail to load until migrated | M | M | Emit explicit rename/remove messages so migration is mechanical |
+| GX upstream changes the 1.6+ shape again | L | M | Keep the JSON schema and `_validate_gx_format()` in lockstep with the supported GX release range |
+| Broader dependency pins allow users onto an older GX runtime that still satisfies `>=0.18.0` | M | L | The explicit format validator catches mismatches before execution |
+
+## Validation
+
+| Success Metric | Review Trigger |
+|----------------|----------------|
+| Legacy indicators (`expectation_suite_name`, `data_asset_type`, `expectation_type`) are rejected in `tests/unit/test_gx_processor.py` | A legacy suite is accepted without the migration hint |
+| Generated suites continue to serialize and validate in 1.6+ format | GX emits a new required field or renames the supported fields |
+
+## Supersession
+
+- **Supersedes**: None
+- **Superseded by**: None
+
+## Concern Impact
+
+- **No concern impact**: This ADR narrows the accepted GX wire format and does not override a library concern practice.
+
+## References
+
+- `src/tablespec/validation/gx_processor.py`
+- `src/tablespec/models/umf.py`
+- `tests/unit/test_gx_processor.py`, `tests/unit/test_expectation_suite.py`
+
+## Review Checklist
+
+- [x] Context names a specific problem — legacy GX wire-format support
+- [x] Decision statement is actionable — only 1.6+ format is accepted
+- [x] At least two alternatives were evaluated
+- [x] Each alternative has concrete pros and cons, not vague assessments
+- [x] Selected option's rationale explains why it wins over the best alternative
+- [x] Consequences include both positive and negative impacts
+- [x] Negative consequences have documented mitigations
+- [x] Risks are specific with probability and impact assessments
+- [x] Validation section defines how we'll know if the decision was right
+- [x] Review triggers define conditions for reconsidering the decision
+- [x] Concern impact section is complete (or explicitly marked as no impact)
+- [x] ADR is consistent with the shipped GX integration path

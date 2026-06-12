@@ -5,6 +5,10 @@ ddx:
 
 # ADR-004: Unify DATETIME and TIMESTAMP as Equivalent UMF Types
 
+| Date | Status | Deciders | Related | Confidence |
+|------|--------|----------|---------|------------|
+| 2026-06-12 | Accepted | — | — | High |
+
 ## Status
 
 Accepted
@@ -56,3 +60,58 @@ DATETIME and TIMESTAMP are interchangeable aliases, not distinct types. No canon
 - Having two accepted spellings for the same semantic type introduces ambiguity. Different UMF files in the same project might use different spellings, reducing consistency.
 - No migration or normalization is provided. Existing UMF files that relied on the (incorrect) DATETIME-to-StringType mapping will silently change behavior when the fix is applied. Consumers that depend on timestamp columns being strings will need to adapt.
 - The SQL DDL generator passes both DATETIME and TIMESTAMP through literally, which may produce different behavior across SQL dialects (e.g., MySQL distinguishes DATETIME from TIMESTAMP in storage and timezone handling). This ADR does not address SQL dialect-specific semantics.
+
+## Alternatives
+
+| Option | Pros | Cons | Evaluation |
+|--------|------|------|------------|
+| Keep DATETIME and TIMESTAMP separate | Preserves dialect-specific meanings | Leaves the current inconsistency in place and keeps one spelling broken in parts of the toolchain | Rejected: the code already treats them as the same semantic family |
+| Canonicalize on TIMESTAMP only | One spelling to document | Forces migration of existing DATETIME UMFs even when the semantics are identical | Rejected: the ADR's goal is compatibility, not a spelling migration |
+| **Treat DATETIME and TIMESTAMP as equivalent aliases (selected)** | Fixes the broken mapping without forcing a canonical rename; both spellings work end-to-end | Adds a second accepted spelling and the resulting naming ambiguity | **Selected: this is the least disruptive way to make both spellings correct across the stack** |
+
+## Risks
+
+| Risk | Prob | Impact | Mitigation |
+|------|------|--------|------------|
+| Different projects choose different spellings for the same meaning | M | L | Document the equivalence and keep the accepted spellings explicit in the model regex and mappings |
+| SQL dialects disagree on DATETIME vs TIMESTAMP storage semantics | M | M | Leave the SQL DDL generator literal and document the dialect-specific caveat rather than pretending the types are universal |
+| Existing users that relied on the broken StringType mapping see changed behavior | M | M | Call out the behavior change clearly; consumers that need strings can cast explicitly |
+
+## Validation
+
+| Success Metric | Review Trigger |
+|----------------|----------------|
+| `tests/unit/test_umf_models.py`, `tests/unit/test_type_mappings.py`, and `tests/unit/test_gx_baseline.py` accept both spellings and map them consistently | A timestamp spelling starts failing model validation or falls back to StringType again |
+| SQL DDL generation remains intentionally literal for both spellings | A later change tries to infer dialect-specific semantics without a separate ADR |
+
+## Supersession
+
+- **Supersedes**: None
+- **Superseded by**: None
+
+## Concern Impact
+
+- **No concern impact**: This ADR standardizes a type alias; it does not override a library concern practice.
+
+## References
+
+- `src/tablespec/models/umf.py`
+- `src/tablespec/type_mappings.py`
+- `src/tablespec/gx_baseline.py`
+- `src/tablespec/schemas/generators.py`
+- `tests/unit/test_umf_models.py`, `tests/unit/test_type_mappings.py`, `tests/unit/test_gx_baseline.py`
+
+## Review Checklist
+
+- [x] Context names a specific problem — DATETIME/TIMESTAMP handling disagrees across modules
+- [x] Decision statement is actionable — both spellings map to the same timestamp semantics
+- [x] At least two alternatives were evaluated
+- [x] Each alternative has concrete pros and cons, not vague assessments
+- [x] Selected option's rationale explains why it wins over the best alternative
+- [x] Consequences include both positive and negative impacts
+- [x] Negative consequences have documented mitigations
+- [x] Risks are specific with probability and impact assessments
+- [x] Validation section defines how we'll know if the decision was right
+- [x] Review triggers define conditions for reconsidering the decision
+- [x] Concern impact section is complete (or explicitly marked as no impact)
+- [x] ADR is consistent with the existing timestamp generator behavior

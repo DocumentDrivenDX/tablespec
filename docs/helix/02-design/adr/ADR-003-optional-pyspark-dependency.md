@@ -5,6 +5,10 @@ ddx:
 
 # ADR-003: PySpark Is an Optional Dependency Isolated to Specific Modules
 
+| Date | Status | Deciders | Related | Confidence |
+|------|--------|----------|---------|------------|
+| 2026-06-12 | Accepted | — | ADR-010 | High |
+
 ## Status
 
 Accepted — extended by ADR-010 (Spark Connect / serverless runtime model). The optional-dependency boundary still holds; ADR-010 adds that, *when* PySpark is present, no Spark-touching path may assume a classic JVM `SparkContext` (Connect / serverless are first-class).
@@ -56,3 +60,59 @@ Two changes since this ADR was accepted refine, but do not overturn, the optiona
 1. **Connect / serverless is first-class (ADR-010).** Spark-dependent modules grew beyond `spark_mapper.py` and `table_validator.py` to include `session.py`, `casting_utils.py`, the native profiler, and the Connect-safe GX executor (`validation/gx_executor.py` + `validation/native_executor.py`). All remain gated behind the `[spark]` extra and lazy imports, but they may NOT assume a JVM `SparkContext` — engine-correct behavior is keyed off the DataFrame/session in hand and per-session capability probes (PRD FR-20.x). The native profiler and native GX executor exist precisely so the `[spark]` features work on serverless / Spark Connect where the classic `SparkContext`-bound paths (PyDeequ, GX `add_spark`) fail silently.
 
 2. **dbt and pysail are dev-group, not user extras.** `dbt` and `pysail` live in the dev / test group — not `[project.optional-dependencies]` — because user runtimes consume *committed* dbt/SQL/LDP artifacts and never import tablespec, dbt, or pysail at run time. `pysail` backs the local Sail (Spark Connect) test lane. This keeps the user-facing optional surface to the single `[spark]` extra (principle 5).
+
+## Alternatives
+
+| Option | Pros | Cons | Evaluation |
+|--------|------|------|------------|
+| Make PySpark mandatory | One dependency story; no lazy import branches | Burdens non-Spark users and breaks environments without a JVM | Rejected: the core library is mostly pure Python and should remain importable without Spark |
+| Split the Spark features into a separate distribution | Clear packaging boundary | More package/version management, more documentation drift, and a worse user experience for mixed core + Spark usage | Rejected: the current optional-extra boundary is simpler and already works |
+| **Keep PySpark optional and isolate it to Spark-touching modules (selected)** | Core stays lightweight; Spark users opt in explicitly; the import boundary is testable | Spark modules need conditional imports and separate test coverage | **Selected: this preserves the broadest usable surface while keeping Spark-specific code honest** |
+
+## Risks
+
+| Risk | Prob | Impact | Mitigation |
+|------|------|--------|------------|
+| A non-Spark import path accidentally pulls in PySpark | M | H | Keep the lazy-import boundary in `__init__.py` and extend the import tests when Spark modules are added |
+| The `pyrightconfig.json` ignore list drifts as Spark modules move | M | M | Treat the ignore list as part of the Spark boundary and update it whenever Spark-touching modules are introduced |
+| Users see `ImportError` instead of a guided install message | M | L | Keep the optional dependency surface narrow and document the `[spark]` extra in the public docs |
+
+## Validation
+
+| Success Metric | Review Trigger |
+|----------------|----------------|
+| `import tablespec` works without the `[spark]` extra in `tests/unit/test_output_formatting.py` and related import-path tests | A new non-Spark import starts requiring PySpark |
+| Spark-dependent modules continue to load and execute with the `[spark]` extra installed | A new Spark module is added without the conditional import pattern |
+| pyright stays green with Spark modules ignored as intended | The ignore list no longer matches the actual Spark-touching surface |
+
+## Supersession
+
+- **Supersedes**: None
+- **Superseded by**: ADR-010 extends the boundary to connect/serverless semantics; this ADR remains the dependency boundary.
+
+## Concern Impact
+
+- **Concern selection**: Optional heavy dependency boundary for the library's Spark surface.
+- **Practice override**: None.
+
+## References
+
+- `pyproject.toml`
+- `src/tablespec/__init__.py`
+- `pyrightconfig.json`
+- `tests/unit/test_output_formatting.py`, `tests/unit/test_casting_utils.py`, `tests/unit/test_profiling_mappers.py`
+
+## Review Checklist
+
+- [x] Context names a specific problem — Spark should not be mandatory for the whole library
+- [x] Decision statement is actionable — PySpark stays optional and localized
+- [x] At least two alternatives were evaluated
+- [x] Each alternative has concrete pros and cons, not vague assessments
+- [x] Selected option's rationale explains why it wins over the best alternative
+- [x] Consequences include both positive and negative impacts
+- [x] Negative consequences have documented mitigations
+- [x] Risks are specific with probability and impact assessments
+- [x] Validation section defines how we'll know if the decision was right
+- [x] Review triggers define conditions for reconsidering the decision
+- [x] Concern impact section is complete (or explicitly marked as no impact)
+- [x] ADR is consistent with ADR-010's runtime boundary

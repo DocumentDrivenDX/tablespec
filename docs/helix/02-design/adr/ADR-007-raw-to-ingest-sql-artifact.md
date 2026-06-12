@@ -5,6 +5,10 @@ ddx:
 
 # ADR-007: Raw-to-Ingest Transforms as Committed SQL Artifacts
 
+| Date | Status | Deciders | Related | Confidence |
+|------|--------|----------|---------|------------|
+| 2026-06-12 | Accepted | — | ADR-015, ADR-001 | High |
+
 ## Status
 
 Accepted — default path for all pipelines going forward. Generalized by
@@ -110,3 +114,58 @@ artifact, not to wrap it at runtime.
 
 - ADR-002 (GX 1.6 format), ADR-005 (unified expectation model — Bronze.Raw/Ingested stages).
 - `src/tablespec/schemas/ingest_generator.py`, `src/tablespec/casting_utils.py`.
+
+## Alternatives
+
+| Option | Pros | Cons | Evaluation |
+|--------|------|------|------------|
+| Keep ingest as Python/PySpark runtime logic | Familiar implementation style | Couples runtime to the library; transform is not reviewable as standalone text; not easy to run in isolation | Rejected: the runtime should consume committed artifacts, not re-derive them |
+| Generate SQL but do not commit it | Reduces repo surface | Removes the reviewable artifact and makes runtime provenance opaque | Rejected: the point of the ADR is the committed artifact, not just SQL generation |
+| **Commit the generated raw-to-ingest SQL artifact (selected)** | Reviewable, runnable, diffable, and runtime-independent | Requires keeping the artifact in sync with UMF and tests | **Selected: this is the cleanest boundary between authoring and runtime execution** |
+
+## Risks
+
+| Risk | Prob | Impact | Mitigation |
+|------|------|--------|------------|
+| Generated SQL drifts from the runtime caster | M | H | Keep `cast_column_sql` as the canonical cast expression and verify with parity tests |
+| Consumers treat the committed artifact as optional and re-derive at runtime | L | H | Document the runtime contract explicitly and keep the runtime backbone artifact-only |
+| SQL dialect details creep into the canonical transform | M | M | Keep the core cast expression Spark-SQL based and isolate dialect-specific rendering at the seam |
+
+## Validation
+
+| Success Metric | Review Trigger |
+|----------------|----------------|
+| `tests/unit/test_ingest_generator.py` and `tests/unit/test_cast_column_edge_format_parity.py` keep the generated SQL aligned with the runtime caster | The committed SQL diverges from the runtime behavior or golden files |
+| The runtime backbone consumes committed artifacts only | A runtime path starts importing generation logic again |
+
+## Supersession
+
+- **Supersedes**: None
+- **Superseded by**: ADR-015 generalizes the raw landing contract for typed sources; this ADR remains the committed-artifact rule for text-landed sources.
+
+## Concern Impact
+
+- **Concern selection**: Establishes the committed-artifact runtime boundary for ingest transforms.
+- **Practice override**: None.
+
+## References
+
+- `src/tablespec/schemas/ingest_generator.py`
+- `src/tablespec/casting_utils.py`
+- `tests/unit/test_ingest_generator.py`
+- `tests/unit/test_cast_column_edge_format_parity.py`
+
+## Review Checklist
+
+- [x] Context names a specific problem — ingest logic lived as runtime Python
+- [x] Decision statement is actionable — commit the generated SQL artifact
+- [x] At least two alternatives were evaluated
+- [x] Each alternative has concrete pros and cons, not vague assessments
+- [x] Selected option's rationale explains why it wins over the best alternative
+- [x] Consequences include both positive and negative impacts
+- [x] Negative consequences have documented mitigations
+- [x] Risks are specific with probability and impact assessments
+- [x] Validation section defines how we'll know if the decision was right
+- [x] Review triggers define conditions for reconsidering the decision
+- [x] Concern impact section is complete (or explicitly marked as no impact)
+- [x] ADR is consistent with the compile-once/runtime-artifact contract
