@@ -78,6 +78,34 @@ def test_legacy_feature_specs_follow_current_template_sections() -> None:
             assert f"\n## {section}\n" in text, f"{path}: missing {section}"
 
 
+def test_legacy_adrs_follow_current_template_sections() -> None:
+    required_sections = [
+        "Alternatives",
+        "Risks",
+        "Validation",
+        "Supersession",
+        "Concern Impact",
+        "References",
+        "Review Checklist",
+    ]
+
+    for relative_path in [
+        "docs/helix/02-design/adr/ADR-001-date-as-yyyymmdd-string.md",
+        "docs/helix/02-design/adr/ADR-002-gx-16-format-only.md",
+        "docs/helix/02-design/adr/ADR-003-optional-pyspark-dependency.md",
+        "docs/helix/02-design/adr/ADR-004-datetime-timestamp-unification.md",
+        "docs/helix/02-design/adr/ADR-005-unified-expectation-model.md",
+        "docs/helix/02-design/adr/ADR-006-gx-duckdb-test-backend.md",
+        "docs/helix/02-design/adr/ADR-007-raw-to-ingest-sql-artifact.md",
+        "docs/helix/02-design/adr/ADR-008-dbt-adoption-architecture.md",
+    ]:
+        text = _read(relative_path)
+
+        assert "| Date | Status | Deciders | Related | Confidence |" in text, relative_path
+        for section in required_sections:
+            assert f"\n## {section}\n" in text, f"{relative_path}: missing {section}"
+
+
 def test_legacy_feature_registry_rows_reflect_template_backfill() -> None:
     registry = _read("docs/helix/01-frame/feature-registry.md")
 
@@ -168,6 +196,25 @@ def test_product_microsite_governance_preserves_pages_package_index() -> None:
     assert "/simple/tablespec/index.html" in story_text
     assert "FEAT-030" in registry_text
     assert "ADR-014" in registry_text
+
+
+def test_ldp_sibling_emitter_solution_design_has_required_sections() -> None:
+    text = _read("docs/helix/02-design/ldp-sibling-emitter.md")
+
+    assert "# Solution Design" in text
+    assert "**Feature**: FEAT-028 - LDP Sibling Emitter" in text
+    assert "ADR-013" in text
+
+    for section in [
+        "Scope",
+        "Requirements Mapping",
+        "Solution Approaches",
+        "Domain Model",
+        "System Decomposition",
+        "Technology Rationale",
+        "Traceability",
+    ]:
+        assert f"## {section}" in text, section
 
 
 def test_microsite_concerns_reconcile_browser_testing_scope() -> None:
