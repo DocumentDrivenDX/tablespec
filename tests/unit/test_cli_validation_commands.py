@@ -1,13 +1,19 @@
 """Tests for CLI validation management commands: validation-remove."""
 
+from copy import deepcopy
 import json
 import re
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
 
 from tablespec.cli import app
+from tablespec.ingestion.constants import PROVENANCE_COLUMNS
+from tablespec.models import UMF, UMFColumn
+from tablespec.sync_baseline import BaselineSyncer
+from tablespec.umf_loader import UMFFormat, UMFLoader
 from tablespec.dialects import CAST_DIALECTS
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
@@ -86,6 +92,29 @@ def _umf_for_emit() -> dict:
             {"name": "label", "data_type": "VARCHAR", "length": 32},
         ],
     }
+
+
+def _write_split_umf(tmp_path: Path) -> None:
+    loader = UMFLoader()
+    columns = [UMFColumn(name="business_col", data_type="VARCHAR", length=32)]
+    for definition in PROVENANCE_COLUMNS.values():
+        columns.append(
+            UMFColumn(
+                name=definition["name"],
+                data_type=definition["data_type"],
+            )
+        )
+
+    loader.save(
+        UMF(
+            version="1.0",
+            table_name="test_table",
+            description="Test table",
+            columns=columns,
+        ),
+        tmp_path,
+        UMFFormat.SPLIT,
+    )
 
 
 class TestEmitDialectOption:
@@ -301,3 +330,29 @@ class TestRemoveExpectationFunction:
         umf = UMFBuilder("test").column("id", "INTEGER").build()
         updated, count = remove_expectation(umf, "nonexistent_type")
         assert count == 0
+
+
+class TestValidationSync:
+    def test_validation_sync_exits_nonzero_when_write_breaks_loadability(
+        self, tmp_path: Path
+    ) -> None:
+        _write_split_umf(tmp_path)
+
+        original_save = BaselineSyncer._save_column_file
+        corrupted = False
+
+        def bad_save(self, column_file: Path, data: dict) -> None:
+            nonlocal corrupted
+            if not corrupted and column_file.name == "meta_source_name.yaml":
+                corrupted = True
+                bad_data = deepcopy(data)
+                bad_data["column"]["data_type"] = "StringType"
+                original_save(self, column_file, bad_data)
+                return
+            original_save(self, column_file, data)
+
+        with patch.object(BaselineSyncer, "_save_column_file", bad_save):
+            result = runner.invoke(app, ["validation-sync", str(tmp_path)])
+
+        assert result.exit_code == 1, result.output
+        assert "Validation failed after writing" in result.output

@@ -27,6 +27,13 @@ except ImportError:
 from tablespec.gx_baseline import BaselineExpectationGenerator
 
 try:
+    from tablespec.ingestion.constants import PROVENANCE_COLUMNS
+
+    _provenance_columns_available = True
+except ImportError:
+    _provenance_columns_available = False
+
+try:
     from tablespec.umf_loader import UMFLoader
 
     _umf_loader_available = True
@@ -36,64 +43,68 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+if _provenance_columns_available:
+    _provenance_column_source: dict[str, dict[str, Any]] = PROVENANCE_COLUMNS
+else:
+    # Fallback for environments that do not import the ingestion constants.
+    _provenance_column_source = {
+        "meta_source_name": {
+            "name": "meta_source_name",
+            "data_type": "VARCHAR",
+            "source": "metadata",
+            "description": "Source name (e.g. filename or source table) recorded at ingest",
+        },
+        "meta_source_checksum": {
+            "name": "meta_source_checksum",
+            "data_type": "VARCHAR",
+            "source": "metadata",
+            "description": "Checksum of the source artifact (ingest-computed)",
+        },
+        "meta_load_dt": {
+            "name": "meta_load_dt",
+            "data_type": "DATETIME",
+            "source": "metadata",
+            "description": "Timestamp when ingestion ran",
+        },
+        "meta_snapshot_dt": {
+            "name": "meta_snapshot_dt",
+            "data_type": "DATETIME",
+            "source": "metadata",
+            "description": "Snapshot timestamp of the source data",
+        },
+        "meta_source_offset": {
+            "name": "meta_source_offset",
+            "data_type": "INTEGER",
+            "source": "metadata",
+            "description": "Row offset within the source (ingest-assigned)",
+        },
+        "meta_checksum": {
+            "name": "meta_checksum",
+            "data_type": "VARCHAR",
+            "source": "metadata",
+            "description": "Row content checksum for change detection",
+        },
+        "meta_pipeline_version": {
+            "name": "meta_pipeline_version",
+            "data_type": "VARCHAR",
+            "source": "metadata",
+            "description": "Pipeline version that produced the row",
+        },
+        "meta_component": {
+            "name": "meta_component",
+            "data_type": "VARCHAR",
+            "source": "metadata",
+            "description": "Pipeline component that produced the row",
+        },
+    }
+
 # Metadata column canonical definitions
 METADATA_COLUMN_DEFINITIONS = {
-    "meta_source_name": {
-        "name": "meta_source_name",
-        "data_type": "StringType",
-        "source": "metadata",
-        "description": "Source filename",
+    name: {
+        **definition,
         "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_source_checksum": {
-        "name": "meta_source_checksum",
-        "data_type": "StringType",
-        "source": "metadata",
-        "description": "SHA256 hash of source file (Spark-computed)",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_load_dt": {
-        "name": "meta_load_dt",
-        "data_type": "TimestampType",
-        "source": "metadata",
-        "description": "Timestamp when ingestion ran (Unix epoch)",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_snapshot_dt": {
-        "name": "meta_snapshot_dt",
-        "data_type": "TimestampType",
-        "source": "metadata",
-        "description": "File modification time (Unix epoch)",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_source_offset": {
-        "name": "meta_source_offset",
-        "data_type": "IntegerType",
-        "source": "metadata",
-        "description": "Original row number in source file",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_checksum": {
-        "name": "meta_checksum",
-        "data_type": "StringType",
-        "source": "metadata",
-        "description": "SHA256 hash of input row data",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_pipeline_version": {
-        "name": "meta_pipeline_version",
-        "data_type": "StringType",
-        "source": "metadata",
-        "description": "Pipeline package version",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
-    "meta_component": {
-        "name": "meta_component",
-        "data_type": "StringType",
-        "source": "metadata",
-        "description": "Component name and version (package:version)",
-        "nullable": {"MD": False, "ME": False, "MP": False},
-    },
+    }
+    for name, definition in _provenance_column_source.items()
 }
 
 
@@ -377,6 +388,8 @@ class BaselineSyncer:
             if not column_file.exists():
                 # Add new metadata column
                 self._create_metadata_column_file(column_file, canonical_def, dry_run)
+                if not dry_run:
+                    self._validate_written_table(table_path)
                 result.columns_added += 1
             else:
                 # Check if existing column matches canonical
@@ -387,6 +400,7 @@ class BaselineSyncer:
                     # Update to canonical definition
                     if not dry_run:
                         self._update_metadata_column_file(column_file, canonical_def, existing)
+                        self._validate_written_table(table_path)
                     result.columns_updated += 1
                     self.logger.info(f"Updated metadata column: {meta_col_name}")
 
@@ -467,6 +481,7 @@ class BaselineSyncer:
             ):
                 existing_data["validations"] = updated_validations
                 self._save_column_file(column_file, existing_data)
+                self._validate_written_table(table_path)
 
     def _sync_column_validations(
         self,
@@ -749,6 +764,15 @@ class BaselineSyncer:
         # Preserve validations and any user notes
         existing_data["column"] = canonical_def
         self._save_column_file(column_file, existing_data)
+
+    def _validate_written_table(self, table_path: Path) -> None:
+        """Reload a table after a write and fail closed if it no longer loads."""
+        try:
+            self.umf_loader.load(table_path)
+        except Exception as e:
+            msg = f"Validation failed after writing {table_path}: {e}"
+            self.logger.error(msg)
+            raise ValueError(msg) from e
 
     def _sort_recursive(self, obj: Any) -> Any:
         """Sort object recursively for deterministic YAML output.

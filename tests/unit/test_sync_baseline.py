@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import MagicMock, patch
+from copy import deepcopy
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-pytestmark = pytest.mark.fast
-
+from tablespec.ingestion.constants import PROVENANCE_COLUMNS
+from tablespec.models import UMF, UMFColumn
 from tablespec.sync_baseline import (
-
     METADATA_COLUMN_DEFINITIONS,
     BaselineSyncer,
     ConflictDetail,
@@ -21,6 +21,9 @@ from tablespec.sync_baseline import (
     ValidationUpgraded,
     get_metadata_column_definitions,
 )
+from tablespec.umf_loader import UMFFormat, UMFLoader
+
+pytestmark = pytest.mark.fast
 
 
 # ============================================================================
@@ -75,7 +78,7 @@ class TestSyncResult:
             validations_severity_preserved=3,
         )
         lines = result.summary_lines()
-        validation_line = [l for l in lines if "Validations:" in l]
+        validation_line = [line for line in lines if "Validations:" in line]
         assert len(validation_line) == 1
         assert "5 added" in validation_line[0]
         assert "2 upgraded" in validation_line[0]
@@ -189,9 +192,13 @@ class TestMetadataColumnDefinitions:
         assert set(METADATA_COLUMN_DEFINITIONS.keys()) == expected
 
     def test_each_definition_has_required_fields(self):
+        expected_types = {
+            name: definition["data_type"] for name, definition in PROVENANCE_COLUMNS.items()
+        }
         for name, defn in METADATA_COLUMN_DEFINITIONS.items():
             assert defn["name"] == name
             assert "data_type" in defn
+            assert defn["data_type"] == expected_types[name]
             assert defn["source"] == "metadata"
             assert "description" in defn
             assert "nullable" in defn
@@ -224,6 +231,79 @@ class TestMetadataColumnDefinitions:
         defs = get_metadata_column_definitions()
         for defn in defs.values():
             assert defn["nullable"] is False
+
+
+class TestBaselineSyncerSplitRoundTrip:
+    """Regression coverage for split UMF sync/load behavior."""
+
+    @pytest.fixture
+    def loader(self) -> UMFLoader:
+        return UMFLoader()
+
+    @pytest.fixture
+    def syncer(self):
+        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
+            "tablespec.sync_baseline._umf_loader_available", True
+        ):
+            return BaselineSyncer()
+
+    def _write_split_spec(self, tmp_path: Path, loader: UMFLoader) -> UMF:
+        columns = [
+            UMFColumn(name="business_col", data_type="VARCHAR", length=32),
+        ]
+        for definition in PROVENANCE_COLUMNS.values():
+            columns.append(
+                UMFColumn(
+                    name=definition["name"],
+                    data_type=definition["data_type"],
+                )
+            )
+
+        umf = UMF(
+            version="1.0",
+            table_name="test_table",
+            description="Test table",
+            columns=columns,
+        )
+        loader.save(umf, tmp_path, UMFFormat.SPLIT)
+        return umf
+
+    def test_validation_sync_round_trips_split_spec_loadably(self, tmp_path: Path, loader: UMFLoader, syncer) -> None:
+        self._write_split_spec(tmp_path, loader)
+
+        result = syncer.sync_table(tmp_path)
+
+        assert result.columns_updated == len(PROVENANCE_COLUMNS)
+
+        loaded = loader.load(tmp_path)
+        meta_columns = {col.name: col for col in loaded.columns if col.name.startswith("meta_")}
+
+        assert set(meta_columns) == set(PROVENANCE_COLUMNS)
+        for name, definition in PROVENANCE_COLUMNS.items():
+            assert meta_columns[name].data_type == definition["data_type"]
+
+    def test_validation_sync_fails_closed_when_write_breaks_loadability(
+        self, tmp_path: Path, loader: UMFLoader, syncer, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        self._write_split_spec(tmp_path, loader)
+
+        original_save = syncer._save_column_file
+        corrupted = False
+
+        def bad_save(column_file: Path, data: dict) -> None:
+            nonlocal corrupted
+            if not corrupted and column_file.name == "meta_source_name.yaml":
+                corrupted = True
+                bad_data = deepcopy(data)
+                bad_data["column"]["data_type"] = "StringType"
+                original_save(column_file, bad_data)
+                return
+            original_save(column_file, data)
+
+        monkeypatch.setattr(syncer, "_save_column_file", bad_save)
+
+        with pytest.raises(ValueError, match="Validation failed after writing"):
+            syncer.sync_table(tmp_path)
 
 
 # ============================================================================
