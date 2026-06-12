@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -145,6 +146,39 @@ def test_us_025_no_longer_claims_dbt_runner_or_cli_unshipped() -> None:
     assert stale_unshipped not in text
     assert "DbtRunner" in text
     assert "emit --backend dbt [--run]" in text
+
+
+def test_backfilled_user_stories_follow_the_story_template() -> None:
+    required_sections = [
+        "Context",
+        "Walkthrough",
+        "Acceptance Criteria",
+        "Edge Cases",
+        "Test Scenarios",
+        "Dependencies",
+        "Out of Scope",
+        "Review Checklist",
+    ]
+    placeholder_scenarios = re.compile(r"\| (Case \d+|Happy path|Edge case) \|")
+
+    for path in sorted((ROOT / "docs/helix/01-frame/user-stories").glob("US-*.md")):
+        story_id = int(path.stem.split("-", 2)[1])
+        if not (1 <= story_id <= 20 or 27 <= story_id <= 36):
+            continue
+
+        text = path.read_text(encoding="utf-8")
+        for section in required_sections:
+            assert f"\n## {section}\n" in text, f"{path}: missing {section}"
+
+        ac_pattern = re.compile(
+            rf"\*\*US-{story_id:03d}-AC\d+\*\* — Given .+ when .+ then .+",
+            re.IGNORECASE,
+        )
+        assert ac_pattern.search(text), f"{path}: missing Given/When/Then AC"
+        assert "| Scenario | AC ID | Input / State | Action | Expected Result |" in text, path
+        assert not placeholder_scenarios.search(text), (
+            f"{path}: scenario table still has placeholder labels"
+        )
 
 
 def test_implementation_plan_v2_does_not_snapshot_closed_beads() -> None:
