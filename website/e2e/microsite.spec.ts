@@ -64,8 +64,10 @@ test.describe('Getting Started', () => {
 
     await test.step('covers UMF loading and compile path', async () => {
       const body = await page.locator('body').textContent()
-      expect(body).toContain('load_umf_from_yaml')
+      expect(body).toContain('UMFLoader')
       expect(body).toContain('generate_sql_ddl')
+      expect(body).toContain('tablespec validate')
+      expect(body).toContain('--backend dbt')
     })
   })
 })
@@ -117,9 +119,10 @@ test.describe('CLI Reference', () => {
     await expect(page.getByRole('heading', { name: 'CLI Reference' }).first()).toBeVisible()
 
     const body = await page.locator('body').textContent()
-    expect(body).toContain('compile')
+    expect(body).toContain('generate')
     expect(body).toContain('validate')
-    expect(body).toContain('gx baseline')
+    expect(body).toContain('emit')
+    expect(body).toContain('validation-sync')
   })
 })
 
@@ -143,6 +146,7 @@ test.describe('Demos', () => {
     await expect(page.getByRole('heading', { name: 'Demos' }).first()).toBeVisible()
 
     const body = await page.locator('body').textContent()
+    expect(body).toContain('Northwind')
     expect(body).toContain('tablespec-demo')
   })
 })

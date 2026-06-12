@@ -5,14 +5,44 @@ weight: 5
 
 Reproducible demos of tablespec workflows.
 
-## Full compile path
+## Northwind on Databricks
 
-The main demo walks through the complete tablespec workflow: loading a UMF
-schema, generating SQL DDL, PySpark schema, and JSON Schema, inspecting type
-mappings, generating a Great Expectations baseline, and running validation with
-sample data.
+The flagship demo runs the full discovery story on a Databricks cluster, in
+two notebooks under
+[`notebooks/northwind-demo/`](https://github.com/DocumentDrivenDX/tablespec/tree/main/notebooks/northwind-demo):
 
-[![Demo](https://github.com/easel/tablespec/raw/main/examples/tablespec-demo.gif)](https://github.com/easel/tablespec/blob/main/examples/tablespec-demo.cast)
+1. **`01-provision-sqlserver-northwind`** — installs SQL Server on the
+   driver node, configures it, and loads the Northwind database. Plumbing
+   only; tablespec never does this in real use.
+2. **`02-northwind-discovery-demo`** — the tablespec story:
+   - **Discover**: `JdbcToUmfMapper().discover(spec, spark)` produces one
+     validated UMF per table over JDBC — columns and types, primary and
+     foreign keys, provenance columns. The credential exists only as a
+     `password_secret_ref`; a literal password fails spec validation.
+   - **Validate**: every discovered spec passes `tablespec validate`
+     unmodified.
+   - **Workbooks**: Excel exports of each spec for human review.
+   - **Sample data**: FK-aware generated rows that respect the discovered
+     relationships.
+   - **Land typed + staged validation**: tables land natively typed through
+     the reader seam (never round-tripped through string parsing), suites
+     composed for typed sources carry no string-shape raw checks, and the
+     run ends in a per-table validation scorecard.
+
+Proven on DBR 17.3 LTS (Spark 4, SQL Server 2025) and DBR 16.4 LTS
+(SQL Server 2022), single-node, single-user access mode. The
+[notebook README](https://github.com/DocumentDrivenDX/tablespec/blob/main/notebooks/northwind-demo/README.md)
+covers cluster setup, wheel upload, and running against an external SQL
+Server instead. The same flow runs locally without Databricks via the
+Docker-gated test: `uv run pytest tests/integration/test_northwind_e2e.py`.
+
+## Library walkthrough (screencast)
+
+A scripted demo of the local library surface: loading specs, schema
+generation, type mappings, domain inference, the Great Expectations
+baseline, UMF diffing, Spark profiling, and DataFrame validation.
+
+[![Demo](https://github.com/DocumentDrivenDX/tablespec/raw/main/examples/tablespec-demo.gif)](https://github.com/DocumentDrivenDX/tablespec/blob/main/examples/tablespec-demo.cast)
 
 **Play in your terminal:**
 
@@ -20,55 +50,12 @@ sample data.
 asciinema play examples/tablespec-demo.cast
 ```
 
-**Run live** (requires `tablespec[spark]`):
+**Run live** (requires `tablespec[spark]`; also serves as an acceptance test
+and exits non-zero on any failure):
 
 ```bash
 uv run python examples/demo.py
 ```
 
 **Watch with narration:**
-[tablespec-demo-narrated.mp4](https://github.com/easel/tablespec/raw/main/examples/tablespec-demo-narrated.mp4)
-
-## Happy path: ingested bronze from scratch
-
-This demo shows the shortest path from a new source table to a governed
-ingested bronze layer:
-
-1. Inspect the source table schema with `SparkToUmfMapper`.
-2. Review and adjust the generated UMF for source fidelity.
-3. Compile SQL DDL and register the table.
-4. Generate a Great Expectations baseline and run initial validation.
-
-```bash
-# Profile source table and produce UMF
-uv run python -c "
-from tablespec.profiling.spark_mapper import SparkToUmfMapper
-from tablespec import save_umf_to_yaml
-
-mapper = SparkToUmfMapper(spark)
-umf = mapper.map_dataframe(source_df, table_name='claims_raw')
-save_umf_to_yaml(umf, 'claims_ingested.yaml')
-"
-
-# Compile to SQL DDL
-tablespec compile claims_ingested.yaml --format sql
-
-# Generate GX baseline
-tablespec gx baseline claims_ingested.yaml --output suites/claims_ingested.json
-```
-
-## Databricks bootstrap
-
-For Databricks-hosted tables, use the native profiler to avoid Deequ
-dependencies:
-
-```python
-from tablespec.profiling.native_profiler import NativeProfiler
-
-profiler = NativeProfiler(spark)
-profile = profiler.profile_table("catalog.schema.medical_claims")
-umf = profiler.to_umf(profile, table_name="medical_claims")
-```
-
-The native profiler uses Spark SQL to collect statistics without requiring
-Deequ or any additional dependencies beyond `tablespec[spark]`.
+[tablespec-demo-narrated.mp4](https://github.com/DocumentDrivenDX/tablespec/raw/main/examples/tablespec-demo-narrated.mp4)

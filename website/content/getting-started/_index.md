@@ -4,8 +4,7 @@ weight: 1
 next: /concepts
 ---
 
-Install tablespec, load a UMF schema, and compile your first set of artifacts
-in a few minutes.
+Install tablespec, author a table spec, and compile your first artifacts.
 
 ## Install
 
@@ -19,118 +18,176 @@ uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple
 pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
-Add the `[spark]` extra only if you need PySpark-based profiling or validation:
+Add the `[spark]` extra only if you need PySpark-based profiling, JDBC
+discovery, or DataFrame validation:
 
 ```bash
 uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
-## Load a UMF schema
+## Author a table spec
 
-UMF schemas are YAML files. Start with a simple one:
+The canonical UMF format is a **split directory**: one `table.yaml` plus one
+file per column under `columns/`. Build one from Python:
+
+```python
+from pathlib import Path
+
+from tablespec import UMF, UMFLoader
+from tablespec.ingestion.constants import PROVENANCE_COLUMNS
+
+umf = UMF.model_validate({
+    "version": "1.0",
+    "table_name": "medical_claims",
+    "canonical_name": "Medical Claims",
+    "description": "Healthcare claims - source-faithful ingested bronze",
+    "primary_key": ["claim_id"],
+    "columns": [
+        {"name": "claim_id", "data_type": "VARCHAR", "length": 50,
+         "description": "Unique claim identifier", "nullable": {"MD": False, "MP": False}},
+        {"name": "member_id", "data_type": "VARCHAR", "length": 20,
+         "description": "Member identifier", "nullable": {"MD": False, "MP": False}},
+        {"name": "service_date", "data_type": "DATE",
+         "description": "Date of service", "nullable": {"MD": False, "MP": True}},
+        {"name": "billed_amount", "data_type": "DECIMAL", "precision": 12, "scale": 2,
+         "description": "Amount billed by provider", "nullable": {"MD": True, "MP": True}},
+        # Provenance columns the ingest pipeline adds to every table.
+        # `tablespec validate` requires them; JDBC discovery appends them for you.
+        *(dict(col) for col in PROVENANCE_COLUMNS.values()),
+    ],
+})
+
+UMFLoader().save(umf, Path("tables/medical_claims"))
+```
+
+This writes:
+
+```
+tables/medical_claims/
+├── table.yaml
+└── columns/
+    ├── billed_amount.yaml
+    ├── claim_id.yaml
+    ├── member_id.yaml
+    ├── service_date.yaml
+    └── meta_*.yaml          # 8 provenance columns
+```
+
+Each file is small and diffs cleanly in review. `table.yaml`:
 
 ```yaml
-# schema.yaml
-version: "1.0"
+canonical_name: Medical Claims
+description: Healthcare claims - source-faithful ingested bronze
+primary_key:
+  - claim_id
 table_name: medical_claims
-description: Healthcare claims — source-faithful ingested bronze
-columns:
-  - name: claim_id
-    data_type: VARCHAR
-    length: 50
-    description: Unique claim identifier
-    nullable:
-      MD: false
-      MP: false
-  - name: member_id
-    data_type: VARCHAR
-    length: 20
-    description: Member identifier
-    nullable:
-      MD: false
-      MP: false
-  - name: service_date
-    data_type: DATE
-    description: Date of service
-    nullable:
-      MD: false
-      MP: true
-  - name: billed_amount
-    data_type: DECIMAL
-    precision: 12
-    scale: 2
-    description: Amount billed by provider
-    nullable:
-      MD: true
-      MP: true
+version: '1.0'
 ```
 
-Load it in Python:
+`columns/claim_id.yaml`:
 
-```python
-from tablespec import load_umf_from_yaml
-
-umf = load_umf_from_yaml("schema.yaml")
-print(f"Table: {umf.table_name}")
-print(f"Columns: {len(umf.columns)}")
+```yaml
+column:
+  data_type: VARCHAR
+  description: Unique claim identifier
+  length: 50
+  name: claim_id
+  nullable:
+    MD: false
+    MP: false
 ```
 
-## Compile artifacts
+The `MD` / `MP` keys under `nullable` are arbitrary context labels (here,
+healthcare lines of business). See
+[Universal Metadata Format](/concepts/umf/) for the full model.
 
-Generate SQL DDL, PySpark schema, and JSON Schema from the UMF:
-
-```python
-from tablespec import load_umf_from_yaml, generate_sql_ddl, generate_pyspark_schema, generate_json_schema
-
-umf = load_umf_from_yaml("schema.yaml")
-
-# SQL DDL
-ddl = generate_sql_ddl(umf)
-print(ddl)
-
-# PySpark schema
-pyspark_schema = generate_pyspark_schema(umf)
-
-# JSON Schema
-json_schema = generate_json_schema(umf)
-```
-
-## Generate a Great Expectations baseline
-
-```python
-from tablespec import load_umf_from_yaml
-from tablespec.gx_baseline import BaselineExpectationGenerator
-
-umf = load_umf_from_yaml("schema.yaml")
-generator = BaselineExpectationGenerator(umf)
-suite = generator.generate()
-print(f"Generated {len(suite['expectations'])} expectations")
-```
-
-## Use the CLI
-
-tablespec ships a CLI for common operations:
+## Validate and inspect
 
 ```bash
-# Show help
-tablespec --help
-
-# Compile a UMF to SQL DDL
-tablespec compile schema.yaml --format sql
-
-# Validate a schema file
-tablespec validate schema.yaml
-
-# Show column type mappings
-tablespec types schema.yaml
+tablespec validate tables/
+tablespec info tables/medical_claims/
 ```
 
-See [CLI Reference](/cli-reference/) for the full command list.
+`validate` checks structure, column naming, expectation compatibility with
+Great Expectations, relationship integrity, and pipeline completeness
+(including the provenance columns above). It accepts split directories and
+JSON files; legacy single-file YAML specs are refused with a pointer to the
+migration helper.
+
+## Generate artifacts
+
+Each `generate` format writes to stdout so it can be piped:
+
+```bash
+tablespec generate tables/medical_claims/ -f sql > medical_claims.ddl.sql
+tablespec generate tables/medical_claims/ -f pyspark > medical_claims_schema.py
+tablespec generate tables/medical_claims/ -f json > medical_claims.schema.json
+tablespec generate tables/medical_claims/ -f ingest > medical_claims.ingest.sql
+```
+
+The `ingest` format is the raw-to-ingested plan for Databricks/Delta: a raw
+landing table DDL, a typed target DDL, and the `MERGE` transform between them.
+See [Compiled artifacts](/concepts/artifacts/) for what each artifact contains.
+
+## Emit a dbt project
+
+```bash
+tablespec emit tables/ out/dbt --backend dbt --dialect databricks
+```
+
+This materializes a complete dbt project — model SQL with the declared casts,
+enforced contracts, sources, and profiles. Pass `--dialect duckdb` (the
+default) to run it locally, or add `--run` to execute `dbt build` via
+dbt-duckdb against the emitted project.
+
+## Compile from Python
+
+The same generators are available as functions. They take a plain dict (use
+`model_dump`) and return the artifact:
+
+```python
+from pathlib import Path
+
+from tablespec import (
+    BaselineExpectationGenerator,
+    UMFLoader,
+    generate_json_schema,
+    generate_pyspark_schema,
+    generate_sql_ddl,
+)
+
+umf = UMFLoader().load(Path("tables/medical_claims"))
+umf_data = umf.model_dump(mode="json", exclude_none=True)
+
+ddl = generate_sql_ddl(umf_data)                 # Spark SQL CREATE TABLE (str)
+schema_src = generate_pyspark_schema(umf_data)   # Python source for a StructType (str)
+json_schema = generate_json_schema(umf_data)     # JSON Schema (dict)
+
+expectations = BaselineExpectationGenerator().generate_baseline_expectations(umf_data)
+print(f"{umf.table_name}: {len(umf.columns)} columns, {len(expectations)} baseline expectations")
+```
+
+Legacy single-file YAML specs can still be loaded in Python with
+`load_umf_from_yaml(path)` — file paths only; the CLI does not accept them.
+
+## On Databricks
+
+If the tables already exist in a database, skip hand-authoring: point
+tablespec at it over JDBC and it discovers one validated UMF per table —
+columns and types from `INFORMATION_SCHEMA` plus the reflected Spark schema,
+primary and foreign keys, and provenance columns included. Credentials are
+never inlined; the spec carries only a `password_secret_ref` naming a secret
+in the runtime's secret store.
+
+The [Northwind demo notebooks](/demos/) run this end to end on a Databricks
+cluster: provision SQL Server on the driver node, discover the whole database,
+validate every spec, and land typed tables with staged validation reports —
+Connect-safe on classic clusters and serverless alike.
 
 ## Next steps
 
 {{< cards >}}
-  {{< card link="/concepts" title="Core Concepts" subtitle="Understand the UMF model, the raw/ingested/silver boundary, and how tablespec governs each layer." icon="academic-cap" >}}
-  {{< card link="/cli-reference" title="CLI Reference" subtitle="All commands, flags, and output formats." icon="terminal" >}}
-  {{< card link="/api-reference" title="API Reference" subtitle="Python API documentation generated from source." icon="code" >}}
+  {{< card link="/concepts" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
+  {{< card link="/cli-reference" title="CLI Reference" subtitle="All 21 commands with their options." icon="terminal" >}}
+  {{< card link="/demos" title="Demos" subtitle="Northwind on Databricks, plus the local screencast demo." icon="play" >}}
 {{< /cards >}}

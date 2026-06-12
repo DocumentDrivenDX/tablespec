@@ -27,11 +27,13 @@ Ingested bronze is where tablespec operates. The ingested layer:
   Types reflect what the source system produces, not a downstream preference.
   Nullability is declared based on the source feed's actual behavior, not on
   what downstream consumers would prefer.
-- **Is governed by a UMF schema.** Every column has a declared type,
-  nullability per LOB (MD/MP/ME for Medicaid/Medicare), and optional validation
-  rules. The UMF is the contract.
-- **Is validated on load.** Great Expectations suites generated from UMF verify
-  that each load conforms to the declared contract before data flows downstream.
+- **Is governed by a UMF spec.** Every column has a declared type and
+  per-context nullability — in healthcare feeds the common contexts are MD
+  (Medicaid), MP (Medicare Part D), and ME (Medicare) — plus expectations
+  for everything else worth checking. The UMF is the contract.
+- **Is validated on load.** Expectation suites generated from the UMF verify
+  that each load conforms to the declared contract before data flows
+  downstream.
 
 The ingested layer is the stable foundation. If something is wrong with the
 data, you can trace it back to the source semantics preserved here rather than
@@ -71,32 +73,47 @@ the source — no renames, no type promotions, no nullability assumptions beyond
 what the source feed actually exhibits. Silver transformations are separate jobs
 with their own contracts.
 
+The raw/ingested split is also how validation executes. String-shape checks
+(castability, lengths, date formats) run against the raw landing table;
+value and relationship checks run against the typed ingested table — and
+sources that arrive already typed, like JDBC or Parquet, skip the raw string
+checks entirely. See the [validation model](/concepts/validation/) for the
+staged execution details.
+
 ## In practice
 
-A tablespec UMF schema for an ingested bronze table looks like this:
+A UMF spec for an ingested bronze table keeps the source's own column names.
+In split format, `tables/member_eligibility/table.yaml`:
 
 ```yaml
-version: "1.0"
 table_name: member_eligibility
-description: Member eligibility — source-faithful ingested bronze from claims feed
-columns:
-  - name: mbr_id          # Source column name, not a standardized version
-    data_type: VARCHAR
-    length: 20
-    nullable:
-      MD: false
-      MP: false
-  - name: elig_start_dt   # Source date format, not renamed
-    data_type: DATE
-    nullable:
-      MD: false
-      MP: true            # MP feed sometimes omits this
-  - name: plan_cd
-    data_type: VARCHAR
-    length: 10
-    nullable:
-      MD: true
-      MP: true
+canonical_name: Member Eligibility
+description: Member eligibility - source-faithful ingested bronze from claims feed
+version: '1.0'
+```
+
+and one file per column under `columns/`, each preserving the source name
+and the feed's actual nullability:
+
+```yaml
+# columns/mbr_id.yaml -- source column name, not a standardized version
+column:
+  name: mbr_id
+  data_type: VARCHAR
+  length: 20
+  nullable:
+    MD: false
+    MP: false
+```
+
+```yaml
+# columns/elig_start_dt.yaml
+column:
+  name: elig_start_dt
+  data_type: DATE
+  nullable:
+    MD: false
+    MP: true    # the Medicare Part D feed sometimes omits this
 ```
 
 A silver table that standardizes across sources would have its own UMF with
