@@ -84,7 +84,7 @@ build-time dependency on the sibling repository.
 
 ### Non-Functional Requirements
 
-- **Preserve install channel**: `pip install --index-url https://easel.github.io/tablespec/simple/ tablespec` remains valid after the microsite deploys.
+- **Preserve install channel**: `pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ tablespec` remains valid after the microsite deploys.
 - **Deterministic build**: Hugo, Go modules, Node dependencies, and Playwright are pinned so local and CI builds produce stable output.
 - **Responsive navigation**: Desktop and mobile navigation expose the same core pages; page-local navigation remains subordinate to site hierarchy.
 - **Minimal custom styling**: Prefer Hextra configuration and shortcodes; add custom CSS only for site goals the framework cannot express.

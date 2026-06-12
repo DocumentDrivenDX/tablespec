@@ -49,7 +49,7 @@ database and it writes the specs for you.
 
 ## Install
 
-tablespec is distributed via GitHub Pages. Install it with uv or pip using the project package index at `easel.github.io/tablespec/simple/`. See [Getting Started](/getting-started/) for the full install path, Spark extras, and first compile walk-through.
+tablespec is distributed via GitHub Pages. Install it with uv or pip using the project package index at `documentdrivendx.github.io/tablespec/simple/`. See [Getting Started](/getting-started/) for the full install path, Spark extras, and first compile walk-through.
 
 <div class="hx-mt-12"></div>
 

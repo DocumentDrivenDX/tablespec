@@ -53,7 +53,7 @@ test.describe('Getting Started', () => {
 
     await test.step('install command uses project package index', async () => {
       const body = await page.locator('body').textContent()
-      expect(body).toContain('easel.github.io/tablespec/simple/')
+      expect(body).toContain('documentdrivendx.github.io/tablespec/simple/')
     })
 
     await test.step('documents uv and pip install paths', async () => {

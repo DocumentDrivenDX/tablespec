@@ -25,7 +25,7 @@ API reference generation; this story owns the public product shell and navigatio
 
 ## Walkthrough
 
-1. User opens `https://easel.github.io/tablespec/`.
+1. User opens `https://documentdrivendx.github.io/tablespec/`.
 2. System presents the Hugo/Hextra homepage with tablespec's category, value, and first action.
 3. User follows Getting Started to install from `/simple/` and run the compile path.
 4. User opens Concepts to understand raw, ingested, and silver boundaries.

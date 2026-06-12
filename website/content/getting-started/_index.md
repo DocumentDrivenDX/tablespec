@@ -13,16 +13,16 @@ tablespec is distributed via GitHub Pages. The `--index-url` flag is required.
 
 ```bash
 # Using uv (recommended)
-uv add tablespec --index-url https://easel.github.io/tablespec/simple/
+uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
 
 # Using pip
-pip install tablespec --index-url https://easel.github.io/tablespec/simple/
+pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
 Add the `[spark]` extra only if you need PySpark-based profiling or validation:
 
 ```bash
-uv add tablespec[spark] --index-url https://easel.github.io/tablespec/simple/
+uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
 ## Load a UMF schema

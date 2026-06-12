@@ -61,7 +61,7 @@ time.
 - The install channel remains stable while the project gains a real public site.
 - The release workflow cannot be naively replaced by a Hugo deploy that writes
   only the site root; doing so would break documented `pip install --index-url
-  https://easel.github.io/tablespec/simple/ ...` commands.
+  https://documentdrivendx.github.io/tablespec/simple/ ...` commands.
 - The first microsite implementation carries additional tooling: Hugo extended,
   Go modules, Node/npm, and Playwright.
 - MkDocs is no longer the assumed public documentation shell. Its remaining role

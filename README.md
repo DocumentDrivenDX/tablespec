@@ -43,20 +43,20 @@ uv run python examples/demo.py
 
 ```bash
 # Add to your uv project
-uv add tablespec --index-url https://easel.github.io/tablespec/simple/
+uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
 
 # With Spark support (for profiling and validation)
-uv add tablespec[spark] --index-url https://easel.github.io/tablespec/simple/
+uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
 ### Using pip
 
 ```bash
 # Install from GitHub Pages index
-pip install tablespec --index-url https://easel.github.io/tablespec/simple/
+pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
 
 # With Spark support
-pip install tablespec[spark] --index-url https://easel.github.io/tablespec/simple/
+pip install tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
 **Note**: This package is distributed via GitHub Pages. The `--index-url` flag is required.
@@ -168,11 +168,11 @@ it does not re-run the bootstrap orchestration from source-time Python.
 
 ## Documentation
 
-Full documentation is available at [easel.github.io/tablespec](https://easel.github.io/tablespec/):
+Full documentation is available at [documentdrivendx.github.io/tablespec](https://documentdrivendx.github.io/tablespec/):
 
-- **[User Guide](https://easel.github.io/tablespec/guide/umf-format/)** -- UMF format, schema generation, GX integration, CLI, Excel, and more
-- **[API Reference](https://easel.github.io/tablespec/api/models/)** -- Complete API documentation
-- **[Development](https://easel.github.io/tablespec/development/)** -- Setup, testing, and project structure
+- **[User Guide](https://documentdrivendx.github.io/tablespec/guide/umf-format/)** -- UMF format, schema generation, GX integration, CLI, Excel, and more
+- **[API Reference](https://documentdrivendx.github.io/tablespec/api/models/)** -- Complete API documentation
+- **[Development](https://documentdrivendx.github.io/tablespec/development/)** -- Setup, testing, and project structure
 
 ## License
 
