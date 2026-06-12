@@ -609,9 +609,9 @@ def cast_column_sql(
             Databricks dbt target reuses the Spark rendering. It exists as a named
             dialect purely so a Databricks compile/run target can be selected
             explicitly rather than masquerading as plain Spark.
-        source_kind: Optional UMF source kind. Typed raw sources such as parquet
-            and JDBC already carry native scalar/list values, so their generated
-            SQL uses direct type casts instead of string cleanup/parsing.
+        source_kind: Optional UMF source kind. Typed raw sources such as parquet,
+            json and JDBC already carry native scalar/list values, so their
+            generated SQL uses direct type casts instead of string cleanup/parsing.
 
     Returns:
     -------
@@ -636,7 +636,7 @@ def cast_column_sql(
     # never drift. Everything past this point only distinguishes duckdb vs not.
     is_duck = render_dialect == "duckdb"
     t = target_type.upper()
-    typed_raw = (source_kind or "").lower() in {"jdbc", "parquet"}
+    typed_raw = (source_kind or "").lower() in {"jdbc", "json", "parquet"}
 
     # String types: raw landing data is already a string -- passthrough.
     # Identical across both dialects.

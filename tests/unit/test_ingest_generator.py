@@ -223,6 +223,35 @@ class TestGenerateIngestSqlStructure:
         assert "try_strptime" not in sql
         assert "cast(id as INT)" in sql or "try_cast(id as INT)" in sql
 
+    def test_json_raw_table_is_native_typed(self):
+        import re
+
+        cols = [
+            {"name": "id", "data_type": "INTEGER", "nullable": False},
+            {"name": "event_date", "data_type": "DATE"},
+            {"name": "amount", "data_type": "DECIMAL", "precision": 12, "scale": 4},
+        ]
+        sql = generate_ingest_sql(
+            _umf(
+                columns=cols,
+                primary_key=["id"],
+                source={
+                    "kind": "json",
+                    "path": "/data/events.jsonl",
+                    "projection": [
+                        {"column": "id", "path": "id"},
+                        {"column": "event_date", "path": "payload.event_date"},
+                        {"column": "amount", "path": "payload.amount"},
+                    ],
+                },
+            )
+        )
+        raw_section = sql.split("-- 2.")[0]
+        assert re.search(r"\bid\s+INT\b", raw_section), raw_section
+        assert re.search(r"\bevent_date\s+DATE\b", raw_section), raw_section
+        assert re.search(r"\bamount\s+DECIMAL\(12,4\)", raw_section), raw_section
+        assert "id STRING" not in raw_section
+
     def test_table_name_overrides(self):
         sql = generate_ingest_sql(
             _umf(columns=_COLS, primary_key=["id"]),

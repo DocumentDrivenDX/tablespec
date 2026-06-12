@@ -59,7 +59,7 @@ STRING_SHAPE_EXPECTATION_TYPES: frozenset[str] = frozenset(
 def raw_stage_is_typed(umf_data: dict[str, Any]) -> bool:
     """True when *umf_data* declares a source whose raw landing is native-typed.
 
-    Data-driven off the UMF's ``source.kind`` (SRC-04): ``jdbc`` and
+    Data-driven off the UMF's ``source.kind`` (SRC-04): ``jdbc``, ``json`` and
     ``parquet`` land typed raw; ``delimited`` (or no ``source:`` block at all,
     the legacy spelling) lands all-STRING raw.
     """

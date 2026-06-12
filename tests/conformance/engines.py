@@ -48,8 +48,9 @@ from tablespec.ingestion import (
     create_string_dataframe,
     delimited_source_has_text_quirks,
     delimited_source_records,
+    get_reader,
 )
-from tablespec.models.umf import DelimitedSource, ParquetSource
+from tablespec.models.umf import DelimitedSource, JsonSource, ParquetSource
 from tablespec.e2e.gating import (
     DATABRICKS_E2E_REQUIRED_ENV,
     databricks_e2e_availability,
@@ -147,7 +148,9 @@ def _dbt_failure_detail(result: Any) -> str:
     )
 
 
-def _declared_source(umf: dict[str, Any]) -> DelimitedSource | ParquetSource | None:
+def _declared_source(
+    umf: dict[str, Any],
+) -> DelimitedSource | JsonSource | ParquetSource | None:
     """Return the declared raw source shape, or ``None`` for legacy corpus."""
     declared = umf.get("source")
     if declared is not None:
@@ -156,14 +159,38 @@ def _declared_source(umf: dict[str, Any]) -> DelimitedSource | ParquetSource | N
             return DelimitedSource.model_validate(declared)
         if kind == "parquet":
             return ParquetSource.model_validate(declared)
+        if kind == "json":
+            return JsonSource.model_validate(declared)
         raise NotImplementedError(
-            f"conformance row loader only supports delimited/parquet sources; "
+            f"conformance row loader only supports delimited/parquet/json sources; "
             f"got kind={kind!r}"
         )
     file_format = umf.get("file_format")
     if file_format is not None:
         return DelimitedSource.model_validate(file_format)
     return None
+
+
+def _source_suffix(
+    source: DelimitedSource | JsonSource | ParquetSource | None, batch: Path
+) -> str:
+    if isinstance(source, ParquetSource):
+        return ".parquet"
+    if isinstance(source, JsonSource):
+        return batch.suffix or ".jsonl"
+    return ".csv"
+
+
+def _duckdb_identifier(name: str) -> str:
+    return f'"{name.replace(chr(34), chr(34) * 2)}"'
+
+
+def _duckdb_json_projection_expr(path: str) -> str:
+    parts = path.split(".")
+    expr = _duckdb_identifier(parts[0])
+    for part in parts[1:]:
+        expr = f"struct_extract({expr}, '{part.replace(chr(39), chr(39) * 2)}')"
+    return expr
 
 
 # ---------------------------------------------------------------------------
@@ -485,9 +512,12 @@ class SparkDirectEngine(Engine):
         source_name = (
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
         )
-        source_suffix = ".parquet" if isinstance(source, ParquetSource) else ".csv"
+        source_suffix = _source_suffix(source, csv_path)
 
-        if isinstance(source, ParquetSource):
+        if isinstance(source, JsonSource):
+            json_source = source.model_copy(update={"path": str(csv_path)})
+            df = get_reader(json_source).read(json_source, spark)
+        elif isinstance(source, ParquetSource):
             df = spark.read.parquet(str(csv_path))
         else:
             string_cols = business_cols + ["_source_file"]
@@ -591,7 +621,7 @@ class DbtDuckDBEngine(Engine):
         cols = [c["name"] for c in umf["columns"]]
         source = _declared_source(umf)
         source_name = table
-        source_suffix = ".parquet" if isinstance(source, ParquetSource) else ".csv"
+        source_suffix = _source_suffix(source, csv_path)
 
         def _sq(value: str) -> str:
             return value.replace("'", "''")
@@ -599,7 +629,21 @@ class DbtDuckDBEngine(Engine):
         con = self._connect(db_path)
         try:
             con.execute(f"DROP TABLE IF EXISTS raw_{table}")
-            if isinstance(source, ParquetSource):
+            if isinstance(source, JsonSource):
+                projection = ", ".join(
+                    f"{_duckdb_json_projection_expr(proj.path)} "
+                    f"AS {_duckdb_identifier(proj.column)}"
+                    for proj in source.projection
+                )
+                projection += (
+                    f", '{source_name}{source_suffix}' AS \"_source_file\", "
+                    "TIMESTAMP '2026-01-01 00:00:00' AS \"_load_ts\""
+                )
+                con.execute(
+                    f"CREATE TABLE raw_{table} AS "
+                    f"SELECT {projection} FROM read_json_auto('{_sq(str(csv_path))}')"
+                )
+            elif isinstance(source, ParquetSource):
                 projection = ", ".join(f'"{c}"' for c in cols)
                 projection += (
                     f", '{source_name}{source_suffix}' AS \"_source_file\", "
@@ -737,9 +781,12 @@ class DbtSparkSessionEngine(Engine):
         table = umf["table_name"]
         business_cols = [c["name"] for c in umf["columns"]]
         source_name = table
-        source_suffix = ".parquet" if isinstance(source, ParquetSource) else ".csv"
+        source_suffix = _source_suffix(source, csv_path)
 
-        if isinstance(source, ParquetSource):
+        if isinstance(source, JsonSource):
+            json_source = source.model_copy(update={"path": str(csv_path)})
+            df = get_reader(json_source).read(json_source, spark)
+        elif isinstance(source, ParquetSource):
             df = spark.read.parquet(str(csv_path))
         else:
             string_cols = business_cols + ["_source_file"]

@@ -2,10 +2,9 @@
 
 A :class:`SourceReader` turns a UMF ``source:`` spec (see
 ``tablespec.models.umf.SourceSpec``) into a Spark DataFrame. ``get_reader``
-dispatches on the spec's ``kind``; delimited flat files (:class:`CsvReader`)
-and jdbc sources (:class:`JdbcReader`, bead tablespec-4b65c810) are delivered
-here, parquet raises :class:`NotImplementedError` until its bead lands
-(tablespec-61da147e).
+dispatches on the spec's ``kind``; delimited flat files (:class:`CsvReader`),
+json / JSONL sources (:class:`JsonReader`), parquet, and jdbc sources
+(:class:`JdbcReader`, bead tablespec-4b65c810) are delivered here.
 
 This package never imports PySpark at module import time -- readers receive an
 active session, keeping ``tablespec[spark]`` optional (ADR-003).
@@ -33,7 +32,7 @@ from tablespec.ingestion.raw_ingester import (
     build_column_lookup,
     map_headers,
 )
-from tablespec.models.umf import DelimitedSource, ParquetSource
+from tablespec.models.umf import DelimitedSource, JsonSource, ParquetSource
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame, SparkSession
@@ -214,6 +213,53 @@ def create_string_dataframe(
     return spark.createDataFrame(rows, schema=schema)
 
 
+def _json_schema_paths(schema: Any, prefix: str = "") -> set[str]:
+    """Return the set of reachable dot-paths in a Spark schema."""
+    from pyspark.sql.types import StructType
+
+    paths: set[str] = set()
+    if not isinstance(schema, StructType):
+        return paths
+    for field in schema.fields:
+        path = f"{prefix}{field.name}"
+        paths.add(path)
+        paths |= _json_schema_paths(field.dataType, prefix=f"{path}.")
+    return paths
+
+
+def _json_path_exists(schema: Any, path: str) -> bool:
+    """Whether *path* is resolvable against the inferred Spark schema."""
+    from pyspark.sql.types import StructType
+
+    current = schema
+    for part in path.split("."):
+        if not isinstance(current, StructType):
+            return False
+        field = next((f for f in current.fields if f.name == part), None)
+        if field is None:
+            return False
+        current = field.dataType
+    return True
+
+
+def _validate_json_projection_paths(
+    schema: Any, projection: dict[str, str], columns: list[str]
+) -> None:
+    missing: list[tuple[str, str]] = []
+    available = sorted(_json_schema_paths(schema))
+    for column in columns:
+        path = projection.get(column, column)
+        if not _json_path_exists(schema, path):
+            missing.append((column, path))
+    if missing:
+        details = ", ".join(f"{column!r}->{path!r}" for column, path in missing)
+        msg = (
+            "JsonSource projection path(s) not found in inferred schema: "
+            f"{details}. Available schema paths: {available}"
+        )
+        raise ValueError(msg)
+
+
 class CsvReader:
     """Delimited flat-file reader with UMF-derived options.
 
@@ -258,6 +304,32 @@ class ParquetReader:
         return spark.read.parquet(str(spec.path))
 
 
+class JsonReader:
+    """JSON / JSONL reader with explicit flat projection validation."""
+
+    def read(self, spec: SourceSpec, spark: SparkSession) -> DataFrame:
+        if not isinstance(spec, JsonSource):
+            msg = f"JsonReader requires a json source, got kind={spec.kind!r}"
+            raise TypeError(msg)
+        if spec.path is None:
+            msg = "JsonSource.path must be set before reading"
+            raise ValueError(msg)
+
+        df = spark.read.option("multiLine", spec.multi_line).json(str(spec.path))
+        projection_map = {item.column: item.path for item in spec.projection}
+        projection_order = [item.column for item in spec.projection]
+        _validate_json_projection_paths(df.schema, projection_map, projection_order)
+
+        from pyspark.sql import functions as F
+
+        return df.select(
+            *[
+                F.col(projection_map[column]).alias(column)
+                for column in projection_order
+            ]
+        )
+
+
 def get_reader(spec: SourceSpec) -> SourceReader:
     """Build the :class:`SourceReader` for *spec*, dispatching on ``kind``."""
     kind = getattr(spec, "kind", None)
@@ -265,6 +337,8 @@ def get_reader(spec: SourceSpec) -> SourceReader:
         return CsvReader()
     if kind == "parquet":
         return ParquetReader()
+    if kind == "json":
+        return JsonReader()
     if kind == "jdbc":
         return JdbcReader()
     msg = f"unknown source kind: {kind!r}"
@@ -275,6 +349,7 @@ __all__ = [
     "CsvReader",
     "HeaderMatch",
     "JdbcReader",
+    "JsonReader",
     "ParquetReader",
     "SecretResolutionError",
     "create_string_dataframe",

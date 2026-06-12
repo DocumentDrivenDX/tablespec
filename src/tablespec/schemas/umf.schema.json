@@ -1242,6 +1242,72 @@
       "title": "JoinViaSpec",
       "type": "object"
     },
+    "JsonProjection": {
+      "additionalProperties": false,
+      "description": "Flat JSON field projection for one UMF column.",
+      "properties": {
+        "column": {
+          "description": "UMF column name",
+          "title": "Column",
+          "type": "string"
+        },
+        "path": {
+          "description": "Top-level field name or explicit dot-path in the JSON source.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "column",
+        "path"
+      ],
+      "title": "JsonProjection",
+      "type": "object"
+    },
+    "JsonSource": {
+      "additionalProperties": false,
+      "description": "JSON / JSONL source with flat column projection metadata.",
+      "properties": {
+        "kind": {
+          "const": "json",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "File or directory path of the JSON or JSONL data to read.",
+          "title": "Path"
+        },
+        "multi_line": {
+          "default": false,
+          "description": "Whether the source uses multiline JSON records instead of JSONL.",
+          "title": "Multi Line",
+          "type": "boolean"
+        },
+        "projection": {
+          "description": "Flat projection list from UMF column name to JSON field path. Every UMF column must appear exactly once. Dot paths are resolved explicitly; no recursive flattening is performed.",
+          "items": {
+            "$ref": "#/$defs/JsonProjection"
+          },
+          "minItems": 1,
+          "title": "Projection",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "JsonSource",
+      "type": "object"
+    },
     "Nullable": {
       "additionalProperties": true,
       "description": "Nullable configuration per context (e.g., Line of Business).\n\nAccepts arbitrary context keys with boolean values. Common healthcare\ncontexts include MD (Medicaid), MP (Medicare Part D), ME (Medicare),\nbut any domain-specific keys are supported.\n\nExamples:\n    Nullable(MD=False, MP=False, ME=False)      # Healthcare LOBs\n    Nullable(US=False, EU=True)                  # Regional contexts\n    Nullable(production=False, staging=True)      # Environment contexts",
@@ -2819,6 +2885,7 @@
             "mapping": {
               "delimited": "#/$defs/DelimitedSource",
               "jdbc": "#/$defs/JdbcSource",
+              "json": "#/$defs/JsonSource",
               "parquet": "#/$defs/ParquetSource"
             },
             "propertyName": "kind"
@@ -2831,6 +2898,9 @@
               "$ref": "#/$defs/ParquetSource"
             },
             {
+              "$ref": "#/$defs/JsonSource"
+            },
+            {
               "$ref": "#/$defs/JdbcSource"
             }
           ]
@@ -2840,7 +2910,7 @@
         }
       ],
       "default": null,
-      "description": "Source shape declaration (ADR-015), discriminated on 'kind' (delimited | parquet | jdbc). When absent the table is a delimited flat file described by file_format (or its defaults); resolve via effective_source().",
+      "description": "Source shape declaration (ADR-015), discriminated on 'kind' (delimited | parquet | json | jdbc). When absent the table is a delimited flat file described by file_format (or its defaults); resolve via effective_source().",
       "title": "Source"
     },
     "validation_rules": {

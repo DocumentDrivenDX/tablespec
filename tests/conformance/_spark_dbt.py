@@ -50,7 +50,6 @@ def make_isolated_delta_session(app_name: str, work_dir: Path) -> SparkSession:
         time.tzset()
 
     from pyspark.sql import SparkSession
-
     from tablespec.spark_factory import create_delta_spark_session
 
     # CRITICAL isolation guard: create_delta_spark_session (and Spark's
@@ -93,35 +92,54 @@ def make_isolated_delta_session(app_name: str, work_dir: Path) -> SparkSession:
 
 
 def load_raw_table(spark: SparkSession, umf: dict[str, Any], csv_path: Path) -> None:
-    """(Re)create ``main.raw_<table>`` as an all-string Delta table from a CSV batch.
+    """(Re)create ``main.raw_<table>`` from a batch, preserving typed raw where needed.
 
-    This MIRRORS the Spark-direct baseline's ``_load_raw`` byte-for-byte (same CSV
-    options, same explicit all-string schema, same ``_load_ts`` parse) so the only
-    difference between this leg and the oracle is dbt vs Spark-direct writing. The
-    CSV's own ``_source_file`` / ``_load_ts`` provenance columns are read (NOT
-    synthesised) -- the fixtures already carry them.
-
-    The generated ``sources.yml`` declares ``schema: main``, so the landing table
-    lives in the ``main`` schema.
+    Delimited fixtures mirror the Spark-direct baseline's all-string landing table
+    exactly; typed sources (including JSON) land through Spark's native reader and
+    then receive the standard provenance columns.
     """
-    from pyspark.sql.functions import to_timestamp
+    from pyspark.sql.functions import lit, to_timestamp
 
     table = umf["table_name"]
-    string_cols = [c["name"] for c in umf["columns"]] + ["_source_file"]
-    read_schema_fields = [(name, "string") for name in string_cols]
-    read_schema_fields.append(("_load_ts", "string"))
-    schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+    source = umf.get("source") or {}
+    kind = source.get("kind")
+    business_cols = [c["name"] for c in umf["columns"]]
+    source_suffix = (csv_path.suffix or ".jsonl") if kind == "json" else ".csv"
 
-    df = (
-        spark.read.option("header", True)
-        .option("quote", '"')
-        .option("escape", '"')
-        .option("multiLine", True)
-        .schema(schema_ddl)
-        .csv(str(csv_path))
-        .withColumn("_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss"))
-    )
-    ordered = [c["name"] for c in umf["columns"]] + ["_source_file", "_load_ts"]
+    if kind == "json":
+        from tablespec.ingestion import get_reader
+        from tablespec.models.umf import JsonSource
+
+        source_spec = JsonSource.model_validate(source).model_copy(
+            update={"path": str(csv_path)}
+        )
+        df = get_reader(source_spec).read(source_spec, spark)
+    else:
+        string_cols = business_cols + ["_source_file"]
+        read_schema_fields = [(name, "string") for name in string_cols]
+        read_schema_fields.append(("_load_ts", "string"))
+        schema_ddl = ", ".join(f"`{n}` {t}" for n, t in read_schema_fields)
+
+        df = (
+            spark.read.option("header", True)
+            .option("quote", '"')
+            .option("escape", '"')
+            .option("multiLine", True)
+            .schema(schema_ddl)
+            .csv(str(csv_path))
+            .withColumn("_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss"))
+        )
+
+    if "_load_ts" in df.columns:
+        df = df.withColumn("_load_ts", to_timestamp("_load_ts", "yyyy-MM-dd HH:mm:ss"))
+    else:
+        df = df.withColumn(
+            "_load_ts",
+            to_timestamp(lit("2026-01-01 00:00:00"), "yyyy-MM-dd HH:mm:ss"),
+        )
+    if "_source_file" not in df.columns:
+        df = df.withColumn("_source_file", lit(f"{table}{source_suffix}"))
+    ordered = business_cols + ["_source_file", "_load_ts"]
     df = df.select(*ordered)
     spark.sql("CREATE DATABASE IF NOT EXISTS main")
     spark.sql(f"DROP TABLE IF EXISTS main.raw_{table}")

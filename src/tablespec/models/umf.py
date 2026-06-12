@@ -255,6 +255,57 @@ class ParquetSource(BaseModel):
     )
 
 
+class JsonProjection(BaseModel):
+    """Flat JSON field projection for one UMF column."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    column: str = Field(description="UMF column name")
+    path: str = Field(
+        description="Top-level field name or explicit dot-path in the JSON source."
+    )
+
+
+class JsonSource(BaseModel):
+    """JSON / JSONL source with flat column projection metadata."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["json"]
+    path: str | None = Field(
+        default=None,
+        description="File or directory path of the JSON or JSONL data to read.",
+    )
+    multi_line: bool = Field(
+        default=False,
+        description="Whether the source uses multiline JSON records instead of JSONL.",
+    )
+    projection: list[JsonProjection] = Field(
+        default_factory=list,
+        min_length=1,
+        description="Flat projection list from UMF column name to JSON field path. "
+        "Every UMF column must appear exactly once. Dot paths are resolved "
+        "explicitly; no recursive flattening is performed.",
+    )
+
+    @model_validator(mode="after")
+    def validate_projection(self) -> Self:
+        if not self.projection:
+            raise ValueError("JsonSource requires at least one projection entry")
+        seen: set[str] = set()
+        for item in self.projection:
+            if not item.column:
+                raise ValueError("JsonSource projection columns must be non-empty")
+            if not item.path.strip():
+                msg = f"JsonSource projection path for column {item.column!r} must not be empty"
+                raise ValueError(msg)
+            if item.column in seen:
+                msg = f"JsonSource projection column {item.column!r} is duplicated"
+                raise ValueError(msg)
+            seen.add(item.column)
+        return self
+
+
 class JdbcSource(BaseModel):
     """JDBC source (JDBC-01). Reading lands with bead tablespec-4b65c810.
 
@@ -311,16 +362,16 @@ class JdbcSource(BaseModel):
 
 
 SourceSpec = Annotated[
-    DelimitedSource | ParquetSource | JdbcSource,
+    DelimitedSource | ParquetSource | JsonSource | JdbcSource,
     Field(discriminator="kind"),
 ]
 
 #: Source kinds whose RAW stage lands NATIVE-TYPED data (FEAT-031 SRC-04 /
-#: ADR-015): ``parquet`` and ``jdbc``. ``delimited`` keeps the proven
+#: ADR-015): ``parquet``, ``json`` and ``jdbc``. ``delimited`` keeps the proven
 #: all-STRING raw landing (ADR-007). Suite composition consults this to keep
 #: string-shape raw checks (length/regex/strftime/castability) off typed raw
 #: (SUITE-01/SUITE-02) -- see ``tablespec.gx_baseline``.
-TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset({"jdbc", "parquet"})
+TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset({"jdbc", "json", "parquet"})
 
 
 class Nullable(BaseModel):
@@ -1424,7 +1475,7 @@ class UMF(BaseModel):
     source: SourceSpec | None = Field(
         default=None,
         description="Source shape declaration (ADR-015), discriminated on 'kind' "
-        "(delimited | parquet | jdbc). When absent the table is a delimited "
+        "(delimited | parquet | json | jdbc). When absent the table is a delimited "
         "flat file described by file_format (or its defaults); resolve via "
         "effective_source().",
     )
@@ -1474,7 +1525,9 @@ class UMF(BaseModel):
         "per-context keys generate filtered expectations using row_condition.",
     )
 
-    def effective_source(self) -> "DelimitedSource | ParquetSource | JdbcSource":
+    def effective_source(
+        self,
+    ) -> "DelimitedSource | ParquetSource | JsonSource | JdbcSource":
         """Resolve the effective source shape for this table (ADR-015).
 
         Returns ``source`` when declared; otherwise derives a
@@ -1488,6 +1541,30 @@ class UMF(BaseModel):
         if self.file_format is not None:
             return DelimitedSource(**self.file_format.model_dump())
         return DelimitedSource()
+
+    @model_validator(mode="after")
+    def validate_json_source_projection(self) -> Self:
+        """Require JSON source projections to cover every UMF column exactly once."""
+        if not isinstance(self.source, JsonSource):
+            return self
+        column_names = [col.name for col in self.columns]
+        projected = [item.column for item in self.source.projection]
+        missing = [name for name in column_names if name not in projected]
+        extra = [name for name in projected if name not in column_names]
+        duplicates = sorted({name for name in projected if projected.count(name) > 1})
+        problems: list[str] = []
+        if missing:
+            problems.append(f"missing projection(s) for columns: {missing}")
+        if extra:
+            problems.append(f"projection(s) for unknown columns: {extra}")
+        if duplicates:
+            problems.append(f"duplicate projection(s) for columns: {duplicates}")
+        if problems:
+            raise ValueError(
+                "JsonSource projection must cover the UMF columns exactly: "
+                + "; ".join(problems)
+            )
+        return self
 
     @field_validator("columns")
     @classmethod
@@ -1678,9 +1755,11 @@ __all__ = [
     "IngestionExclusionRule",
     "JdbcSource",
     "JoinViaSpec",
+    "JsonProjection",
     "Nullable",
     "OutgoingRelationship",
     "OutputConfig",
+    "JsonSource",
     "ParquetSource",
     "PostUpsertRule",
     "QualityCheck",

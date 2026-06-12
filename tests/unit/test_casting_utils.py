@@ -79,36 +79,47 @@ class TestCastColumnSql:
         assert cast_column_sql("d", "DATE") == "cast(try_to_timestamp(d) as date)"
 
     @pytest.mark.parametrize(
-        ("dialect", "expected"),
-        [("spark", "cast(d as date)"), ("duckdb", "try_cast(d as date)")],
+        ("source_kind", "dialect", "expected"),
+        [
+            ("jdbc", "spark", "cast(d as date)"),
+            ("jdbc", "duckdb", "try_cast(d as date)"),
+            ("json", "spark", "cast(d as date)"),
+            ("json", "duckdb", "try_cast(d as date)"),
+            ("parquet", "spark", "cast(d as date)"),
+            ("parquet", "duckdb", "try_cast(d as date)"),
+        ],
     )
-    def test_typed_raw_date_uses_safe_cast(self, dialect, expected):
+    def test_typed_raw_date_uses_safe_cast(self, source_kind, dialect, expected):
         """Typed raw DATE values stay typed and never route through string parsing."""
         expr = cast_column_sql(
             "d",
             "DATE",
             "YYYY-MM-DD",
             dialect=dialect,
-            source_kind="parquet",
+            source_kind=source_kind,
         )
         assert expr == expected
         assert "try_to_timestamp" not in expr
         assert "try_strptime" not in expr
 
     @pytest.mark.parametrize(
-        ("dialect", "expected"),
+        ("source_kind", "dialect", "expected"),
         [
-            ("spark", "cast(ts as timestamp)"),
-            ("duckdb", "try_cast(ts as timestamp)"),
+            ("jdbc", "spark", "cast(ts as timestamp)"),
+            ("jdbc", "duckdb", "try_cast(ts as timestamp)"),
+            ("json", "spark", "cast(ts as timestamp)"),
+            ("json", "duckdb", "try_cast(ts as timestamp)"),
+            ("parquet", "spark", "cast(ts as timestamp)"),
+            ("parquet", "duckdb", "try_cast(ts as timestamp)"),
         ],
     )
-    def test_typed_raw_timestamp_uses_safe_cast(self, dialect, expected):
+    def test_typed_raw_timestamp_uses_safe_cast(self, source_kind, dialect, expected):
         expr = cast_column_sql(
             "ts",
             "TIMESTAMP",
             "YYYY-MM-DD HH:MM:SS",
             dialect=dialect,
-            source_kind="jdbc",
+            source_kind=source_kind,
         )
         assert expr == expected
         assert "try_to_timestamp" not in expr

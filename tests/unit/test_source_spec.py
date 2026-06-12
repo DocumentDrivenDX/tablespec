@@ -14,6 +14,8 @@ from tablespec.models.umf import (
     UMF,
     DelimitedSource,
     JdbcSource,
+    JsonProjection,
+    JsonSource,
     ParquetSource,
     load_umf_from_yaml,
     save_umf_to_yaml,
@@ -99,6 +101,24 @@ class TestDiscriminator:
         umf = UMF(**_base(source={"kind": "parquet", "path": "/data/members"}))
         assert isinstance(umf.source, ParquetSource)
 
+    def test_json_source_validates_with_flat_projection(self):
+        umf = UMF(
+            **_base(
+                source={
+                    "kind": "json",
+                    "path": "/data/members.jsonl",
+                    "projection": [
+                        {"column": "member_id", "path": "memberId"},
+                    ],
+                }
+            )
+        )
+        assert isinstance(umf.source, JsonSource)
+        assert umf.source.kind == "json"
+        assert umf.source.projection == [
+            JsonProjection(column="member_id", path="memberId")
+        ]
+
 
 class TestFileFormatAlias:
     def test_absent_source_resolves_to_delimited_defaults(self):
@@ -171,6 +191,63 @@ class TestFileFormatAlias:
         loaded = load_umf_from_yaml(path)
         assert isinstance(loaded.source, JdbcSource)
         assert loaded.source == umf.source
+
+    def test_json_source_round_trips_through_yaml(self, tmp_path):
+        umf = UMF(
+            **_base(
+                columns=[
+                    {"name": "member_id", "data_type": "INTEGER"},
+                    {"name": "status", "data_type": "VARCHAR"},
+                ],
+                source={
+                    "kind": "json",
+                    "path": "/data/members.jsonl",
+                    "multi_line": False,
+                    "projection": [
+                        {"column": "member_id", "path": "memberId"},
+                        {"column": "status", "path": "payload.status"},
+                    ],
+                },
+            )
+        )
+        path = tmp_path / "umf.yaml"
+        save_umf_to_yaml(umf, path)
+        loaded = load_umf_from_yaml(path)
+        assert isinstance(loaded.source, JsonSource)
+        assert loaded.source == umf.source
+
+    def test_json_source_projection_must_cover_umf_columns(self):
+        with pytest.raises(ValidationError, match="missing projection"):
+            UMF(
+                **_base(
+                    columns=[
+                        {"name": "member_id", "data_type": "INTEGER"},
+                        {"name": "status", "data_type": "VARCHAR"},
+                    ],
+                    source={
+                        "kind": "json",
+                        "path": "/data/members.jsonl",
+                        "projection": [
+                            {"column": "member_id", "path": "memberId"},
+                        ],
+                    },
+                )
+            )
+
+    def test_json_source_projection_rejects_unknown_umf_columns(self):
+        with pytest.raises(ValidationError, match="unknown columns"):
+            UMF(
+                **_base(
+                    source={
+                        "kind": "json",
+                        "path": "/data/members.jsonl",
+                        "projection": [
+                            {"column": "member_id", "path": "memberId"},
+                            {"column": "status", "path": "payload.status"},
+                        ],
+                    },
+                )
+            )
 
     def test_delimited_source_round_trips_dump_fields(self, tmp_path):
         umf = UMF(

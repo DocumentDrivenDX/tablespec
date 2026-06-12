@@ -20,7 +20,13 @@ from tablespec.ingestion import (
     normalize_spark_encoding,
     spark_csv_options,
 )
-from tablespec.models.umf import UMF, DelimitedSource, JdbcSource, ParquetSource
+from tablespec.models.umf import (
+    UMF,
+    DelimitedSource,
+    JdbcSource,
+    JsonSource,
+    ParquetSource,
+)
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
@@ -34,6 +40,17 @@ class TestGetReader:
     def test_parquet_dispatches_to_parquet_reader(self):
         reader = get_reader(ParquetSource(kind="parquet"))
         assert reader.__class__.__name__ == "ParquetReader"
+        assert isinstance(reader, SourceReader)
+
+    def test_json_dispatches_to_json_reader(self):
+        reader = get_reader(
+            JsonSource(
+                kind="json",
+                path="/data/members.jsonl",
+                projection=[{"column": "member_id", "path": "memberId"}],
+            )
+        )
+        assert reader.__class__.__name__ == "JsonReader"
         assert isinstance(reader, SourceReader)
 
     def test_jdbc_dispatches_to_jdbc_reader(self):

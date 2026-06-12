@@ -1,7 +1,7 @@
 """Raw-suite typing for typed sources (FEAT-031 SUITE-01..03).
 
 Suite COMPOSITION branches on the UMF's declared ``source.kind``: sources
-that land NATIVE-TYPED raw (jdbc/parquet, SRC-04/ADR-015) never receive
+that land NATIVE-TYPED raw (jdbc/json/parquet, SRC-04/ADR-015) never receive
 raw-stage string-shape checks (length/regex/strftime/castability) -- they
 keep schema-type + nullability conformance and every ingested-stage check.
 Delimited and legacy (no ``source:`` block) UMFs are byte-for-byte
@@ -77,6 +77,17 @@ JDBC_SOURCE = {
     "url": "jdbc:sqlserver://example:1433;databaseName=Northwind",
     "dbtable": "[dbo].[Events]",
 }
+JSON_SOURCE = {
+    "kind": "json",
+    "path": "/data/events.jsonl",
+    "projection": [
+        {"column": "code", "path": "code"},
+        {"column": "event_date", "path": "payload.event_date"},
+        {"column": "recorded_at", "path": "payload.recorded_at"},
+        {"column": "qty", "path": "payload.qty"},
+        {"column": "amount", "path": "payload.amount"},
+    ],
+}
 PARQUET_SOURCE = {"kind": "parquet", "path": "/data/events"}
 DELIMITED_SOURCE = {"kind": "delimited", "delimiter": "|"}
 
@@ -88,8 +99,9 @@ def generator() -> BaselineExpectationGenerator:
 
 class TestRawStageIsTyped:
     def test_typed_kinds(self):
-        assert TYPED_RAW_SOURCE_KINDS == frozenset({"jdbc", "parquet"})
+        assert TYPED_RAW_SOURCE_KINDS == frozenset({"jdbc", "json", "parquet"})
         assert raw_stage_is_typed(_umf_data(JDBC_SOURCE))
+        assert raw_stage_is_typed(_umf_data(JSON_SOURCE))
         assert raw_stage_is_typed(_umf_data(PARQUET_SOURCE))
 
     def test_delimited_and_legacy_are_string_raw(self):
@@ -105,7 +117,7 @@ class TestRawStageIsTyped:
 class TestTypedRawComposition:
     """SUITE-01/02: typed raw composes no string-shape raw checks."""
 
-    @pytest.mark.parametrize("source", [JDBC_SOURCE, PARQUET_SOURCE])
+    @pytest.mark.parametrize("source", [JDBC_SOURCE, JSON_SOURCE, PARQUET_SOURCE])
     def test_no_string_shape_checks_for_typed_source(self, generator, source):
         expectations = generator.generate_baseline_expectations(_umf_data(source))
         composed = {exp["type"] for exp in expectations}
@@ -113,7 +125,7 @@ class TestTypedRawComposition:
             composed & STRING_SHAPE_EXPECTATION_TYPES
         )
 
-    @pytest.mark.parametrize("source", [JDBC_SOURCE, PARQUET_SOURCE])
+    @pytest.mark.parametrize("source", [JDBC_SOURCE, JSON_SOURCE, PARQUET_SOURCE])
     def test_typed_source_keeps_schema_and_nullability_checks(self, generator, source):
         """SUITE-02: schema conformance + not-null survive for typed raw."""
         expectations = generator.generate_baseline_expectations(_umf_data(source))
@@ -127,7 +139,7 @@ class TestTypedRawComposition:
         ]
         assert [exp["kwargs"]["column"] for exp in not_null] == ["code"]
 
-    @pytest.mark.parametrize("source", [JDBC_SOURCE, PARQUET_SOURCE])
+    @pytest.mark.parametrize("source", [JDBC_SOURCE, JSON_SOURCE, PARQUET_SOURCE])
     def test_typed_source_keeps_ingested_stage_checks(self, generator, source):
         """Ingested-stage checks (typed-data semantics) still run."""
         expectations = generator.generate_baseline_expectations(_umf_data(source))
