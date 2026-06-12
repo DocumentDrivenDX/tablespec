@@ -22,6 +22,7 @@ Import rule (enforced by ``tests/test_core_encapsulation.py``): nothing under
 
 from __future__ import annotations
 
+from tablespec.core.expectation_facts import expectation_dicts_from_umf_data
 from tablespec.core.ir import (
     LogicalEdge,
     LogicalPlan,
@@ -50,4 +51,5 @@ __all__ = [
     "RelationRef",
     "ResolvedNode",
     "TableRenderer",
+    "expectation_dicts_from_umf_data",
 ]

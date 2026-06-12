@@ -50,7 +50,7 @@ from enum import Enum
 from typing import Any
 
 from tablespec.core.schema_facts import accepted_values_tests, relationship_tests
-from tablespec.expectation_utils import expectation_dicts_from_umf_data
+from tablespec.core.expectation_facts import expectation_dicts_from_umf_data
 
 
 class OnViolation(str, Enum):
