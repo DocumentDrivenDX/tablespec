@@ -311,6 +311,78 @@ def test_value_lengths_to_be_between(sail_spark):
     assert r.unexpected_count == 2
 
 
+def test_embedding_value_lengths_to_equal(sail_spark):
+    exp = [
+        {
+            "type": "expect_column_value_lengths_to_equal",
+            "kwargs": {"column": "embedding", "value": 3},
+        }
+    ]
+    schema = "embedding array<float>"
+    clean = _by_type(
+        _run(
+            sail_spark,
+            exp,
+            [([0.1, 0.2, 0.3],), ([0.4, 0.5, 0.6],), (None,)],
+            schema,
+        )
+    )
+    assert clean["expect_column_value_lengths_to_equal"].success is True
+
+    dirty = _by_type(
+        _run(
+            sail_spark,
+            exp,
+            [([0.1, 0.2, 0.3],), ([0.4, 0.5],), ([0.6, 0.7, 0.8, 0.9],)],
+            schema,
+        )
+    )
+    r = dirty["expect_column_value_lengths_to_equal"]
+    assert r.success is False
+    assert r.unexpected_count == 2
+
+
+def test_embedding_value_lengths_to_equal_rejects_null_and_nan_elements(sail_spark):
+    exp = [
+        {
+            "type": "expect_column_value_lengths_to_equal",
+            "kwargs": {"column": "embedding", "value": 3},
+        }
+    ]
+    result = _by_type(
+        _run(
+            sail_spark,
+            exp,
+            [
+                ([0.1, 0.2, 0.3],),
+                ([0.4, None, 0.6],),
+                ([0.7, float("nan"), 0.9],),
+            ],
+            "embedding array<float>",
+        )
+    )
+
+    r = result["expect_column_value_lengths_to_equal"]
+    assert r.success is False
+    assert r.unexpected_count == 2
+
+
+def test_embedding_dimension_advisory_passes_without_blocking(sail_spark):
+    exp = [
+        {
+            "type": "expect_embedding_dimension_multiple_of_16_advisory",
+            "kwargs": {"column": "embedding", "dimension": 1025},
+        }
+    ]
+    result = _by_type(
+        _run(sail_spark, exp, [([0.1, 0.2, 0.3],)], "embedding array<float>")
+    )
+
+    r = result["expect_embedding_dimension_multiple_of_16_advisory"]
+    assert r.success is True
+    assert r.observed_value["dimension"] == 1025
+
+
 def test_values_to_be_unique(sail_spark):
     exp = [
         {

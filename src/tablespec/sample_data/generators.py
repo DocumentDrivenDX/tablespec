@@ -6,7 +6,9 @@ not require cryptographic security.
 """
 
 from datetime import UTC, datetime, timedelta
+import hashlib
 import logging
+import math
 import random
 from typing import TYPE_CHECKING
 
@@ -723,6 +725,28 @@ class HealthcareDataGenerators:
         second = random.randint(0, 59)
         date = date.replace(hour=hour, minute=minute, second=second)
         return date.strftime(date_format)
+
+    def generate_embedding(
+        self, dimension: int, *, seed: str | int | None = None
+    ) -> list[float]:
+        """Generate a deterministic pseudo-embedding of the requested dimension."""
+        if dimension < 1:
+            msg = "dimension must be at least 1"
+            raise ValueError(msg)
+
+        seed_material = (
+            f"{seed!r}:{dimension}" if seed is not None else f"embedding:{dimension}"
+        )
+        digest = hashlib.sha256(seed_material.encode("utf-8")).digest()
+        seed_value = int.from_bytes(digest[:8], "big", signed=False)
+        rng = random.Random(seed_value)
+
+        values = [rng.uniform(-1.0, 1.0) for _ in range(dimension)]
+        norm = math.sqrt(sum(v * v for v in values))
+        if norm == 0.0:
+            values[0] = 1.0
+            norm = 1.0
+        return [round(v / norm, 8) for v in values]
 
     def generate_project_code(self) -> int:
         """Generate a project/plan identifier code.

@@ -12,7 +12,18 @@ pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 # -- Hypothesis strategies for minimal UMF objects --
 
 _DATA_TYPES = st.sampled_from(
-    ["VARCHAR", "INTEGER", "DECIMAL", "DATE", "DATETIME", "BOOLEAN", "TEXT", "CHAR", "FLOAT"]
+    [
+        "VARCHAR",
+        "INTEGER",
+        "DECIMAL",
+        "DATE",
+        "DATETIME",
+        "BOOLEAN",
+        "TEXT",
+        "CHAR",
+        "FLOAT",
+        "EMBEDDING",
+    ]
 )
 
 _IDENTIFIER = st.from_regex(r"[A-Za-z][A-Za-z0-9_]{0,20}", fullmatch=True)
@@ -30,6 +41,8 @@ def umf_column(draw):
     if data_type == "DECIMAL":
         kwargs["precision"] = draw(st.integers(min_value=1, max_value=38))
         kwargs["scale"] = draw(st.integers(min_value=0, max_value=18))
+    if data_type == "EMBEDDING":
+        kwargs["dimension"] = draw(st.integers(min_value=1, max_value=128))
     return UMFColumn(**kwargs)
 
 
@@ -62,3 +75,4 @@ class TestSplitFormatRoundtrip:
         assert set(orig_by_name.keys()) == set(loaded_by_name.keys())
         for name in orig_by_name:
             assert loaded_by_name[name].data_type == orig_by_name[name].data_type
+            assert loaded_by_name[name].dimension == orig_by_name[name].dimension

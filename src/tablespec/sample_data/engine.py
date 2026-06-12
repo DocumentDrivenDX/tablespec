@@ -821,7 +821,7 @@ class SampleDataGenerator:
         column_equality_constraints: dict[str, list[dict[str, str]]],
         unique_within_record_constraints: list[dict[str, Any]],
         filename_column_values: dict[str, Any],
-    ) -> str | int | float | bool | None:
+    ) -> str | int | float | bool | list[float] | None:
         """Generate appropriate value for a specific column using UMF metadata.
 
         Delegates to ColumnValueGenerator for the actual value generation logic.

@@ -253,6 +253,16 @@ class TestTypeNarrowing:
         narrowed = _issues_by_change(report, "type_narrowed")
         assert len(narrowed) == 1
 
+    def test_embedding_dimension_change_is_breaking(self):
+        old = _umf([_col("embedding", "EMBEDDING", length=None, dimension=1024)])
+        new = _umf([_col("embedding", "EMBEDDING", length=None, dimension=768)])
+        report = check_compatibility(old, new)
+        assert not report.is_backward_compatible
+        dimension_issues = _issues_by_change(report, "dimension_narrowed")
+        assert len(dimension_issues) == 1
+        assert dimension_issues[0].old_value == 1024
+        assert dimension_issues[0].new_value == 768
+
     def test_text_to_varchar_is_breaking(self):
         old = _umf([_col("bio", "TEXT", length=None)])
         new = _umf([_col("bio", "VARCHAR")])

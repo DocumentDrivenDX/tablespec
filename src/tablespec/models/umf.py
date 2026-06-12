@@ -37,6 +37,7 @@ RAW_VALIDATION_TYPES: frozenset[str] = frozenset(
         "expect_table_row_count_to_be_between",
         # String length checks
         "expect_column_value_lengths_to_be_between",
+        "expect_column_value_lengths_to_equal",
         # Pattern matching
         "expect_column_values_to_match_regex",
         "expect_column_values_to_not_match_regex",
@@ -76,6 +77,8 @@ INGESTED_QUALITY_CHECK_TYPES: frozenset[str] = frozenset(
     {
         # Numeric/date range checks - require type conversion for comparison
         "expect_column_values_to_be_between",
+        # Advisory-only embedding checks run on typed arrays.
+        "expect_embedding_dimension_multiple_of_16_advisory",
         # Cross-column comparisons - require typed comparison operators
         "expect_column_pair_values_a_to_be_greater_than_b",
         "expect_column_pair_values_to_be_equal",
@@ -521,7 +524,12 @@ class UMFColumn(BaseModel):
     )
     data_type: str = Field(
         description="Column data type",
-        pattern=r"^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT)$",
+        pattern=r"^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
+    )
+    dimension: int | None = Field(
+        default=None,
+        ge=1,
+        description="Vector dimensionality for EMBEDDING columns",
     )
     position: str | None = Field(
         default=None, description="Excel column position or identifier"
@@ -692,6 +700,25 @@ class UMFColumn(BaseModel):
             # Warning only - not a hard error for backward compatibility
             pass
         return v
+
+    @model_validator(mode="after")
+    def validate_embedding_dimension(self) -> Self:
+        """Validate EMBEDDING dimension requirements and reject stray dimension values."""
+        umf_type = self.data_type.upper()
+        if umf_type == "EMBEDDING":
+            if self.dimension is None:
+                msg = (
+                    f"EMBEDDING column '{self.name}' requires a dimension "
+                    "property with an integer value >= 1"
+                )
+                raise ValueError(msg)
+        elif self.dimension is not None:
+            msg = (
+                f"dimension is only allowed for EMBEDDING columns; "
+                f"column '{self.name}' is {self.data_type}"
+            )
+            raise ValueError(msg)
+        return self
 
     def is_nullable_for_all_contexts(self) -> bool:
         """Check if column is nullable across all contexts.

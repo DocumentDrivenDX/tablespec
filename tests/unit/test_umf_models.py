@@ -210,9 +210,13 @@ class TestUMFColumn:
             "FLOAT",
             "TEXT",
             "CHAR",
+            "EMBEDDING",
         ]
         for dtype in valid_types:
-            col = UMFColumn(name="test", data_type=dtype)
+            kwargs = {"name": "test", "data_type": dtype}
+            if dtype == "EMBEDDING":
+                kwargs["dimension"] = 8
+            col = UMFColumn(**kwargs)
             assert col.data_type == dtype
 
     def test_rejects_invalid_data_type(self):
@@ -272,6 +276,21 @@ class TestUMFColumn:
         # Scale 0 should be valid
         col = UMFColumn(name="test", data_type="DECIMAL", precision=10, scale=0)
         assert col.scale == 0
+
+    def test_embedding_requires_dimension(self):
+        """Test EMBEDDING columns require a dimension."""
+        with pytest.raises(ValidationError):
+            UMFColumn(name="embedding", data_type="EMBEDDING")
+
+    def test_dimension_rejected_for_non_embedding(self):
+        """Test dimension is rejected on non-embedding columns."""
+        with pytest.raises(ValidationError):
+            UMFColumn(name="name", data_type="VARCHAR", dimension=3)
+
+    def test_embedding_accepts_dimension(self):
+        """Test EMBEDDING columns accept a dimension."""
+        col = UMFColumn(name="embedding", data_type="EMBEDDING", dimension=1024)
+        assert col.dimension == 1024
 
     def test_column_with_derivation(self):
         """Test column with derivation metadata."""
@@ -670,7 +689,7 @@ class TestUMF:
         assert "validation_rules" not in data
 
 
-class TestPropertyBasedUMF:
+class TestPropertyBasedUMFEmbedding:
     """Property-based tests for UMF model roundtrip."""
 
     @given(umf=umf_object())

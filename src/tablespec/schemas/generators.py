@@ -12,6 +12,9 @@ class JSONSchemaProperty(TypedDict, total=False):
     type: str
     description: str
     maxLength: int
+    items: dict[str, Any]
+    minItems: int
+    maxItems: int
     examples: list[Any]
 
 
@@ -80,6 +83,8 @@ def generate_sql_ddl(umf_data: dict[str, Any]) -> str:
             precision = col["precision"]
             scale = col.get("scale", 0)
             data_type = f"DECIMAL({precision},{scale})"
+        elif data_type.upper().startswith("EMBEDDING"):
+            data_type = "ARRAY<FLOAT>"
 
         col_def = f"    {col_name} {data_type}{nullable}"
 
@@ -140,6 +145,15 @@ def generate_pyspark_schema(umf_data: dict[str, Any]) -> str:
     else:
         timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
 
+    needs_array_type = any(
+        (col.get("data_type", "").upper().startswith("EMBEDDING"))
+        for col in umf_data["columns"]
+    )
+
+    type_imports = "from pyspark.sql.types import FloatType, DoubleType, BooleanType, DateType, TimestampType"
+    if needs_array_type:
+        type_imports += ", ArrayType"
+
     schema_lines = [
         f"# PySpark Schema for {canonical_name}",
         "# Generated from UMF specification",
@@ -148,7 +162,7 @@ def generate_pyspark_schema(umf_data: dict[str, Any]) -> str:
         "",
         "from pyspark.sql.types import StructType, StructField",
         "from pyspark.sql.types import StringType, IntegerType, LongType, DecimalType",
-        "from pyspark.sql.types import FloatType, DoubleType, BooleanType, DateType, TimestampType",
+        type_imports,
         "",
         f"{table_name.lower()}_schema = StructType([",
     ]
@@ -198,6 +212,11 @@ def generate_json_schema(umf_data: dict[str, Any]) -> dict[str, Any]:
         # Add additional constraints
         if col.get("max_length"):
             prop["maxLength"] = col["max_length"]
+
+        if col.get("data_type", "").upper().startswith("EMBEDDING") and col.get("dimension"):
+            prop["items"] = {"type": "number"}
+            prop["minItems"] = col["dimension"]
+            prop["maxItems"] = col["dimension"]
 
         if col.get("sample_values"):
             prop["examples"] = col["sample_values"][:3]

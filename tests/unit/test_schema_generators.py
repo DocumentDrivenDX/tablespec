@@ -329,6 +329,26 @@ class TestGeneratePySparkSchema:
         # Should be valid Python (no syntax errors)
         assert "StructType([" in schema
 
+    def test_embedding_maps_to_array_type(self):
+        """Test EMBEDDING columns map to ArrayType(FloatType())."""
+        umf = {
+            "table_name": "embeddings",
+            "canonical_name": "Embeddings",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {
+                    "name": "embedding",
+                    "data_type": "EMBEDDING",
+                    "dimension": 1024,
+                    "nullable": False,
+                },
+            ],
+        }
+
+        schema = generate_pyspark_schema(umf)
+        assert "ArrayType" in schema
+        assert 'StructField("embedding", ArrayType(FloatType()), False)' in schema
+
 
 class TestGenerateJSONSchema:
     """Test JSON Schema generation from UMF."""
@@ -483,8 +503,30 @@ class TestGenerateJSONSchema:
         schema = generate_json_schema(umf)
         assert schema["required"] == []
 
+    def test_embedding_json_schema_dimension(self):
+        """Test EMBEDDING columns render array schema with pinned dimension."""
+        umf = {
+            "table_name": "embeddings",
+            "columns": [
+                {
+                    "name": "embedding",
+                    "data_type": "EMBEDDING",
+                    "dimension": 1024,
+                    "nullable": False,
+                }
+            ],
+        }
 
-class TestPropertyBasedGenerators:
+        schema = generate_json_schema(umf)
+        prop = schema["properties"]["embedding"]
+        assert prop["type"] == "array"
+        assert prop["items"] == {"type": "number"}
+        assert prop["minItems"] == 1024
+        assert prop["maxItems"] == 1024
+        assert "embedding" in schema["required"]
+
+
+class TestPropertyBasedGeneratorsEmbedding:
     """Property-based tests for schema generators using Hypothesis."""
 
     @given(data=umf_dict())

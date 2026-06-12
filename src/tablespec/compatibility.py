@@ -141,6 +141,23 @@ def _check_type_change(
             )
         return  # type changed, skip length/precision check on old type
 
+    if old_type == "EMBEDDING":
+        if old_col.dimension != new_col.dimension:
+            issues.append(
+                CompatibilityIssue(
+                    component=f"column.{name}",
+                    change="dimension_narrowed",
+                    severity="breaking",
+                    description=(
+                        f"Embedding dimension changed from {old_col.dimension} to {new_col.dimension} "
+                        "(breaking change)"
+                    ),
+                    old_value=old_col.dimension,
+                    new_value=new_col.dimension,
+                )
+            )
+        return
+
     # Same type — check length (VARCHAR/CHAR)
     if old_type in ("VARCHAR", "CHAR"):
         if old_col.length != new_col.length:

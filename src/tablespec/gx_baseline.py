@@ -450,6 +450,44 @@ class BaselineExpectationGenerator:
                 }
             )
 
+        # 2.5 Embedding dimensionality
+        if data_type.upper() == "EMBEDDING":
+            dimension = column.get("dimension")
+            if dimension is not None:
+                expectations.append(
+                    {
+                        "type": "expect_column_value_lengths_to_equal",
+                        "kwargs": {"column": column_name, "value": dimension},
+                        "meta": {
+                            "description": f"Column {column_name} values must have exactly {dimension} elements",
+                            "severity": "critical",
+                            "validation_stage": "ingested",
+                            "generated_from": "baseline",
+                        },
+                    }
+                )
+                if dimension % 16 != 0:
+                    expectations.append(
+                        {
+                            "type": "expect_embedding_dimension_multiple_of_16_advisory",
+                            "kwargs": {
+                                "column": column_name,
+                                "dimension": dimension,
+                            },
+                            "meta": {
+                                "description": (
+                                    f"Column {column_name} has dimension {dimension}; "
+                                    "storage-optimized Databricks Vector Search endpoints "
+                                    "require dimensions divisible by 16"
+                                ),
+                                "severity": "info",
+                                "blocking": False,
+                                "validation_stage": "ingested",
+                                "generated_from": "baseline",
+                            },
+                        }
+                    )
+
         # 3. Date format and casting validation (if DATE type)
         if data_type == "DateType" or data_type.upper() == "DATE":
             umf_format = column.get("format", "YYYY-MM-DD")

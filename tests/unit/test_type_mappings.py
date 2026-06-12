@@ -66,6 +66,7 @@ class TestGXSparkTypeMapping:
         assert map_to_gx_spark_type("UNKNOWN_TYPE") == "StringType"
         assert map_to_gx_spark_type("CUSTOM") == "StringType"
         assert map_to_gx_spark_type("") == "StringType"
+        assert map_to_gx_spark_type("EMBEDDING") == "ArrayType"
 
     @pytest.mark.parametrize(
         ("umf_type", "expected_gx_type"),
@@ -82,6 +83,7 @@ class TestGXSparkTypeMapping:
             ("DATE", "StringType"),
             ("DATETIME", "TimestampType"),
             ("TIMESTAMP", "TimestampType"),
+            ("EMBEDDING", "ArrayType"),
         ],
     )
     def test_all_supported_mappings(self, umf_type: str, expected_gx_type: str):
@@ -119,12 +121,13 @@ class TestMapToPysparkTypeObj:
 
     def test_numeric_types(self):
         """Test decimal and floating point type mappings."""
-        from pyspark.sql.types import DecimalType, DoubleType, FloatType
+        from pyspark.sql.types import ArrayType, DecimalType, DoubleType, FloatType
 
         assert isinstance(map_to_pyspark_type_obj("DECIMAL"), DecimalType)
         assert isinstance(map_to_pyspark_type_obj("DecimalType"), DecimalType)
         assert isinstance(map_to_pyspark_type_obj("FLOAT"), FloatType)
         assert isinstance(map_to_pyspark_type_obj("DOUBLE"), DoubleType)
+        assert isinstance(map_to_pyspark_type_obj("EMBEDDING"), ArrayType)
 
     def test_date_and_timestamp_types(self):
         """Test date/timestamp type mappings."""
@@ -198,6 +201,7 @@ class TestMapPysparkToSqlType:
         assert map_pyspark_to_sql_type("STRING") == "STRING"
         assert map_pyspark_to_sql_type("INTEGER") == "INTEGER"
         assert map_pyspark_to_sql_type("DATE") == "DATE"
+        assert map_pyspark_to_sql_type("EMBEDDING") == "ARRAY<FLOAT>"
 
     def test_unknown_type_defaults_to_string(self):
         """Test unrecognized lowercase types default to STRING."""
@@ -225,6 +229,7 @@ class TestMapToPysparkType:
             ("DATE", "StringType()"),
             ("DATETIME", "TimestampType()"),
             ("TIMESTAMP", "TimestampType()"),
+            ("EMBEDDING", "ArrayType(FloatType())"),
         ],
     )
     def test_sql_style_mappings(self, umf_type: str, expected: str):
@@ -321,6 +326,7 @@ class TestMapToJsonType:
             ("DATE", "string"),
             ("DATETIME", "string"),
             ("TIMESTAMP", "string"),
+            ("EMBEDDING", "array"),
         ],
     )
     def test_all_mappings(self, umf_type: str, expected: str):

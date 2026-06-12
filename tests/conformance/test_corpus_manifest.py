@@ -48,6 +48,7 @@ _KNOWN_TAGS = {
     "pk",
     "nopk",
     "multibatch",
+    "dump",
     "gold",
 }
 

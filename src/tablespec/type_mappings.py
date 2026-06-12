@@ -94,6 +94,9 @@ def map_pyspark_to_sql_type(data_type: str) -> str:
     # Remove parentheses if present (e.g., "StringType()" -> "StringType")
     base_type = data_type.rstrip("()")
 
+    if base_type.upper().startswith("EMBEDDING"):
+        return "ARRAY<FLOAT>"
+
     # If it's a PySpark type, convert to SQL
     if base_type in pyspark_to_sql:
         return pyspark_to_sql[base_type]
@@ -124,6 +127,9 @@ def map_to_gx_spark_type(data_type: str) -> str:
 
     """
     # SQL-style UMF type mapping (preserves DATE -> StringType per ADR-001)
+    if data_type.upper().startswith("EMBEDDING"):
+        return "ArrayType"
+
     mapping = {
         "VARCHAR": "StringType",
         "STRING": "StringType",
@@ -171,6 +177,9 @@ def map_to_pyspark_type(data_type: str) -> str:
 
     """
     # SQL-style UMF type mapping (preserves DATE -> StringType per ADR-001)
+    if data_type.upper().startswith("EMBEDDING"):
+        return "ArrayType(FloatType())"
+
     mapping = {
         "VARCHAR": "StringType()",
         "STRING": "StringType()",
@@ -213,6 +222,9 @@ def map_to_json_type(data_type: str) -> str:
         JSON schema type (e.g., "string", "integer", "number")
 
     """
+    if data_type.upper().startswith("EMBEDDING"):
+        return "array"
+
     mapping = {
         "VARCHAR": "string",
         "STRING": "string",
@@ -252,6 +264,11 @@ def map_to_pyspark_type_obj(data_type: str) -> "DataType":
         ImportError: If PySpark is not installed.
 
     """
+    if data_type.upper().startswith("EMBEDDING"):
+        from pyspark.sql.types import ArrayType, FloatType
+
+        return ArrayType(FloatType())
+
     from pyspark.sql.types import (
         BooleanType,
         ByteType,

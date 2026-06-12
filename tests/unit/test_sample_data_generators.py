@@ -219,6 +219,13 @@ class TestSimpleGenerators:
         assert isinstance(at, str)
         assert len(at) > 0
 
+    def test_embedding_is_deterministic(self, generators):
+        first = generators.generate_embedding(8, seed="test_table.embedding")
+        second = generators.generate_embedding(8, seed="test_table.embedding")
+        assert first == second
+        assert len(first) == 8
+        assert abs(sum(value * value for value in first) - 1.0) < 1e-6
+
     def test_provider_type(self, generators):
         pt = generators.generate_provider_type()
         assert isinstance(pt, str)

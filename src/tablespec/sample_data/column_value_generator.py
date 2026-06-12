@@ -90,7 +90,7 @@ class ColumnValueGenerator:
         should_apply_equality_constraint_fn: Any,
         should_apply_unique_within_record_constraint_fn: Any,
         ensure_distinct_from_columns_fn: Any,
-    ) -> str | int | float | bool | None:
+    ) -> str | int | float | bool | list[float] | None:
         """Generate appropriate value for a specific column using UMF metadata.
 
         Args:
@@ -847,6 +847,13 @@ class ColumnValueGenerator:
                         generated_value = self.generators.generate_date_in_range(
                             date_format=date_format
                         )
+            elif col_type_upper.startswith("EMBEDDING"):
+                dimension = col.get("dimension")
+                if dimension is not None:
+                    seed = f"{table_name}.{col_name}:{dimension}"
+                    generated_value = self.generators.generate_embedding(
+                        int(dimension), seed=seed
+                    )
             elif col_type_upper == "BOOLEAN":
                 generated_value = random.choice([True, False])
             # Default to STRING with context-aware fallback

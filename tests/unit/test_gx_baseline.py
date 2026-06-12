@@ -231,6 +231,54 @@ class TestBaselineExpectationGenerator:
 
         assert length_exp["kwargs"]["max_value"] == 10
 
+    def test_embedding_generates_length_expectation(self, generator):
+        """Test EMBEDDING columns generate dimensionality expectations."""
+        column = {
+            "name": "embedding",
+            "data_type": "EMBEDDING",
+            "dimension": 1024,
+        }
+
+        expectations = generator.generate_baseline_column_expectations(column)
+
+        length_exp = next(
+            exp
+            for exp in expectations
+            if exp["type"] == "expect_column_value_lengths_to_equal"
+        )
+
+        assert length_exp["kwargs"]["column"] == "embedding"
+        assert length_exp["kwargs"]["value"] == 1024
+        assert length_exp["meta"]["validation_stage"] == "ingested"
+        assert length_exp["meta"]["severity"] == "critical"
+
+    def test_embedding_dimension_multiple_of_16_has_no_advisory(self, generator):
+        """Test Vector Search advisory is not emitted for divisible dimensions."""
+        expectations = generator.generate_baseline_column_expectations(
+            {"name": "embedding", "data_type": "EMBEDDING", "dimension": 1024}
+        )
+
+        exp_types = {exp["type"] for exp in expectations}
+        assert "expect_column_value_lengths_to_equal" in exp_types
+        assert "expect_embedding_dimension_multiple_of_16_advisory" not in exp_types
+
+    def test_embedding_dimension_advisory_is_non_blocking(self, generator):
+        """Test non-divisible dimensions surface as non-blocking advisories."""
+        expectations = generator.generate_baseline_column_expectations(
+            {"name": "embedding", "data_type": "EMBEDDING", "dimension": 1025}
+        )
+
+        advisory = next(
+            exp
+            for exp in expectations
+            if exp["type"] == "expect_embedding_dimension_multiple_of_16_advisory"
+        )
+        assert advisory["kwargs"] == {"column": "embedding", "dimension": 1025}
+        assert advisory["meta"]["validation_stage"] == "ingested"
+        assert advisory["meta"]["severity"] == "info"
+        assert advisory["meta"]["blocking"] is False
+        assert "Vector Search" in advisory["meta"]["description"]
+
     def test_date_format_expectation(self, generator):
         """Test DATE columns get strftime format expectation."""
         column = {"name": "birth_date", "data_type": "DATE"}

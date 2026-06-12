@@ -497,6 +497,69 @@ class TestColumnValueGeneratorInstantiation:
         # Should be True or False
         assert isinstance(value, bool)
 
+    def test_generate_embedding_column(self, mock_dependencies):
+        """Test generating embedding column value."""
+        generator = ColumnValueGenerator(**mock_dependencies)
+
+        col = {
+            "name": "embedding",
+            "key_type": None,
+            "source": "data",
+            "dimension": 8,
+        }
+        col_type = "EMBEDDING"
+        sample_values = []
+        umf_data = {"validation_rules": {"expectations": []}}
+
+        value = generator.generate_column_value(
+            table_name="test_table",
+            col=col,
+            col_type=col_type,
+            sample_values=sample_values,
+            umf_data=umf_data,
+            unique_value_trackers={},
+            record={},
+            column_equality_constraints={},
+            unique_within_record_constraints=[],
+            filename_column_values={},
+            gx_expectations_cache={},
+            should_apply_equality_constraint_fn=mock_dependencies[
+                "constraint_handlers"
+            ].should_apply_equality_constraint,
+            should_apply_unique_within_record_constraint_fn=mock_dependencies[
+                "constraint_handlers"
+            ].should_apply_unique_within_record_constraint,
+            ensure_distinct_from_columns_fn=mock_dependencies[
+                "constraint_handlers"
+            ].ensure_distinct_from_columns,
+        )
+
+        assert isinstance(value, list)
+        assert len(value) == 8
+        assert all(isinstance(v, float) for v in value)
+        assert value == generator.generate_column_value(
+            table_name="test_table",
+            col=col,
+            col_type=col_type,
+            sample_values=sample_values,
+            umf_data=umf_data,
+            unique_value_trackers={},
+            record={},
+            column_equality_constraints={},
+            unique_within_record_constraints=[],
+            filename_column_values={},
+            gx_expectations_cache={},
+            should_apply_equality_constraint_fn=mock_dependencies[
+                "constraint_handlers"
+            ].should_apply_equality_constraint,
+            should_apply_unique_within_record_constraint_fn=mock_dependencies[
+                "constraint_handlers"
+            ].should_apply_unique_within_record_constraint,
+            ensure_distinct_from_columns_fn=mock_dependencies[
+                "constraint_handlers"
+            ].ensure_distinct_from_columns,
+        )
+
     def test_generate_decimal_column(self, mock_dependencies):
         """Test generating decimal column value."""
         generator = ColumnValueGenerator(**mock_dependencies)

@@ -384,6 +384,139 @@
       "title": "DerivationCandidate",
       "type": "object"
     },
+    "Expectation": {
+      "description": "A single validation expectation with structured metadata.",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "kwargs": {
+          "additionalProperties": true,
+          "title": "Kwargs",
+          "type": "object"
+        },
+        "meta": {
+          "$ref": "#/$defs/ExpectationMeta"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Expectation",
+      "type": "object"
+    },
+    "ExpectationMeta": {
+      "description": "Structured metadata for a single expectation.",
+      "properties": {
+        "stage": {
+          "default": "unknown",
+          "enum": [
+            "raw",
+            "ingested",
+            "unknown"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "severity": {
+          "default": "warning",
+          "enum": [
+            "critical",
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "blocking": {
+          "default": false,
+          "title": "Blocking",
+          "type": "boolean"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "generated_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generated From"
+        }
+      },
+      "title": "ExpectationMeta",
+      "type": "object"
+    },
+    "ExpectationSuite": {
+      "description": "Unified collection of all expectations for a table, classified by stage.",
+      "properties": {
+        "expectations": {
+          "items": {
+            "$ref": "#/$defs/Expectation"
+          },
+          "title": "Expectations",
+          "type": "array"
+        },
+        "thresholds": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Thresholds"
+        },
+        "alert_config": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alert Config"
+        },
+        "pending": {
+          "items": {
+            "$ref": "#/$defs/Expectation"
+          },
+          "title": "Pending",
+          "type": "array"
+        }
+      },
+      "title": "ExpectationSuite",
+      "type": "object"
+    },
     "FileFormatSpec": {
       "description": "File format specification for data ingestion.",
       "properties": {
@@ -1110,12 +1243,11 @@
       "type": "object"
     },
     "Nullable": {
-      "description": "Nullable configuration per context. Keys are context identifiers (e.g., MD, MP, ME for healthcare LOBs), values are booleans indicating whether the column is nullable in that context.",
-      "type": "object",
-      "additionalProperties": {
-        "type": "boolean"
-      },
-      "title": "Nullable"
+      "additionalProperties": true,
+      "description": "Nullable configuration per context (e.g., Line of Business).\n\nAccepts arbitrary context keys with boolean values. Common healthcare\ncontexts include MD (Medicaid), MP (Medicare Part D), ME (Medicare),\nbut any domain-specific keys are supported.\n\nExamples:\n    Nullable(MD=False, MP=False, ME=False)      # Healthcare LOBs\n    Nullable(US=False, EU=True)                  # Regional contexts\n    Nullable(production=False, staging=True)      # Environment contexts",
+      "properties": {},
+      "title": "Nullable",
+      "type": "object"
     },
     "OutgoingRelationship": {
       "description": "Outgoing foreign key relationship to another table.",
@@ -1703,9 +1835,23 @@
         },
         "data_type": {
           "description": "Column data type",
-          "pattern": "^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT)$",
+          "pattern": "^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
           "title": "Data Type",
           "type": "string"
+        },
+        "dimension": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Vector dimensionality for EMBEDDING columns",
+          "title": "Dimension"
         },
         "position": {
           "anyOf": [
@@ -2721,6 +2867,18 @@
       "default": null,
       "description": "Post-ingestion data quality checks for fitness assessment"
     },
+    "expectations": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExpectationSuite"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Unified expectation suite (replaces validation_rules + quality_checks)"
+    },
     "relationships": {
       "anyOf": [
         {
@@ -2815,6 +2973,19 @@
       ],
       "default": null,
       "description": "Ingestion strategy. Controls file filtering, deduplication, and write mode."
+    },
+    "context_column": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Column used for context-based conditional validation (e.g. 'LOB' for healthcare line-of-business, 'segment' for fintech). When set, nullable rules with per-context keys generate filtered expectations using row_condition.",
+      "title": "Context Column"
     }
   },
   "required": [

@@ -33,6 +33,7 @@ so ``report.py`` and all downstream consumers are unaffected.
 from __future__ import annotations
 
 import logging
+import math
 from typing import TYPE_CHECKING, Any
 
 from tablespec.profiling.native_profiler import _functions_for
@@ -110,6 +111,20 @@ def _apply_row_condition(df: DataFrame, kwargs: dict[str, Any]) -> DataFrame:
 def _bcol(df: DataFrame, column: str) -> Any:
     """Return the DataFrame-bound column (session-correct on classic & Connect)."""
     return df[column]
+
+
+def _length_expr_for_column(df: DataFrame, column: str) -> Any:
+    """Return a length expression for string-like or array-like columns."""
+    from pyspark.sql.types import ArrayType, BinaryType, StringType
+
+    F = _functions_for(df)  # noqa: N806
+    data_type = df.schema[column].dataType
+    col = _bcol(df, column)
+    if isinstance(data_type, ArrayType):
+        return F.size(col)
+    if isinstance(data_type, (BinaryType, StringType)) or data_type.simpleString() == "string":
+        return F.length(col)
+    return F.length(col.cast("string"))
 
 
 # ---------------------------------------------------------------------------
@@ -330,11 +345,10 @@ def _column_value_lengths_to_be_between(
     min_value = kwargs.get("min_value")
     max_value = kwargs.get("max_value")
     mostly = kwargs.get("mostly", 1.0)
-    F = _functions_for(df)  # noqa: N806
     col = _bcol(df, column)
     non_null = df.filter(col.isNotNull())
     element_count = non_null.count()
-    length_col = F.length(col)
+    length_col = _length_expr_for_column(df, column)
     cond = None
     if min_value is not None:
         cond = length_col < min_value
@@ -356,6 +370,63 @@ def _column_value_lengths_to_be_between(
         observed_value=unexpected_count,
         mostly=mostly,
     )
+
+
+def _column_value_lengths_to_equal(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
+    value = kwargs.get("value", kwargs.get("length"))
+    if value is None:
+        return _ok(observed_value=None, element_count=0)
+    from pyspark.sql.types import ArrayType
+
+    column = kwargs["column"]
+    data_type = df.schema[column].dataType
+    if isinstance(data_type, ArrayType):
+        mostly = kwargs.get("mostly", 1.0)
+        col = _bcol(df, column)
+        non_null = df.filter(col.isNotNull())
+        rows = [row[column] for row in non_null.select(column).collect()]
+        element_count = len(rows)
+        unexpected_values = [
+            values
+            for values in rows
+            if len(values) != value
+            or any(item is None or math.isnan(float(item)) for item in values)
+        ]
+        return _result(
+            unexpected_count=len(unexpected_values),
+            element_count=element_count,
+            partial_unexpected_list=unexpected_values[:_SAMPLE_LIMIT],
+            observed_value=len(unexpected_values),
+            mostly=mostly,
+        )
+    return _column_value_lengths_to_be_between(
+        df,
+        {
+            "column": kwargs["column"],
+            "min_value": value,
+            "max_value": value,
+            "mostly": kwargs.get("mostly", 1.0),
+        },
+    )
+
+
+def _embedding_dimension_multiple_of_16_advisory(
+    _df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
+    """Surface the Vector Search storage-optimized dimension advisory.
+
+    This is intentionally non-blocking: the baseline generator only emits it when
+    the declared dimension is not divisible by 16, and execution always reports a
+    passing result so the advisory is visible without failing validation.
+    """
+    dimension = kwargs.get("dimension")
+    observed = {
+        "dimension": dimension,
+        "storage_optimized_vector_search_dimension_multiple": 16,
+    }
+    return _ok(observed_value=observed, element_count=0)
 
 
 def _column_values_to_be_unique(
@@ -564,6 +635,8 @@ _COLUMN_EVALUATORS = {
     "expect_column_values_to_be_between": _column_values_to_be_between,
     "expect_column_values_to_match_regex": _column_values_to_match_regex,
     "expect_column_value_lengths_to_be_between": _column_value_lengths_to_be_between,
+    "expect_column_value_lengths_to_equal": _column_value_lengths_to_equal,
+    "expect_embedding_dimension_multiple_of_16_advisory": _embedding_dimension_multiple_of_16_advisory,
     "expect_column_values_to_be_unique": _column_values_to_be_unique,
     "expect_column_values_to_match_strftime_format": _column_values_to_match_strftime_format,
 }

@@ -373,12 +373,33 @@ class GXSuiteExecutor:
             ExpectationConfiguration,
         )
 
+        native_types = {
+            "expect_column_value_lengths_to_equal",
+            "expect_embedding_dimension_multiple_of_16_advisory",
+        }
+        native_expectations: list[dict[str, Any]] = []
+        gx_expectations: list[dict[str, Any]] = []
+        for exp in expectations:
+            exp_type = exp.get("type", exp.get("expectation_type", ""))
+            if exp_type in native_types:
+                native_expectations.append(exp)
+            else:
+                gx_expectations.append(exp)
+
+        native_result = (
+            self._execute_native(df, native_expectations)
+            if native_expectations
+            else SuiteExecutionResult.from_results([])
+        )
+        if not gx_expectations:
+            return native_result
+
         context = self._get_context()
         run_id = uuid.uuid4().hex[:8]
 
         # Build suite
         suite = GXSuite(name=f"suite_{run_id}")
-        for exp in expectations:
+        for exp in gx_expectations:
             exp_type = exp.get("type", exp.get("expectation_type", ""))
             kwargs = exp.get("kwargs", {})
             meta = exp.get("meta", {})
@@ -405,7 +426,12 @@ class GXSuiteExecutor:
 
             validation_result = vd.run(batch_parameters={"dataframe": df})
             parsed = self._parse_validation_result(validation_result)
-            return self._reconcile_dropped(df, parsed, expectations)
+            parsed = self._reconcile_dropped(df, parsed, gx_expectations)
+            if native_expectations:
+                return SuiteExecutionResult.from_results(
+                    native_result.results + parsed.results
+                )
+            return parsed
         finally:
             self._cleanup(context, suite, ds, ds_name, asset_name, vd_name)
 
