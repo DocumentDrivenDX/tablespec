@@ -47,6 +47,7 @@ Requirements and problem definition for tablespec.
 - [FEAT-029](features/FEAT-029-runtime-platform.md) - Runtime Platform
 - [FEAT-030](features/FEAT-030-product-microsite.md) - Product Microsite (Specified)
 - [FEAT-031](features/FEAT-031-multi-source-ingestion.md) - Multi-Source Ingestion (Specified; JDBC vertical toward the Northwind goal)
+- [FEAT-032](features/FEAT-032-embeddings-and-document-corpus.md) - Embeddings & Document Corpus (Draft; SEC 10-K demo goal)
 
 ## User Stories
 
@@ -149,10 +150,14 @@ Requirements and problem definition for tablespec.
 - [US-038](user-stories/US-038-publish-product-microsite.md) - Publish Product Microsite
 
 ### FEAT-031: Multi-Source Ingestion
-- [US-039](user-stories/US-039-northwind-end-to-end.md) - Northwind End-to-End on Databricks (acceptance goal, Draft)
+- [US-039](user-stories/US-039-northwind-end-to-end.md) - Northwind End-to-End on Databricks (acceptance goal; both DBR pairings green)
+- [US-044](user-stories/US-044-kaggle-flat-file-onboarding.md) - Kaggle Flat-File Onboarding (demo, Draft)
+
+### FEAT-032: Embeddings & Document Corpus
+- [US-045](user-stories/US-045-sec-10k-corpus-and-facts.md) - SEC 10-K Corpus and Facts (acceptance goal, Draft)
 
 ## Status
 
 - Frame phase backfilled from existing codebase and documentation (2026-03-15).
 - Updated for post-merge codebase with ~50 new source files across 4 new packages (2026-03-16).
-- Index refreshed to cover FEAT-001..FEAT-031 and US-001..US-039 (2026-06-10).
+- Index refreshed to cover FEAT-001..FEAT-032 and US-001..US-045 (2026-06-10).

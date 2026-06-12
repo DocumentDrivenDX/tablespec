@@ -43,6 +43,7 @@ ddx:
 | FEAT-029 | [Runtime Platform](features/FEAT-029-runtime-platform.md) | Connect-safe session capability probing and engine-correct `functions` dispatch. | Built | P0 | Data Platform | PRD: Runtime Platform (FR-20.1, FR-20.2, FR-20.3) | 2026-06-10 |
 | FEAT-030 | [Product Microsite](features/FEAT-030-product-microsite.md) | Hugo/Hextra product microsite with reader-mode IA, source-semantic bronze explanation, demos, and Pages deployment that preserves `/simple/`. | Specified | P1 | Platform / Developer Experience | Vision/Principles (meta-feature; governed by ADR-014) | 2026-06-10 |
 | FEAT-031 | [Multi-Source Ingestion](features/FEAT-031-multi-source-ingestion.md) | Discriminated `source:` contract (delimited/parquet/jdbc) with kind-dependent raw typing, ingestion reader seam, JDBC compiled read specs, and database discovery; Northwind end-to-end is the acceptance goal. | Specified | P1 | Platform / Data Engineering | PRD: Source Acquisition (FR-21.1–FR-21.6); ADR-015 | 2026-06-10 |
+| FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract; SEC 10-K demo is the acceptance goal. | Draft | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-06-12 |
 
 ## Status Definitions
 
@@ -108,6 +109,7 @@ listed here.
 | FEAT-029 | [features/FEAT-029-runtime-platform.md](features/FEAT-029-runtime-platform.md) | — | — | — | — |
 | FEAT-030 | [features/FEAT-030-product-microsite.md](features/FEAT-030-product-microsite.md) | [user-stories/US-038-publish-product-microsite.md](user-stories/US-038-publish-product-microsite.md) | [../02-design/adr/ADR-014-product-microsite-pages-architecture.md](../02-design/adr/ADR-014-product-microsite-pages-architecture.md) | — | — |
 | FEAT-031 | [features/FEAT-031-multi-source-ingestion.md](features/FEAT-031-multi-source-ingestion.md) | [user-stories/US-039-northwind-end-to-end.md](user-stories/US-039-northwind-end-to-end.md) | [../02-design/adr/ADR-015-source-shape-contract.md](../02-design/adr/ADR-015-source-shape-contract.md) | — | — |
+| FEAT-032 | [features/FEAT-032-embeddings-and-document-corpus.md](features/FEAT-032-embeddings-and-document-corpus.md) | [user-stories/US-045-sec-10k-corpus-and-facts.md](user-stories/US-045-sec-10k-corpus-and-facts.md) | [../02-design/adr/ADR-016-embedding-type-array-float.md](../02-design/adr/ADR-016-embedding-type-array-float.md) | — | — |
 
 "—" means the link is not tracked at the registry level; per-feature stories,
 designs, and tests are recorded inside each feature specification (and in
@@ -152,6 +154,7 @@ designs, and tests are recorded inside each feature specification (and in
 - FEAT-020: Domain Type System Improvements
 - FEAT-023: Authoring Tools
 - FEAT-031: Multi-Source Ingestion (source-shape contract, JDBC discovery)
+- FEAT-032: Embeddings & Document Corpus (EMBEDDING type, SEC 10-K demo)
 
 ### Documentation and Testing
 - FEAT-015: Browsable API Documentation

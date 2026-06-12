@@ -10,7 +10,7 @@ ddx:
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
-**Covered PRD Requirements**: FR-21.1–FR-21.6
+**Covered PRD Requirements**: FR-21.1–FR-21.7
 **Cross-Subsystem Rationale**: None — single subsystem (Source Acquisition).
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
@@ -181,6 +181,18 @@ underscores collapsed (the rules proven in the entropy-exchange
 `mssql_import` bundle), with bracket/backtick quoting handled at the read
 boundary and the original source identifier preserved in the spec.
 
+#### JSON/JSONL source kind (FR-21.7 — planned, operator-decided 2026-06-12)
+
+JSON-01. The `source:` block SHALL gain a `json` kind: JSON/JSONL files
+land typed through Spark's reader, under the same native-typed raw regime
+as parquet (SRC-04, identity/safe-narrowing casts, typed-raw suites).
+JSON-02. The spec SHALL declare a FLAT projection: each UMF column maps to
+a top-level field or an explicit dot-path expression; un-projected nested
+structure is outside the bronze contract — no recursive flattening, no
+schema explosion.
+JSON-03. A declared projection path absent from the landed data SHALL
+surface as a validation finding, never a silent NULL column.
+
 #### Database discovery (FR-21.6)
 
 DISC-01. A `JdbcToUmfMapper` SHALL read a live database's
@@ -239,7 +251,10 @@ expectation-stage classification (`umf.py:94-112`,
 Per-phase stories will be authored at execution start, in sequencing order:
 US-040 (ingestion seam + `source:` model — implemented; story to backfill
 ACs), US-041 (JDBC reader + discovery slices under US-039's goal), US-042
-(dump-dialect text landing), US-043 (typed-raw parquet).
+(dump-dialect text landing), US-043 (typed-raw parquet), plus a json-kind
+story at its execution start (FR-21.7). Demo story:
+[US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
+(delimited kind, shipped code, notebook pair).
 
 ## Edge Cases and Error Handling
 

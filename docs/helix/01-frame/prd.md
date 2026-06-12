@@ -103,7 +103,7 @@ edits; do not renumber on edit.
 **FR-1** requirement family.
 
 - **FR-1.1** — Pydantic models for UMF format with runtime validation
-- **FR-1.2** — Support 10 data types: VARCHAR, CHAR, TEXT, INTEGER, DECIMAL, FLOAT, DATE, DATETIME, TIMESTAMP, BOOLEAN
+- **FR-1.2** — Support 10 scalar data types: VARCHAR, CHAR, TEXT, INTEGER, DECIMAL, FLOAT, DATE, DATETIME, TIMESTAMP, BOOLEAN (plus the planned dimensioned EMBEDDING type, FR-1.11)
 - **FR-1.3** — Per-LOB nullable configuration (MD, MP, ME)
 - **FR-1.4** — Validation rules at table and column level
 - **FR-1.5** — Foreign key relationships with confidence scoring
@@ -112,6 +112,7 @@ edits; do not renumber on edit.
 - **FR-1.8** — Column name validation (alphanumeric + underscore, max 128 chars)
 - **FR-1.9** — Unique column name enforcement
 - **FR-1.10** — UMF metadata with pipeline phase tracking (1-7)
+- **FR-1.11** — **Dimensioned EMBEDDING type (planned).** A logical `EMBEDDING` data type with a required per-column `dimension`, compiling to `ARRAY<FLOAT>` (Spark SQL/Delta), `ArrayType(FloatType())` (PySpark), and array-of-number (JSON Schema); validation gains a dimensionality expectation and a divisible-by-16 Vector-Search advisory; embeddings are excluded from string-shape checks. tablespec never parses documents or calls embedding models — it governs the landed corpus table. *Governed by FEAT-032; decision recorded in ADR-016.*
 
 ### Subsystem: Schema Generation
 
@@ -216,6 +217,7 @@ edits; do not renumber on edit.
 - **FR-21.4** — **JDBC compiled read spec.** JDBC sources compile to a committed read spec carrying connection parameters (url, dbtable/query, driver, fetch/partitioning) with credentials *only* as named secret references (Databricks secret scope or env-var name); a literal credential fails validation. tablespec never opens a connection — all connectivity is Spark's JDBC connector, executed by the runtime.
 - **FR-21.5** — **Raw-suite typing.** Raw-stage expectation suites vary by raw typing: string checks (length/regex/strftime/castability) apply only to all-STRING raw; typed raw receives schema-type expectations instead.
 - **FR-21.6** — **Database discovery.** Discover UMF specs from a live database: enumerate tables and read `INFORMATION_SCHEMA` metadata (columns, types, nullability, PKs, FKs) through Spark's JDBC connector, reusing the existing Spark schema→UMF mapping; emit one validated UMF per table so database onboarding is spec-driven rather than a blind bulk copy.
+- **FR-21.7** — **JSON/JSONL source kind (planned).** A `json` variant of the `source:` block: JSON/JSONL files land typed through Spark's reader (like parquet); the spec declares a FLAT projection — each UMF column maps to a top-level field or an explicit dot-path; un-projected nesting is out of the bronze contract (no recursive flattening). *Extends FEAT-031.*
 
 ### Subsystem: CLI Interface
 
