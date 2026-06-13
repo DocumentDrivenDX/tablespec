@@ -5,6 +5,7 @@ Architecture and design decisions for tablespec.
 ## Project-Level Artifacts
 
 - [Architecture](architecture.md) - System architecture
+- [Design System](DESIGN.md) - Visual and interaction system for the tablespec microsite and public documentation surfaces
 
 ## Architecture Decision Records
 
