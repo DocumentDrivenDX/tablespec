@@ -1,0 +1,30 @@
+{
+  "attempt_id": "20260612T193128-5132fe43",
+  "bead_id": "tablespec-4be69b51",
+  "base_rev": "b6970d91489140e29e78ea7a136b926378950787",
+  "created_at": "2026-06-12T19:31:30.11196315Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-4be69b51",
+    "title": "SEC 10-K corpus + XBRL facts demo notebooks (US-045)",
+    "description": "FEAT-032 / US-045: notebooks/sec-10k-demo/ pair — 01 plumbing (EDGAR fetch w/ User-Agent + rate limits, text extraction + chunking, embeddings via databricks-gte-large-en endpoint with deterministic fake fallback widget, XBRL companyfacts JSON landing), 02 tablespec story (corpus spec with EMBEDDING(1024) + facts spec via json kind, validate both incl. dimensionality + %16 advisory path, workbooks, artifacts, staged validation scorecard). Prove on dbw-dev-eus2 both with real endpoint and fake-embedding fallback.",
+    "acceptance": "Both notebooks committed under notebooks/sec-10k-demo/ with README; Databricks job green in fake-embedding mode and (when endpoint available) real mode; US-045 ACs checked with evidence; no model/credential coupling in any spec.",
+    "labels": [
+      "area:demo",
+      "feat-032",
+      "databricks"
+    ]
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260612T193128-5132fe43",
+    "prompt": ".ddx/executions/20260612T193128-5132fe43/prompt.md",
+    "manifest": ".ddx/executions/20260612T193128-5132fe43/manifest.json",
+    "result": ".ddx/executions/20260612T193128-5132fe43/result.json",
+    "checks": ".ddx/executions/20260612T193128-5132fe43/checks.json",
+    "usage": ".ddx/executions/20260612T193128-5132fe43/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-4be69b51-20260612T193128-5132fe43"
+  },
+  "prompt_sha": "34ede472ed8a7981a568564e75cd8e060be5d4659aded388ad0aaded9e422401"
+}
