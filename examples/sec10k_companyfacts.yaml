@@ -1,0 +1,33 @@
+version: "1.0"
+table_name: sec_xbrl_facts
+description: >
+  XBRL companyfacts summary — top-level fields projected from SEC EDGAR
+  companyfacts JSON (FEAT-031 json source kind, FLAT projection). Each
+  row is one company. Nested facts structures are outside this bronze
+  contract; only explicit top-level scalar fields are projected here.
+source:
+  kind: json
+  multi_line: true
+  projection:
+    - column: cik
+      path: cik
+    - column: entity_name
+      path: entityName
+columns:
+  - name: cik
+    data_type: INTEGER
+    description: >
+      SEC Central Index Key — unique company identifier assigned by the SEC.
+      Top-level field in the EDGAR companyfacts JSON.
+    nullable:
+      required: false
+
+  - name: entity_name
+    data_type: VARCHAR
+    length: 256
+    description: >
+      Company entity name as reported to EDGAR (e.g. "MICROSOFT CORP").
+      Projected from the top-level "entityName" JSON field via the FLAT
+      projection (dot-path "entityName" → UMF column "entity_name").
+    nullable:
+      required: false

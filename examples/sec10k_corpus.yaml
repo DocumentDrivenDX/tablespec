@@ -1,0 +1,76 @@
+version: "1.0"
+table_name: sec_10k_corpus
+description: >
+  SEC 10-K filing corpus — chunked text with 1024-dim embeddings
+  (CORP-01 pattern). Each row is one chunk from one filing.
+  Embedding model is recorded as a provenance data value; no endpoint
+  URL or credential appears in this spec (CORP-05).
+primary_key:
+  - chunk_id
+columns:
+  - name: doc_id
+    data_type: VARCHAR
+    length: 128
+    description: >
+      Document identifier: CIK padded to 10 digits + accession number
+      (e.g. "0000789019-0001234567-890123").
+    nullable:
+      required: false
+
+  - name: chunk_id
+    data_type: VARCHAR
+    length: 192
+    description: >
+      Chunk identifier: doc_id + ":" + zero-padded chunk sequence number
+      (e.g. "0000789019-...:0042"). Primary key — unique per chunk.
+    nullable:
+      required: false
+
+  - name: source_path
+    data_type: VARCHAR
+    length: 512
+    description: EDGAR filing URL used to acquire this document.
+    nullable:
+      required: false
+
+  - name: chunk_index
+    data_type: INTEGER
+    description: Zero-based sequence position of this chunk within the document.
+    nullable:
+      required: false
+
+  - name: text
+    data_type: TEXT
+    description: Chunk text content (plain text, HTML stripped).
+    nullable:
+      required: false
+
+  - name: embedding
+    data_type: EMBEDDING
+    dimension: 1024
+    description: >
+      Dense float vector from databricks-gte-large-en (1024 dims).
+      Compiled to ARRAY<FLOAT> in Delta DDL. Dimensionality is validated
+      per-row: every non-NULL vector must have exactly 1024 elements with
+      no NULL/NaN entries (ADR-016 / EMB-04). 1024 % 16 == 0 so the
+      storage-optimized Vector Search advisory does not fire (EMB-05).
+      The model name is a data value in embedding_model, not config here.
+    nullable:
+      required: true
+
+  - name: embedding_model
+    data_type: VARCHAR
+    length: 128
+    description: >
+      Embedding model identifier recorded as a provenance data value
+      (e.g. "databricks-gte-large-en" or "fake-deterministic-1024").
+      Appears in every row; never as spec configuration (CORP-05):
+      switching models requires a new ingestion run, not a spec edit.
+    nullable:
+      required: false
+
+  - name: acquired_at
+    data_type: DATETIME
+    description: UTC timestamp when this filing chunk was acquired from EDGAR.
+    nullable:
+      required: false
