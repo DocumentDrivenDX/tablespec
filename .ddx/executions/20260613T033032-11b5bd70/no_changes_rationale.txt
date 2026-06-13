@@ -1,0 +1,1 @@
+verification_command: git log --oneline a977af0..HEAD -- notebooks/sec-10k-demo/ examples/sec10k_corpus.yaml examples/sec10k_companyfacts.yaml | grep -q "tablespec-4be69b51"
