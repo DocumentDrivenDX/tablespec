@@ -1,0 +1,47 @@
+<div class="ts-site-footer" aria-label="Site copyright">
+  © 2026 tablespec.
+</div>
+<script>
+(() => {
+  const normalize = (value) => new URL(value, window.location.href).pathname.replace(/\/$/, "");
+  const current = normalize(window.location.href);
+  document.querySelectorAll("nav a[href]").forEach((link) => {
+    const path = normalize(link.href);
+    if (path && path === current) {
+      link.setAttribute("aria-current", "page");
+    }
+  });
+
+  const syncThemeLabels = () => {
+    document.querySelectorAll(".hextra-theme-toggle").forEach((button) => {
+      const label = button.textContent.replace(/\s+/g, " ").trim();
+      if (label) {
+        button.setAttribute("aria-label", `Change theme: ${label}`);
+      }
+    });
+  };
+  syncThemeLabels();
+
+  const syncInert = (node) => {
+    if (!(node instanceof HTMLElement)) return;
+    if (node.getAttribute("aria-hidden") === "true") {
+      node.setAttribute("inert", "");
+    } else {
+      node.removeAttribute("inert");
+    }
+  };
+  document.querySelectorAll("[aria-hidden]").forEach(syncInert);
+  new MutationObserver((records) => {
+    for (const record of records) {
+      if (record.type === "attributes" && record.attributeName === "aria-hidden") {
+        syncInert(record.target);
+      }
+    }
+    syncThemeLabels();
+  }).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["aria-hidden", "data-theme"],
+    subtree: true,
+  });
+})();
+</script>

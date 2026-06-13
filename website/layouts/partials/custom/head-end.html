@@ -1,0 +1,54 @@
+{{- $description := .Description | default site.Params.description -}}
+<meta name="description" content="{{ $description }}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ .Permalink }}">
+<meta property="og:site_name" content="tablespec">
+<meta property="og:title" content="{{ if .IsHome }}tablespec - definition of done for ingested bronze{{ else }}{{ .Title }} - tablespec{{ end }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta name="twitter:card" content="summary_large_image">
+{{- if .IsHome }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "tablespec",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Python, Spark, Databricks",
+  "description": "tablespec defines the source-semantic ingested bronze contract and compiles one UMF into SQL, dbt, Lakeflow, schema, and validation artifacts.",
+  "url": "{{ .Permalink }}",
+  "codeRepository": "https://github.com/DocumentDrivenDX/tablespec",
+  "programmingLanguage": "Python",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does tablespec define?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "tablespec defines the source-semantic ingested bronze contract: types, validation criteria, relationships, aliases, keys, and compiled runtime artifacts from one UMF."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Where does silver begin?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Silver begins after the source contract is complete, with cross-source conformance, survivorship, entity resolution, enrichment, and dimensional modeling."
+      }
+    }
+  ]
+}
+</script>
+{{- end }}

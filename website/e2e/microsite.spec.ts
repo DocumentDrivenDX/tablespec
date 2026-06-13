@@ -8,7 +8,7 @@ test.describe('Homepage', () => {
 
     await test.step('verify hero headline', async () => {
       await expect(
-        page.getByRole('heading', { name: /Define the table once/i }).first(),
+        page.getByRole('heading', { name: /Definition of done for ingested bronze/i }).first(),
       ).toBeVisible()
     })
 
@@ -18,11 +18,16 @@ test.describe('Homepage', () => {
     })
 
     await test.step('verify primary CTA links to getting-started', async () => {
-      await expect(page.getByRole('link', { name: /Get Started/i }).first()).toBeVisible()
+      await expect(page.getByRole('link', { name: /Start with a UMF/i }).first()).toBeVisible()
     })
 
-    await test.step('verify concepts CTA links to concepts', async () => {
-      await expect(page.getByRole('link', { name: /Core Concepts/i }).first()).toBeVisible()
+    await test.step('verify worked example CTA is visible', async () => {
+      await expect(page.getByRole('link', { name: /View the worked example/i }).first()).toBeVisible()
+    })
+
+    await test.step('verify blueprint artifact evidence is visible', async () => {
+      await expect(page.locator('.ts-artifact-strip').getByText('claims.ingest.sql')).toBeVisible()
+      await expect(page.locator('.ts-node-ingested').getByText('typed, validated, keyed')).toBeVisible()
     })
 
     await test.step('desktop screenshot', async () => {
@@ -40,6 +45,19 @@ test.describe('Homepage', () => {
         maxDiffPixelRatio: 0.05,
       })
     })
+  })
+})
+
+test.describe('Worked Example', () => {
+  test('loads and walks from UMF to compiled artifacts', async ({ page }) => {
+    await page.goto('/worked-example/')
+
+    await expect(page.getByRole('heading', { name: 'Worked Example' }).first()).toBeVisible()
+    const body = await page.locator('body').textContent()
+    expect(body).toContain('tablespec validate tables/')
+    expect(body).toContain('claims.ingest.sql')
+    expect(body).toContain('validation-sync')
+    expect(body).toContain('source-semantic ingested bronze')
   })
 })
 
@@ -158,6 +176,7 @@ test.describe('Navigation', () => {
 
     for (const [name, urlPattern] of [
       ['Getting Started', /\/getting-started/],
+      ['Worked Example', /\/worked-example/],
       ['Concepts', /\/concepts/],
       ['CLI Reference', /\/cli-reference/],
       ['API Reference', /\/api-reference/],
@@ -171,13 +190,21 @@ test.describe('Navigation', () => {
 
   test('homepage CTA navigates to getting-started', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /Get Started/i }).first().click()
+    await page.getByRole('link', { name: /Start with a UMF/i }).first().click()
     await expect(page).toHaveURL(/\/getting-started/)
+  })
+
+  test('top nav marks current page semantically', async ({ page }) => {
+    await page.goto('/worked-example/')
+    await expect(page.getByRole('navigation').first().getByRole('link', {
+      name: 'Worked Example',
+      current: 'page',
+    })).toBeVisible()
   })
 
   test('mobile: no horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
-    for (const path of ['/', '/getting-started/', '/concepts/', '/cli-reference/']) {
+    for (const path of ['/', '/getting-started/', '/worked-example/', '/concepts/', '/cli-reference/']) {
       await page.goto(path)
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - window.innerWidth,
@@ -192,6 +219,7 @@ test.describe('Build inventory', () => {
     const required = [
       '/',
       '/getting-started/',
+      '/worked-example/',
       '/concepts/',
       '/concepts/raw-ingested-silver/',
       '/cli-reference/',

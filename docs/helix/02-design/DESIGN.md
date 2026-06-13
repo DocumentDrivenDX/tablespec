@@ -106,7 +106,7 @@ theme.
 | `--ts-paper` | `#f4f7f8` | Page background |
 | `--ts-panel` | `#ffffff` | Artifact panels and code surfaces |
 | `--ts-rule` | `#c8d2d8` | Fine rules and diagram grid lines |
-| `--ts-cyan` | `#17a7b8` | Active rules, primary links, raw-to-ingested path |
+| `--ts-cyan` | `#0f7c8b` | Active rules, primary links, raw-to-ingested path |
 | `--ts-green` | `#2f9f6a` | Passing checks, validated artifacts |
 | `--ts-amber` | `#b7791f` | Warnings, boundary notes |
 | `--ts-red` | `#b83b3b` | Errors and failed checks |

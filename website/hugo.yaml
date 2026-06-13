@@ -20,20 +20,23 @@ menu:
     - name: Getting Started
       pageRef: /getting-started
       weight: 1
+    - name: Worked Example
+      pageRef: /worked-example
+      weight: 2
     - name: Concepts
       pageRef: /concepts
-      weight: 2
+      weight: 3
     - name: CLI Reference
       pageRef: /cli-reference
-      weight: 3
+      weight: 4
     - name: API Reference
       pageRef: /api-reference
-      weight: 4
+      weight: 5
     - name: Demos
       pageRef: /demos
-      weight: 5
+      weight: 6
     - name: GitHub
-      url: https://github.com/easel/tablespec
+      url: https://github.com/DocumentDrivenDX/tablespec
       weight: 10
       params:
         icon: github
@@ -49,7 +52,7 @@ params:
     width: wide
 
   footer:
-    displayCopyright: true
+    displayCopyright: false
     displayPoweredBy: false
 
   editURL:
