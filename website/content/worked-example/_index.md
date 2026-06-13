@@ -5,14 +5,18 @@ weight: 2
 next: /concepts
 ---
 
-This example shows the path tablespec is built for: one source-semantic UMF
-contract becomes the artifacts a downstream platform can review and run.
+This example is for readers who want to see one source table move through
+tablespec from metadata to generated files. It starts with a Universal
+Metadata Format (UMF) spec for `medical_claims` and ends with SQL, dbt, JSON
+Schema, and Great Expectations artifacts a data team can review and run.
 
 ## Scenario
 
 A claims feed arrives with source column names and business-specific
-nullability. The goal is not to rename, enrich, dedupe, or resolve entities.
-The goal is to finish ingested bronze:
+nullability. In this example, ingested bronze means the source table has a
+reviewed contract and generated runtime artifacts. The goal is not to rename,
+enrich, dedupe, or resolve entities. Those are silver-layer decisions. The
+goal is to finish ingested bronze:
 
 - source fields are captured with their source names
 - source types and nullability are declared
@@ -22,8 +26,9 @@ The goal is to finish ingested bronze:
 
 ## 1. Author the table contract
 
-The split-format UMF keeps small files reviewable. The table file names the
-source-semantic table and its key:
+A split-format UMF stores table metadata in `table.yaml` and one column file
+per source field under `columns/`. That layout keeps changes reviewable. The
+table file names the source table and its key:
 
 ```yaml
 # tables/medical_claims/table.yaml
@@ -35,7 +40,7 @@ primary_key:
   - claim_id
 ```
 
-Column files preserve the source field names and source nullability:
+Column files preserve source field names and source nullability:
 
 ```yaml
 # tables/medical_claims/columns/claim_id.yaml
@@ -68,8 +73,8 @@ tablespec info tables/medical_claims/
 ```
 
 Validation checks the UMF model, file layout, column naming, relationship
-integrity, expectation compatibility, and pipeline completeness. A clean result
-means the contract is ready to compile.
+integrity, expectation compatibility, and pipeline completeness. A clean
+result means this source-table contract is ready to compile.
 
 ## 3. Compile the ingest artifact
 
@@ -77,10 +82,11 @@ means the contract is ready to compile.
 tablespec generate tables/medical_claims/ -f ingest > claims.ingest.sql
 ```
 
-The generated SQL contains the raw landing table, the typed ingested table, and
-the raw-to-ingested transform. For flat files, raw checks verify castability and
-shape before values land in the typed table. For typed sources such as JDBC and
-Parquet, tablespec skips string-shape checks that do not apply.
+The generated SQL contains the raw landing table, the typed ingested table,
+and the raw-to-ingested transform. For flat files, raw checks verify
+castability and shape before values land in the typed table. For typed sources
+such as JDBC and Parquet, tablespec skips string-shape checks that do not
+apply.
 
 ```sql
 CREATE TABLE raw_medical_claims (
@@ -104,12 +110,12 @@ tablespec generate tables/medical_claims/ -f json > medical_claims.schema.json
 tablespec validation-sync tables/medical_claims/ --out gx/
 ```
 
-The review surface is now concrete:
+The review surface is now a concrete set of generated files:
 
 | Artifact | Why it matters |
 |---|---|
 | `claims.ingest.sql` | The exact raw-to-ingested transform |
-| `out/dbt/models/medical_claims.sql` | The dbt model and contract generated from UMF |
+| `out/dbt/models/medical_claims.sql` | The dbt model and contract generated from the UMF spec |
 | `medical_claims.schema.json` | Machine-readable schema for integrations |
 | `gx/medical_claims/suite.json` | Baseline validation generated from the same contract |
 
@@ -117,8 +123,8 @@ The review surface is now concrete:
 
 At this point ingested bronze is done. Silver can now make governed business
 decisions: cross-source conformance, survivorship, entity resolution,
-enrichment, and dimensional modeling. Those choices happen after the source
-contract is complete, not hidden inside ingestion.
+enrichment, and dimensional modeling. Those choices happen after the
+source-table contract is complete, not hidden inside ingestion.
 
 ## Review checklist
 

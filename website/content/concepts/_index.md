@@ -4,11 +4,13 @@ weight: 2
 next: /cli-reference
 ---
 
-The concepts behind tablespec and Universal Metadata Format (UMF).
+These pages define the vocabulary used across tablespec. They are written for
+technical readers who understand tables and pipelines but may be new to UMF,
+ingested bronze, Great Expectations, dbt, or Databricks Lakeflow.
 
 {{< cards >}}
-  {{< card link="raw-ingested-silver" title="Raw, ingested, and silver" subtitle="The three-layer data boundary and what tablespec governs at each level." icon="database" >}}
-  {{< card link="umf" title="Universal Metadata Format" subtitle="The split-format spec at the heart of tablespec — columns, types, per-context nullability, sources, and expectations." icon="academic-cap" >}}
-  {{< card link="artifacts" title="Compiled artifacts" subtitle="SQL DDL, ingest SQL, PySpark and JSON schemas, GX suites, dbt projects, and Lakeflow pipelines — all derived from UMF." icon="cube-transparent" >}}
-  {{< card link="validation" title="Validation model" subtitle="Staged raw/typed execution, severity and blocking, and Connect-safe verdicts on Databricks serverless." icon="beaker" >}}
+  {{< card link="raw-ingested-silver" title="Raw, ingested, and silver" subtitle="Defines the data-layer boundary: raw records for audit, ingested bronze for source-table contracts, and silver for business decisions." icon="database" >}}
+  {{< card link="umf" title="Universal Metadata Format" subtitle="Defines the UMF source-table spec: columns, types, per-context nullability, sources, relationships, and expectations." icon="academic-cap" >}}
+  {{< card link="artifacts" title="Compiled artifacts" subtitle="Defines the reusable catalog of generated files: SQL DDL, ingest SQL, PySpark and JSON schemas, Great Expectations suites, dbt projects, and Lakeflow pipelines." icon="cube-transparent" >}}
+  {{< card link="validation" title="Validation model" subtitle="Defines how generated Great Expectations suites run against raw records and typed ingested tables, including Databricks serverless behavior." icon="beaker" >}}
 {{< /cards >}}

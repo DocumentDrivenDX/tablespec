@@ -4,7 +4,10 @@ weight: 1
 next: /concepts
 ---
 
-Install tablespec, author a table spec, and compile your first artifacts.
+This page is for data engineers who want to try tablespec without first
+learning the whole project. You will install the package, write one Universal
+Metadata Format (UMF) source-table spec, validate it, and compile artifacts
+that a data pipeline can run or review.
 
 ## Install
 
@@ -25,10 +28,12 @@ discovery, or DataFrame validation:
 uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
 ```
 
-## Author a table spec
+## Author a UMF table spec
 
-The canonical UMF format is a **split directory**: one `table.yaml` plus one
-file per column under `columns/`. Build one from Python:
+Universal Metadata Format (UMF) is tablespec's schema contract for a source
+table. The canonical UMF editing format is a **split directory**: one
+`table.yaml` file for table-level metadata plus one file per column under
+`columns/`. Build one from Python:
 
 ```python
 from pathlib import Path
@@ -73,7 +78,8 @@ tables/medical_claims/
     └── meta_*.yaml          # 8 provenance columns
 ```
 
-Each file is small and diffs cleanly in review. `table.yaml`:
+Each file is small enough for code review. `table.yaml` names the table and
+its primary key:
 
 ```yaml
 canonical_name: Medical Claims
@@ -84,7 +90,7 @@ table_name: medical_claims
 version: '1.0'
 ```
 
-`columns/claim_id.yaml`:
+`columns/claim_id.yaml` defines one source column:
 
 ```yaml
 column:
@@ -97,8 +103,9 @@ column:
     MP: false
 ```
 
-The `MD` / `MP` keys under `nullable` are arbitrary context labels (here,
-healthcare lines of business). See
+The `MD` / `MP` keys under `nullable` are context labels for this healthcare
+example: Medicaid and Medicare Part D. Other domains can use their own
+context labels. See
 [Universal Metadata Format](/concepts/umf/) for the full model.
 
 ## Validate and inspect
@@ -116,7 +123,8 @@ migration helper.
 
 ## Generate artifacts
 
-Each `generate` format writes to stdout so it can be piped:
+An artifact is a generated file that downstream tools consume. Each
+`generate` format writes one artifact to stdout so it can be piped:
 
 ```bash
 tablespec generate tables/medical_claims/ -f sql > medical_claims.ddl.sql
@@ -125,8 +133,9 @@ tablespec generate tables/medical_claims/ -f json > medical_claims.schema.json
 tablespec generate tables/medical_claims/ -f ingest > medical_claims.ingest.sql
 ```
 
-The `ingest` format is the raw-to-ingested plan for Databricks/Delta: a raw
-landing table DDL, a typed target DDL, and the `MERGE` transform between them.
+The `ingest` format is the raw-to-ingested SQL plan for Databricks/Delta: a
+raw landing table DDL, a typed target DDL, and the `MERGE` transform between
+them.
 See [Compiled artifacts](/concepts/artifacts/) for what each artifact contains.
 
 ## Emit a dbt project
@@ -135,15 +144,16 @@ See [Compiled artifacts](/concepts/artifacts/) for what each artifact contains.
 tablespec emit tables/ out/dbt --backend dbt --dialect databricks
 ```
 
-This materializes a complete dbt project — model SQL with the declared casts,
+This writes a dbt project to `out/dbt`: model SQL with declared casts,
 enforced contracts, sources, and profiles. Pass `--dialect duckdb` (the
-default) to run it locally, or add `--run` to execute `dbt build` via
+default) to run it locally, or add `--run` to execute `dbt build` through
 dbt-duckdb against the emitted project.
 
 ## Compile from Python
 
-The same generators are available as functions. They take a plain dict (use
-`model_dump`) and return the artifact:
+The same artifact generators are available as Python functions. They take a
+plain dict (use `model_dump`) and return the generated SQL, Python source,
+JSON Schema, or expectation list:
 
 ```python
 from pathlib import Path
@@ -172,17 +182,17 @@ Legacy single-file YAML specs can still be loaded in Python with
 
 ## On Databricks
 
-If the tables already exist in a database, skip hand-authoring: point
-tablespec at it over JDBC and it discovers one validated UMF per table —
-columns and types from `INFORMATION_SCHEMA` plus the reflected Spark schema,
-primary and foreign keys, and provenance columns included. Credentials are
-never inlined; the spec carries only a `password_secret_ref` naming a secret
-in the runtime's secret store.
+If source tables already exist in a database, you can skip hand-authoring.
+Point tablespec at the database over JDBC and it discovers one validated UMF
+spec per table: columns and types from `INFORMATION_SCHEMA`, the reflected
+Spark schema, primary and foreign keys, and the required provenance columns.
+Credentials are never inlined; the spec carries only a `password_secret_ref`
+naming a secret in the runtime's secret store.
 
-The [Northwind demo notebooks](/demos/) run this end to end on a Databricks
-cluster: provision SQL Server on the driver node, discover the whole database,
-validate every spec, and land typed tables with staged validation reports —
-Connect-safe on classic clusters and serverless alike.
+The [Northwind demo notebooks](/demos/) run this database-discovery path end
+to end on a Databricks cluster: provision SQL Server on the driver node,
+discover the whole database, validate every spec, and land typed tables with
+staged validation reports that work on classic clusters and serverless.
 
 ## Next steps
 

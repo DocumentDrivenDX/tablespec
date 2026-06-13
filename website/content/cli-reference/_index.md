@@ -4,22 +4,27 @@ weight: 3
 next: /api-reference
 ---
 
-tablespec ships a Typer-based CLI with 21 commands. Run `tablespec --help`
-for the live list, or `tablespec COMMAND --help` for any command's options.
+This page is for readers who want command names, inputs, outputs, and exit
+codes. The `tablespec` command line interface (CLI) has 21 commands. Run
+`tablespec --help` for the live list, or `tablespec COMMAND --help` for one
+command's options.
 
 ```
 tablespec [OPTIONS] COMMAND [ARGS]...
 ```
 
-Commands take a UMF **split directory** or **JSON file** as input. Legacy
-single-file YAML specs are refused. Exit code is 0 on success, 1 on
-validation or command failure, 2 on usage errors.
+Most commands take a Universal Metadata Format (UMF) **split directory** or a
+UMF **JSON file** as input. A split directory contains `table.yaml` plus one
+file per column under `columns/`. Legacy single-file YAML specs are refused.
+Exit code is 0 on success, 1 on validation or command failure, and 2 on usage
+errors.
 
 ## Inspect and validate
 
 ### `validate`
 
-Validate UMF schema for correctness.
+Validate a UMF spec for structure, model correctness, relationships,
+expectation compatibility, and pipeline completeness.
 
 ```bash
 tablespec validate tables/
@@ -46,8 +51,8 @@ tablespec info tables/medical_claims/
 
 ### `preview`
 
-Preview validation expectations classified by stage (raw vs. ingested), with
-severity and source for each. See the
+Preview generated validation expectations classified by stage (`raw` source
+records vs. typed `ingested` tables), with severity and source for each. See the
 [validation model](/concepts/validation/) for what the stages mean.
 
 ```bash
@@ -73,8 +78,8 @@ tablespec explore tables/
 
 ### `generate`
 
-Generate SQL DDL, PySpark schema, JSON Schema, or an ingest plan. Output goes
-to stdout so it can be piped.
+Generate one artifact from a UMF spec: SQL DDL, PySpark schema source, JSON
+Schema, or an ingest SQL plan. Output goes to stdout so it can be piped.
 
 ```bash
 tablespec generate tables/medical_claims/ -f sql > medical_claims.ddl.sql
@@ -88,11 +93,12 @@ tablespec generate tables/medical_claims/ -f ingest > medical_claims.ingest.sql
 | `--format`, `-f` | Required. `sql`, `pyspark`, `json`, or `ingest`. |
 
 The `ingest` format emits the raw-to-ingested SQL artifact for
-Databricks/Delta: raw landing DDL, typed target DDL, and the MERGE transform.
+Databricks/Delta: raw landing DDL, typed target DDL, and the `MERGE`
+transform.
 
 ### `emit`
 
-Emit a runnable project for a UMF (or UMF set) via a backend.
+Emit a runnable project for one UMF spec or a set of related UMF specs.
 
 ```bash
 tablespec emit tables/ out/dbt --backend dbt --dialect databricks
@@ -112,8 +118,8 @@ landing table (`raw_<table>`) must exist there for the build to pass.
 
 ### `convert`
 
-Convert a single UMF between split and JSON formats (direction is
-auto-detected).
+Convert a single UMF spec between split-directory and JSON formats. The
+direction is auto-detected from the input and output paths.
 
 ```bash
 tablespec convert tables/medical_claims/ medical_claims.json
@@ -170,8 +176,10 @@ tablespec column-remove tables/medical_claims/ --name claim_status_cd
 
 ## Domain types
 
-Domain types attach semantic meaning (member IDs, state codes, NPIs, emails)
-to columns, driving detection, validation, and sample-data generation.
+Domain types attach semantic meaning to columns. Examples include member IDs,
+state codes, National Provider Identifiers (NPIs), and email addresses.
+tablespec uses domain types for detection, validation, and sample-data
+generation.
 
 ```bash
 tablespec domains-list
@@ -191,9 +199,9 @@ tablespec domains-set tables/medical_claims/ --column member_id --type member_id
 
 ### `validation-sync`
 
-Regenerate deterministic baseline expectations from the current UMF
-definition and reconcile them with the existing suite, preserving user
-customizations.
+Regenerate deterministic baseline expectations from the current UMF spec and
+reconcile them with the existing Great Expectations suite. User customizations
+are preserved.
 
 ```bash
 tablespec validation-sync tables/medical_claims/ --dry-run
@@ -220,9 +228,9 @@ tablespec validation-remove tables/medical_claims/ --type expect_column_values_t
 
 ### `apply-response`
 
-Apply LLM-generated validation expectations (a JSON list, or
-`{"expectations": [...]}`) to a UMF table. Pairs with the prompt generators
-in the Python API.
+Apply LLM-generated validation expectations to a UMF table. The input is a
+JSON list or an object shaped like `{"expectations": [...]}`. This command
+pairs with the prompt generators in the Python API.
 
 ```bash
 tablespec apply-response tables/medical_claims/ response.json --dry-run

@@ -3,37 +3,40 @@ title: Raw, ingested, and silver
 weight: 1
 ---
 
-tablespec governs the boundary between raw source data and the downstream
-layers that build on it. Understanding where each layer begins and ends is
-essential to using tablespec correctly.
+This page is for readers who know data pipelines but do not yet know
+tablespec's layer vocabulary. It defines three terms used throughout the
+project: raw source records, ingested bronze tables, and silver models.
+
+tablespec governs the boundary between raw source data and ingested bronze.
+Silver begins after the source-table contract is complete.
 
 ## The three layers
 
 ### Raw
 
-Raw is the data as it arrives from the source system — files, API payloads,
-CDC streams, or database exports. Raw has no contract: column names are whatever
-the source produces, types are whatever the transport format carries, and
-nullability is unverified.
+Raw is data as it arrives from another system: files, API payloads, CDC
+streams, or database exports. Raw has no tablespec contract. Column names are
+whatever the source produces, types are whatever the transport format carries,
+and nullability is unverified.
 
 Raw is the ground truth for auditing and replay. It is not the foundation you
 build business logic on.
 
 ### Ingested bronze
 
-Ingested bronze is where tablespec operates. The ingested layer:
+Ingested bronze is where tablespec operates. An ingested bronze table is still
+source-faithful, but it is no longer an unchecked transport record. The
+ingested bronze layer:
 
 - **Preserves source semantics.** Column names match the source field names.
   Types reflect what the source system produces, not a downstream preference.
-  Nullability is declared based on the source feed's actual behavior, not on
-  what downstream consumers would prefer.
-- **Is governed by a UMF spec.** Every column has a declared type and
-  per-context nullability — in healthcare feeds the common contexts are MD
-  (Medicaid), MP (Medicare Part D), and ME (Medicare) — plus expectations
-  for everything else worth checking. The UMF is the contract.
-- **Is validated on load.** Expectation suites generated from the UMF verify
-  that each load conforms to the declared contract before data flows
-  downstream.
+  Nullability is declared from the source feed's behavior.
+- **Is governed by a UMF spec.** Universal Metadata Format (UMF) is the
+  tablespec source-table contract. Every column has a declared type and
+  per-context nullability. In healthcare feeds, common context labels are MD
+  (Medicaid), MP (Medicare Part D), and ME (Medicare).
+- **Is validated on load.** Great Expectations suites generated from the UMF
+  verify each load before data flows to downstream models.
 
 The ingested layer is the stable foundation. If something is wrong with the
 data, you can trace it back to the source semantics preserved here rather than
@@ -41,8 +44,8 @@ guessing whether the problem was introduced by a conformance transform.
 
 ### Silver
 
-Silver is where cross-source work begins. The silver layer applies
-transformations that require judgment beyond what the source system provides:
+Silver is where cross-source work begins. A silver model applies
+transformations that require judgment beyond what the source system records:
 
 - **Cross-source conformance**: aligning the same concept across multiple
   source systems (e.g., standardizing member ID formats from three different
@@ -58,7 +61,7 @@ transformations that require judgment beyond what the source system provides:
 
 Silver is intentionally separate from ingested bronze because these
 transformations make choices that must be governed explicitly. A silver table
-is not source-faithful — it represents a business decision.
+is not source-faithful. It represents a business decision.
 
 ## Why the boundary matters
 
@@ -68,9 +71,9 @@ reads from the source. When something downstream breaks, it is hard to tell
 whether the problem is in the source data or in a transform applied at
 ingestion.
 
-tablespec enforces the separation. The ingested layer is a faithful mirror of
-the source — no renames, no type promotions, no nullability assumptions beyond
-what the source feed actually exhibits. Silver transformations are separate jobs
+tablespec enforces the separation. The ingested bronze table mirrors the
+source meaning: no renames, no type promotions, no nullability assumptions
+beyond what the source feed exhibits. Silver transformations are separate jobs
 with their own contracts.
 
 The raw/ingested split is also how validation executes. String-shape checks
@@ -116,6 +119,6 @@ column:
     MP: true    # the Medicare Part D feed sometimes omits this
 ```
 
-A silver table that standardizes across sources would have its own UMF with
-different column names, additional derived columns, and explicit provenance
-columns tracking which source each row came from.
+A silver table that standardizes across sources would have its own UMF spec
+with different column names, additional derived columns, and explicit
+provenance columns tracking which source each row came from.

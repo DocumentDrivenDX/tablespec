@@ -3,14 +3,19 @@ title: Validation model
 weight: 4
 ---
 
-tablespec validates data against the spec with Great Expectations suites that
-are generated, staged, and executed with correct verdicts on classic Spark
-and on Spark Connect (including Databricks serverless).
+This page is for readers who need to know what tablespec checks before data
+moves beyond ingested bronze. tablespec validates source data against a UMF
+source-table spec by generating Great Expectations suites. Those suites run in
+stages: raw source records first, then the typed ingested table.
+
+tablespec executes generated suites on classic Spark and on Spark Connect,
+including Databricks serverless.
 
 ## Baseline from the spec
 
-`BaselineExpectationGenerator` deterministically derives expectations from
-UMF metadata — structure, types, nullability per context, lengths, keys:
+`BaselineExpectationGenerator` derives Great Expectations rules from UMF
+metadata: table structure, column types, nullability per context, lengths, and
+keys:
 
 ```python
 from pathlib import Path
@@ -22,27 +27,28 @@ expectations = BaselineExpectationGenerator().generate_baseline_expectations(
 )
 ```
 
-The same UMF always produces the same suite. The CLI counterpart is
-`tablespec validation-sync`, which regenerates the baseline and reconciles it
-with the committed suite — expectations marked `generated_from: baseline` are
-updated, user customizations are preserved (`--dry-run` shows the plan,
-`--clean-outdated` removes superseded baseline rules).
+The same UMF always produces the same baseline suite. The CLI counterpart is
+`tablespec validation-sync`, which regenerates baseline expectations and
+reconciles them with the committed suite. Expectations marked
+`generated_from: baseline` are updated. User customizations are preserved.
+`--dry-run` shows the proposed changes, and `--clean-outdated` removes
+superseded baseline rules.
 
 ## Staged execution: raw vs. ingested
 
-Data is validated at two stages, and each expectation is classified to one:
+tablespec validates data at two stages. Each expectation is assigned to one
+stage:
 
 - **raw** — the landing table, where every column is a string. String-shape
   checks live here: castability (`expect_column_values_to_cast_to_type`),
   lengths, date formats, not-null.
-- **ingested** — the typed table after the raw-to-ingested transform.
-  Value-range and relationship checks live here.
+- **ingested** — the typed table after the raw-to-ingested transform. Value
+  range and relationship checks live here.
 
 Classification matters because the source kind changes what is sensible to
-check: **typed sources (jdbc, parquet) land natively typed, so suites
-composed for them carry no string-shape raw checks at all.** A `CAST` check
-against a column that was never a string is noise; tablespec does not emit
-it.
+check. Typed sources such as JDBC and Parquet land natively typed, so
+tablespec does not emit string-shape raw checks for them. A `CAST` check
+against a column that was never a string is noise.
 
 Preview the classification without executing anything:
 
@@ -60,20 +66,19 @@ while a failed critical check blocks the load.
 
 ## Connect-safe execution on Databricks serverless
 
-GX's Spark engine uses classic `pyspark.sql.functions`, which assert a JVM
-`SparkContext`. On Spark Connect — Databricks serverless, Sail — there is no
-JVM context, the assertion fails internally, and every data-scanning
-expectation silently returns `success=False`. Silent wrong verdicts are the
-worst failure mode a validator can have.
+Great Expectations (GX) has a Spark engine that uses classic
+`pyspark.sql.functions`, which assert a JVM `SparkContext`. Spark Connect
+runtimes such as Databricks serverless and Sail do not expose that JVM
+context. In that environment, the assertion fails internally and data-scanning
+expectations can silently return `success=False`.
 
-tablespec's suite executor routes around this: classic DataFrames go through
-the GX Spark engine; Connect DataFrames go through a **native executor**
-(`tablespec.validation.native_executor`) that re-implements every baseline
-expectation type using only the DataFrame API, selecting the engine-correct
-functions module from the DataFrame itself. Same suite, same result shape,
-correct verdicts on both engines — and the native path fails closed:
-an expectation it cannot evaluate is reported as an error, never as a silent
-pass or fail.
+tablespec routes around that engine mismatch. Classic DataFrames go through
+the GX Spark engine. Spark Connect DataFrames go through a native executor
+(`tablespec.validation.native_executor`) that implements every baseline
+expectation type with the DataFrame API and selects the functions module from
+the DataFrame itself. The same suite keeps the same result shape on both
+engines. The native path fails closed: an expectation it cannot evaluate is
+reported as an error, never as a silent pass or fail.
 
 Staged execution routes raw expectations to the raw DataFrame and ingested
 expectations to the typed one (from the Northwind demo notebook):
@@ -95,9 +100,10 @@ staged = executor.execute_staged(raw_df, typed_df, expectations)
 
 ## Validating a DataFrame against a spec
 
-`TableValidator` (requires `tablespec[spark]`) is the one-call wrapper: it
-loads the spec, generates the suite, executes it, and returns a DataFrame of
-validation errors — empty means clean:
+`TableValidator` requires `tablespec[spark]`. It is the one-call wrapper for
+application code: it loads the UMF spec, generates the baseline suite,
+executes it, and returns a DataFrame of validation errors. An empty error
+DataFrame means the input passed validation:
 
 ```python
 from tablespec import TableValidator
@@ -115,11 +121,11 @@ and reported like any other table.
 
 ## Adding rules beyond the baseline
 
-The baseline covers what the spec declares. Richer rules enter the suite
-from profiling results, or from an LLM review loop: generate a prompt with
-`generate_validation_prompt`, then apply the model's JSON response with
-`tablespec apply-response tables/medical_claims/ response.json` (use
-`--dry-run` to inspect first). Applied expectations are tagged
+The baseline suite covers what the UMF spec declares. Additional rules can
+come from profiling results or from an LLM review loop. Generate a prompt
+with `generate_validation_prompt`, then apply the model's JSON response with
+`tablespec apply-response tables/medical_claims/ response.json`. Use
+`--dry-run` before writing. Applied expectations are tagged
 `generated_from: llm` and survive later `validation-sync` runs.
 
 ## Scope

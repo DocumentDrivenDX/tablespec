@@ -1,6 +1,6 @@
 ---
 title: tablespec
-description: "tablespec defines the source-semantic ingested bronze contract and compiles one UMF into SQL, dbt, Lakeflow, schema, and validation artifacts."
+description: "tablespec helps data teams define the ingested bronze contract for source tables and compile one UMF spec into SQL, dbt, Lakeflow, schema, and validation artifacts."
 layout: hextra-home
 ---
 
@@ -12,9 +12,12 @@ layout: hextra-home
     <p class="ts-drawing-label">TABLESPEC / SOURCE CONTRACT</p>
     <h1 id="ts-home-title">Definition of done for ingested bronze</h1>
     <p class="ts-hero-lede">
-      tablespec defines the source-semantic ingested bronze contract and
-      compiles one UMF into the SQL, dbt, Lakeflow, schema, and validation
-      artifacts your platform actually runs.
+      tablespec is for data engineers and platform teams who need source data
+      ready for downstream work. It defines a source-semantic ingested bronze
+      contract: the source meaning is preserved, while types, validation,
+      keys, and relationships are declared. Then it compiles one Universal
+      Metadata Format (UMF) spec into SQL, dbt, Lakeflow, schema, and
+      validation artifacts.
     </p>
     <div class="ts-hero-actions" aria-label="Primary actions">
       <a class="ts-button ts-button-primary" href="getting-started/">Start with a UMF</a>
@@ -31,25 +34,25 @@ layout: hextra-home
       <div class="ts-node">
         <span class="ts-node-label">source</span>
         <strong>flat files, dumps, APIs</strong>
-        <small>captured for audit and replay</small>
+        <small>records as delivered by another system</small>
       </div>
       <div class="ts-arrow" aria-hidden="true"></div>
       <div class="ts-node ts-node-raw">
         <span class="ts-node-label">raw</span>
         <strong>source records</strong>
-        <small>transport shape stays inspectable</small>
+        <small>transport shape kept for audit and replay</small>
       </div>
       <div class="ts-arrow" aria-hidden="true"></div>
       <div class="ts-node ts-node-ingested">
         <span class="ts-node-label">ingested bronze</span>
         <strong>typed, validated, keyed</strong>
-        <small>source semantics without source accidents</small>
+        <small>source meaning captured in Delta-compatible tables</small>
       </div>
       <div class="ts-arrow" aria-hidden="true"></div>
       <div class="ts-node">
         <span class="ts-node-label">silver</span>
         <strong>conform, resolve, enrich</strong>
-        <small>survivorship, enrichment, modeling</small>
+        <small>business choices across one or more sources</small>
       </div>
     </div>
     <div class="ts-artifact-strip" aria-label="Compiled artifacts">
@@ -72,23 +75,23 @@ layout: hextra-home
 <section class="ts-band ts-proof-band" aria-labelledby="ts-proof-title">
   <div class="ts-band-heading">
     <p class="ts-drawing-label">EVALUATE</p>
-    <h2 id="ts-proof-title">One contract, every runtime surface</h2>
+    <h2 id="ts-proof-title">One source-table spec, every generated artifact</h2>
   </div>
   <div class="ts-proof-grid">
     <article>
       <span>01</span>
       <h3>Define the source table once</h3>
-      <p>Capture names, source types, nullability, keys, relationships, aliases, and provenance in UMF.</p>
+      <p>Capture names, source types, nullability, keys, relationships, aliases, and provenance in Universal Metadata Format.</p>
     </article>
     <article>
       <span>02</span>
       <h3>Compile committed artifacts</h3>
-      <p>Generate SQL DDL, ingest transforms, dbt models, Lakeflow pipelines, JSON Schema, and GX suites.</p>
+      <p>Generate the SQL DDL, ingest transform, dbt model, Lakeflow pipeline, JSON Schema, and Great Expectations suite from that spec.</p>
     </article>
     <article>
       <span>03</span>
       <h3>Validate before silver starts</h3>
-      <p>Run staged raw and ingested checks with correct verdicts on classic Spark and Databricks serverless.</p>
+      <p>Run checks against raw source records and typed ingested tables before silver models add business rules.</p>
     </article>
   </div>
 </section>
@@ -98,9 +101,10 @@ layout: hextra-home
     <p class="ts-drawing-label">WORKED EXAMPLE</p>
     <h2 id="ts-example-title">Medical claims from UMF to reviewable artifacts</h2>
     <p>
-      Start with a split-format UMF for `medical_claims`. tablespec validates the
-      contract, then emits the raw-to-ingested SQL, a dbt project, and a Great
-      Expectations suite from the same source.
+      Start with a split-format UMF directory for `medical_claims`: one
+      table-level YAML file plus one YAML file per column. tablespec validates
+      that source-table contract, then emits raw-to-ingested SQL, a dbt project,
+      and a Great Expectations suite from the same spec.
     </p>
     <a class="ts-button ts-button-secondary" href="worked-example/">Open the example</a>
   </div>
@@ -119,7 +123,7 @@ tablespec validation-sync tables/medical_claims --out gx/</code></pre>
 <section class="ts-band" aria-labelledby="ts-boundary-title">
   <div class="ts-band-heading">
     <p class="ts-drawing-label">DECIDE</p>
-    <h2 id="ts-boundary-title">Bronze stays source-semantic. Silver stays honest.</h2>
+    <h2 id="ts-boundary-title">Bronze records source meaning. Silver records business choices.</h2>
   </div>
   <div class="ts-comparison" role="table" aria-label="Ingested bronze and silver responsibilities">
     <div role="row" class="ts-comparison-head">
@@ -152,8 +156,8 @@ tablespec validation-sync tables/medical_claims --out gx/</code></pre>
 
 <section class="ts-band ts-final-cta" aria-labelledby="ts-next-title">
   <p class="ts-drawing-label">OPERATE</p>
-  <h2 id="ts-next-title">Compile the contract. Review the diff.</h2>
-  <p>Install from the project package index, generate your first artifacts, then inspect the contract boundary before silver work begins.</p>
+  <h2 id="ts-next-title">Compile the UMF contract. Review the diff.</h2>
+  <p>Install tablespec, write one UMF source-table spec, generate runtime artifacts, then inspect the bronze boundary before silver work begins.</p>
   <div class="ts-hero-actions">
     <a class="ts-button ts-button-primary" href="getting-started/">Get started</a>
     <a class="ts-button ts-button-secondary" href="concepts/raw-ingested-silver/">Read raw, ingested, and silver</a>

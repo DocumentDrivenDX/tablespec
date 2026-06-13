@@ -3,15 +3,19 @@ title: Universal Metadata Format
 weight: 2
 ---
 
-Universal Metadata Format (UMF) is the schema format at the heart of
-tablespec. Every tablespec operation begins with a UMF spec, validated by
+Universal Metadata Format (UMF) is tablespec's source-table contract. A UMF
+spec records the table name, column names, source data types, nullability,
+keys, relationships, source declaration, and validation expectations.
+
+This page is for readers who need to author or review UMF files. Every
+tablespec operation starts by loading a UMF spec and validating it with
 Pydantic models.
 
 ## Formats
 
-**Split directory (canonical).** One `table.yaml` for table-level metadata
-plus one file per column under `columns/`. This is the git-friendly editing
-format — a column change is a one-file diff:
+**Split directory (canonical).** One `table.yaml` file stores table-level
+metadata. One file per column lives under `columns/`. This is the
+review-friendly editing format because a column change is a one-file diff:
 
 ```
 tables/medical_claims/
@@ -45,13 +49,14 @@ column:
     MP: false
 ```
 
-**JSON (artifact standard).** The whole UMF as a single `.json` file — what
-compiled pipelines consume. `tablespec convert` translates between the two,
-and `UMFLoader` auto-detects them.
+**JSON (artifact standard).** A JSON UMF file stores the whole table contract
+in one `.json` document. Compiled pipelines can consume this single-file
+artifact. `tablespec convert` translates between split directories and JSON,
+and `UMFLoader` auto-detects both formats.
 
-**Single-file YAML (legacy).** Whole-UMF YAML documents are loadable from
-Python via `load_umf_from_yaml`, but the CLI refuses them and points at the
-explicit migration helper.
+**Single-file YAML (legacy).** Older whole-UMF YAML documents are loadable
+from Python via `load_umf_from_yaml`, but the CLI refuses them and points at
+the explicit migration helper.
 
 ## Column types
 
@@ -69,10 +74,11 @@ explicit migration helper.
 | `DATETIME`, `TIMESTAMP` | `DATETIME` / `TIMESTAMP` | `TimestampType()` |
 | `BOOLEAN` | `BOOLEAN` | `BooleanType()` |
 
-The PySpark schema generator targets the **raw** stage, where everything —
-including dates — lands as strings and is cast during ingest. That is why
-`DATE` maps to `StringType()` there but to `DATE` in the typed DDL. The
-[validation model](/concepts/validation/) follows the same raw/typed split.
+The PySpark schema generator targets the **raw** stage: the landing table that
+captures source records before tablespec casts them. In that raw stage, dates
+land as strings and are cast during ingest. That is why `DATE` maps to
+`StringType()` in the raw PySpark schema but to `DATE` in the typed SQL DDL.
+The [validation model](/concepts/validation/) follows the same raw/typed split.
 
 ## Nullability per context
 
@@ -106,16 +112,17 @@ relationships:
 ```
 
 `tablespec validate` checks relationship integrity automatically when
-multiple tables are present, and the dbt/Lakeflow emitters turn declared
-keys into tests and expectations.
+multiple UMF specs are present. The dbt and Lakeflow emitters turn declared
+keys into generated tests and expectations.
 
 ## Expectations
 
-Quality rules live in a unified expectation suite — Great Expectations
-types with structured metadata (`stage`, `severity`, `blocking`,
-`generated_from`). In split format, column-scoped expectations are stored in
-the column's file under `validations:`; table-level ones in
-`expectations.yaml`:
+Quality rules live in an expectation suite. In tablespec, an expectation is a
+Great Expectations rule plus metadata that says where it runs (`stage`), how
+serious failure is (`severity`), whether it blocks a load (`blocking`), and
+where it came from (`generated_from`). In split format, column-scoped
+expectations are stored in the column's file under `validations:`; table-level
+expectations live in `expectations.yaml`:
 
 ```yaml
 # columns/claim_id.yaml (continued)
@@ -130,16 +137,17 @@ validations:
       generated_from: llm
 ```
 
-Note there is no per-column `validation_rules` or `allowed_values` field on
-the column model itself — constraints are expectations, generated from the
-spec (baseline), from profiling, from an LLM (via `tablespec
-apply-response`), or by hand.
+The column model does not have a separate `validation_rules` or
+`allowed_values` field. Constraints are expectations. They can be generated
+from the UMF metadata as the baseline suite, inferred from profiling, added
+from an LLM response through `tablespec apply-response`, or written by hand.
 
 ## Source declaration
 
-A UMF may declare where its rows come from via a discriminated `source:`
-block (`kind: delimited | parquet | jdbc`). When absent, the table is treated
-as a delimited flat file described by `file_format`.
+A UMF spec may declare where its rows come from with a `source:` block. The
+`kind` field says whether the source is `delimited`, `parquet`, or `jdbc`.
+When `source:` is absent, tablespec treats the table as a delimited flat file
+described by `file_format`.
 
 ```yaml
 source:
@@ -156,21 +164,24 @@ Two properties matter here:
 - **Credentials are never inlined.** `JdbcSource` rejects a literal
   `password` field (`extra="forbid"`); `password_secret_ref` names a secret
   in the runtime's secret store (an env var, a Databricks secret scope).
-- **The source kind drives validation.** Typed sources (jdbc, parquet) land
-  natively typed, so suites composed for them carry no string-shape raw
-  checks. See [staged validation](/concepts/validation/).
+- **The source kind drives validation.** Typed sources such as JDBC and
+  Parquet land natively typed, so their generated suites do not include
+  string-shape raw checks. See [staged validation](/concepts/validation/).
 
 ## Ingestion
 
-The optional `ingestion` block controls how the raw-to-ingested transform is
-generated: `mode` (e.g. incremental), `order_by` for dedup-latest
-windows, pre-upsert exclusions, and post-upsert rules. It feeds
-`tablespec generate -f ingest` and the dbt emitter.
+The optional `ingestion` block controls how tablespec generates the
+raw-to-ingested transform. It can declare `mode` (for example,
+`incremental`), `order_by` for dedup-latest windows, pre-upsert exclusions,
+and post-upsert rules. `tablespec generate -f ingest` and the dbt emitter use
+this block.
 
 ## Provenance columns
 
-Every pipeline-complete spec carries eight `meta_*` provenance columns
-(`meta_source_name`, `meta_load_dt`, `meta_checksum`, ...) that the ingest
-pipeline populates on every row. `tablespec validate` requires them;
-spec-producing flows such as JDBC discovery append them automatically. The
-canonical list is `tablespec.ingestion.constants.PROVENANCE_COLUMNS`.
+Every pipeline-complete UMF spec carries eight `meta_*` provenance columns
+such as `meta_source_name`, `meta_load_dt`, and `meta_checksum`. The ingest
+pipeline populates these columns on every row so a downstream reader can trace
+where the row came from and when it was loaded. `tablespec validate` requires
+the provenance columns; spec-producing flows such as JDBC discovery append
+them automatically. The canonical list is
+`tablespec.ingestion.constants.PROVENANCE_COLUMNS`.

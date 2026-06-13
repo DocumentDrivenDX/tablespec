@@ -3,14 +3,19 @@ title: Compiled artifacts
 weight: 3
 ---
 
-tablespec compiles a UMF spec into the artifacts a pipeline actually runs.
-Every artifact is derived deterministically from the same spec: recompiling
-an unchanged spec produces the same output, so the DDL, the schemas, the
-validation suite, and the emitted projects cannot drift apart.
+This page is for readers who need to know what files tablespec generates and
+why those files should be reviewed. A compiled artifact is a file generated
+from a Universal Metadata Format (UMF) source-table spec: SQL, schema code,
+validation suites, dbt project files, Lakeflow project files, or a manifest.
 
-## The compiled set
+tablespec compiles one UMF spec into a reusable catalog of generated files.
+Every generated file is derived from the same spec. Recompiling an unchanged
+spec produces the same output, so SQL DDL, schemas, validation suites, and
+emitted projects do not drift apart.
 
-A full compile produces, per table:
+## Reusable catalog of generated files
+
+A full compile produces these generated files for each table:
 
 | Artifact | Producer | File |
 |----------|----------|------|
@@ -23,7 +28,7 @@ A full compile produces, per table:
 | Key-candidate evidence | profiling (optional) | `validation/<table>.keycandidates.json` |
 | dbt ingest project | `generate_dbt_project` | `dbt_ingest/<table>/` |
 
-plus, per table set:
+A compile for a set of related tables also produces these generated files:
 
 | Artifact | Producer | Location |
 |----------|----------|----------|
@@ -31,17 +36,18 @@ plus, per table set:
 | Lakeflow Declarative Pipelines project | `tablespec.ldp.generate_ldp_project` | `ldp/` (`raw_<t>.sql`, `ingested_<t>.sql`, `gold_<t>.sql`) |
 | Manifest | compile orchestrator | `manifest.json` — every persisted path, so consumers never re-derive filenames |
 
-This layout is pinned by `tablespec.e2e.manifest`; `bootstrap_from_tables`
-writes it when compiling from live Spark tables. Individually, each artifact
-is also available via `tablespec generate` / `tablespec emit` or the
+`tablespec.e2e.manifest` pins this layout in tests. `bootstrap_from_tables`
+writes the layout when compiling from live Spark tables. Each generated file
+is also available through `tablespec generate`, `tablespec emit`, or the
 corresponding Python function.
 
 ## SQL DDL
 
-`generate_sql_ddl(umf_data)` produces a Spark SQL `CREATE TABLE` for the
-**typed** (ingested) table — `VARCHAR` becomes `STRING`, descriptions become
-`COMMENT` clauses. Actual output for a four-column claims spec (the header
-also carries a source-file timestamp for provenance):
+`generate_sql_ddl(umf_data)` produces a Spark SQL `CREATE TABLE` statement
+for the **typed ingested table**: the table after raw source records have
+been cast into declared types. `VARCHAR` becomes `STRING`, and column
+descriptions become `COMMENT` clauses. Actual output for a four-column
+claims spec:
 
 ```sql
 -- DDL for medical_claims
@@ -60,9 +66,10 @@ COMMENT 'Healthcare claims - source-faithful ingested bronze'
 ## Ingest SQL
 
 `generate_ingest_sql(umf_data)` (CLI: `tablespec generate -f ingest`) emits
-the full raw-to-ingested plan for Databricks/Delta: a raw landing table
-(all `STRING` plus `_source_file` / `_load_ts` audit columns), the typed
-target table, and the transform between them. With a primary key and
+the raw-to-ingested SQL plan for Databricks/Delta. The generated SQL includes
+a raw landing table, the typed ingested target table, and the transform
+between them. The raw landing table stores source values as `STRING` plus
+`_source_file` and `_load_ts` audit columns. With a primary key and
 incremental mode, the transform is a `MERGE` with a dedup-latest window:
 
 ```sql
@@ -90,8 +97,8 @@ WHEN NOT MATCHED THEN INSERT *;
 
 `generate_pyspark_schema(umf_data)` returns **generated Python source code**
 that defines a `StructType` — an artifact you commit and import, not a
-runtime object. It targets the raw read, so `DATE` columns are
-`StringType()` (dates are cast during ingest):
+runtime object. It targets the raw read, where dates still arrive as source
+strings, so `DATE` columns are `StringType()` and are cast during ingest:
 
 ```python
 medical_claims_schema = StructType([
@@ -102,19 +109,21 @@ medical_claims_schema = StructType([
 ])
 ```
 
-(For an actual `StructType` object at runtime, the spark extra provides
-`map_to_pyspark_type_obj`.)
+(For an actual `StructType` object at runtime, install the spark extra and
+call `map_to_pyspark_type_obj`.)
 
 ## JSON Schema
 
-`generate_json_schema(umf_data)` returns a JSON Schema (draft-07) document —
-useful for validating JSON payloads against the contract.
+`generate_json_schema(umf_data)` returns a JSON Schema (draft-07) document.
+Use it when another service needs to validate JSON payloads against the same
+UMF table contract.
 
 ## Great Expectations baseline
 
 `BaselineExpectationGenerator().generate_baseline_expectations(umf_data)`
-returns a deterministic list of expectation dicts. The types it emits,
-depending on what the spec declares:
+returns a deterministic list of Great Expectations rule dictionaries. The
+generator emits these rule types when the UMF spec declares the matching
+metadata:
 
 - `expect_table_column_count_to_equal` and
   `expect_table_columns_to_match_ordered_list` (structural)
@@ -129,20 +138,20 @@ depending on what the spec declares:
   pairs)
 
 Each expectation carries `meta` with severity, stage, and
-`generated_from: baseline` so later syncs can tell baseline rules from user
-customizations. See the [validation model](/concepts/validation/) for how
-suites execute.
+`generated_from: baseline`. Later syncs use that metadata to distinguish
+baseline rules from user customizations. See the
+[validation model](/concepts/validation/) for how suites execute.
 
 ## dbt and Lakeflow projects
 
-`tablespec emit --backend dbt` materializes a runnable dbt project: model SQL
-applying the declared casts, enforced contracts (`data_type` per column),
-not-null constraints and uniqueness tests from the spec, `sources.yml`, and
-`profiles.yml`. `--dialect databricks` emits Spark-family cast SQL;
-`--dialect duckdb` (default) runs locally — `--run` executes `dbt build` via
-dbt-duckdb.
+`tablespec emit --backend dbt` writes a runnable dbt project. The project
+contains model SQL with declared casts, enforced contracts (`data_type` per
+column), not-null constraints and uniqueness tests from the spec,
+`sources.yml`, and `profiles.yml`. `--dialect databricks` emits Spark-family
+cast SQL; `--dialect duckdb` (default) runs locally. `--run` executes
+`dbt build` through dbt-duckdb.
 
-The Lakeflow (LDP) emitter generates the same pipeline as Lakeflow
-Declarative Pipelines datasets — a raw streaming table, the typed ingested
-dataset with expectations, and gold datasets — for running natively on
+The Lakeflow emitter writes Databricks Lakeflow Declarative Pipelines files:
+a raw streaming table, a typed ingested dataset with expectations, and gold
+datasets. Use this artifact when the pipeline should run natively on
 Databricks.

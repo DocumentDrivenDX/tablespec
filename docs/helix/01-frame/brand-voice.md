@@ -22,6 +22,29 @@ The voice should make a reader think: this project knows where the boundary is,
 what file changes, what command runs, and what downstream system consumes the
 artifact.
 
+## Audience
+
+Write for intelligent technical readers who are new to tablespec. The primary
+audience is data engineers, analytics engineers, platform engineers, and
+technical data stewards who understand tables, schemas, validation, and data
+pipelines, but may not know UMF, tablespec's artifact catalog, Databricks
+Lakeflow, Great Expectations, or this project's bronze/silver boundary.
+
+Do not assume the reader has followed previous pages. A page or module should
+stand on its own by naming:
+
+- who should read it
+- what problem it addresses
+- what each local term means
+- which file, command, API, or artifact changes
+- where to go for a deeper definition
+
+Avoid definite-reference shortcuts such as `the reusable catalog`,
+`the contract`, `the artifact`, or `the runtime surface` until the sentence has
+named the catalog, contract, artifact, or surface. Use the full noun first:
+`the reusable catalog of generated SQL, schema, validation, dbt, and Lakeflow
+artifacts`.
+
 ## Positioning Sentence
 
 tablespec defines the source-semantic ingested bronze contract and compiles one
@@ -148,12 +171,14 @@ Good:
 
 Weak:
 
-> tablespec helps you get started quickly with a simple workflow.
+> tablespec helps you get started with a simple workflow.
 
 ### Concepts
 
 Every concept page should open with the boundary it defines. If a concept
 changes what a user should do, name the command, file, or artifact affected.
+Define local terms before using shorthand, and link to the deeper concept page
+when a term belongs elsewhere.
 
 ### Demos
 

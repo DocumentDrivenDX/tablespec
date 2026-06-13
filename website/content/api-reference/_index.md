@@ -4,16 +4,19 @@ weight: 4
 next: /demos
 ---
 
-The real top-level surface of the `tablespec` package. Everything below is
-importable from `tablespec` unless a deeper module path is shown. Symbols in
-the [Spark extras](#spark-extras) section require `tablespec[spark]`.
+This page is for Python users who want the importable surface of the
+`tablespec` package. Most symbols below are importable from `tablespec`.
+When a symbol lives in a deeper module, the table names that module path.
+Symbols in the [Spark extras](#spark-extras) section require
+`tablespec[spark]`.
 
-## Loading and saving UMF
+## Loading and saving UMF specs
 
 ### `UMFLoader`
 
-The canonical loader. Auto-detects split directories and JSON files (legacy
-single-file YAML is not auto-detected).
+Universal Metadata Format (UMF) is tablespec's source-table contract.
+`UMFLoader` is the canonical loader. It auto-detects split directories and
+JSON files. It does not auto-detect legacy single-file YAML.
 
 ```python
 from pathlib import Path
@@ -40,7 +43,7 @@ loader.save(umf, Path("medical_claims.json"), format=UMFFormat.JSON)
 
 ## Core models
 
-Pydantic models for the UMF format. The main ones:
+Pydantic models for the UMF source-table format. The main models are:
 
 | Model | Purpose |
 |-------|---------|
@@ -56,13 +59,13 @@ See [Universal Metadata Format](/concepts/umf/) for the format itself.
 
 ## Schema generators
 
-All three take a plain dict — call
-`umf.model_dump(mode="json", exclude_none=True)` first.
+These functions generate schema artifacts from one UMF spec. All three take a
+plain dict; call `umf.model_dump(mode="json", exclude_none=True)` first.
 
 | Function | Signature | Output |
 |----------|-----------|--------|
-| `generate_sql_ddl` | `(umf_data: dict) -> str` | Spark SQL `CREATE TABLE` (VARCHAR maps to STRING, descriptions become `COMMENT` clauses). |
-| `generate_pyspark_schema` | `(umf_data: dict) -> str` | Python **source code** defining a `StructType` — not a `StructType` object. |
+| `generate_sql_ddl` | `(umf_data: dict) -> str` | Spark SQL `CREATE TABLE` for the typed ingested table. `VARCHAR` maps to `STRING`; descriptions become `COMMENT` clauses. |
+| `generate_pyspark_schema` | `(umf_data: dict) -> str` | Python **source code** defining a raw-read `StructType` — not a `StructType` object. |
 | `generate_json_schema` | `(umf_data: dict) -> dict` | JSON Schema (draft-07) document. |
 
 ```python
@@ -75,6 +78,10 @@ ddl = generate_sql_ddl(umf.model_dump(mode="json", exclude_none=True))
 
 ## Ingest and gold SQL
 
+These functions generate SQL artifacts. Ingest SQL moves one source table from
+raw records to a typed ingested table. Gold SQL builds modeled outputs from
+related UMF specs.
+
 | Symbol | Signature | Purpose |
 |--------|-----------|---------|
 | `generate_ingest_sql` | `(umf_data: dict, *, raw_table=None, ingested_table=None, dialect="spark") -> str` | Raw landing DDL + typed DDL + raw-to-ingested MERGE/INSERT transform. |
@@ -84,22 +91,25 @@ ddl = generate_sql_ddl(umf.model_dump(mode="json", exclude_none=True))
 
 ## Project emitters (dbt and Lakeflow)
 
+These functions generate project directories, not only single files. Use them
+when dbt or Databricks Lakeflow should run from UMF-derived artifacts.
+
 | Symbol | Signature | Purpose |
 |--------|-----------|---------|
 | `generate_dbt_project` | `(umf_data: dict, *, dialect="duckdb", target=None, out_dir=None, project_name="tablespec_ingest", related=None) -> dict[str, str]` | Single-table ingest dbt project (model SQL, contracts/tests, sources, profiles). |
 | `generate_dbt_dag_project` | `(umfs: list[UMF], *, dialect="duckdb", ..., project_name="tablespec_gold") -> dict[str, str]` | Multi-table gold dbt DAG project. |
 | `tablespec.ldp.generate_ldp_project` | `(umfs: list[UMF], *, dialect="spark", file_format="csv", out_dir=None) -> dict[str, str]` | Lakeflow Declarative Pipelines project (raw/ingested/gold datasets). |
 
-Both return `{relative_path: file_content}`; pass `out_dir` to also write the
-tree to disk. The CLI front-end is
+Both return `{relative_path: file_content}`. Pass `out_dir` to also write the
+project tree to disk. The CLI front-end is
 [`tablespec emit`](/cli-reference/#emit).
 
 ## Great Expectations integration
 
 | Symbol | Key methods | Purpose |
 |--------|-------------|---------|
-| `BaselineExpectationGenerator` | `()` then `.generate_baseline_expectations(umf_data: dict, include_structural=True) -> list[dict]` | Deterministic baseline suite from UMF metadata. |
-| `GXConstraintExtractor` | `()` then `.load_expectations_for_table(table_name, relationships_dir)`, `.extract_value_sets(expectations)`, `.get_constraints_for_column(expectations, column_name)`, ... | Read constraints out of existing GX suites (value sets, regexes, lengths, not-null). Returns constraint data, not a UMF. |
+| `BaselineExpectationGenerator` | `()` then `.generate_baseline_expectations(umf_data: dict, include_structural=True) -> list[dict]` | Deterministic Great Expectations baseline suite from UMF metadata. |
+| `GXConstraintExtractor` | `()` then `.load_expectations_for_table(table_name, relationships_dir)`, `.extract_value_sets(expectations)`, `.get_constraints_for_column(expectations, column_name)`, ... | Read constraints out of existing GX suites: value sets, regexes, lengths, and not-null rules. Returns constraint data, not a UMF. |
 | `GXExpectationProcessor` | `.process_expectation_suite(...)`, `.update_umf_with_expectations(...)`, `.validate_gx_suite(...)` | Apply/validate GX suites against UMF tables. |
 | `UmfToGxMapper` | — | Type mapping helper used by the baseline generator. |
 
@@ -146,7 +156,9 @@ CLI front-ends: `tablespec export-excel` / `import-excel`.
 
 ## Spark extras
 
-Available only with `tablespec[spark]`:
+These symbols are available only with `tablespec[spark]`. Use them when the
+operation needs a Spark DataFrame, JDBC discovery, Spark profiling, or
+Databricks-aware Spark session creation.
 
 | Symbol | Signature / usage |
 |--------|-------------------|
