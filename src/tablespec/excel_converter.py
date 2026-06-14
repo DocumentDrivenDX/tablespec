@@ -109,6 +109,7 @@ class ExcelConstants:
     SHEET_COLUMNS = "Columns"
     SHEET_VALIDATION = "Validation Rules"
     SHEET_RELATIONSHIPS = "Relationships"
+    SHEET_DERIVATIONS = "Derivations"
     SHEET_FILE_FORMAT = "File Format"
     SHEET_METADATA = "Metadata"
     SHEET_INSTRUCTIONS = "_Instructions"
@@ -490,6 +491,7 @@ class UMFToExcelConverter:
         self._create_schema_sheet(umf)
         self._create_columns_sheet(umf)
         self._create_survivorship_sheet(umf)
+        self._create_derivations_sheet(umf)
 
         if self._get_expectation_dicts_for_export(umf):
             self._create_validation_sheet(umf)
@@ -1270,6 +1272,94 @@ class UMFToExcelConverter:
         dv_rule_type.add("D2:D1000")
         ws.add_data_validation(dv_rule_type)
 
+    def _create_derivations_sheet(self, umf: UMF) -> None:
+        """Create the machine-readable Derivations sheet (round-trippable).
+
+        One row per derivation candidate, with flat parse-friendly headers so
+        :class:`ExcelToUMFConverter` can reconstruct ``column.derivation`` exactly.
+        Column-level survivorship (strategy + explanation) is written on the
+        column's first candidate row, or on a single row when the column has
+        survivorship but no candidates.
+
+        This is distinct from the human-oriented "Survivorship" sheet (which
+        uses hierarchical grouping + rich text and is not parsed back).
+        """
+        if self.workbook is None:
+            msg = "Workbook not initialized"
+            raise RuntimeError(msg)
+        ws = self.workbook.create_sheet(self.constants.SHEET_DERIVATIONS)
+
+        headers = [
+            "Column",
+            "Priority",
+            "Source Table",
+            "Source Column",
+            "Expression",
+            "Join Filter",
+            "Table Instance",
+            "Reason",
+            "Strategy",
+            "Survivorship Explanation",
+        ]
+        self._add_header_row(ws, headers)
+
+        default_font = self._get_default_font()
+        row = 2
+        for col in umf.columns:
+            deriv = col.derivation
+            if not deriv:
+                continue
+
+            strategy = deriv.survivorship.strategy if deriv.survivorship else None
+            explanation = deriv.survivorship.explanation if deriv.survivorship else None
+            # Fall back to the top-level strategy/explanation when no survivorship block.
+            strategy = strategy or deriv.strategy
+            explanation = explanation or deriv.explanation
+
+            candidates = sorted(deriv.candidates or [], key=lambda c: c.priority)
+            if not candidates:
+                # Survivorship/strategy-only column (e.g. enterprise-only or PK).
+                if not (strategy or explanation):
+                    continue
+                values = [
+                    col.name,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    strategy or "",
+                    explanation or "",
+                ]
+                for c_idx, val in enumerate(values, 1):
+                    cell = ws.cell(row, c_idx)
+                    cell.value = val
+                    self._apply_font_to_cell(cell, default_font)
+                row += 1
+                continue
+
+            for i, cand in enumerate(candidates):
+                values = [
+                    col.name,
+                    cand.priority,
+                    cand.table,
+                    cand.column or "",
+                    cand.expression or "",
+                    cand.join_filter or "",
+                    cand.table_instance or "",
+                    cand.reason or "",
+                    # Survivorship strategy/explanation only on the first row.
+                    (strategy or "") if i == 0 else "",
+                    (explanation or "") if i == 0 else "",
+                ]
+                for c_idx, val in enumerate(values, 1):
+                    cell = ws.cell(row, c_idx)
+                    cell.value = val
+                    self._apply_font_to_cell(cell, default_font)
+                row += 1
+
     def _create_relationships_sheet(self, umf: UMF) -> None:
         """Create Relationships sheet.
 
@@ -1507,6 +1597,16 @@ class UMFToExcelConverter:
             ws[f"M{row}"] = severity
             row += 1
 
+        # Domain types (for columns sheet dropdown). Kept here as a range rather
+        # than an inline list because the full list exceeds Excel's 255-char
+        # limit for a string-literal data-validation formula (which Excel treats
+        # as corruption and silently strips on open).
+        ws["P1"] = "Domain Types"
+        row = 2
+        for domain_type in self.constants.DOMAIN_TYPES:
+            ws[f"P{row}"] = domain_type
+            row += 1
+
     def _add_header_row(self, ws: Worksheet, headers: list[str]) -> None:
         """Add header row to sheet."""
         for col_num, header in enumerate(headers, 1):
@@ -1589,10 +1689,16 @@ class UMFToExcelConverter:
         dv_keytype.add(f"{key_type_col}2:{key_type_col}1000")
         ws.add_data_validation(dv_keytype)
 
-        # Domain type validation
+        # Domain type validation. The full domain-type list exceeds Excel's
+        # 255-char limit for an inline string-literal formula, so reference the
+        # list on the _Instructions sheet by range instead (matches the rule-type
+        # dropdown pattern in the Validation sheet).
+        domain_count = len(self.constants.DOMAIN_TYPES)
         dv_domain = DataValidation(
             type="list",
-            formula1=f'"{",".join(self.constants.DOMAIN_TYPES)}"',
+            formula1=(
+                f"'{self.constants.SHEET_INSTRUCTIONS}'!$P$2:$P${2 + domain_count - 1}"
+            ),
             allow_blank=True,
         )
         dv_domain.add(f"{domain_type_col}2:{domain_type_col}1000")
@@ -1657,6 +1763,20 @@ class ExcelToUMFConverter:
 
         # Add optional sections and extract review notes
         review_notes = {}
+
+        # Merge derivations (candidates + survivorship) onto the matching columns.
+        if self.constants.SHEET_DERIVATIONS in workbook.sheetnames:
+            derivations, derivation_notes = self._extract_derivations(workbook)
+            by_name = {c["name"]: c for c in columns_data}
+            for col_name, deriv in derivations.items():
+                target = by_name.get(col_name)
+                if target is None:
+                    derivation_notes[f"derivation:{col_name}"] = (
+                        f"Derivations sheet references unknown column '{col_name}'."
+                    )
+                    continue
+                target["derivation"] = deriv
+            review_notes.update(derivation_notes)
         if self.constants.SHEET_VALIDATION in workbook.sheetnames:
             validation_data, validation_notes = self._extract_validation(workbook)
             if validation_data:
@@ -2164,6 +2284,99 @@ class ExcelToUMFConverter:
         return {
             "foreign_keys": foreign_keys,
         }
+
+    def _extract_derivations(
+        self, workbook: openpyxl.Workbook
+    ) -> tuple[dict[str, dict], dict[str, str | None]]:
+        """Extract per-column derivations from the Derivations sheet.
+
+        Returns ``(derivations, review_notes)`` where ``derivations`` maps a
+        column name to a ``derivation`` dict (``candidates`` + optional
+        ``survivorship``/``strategy``/``explanation``). Headers are resolved by
+        name so column order is irrelevant. Each row is one candidate; the
+        column-level survivorship (Strategy / Survivorship Explanation) is read
+        from whichever row carries it.
+        """
+        ws = workbook[self.constants.SHEET_DERIVATIONS]
+        header_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True), ())
+        header_map = self._build_header_index(header_row, set())
+
+        def idx(name: str) -> int | None:
+            return header_map.get(name)
+
+        def cell(row: tuple, name: str) -> Any:
+            i = idx(name)
+            if i is None or i >= len(row):
+                return None
+            return row[i].value
+
+        # column name -> {"candidates": [...], "strategy": str|None, "explanation": str|None}
+        acc: dict[str, dict] = {}
+        notes: dict[str, str | None] = {}
+
+        for row in ws.iter_rows(min_row=2, values_only=False):
+            col_name = cell(row, "column")
+            if not col_name:
+                continue
+            entry = acc.setdefault(
+                col_name, {"candidates": [], "strategy": None, "explanation": None}
+            )
+
+            # Column-level survivorship (may appear on any row; first wins).
+            strategy = cell(row, "strategy")
+            explanation = cell(row, "survivorship explanation")
+            if strategy and not entry["strategy"]:
+                entry["strategy"] = str(strategy)
+            if explanation and not entry["explanation"]:
+                entry["explanation"] = str(explanation)
+
+            # A candidate row needs at least a source table.
+            source_table = cell(row, "source table")
+            if not source_table:
+                continue
+
+            priority = cell(row, "priority")
+            with contextlib.suppress(ValueError, TypeError):
+                priority = int(priority) if priority is not None else None
+
+            candidate: dict[str, Any] = {
+                "table": str(source_table),
+                "priority": priority if isinstance(priority, int) else 1,
+            }
+            source_column = cell(row, "source column")
+            expression = cell(row, "expression")
+            join_filter = cell(row, "join filter")
+            table_instance = cell(row, "table instance")
+            reason = cell(row, "reason")
+            if source_column:
+                candidate["column"] = str(source_column)
+            if expression:
+                candidate["expression"] = str(expression)
+            if join_filter:
+                candidate["join_filter"] = str(join_filter)
+            if table_instance:
+                candidate["table_instance"] = str(table_instance)
+            if reason:
+                candidate["reason"] = str(reason)
+            entry["candidates"].append(candidate)
+
+        # Assemble derivation dicts; drop empty entries.
+        derivations: dict[str, dict] = {}
+        for col_name, entry in acc.items():
+            deriv: dict[str, Any] = {}
+            if entry["candidates"]:
+                deriv["candidates"] = entry["candidates"]
+            if entry["strategy"] or entry["explanation"]:
+                survivorship: dict[str, Any] = {}
+                if entry["strategy"]:
+                    survivorship["strategy"] = entry["strategy"]
+                if entry["explanation"]:
+                    survivorship["explanation"] = entry["explanation"]
+                deriv["survivorship"] = survivorship
+            if deriv:
+                derivations[col_name] = deriv
+
+        return derivations, notes
 
     def _extract_file_format(self, workbook: openpyxl.Workbook) -> dict | None:
         """Extract file format specification."""

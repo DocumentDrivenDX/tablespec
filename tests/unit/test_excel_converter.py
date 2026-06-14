@@ -15,6 +15,7 @@ from tablespec.excel_converter import (
 )
 from tablespec.models.umf import (
     UMF,
+    DerivationCandidate,
     ForeignKey,
     FileFormatSpec,
     FilenamePattern,
@@ -22,7 +23,9 @@ from tablespec.models.umf import (
     Nullable,
     OutgoingRelationship,
     Relationships,
+    Survivorship,
     UMFColumn,
+    UMFColumnDerivation,
     ValidationRules,
 )
 
@@ -790,9 +793,9 @@ class TestExcelToUMFConverterConvert:
 
         assert review_notes == {}
         assert round_tripped.source is not None
-        assert round_tripped.source.model_dump(exclude_none=True) == umf.source.model_dump(
+        assert round_tripped.source.model_dump(
             exclude_none=True
-        )
+        ) == umf.source.model_dump(exclude_none=True)
         assert round_tripped.relationships is not None
         assert round_tripped.relationships.foreign_keys is not None
         assert [
@@ -950,3 +953,175 @@ class TestEdgeCases:
         ws = wb[ExcelConstants.SHEET_COLUMNS]
         # Description cell should be empty string, not None
         assert ws["K2"].value in (None, "")
+
+
+# ---------------------------------------------------------------------------
+# Derivations sheet round-trip (UMF -> Excel -> UMF)
+# ---------------------------------------------------------------------------
+
+
+def _report_umf_with_derivations() -> UMF:
+    """A generated report UMF with single- and multi-candidate derivations."""
+    return UMF(
+        version="1.0",
+        table_name="member_report",
+        canonical_name="Member Report",
+        table_type="generated",
+        description="Computed member report.",
+        columns=[
+            UMFColumn(
+                name="id", data_type="VARCHAR", length=36, description="Primary key"
+            ),
+            UMFColumn(
+                name="pcp_name",
+                data_type="VARCHAR",
+                length=200,
+                description="Assigned primary care provider name",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="providers",
+                            column="NAME",
+                            priority=1,
+                            reason="Assigned PCP.",
+                            join_filter="SPECIALITY = 'GENERAL PRACTICE'",
+                        ),
+                        DerivationCandidate(
+                            table="providers",
+                            column="NAME",
+                            priority=2,
+                            reason="Any provider fallback.",
+                        ),
+                    ],
+                    survivorship=Survivorship(
+                        strategy="highest_priority",
+                        explanation="Strategy: take the assigned PCP.\n\nFallback: any provider.",
+                    ),
+                ),
+            ),
+            UMFColumn(
+                name="bmi",
+                data_type="DECIMAL",
+                precision=5,
+                scale=2,
+                description="Most recent BMI",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="observations",
+                            priority=1,
+                            expression="MAX(CASE WHEN DESCRIPTION='Body Mass Index' THEN VALUE END)",
+                            reason="Latest BMI observation.",
+                        )
+                    ],
+                ),
+            ),
+        ],
+    )
+
+
+class TestDerivationsRoundTrip:
+    def _round_trip(self, umf: UMF, tmp_path) -> UMF:
+        path = tmp_path / "report.xlsx"
+        UMFToExcelConverter().convert(umf).save(path)
+        rt, notes = ExcelToUMFConverter().convert(path)
+        assert not {k: v for k, v in notes.items() if v}, notes
+        return rt
+
+    def test_derivations_sheet_is_written(self):
+        wb = UMFToExcelConverter().convert(_report_umf_with_derivations())
+        assert ExcelConstants.SHEET_DERIVATIONS in wb.sheetnames
+
+    def test_multi_candidate_round_trip(self, tmp_path):
+        rt = self._round_trip(_report_umf_with_derivations(), tmp_path)
+        pcp = next(c for c in rt.columns if c.name == "pcp_name")
+        assert pcp.derivation is not None
+        cands = pcp.derivation.candidates or []
+        assert [c.priority for c in cands] == [1, 2]
+        assert cands[0].table == "providers"
+        assert cands[0].column == "NAME"
+        assert cands[0].join_filter == "SPECIALITY = 'GENERAL PRACTICE'"
+        assert cands[1].join_filter is None
+        assert pcp.derivation.survivorship is not None
+        assert pcp.derivation.survivorship.strategy == "highest_priority"
+        assert "Fallback" in (pcp.derivation.survivorship.explanation or "")
+
+    def test_expression_candidate_round_trip(self, tmp_path):
+        rt = self._round_trip(_report_umf_with_derivations(), tmp_path)
+        bmi = next(c for c in rt.columns if c.name == "bmi")
+        assert bmi.derivation is not None
+        cands = bmi.derivation.candidates or []
+        assert len(cands) == 1
+        assert cands[0].column is None
+        assert "Body Mass Index" in (cands[0].expression or "")
+
+    def test_no_derivations_sheet_back_compat(self, tmp_path):
+        # A workbook with the Derivations sheet removed imports cleanly with no
+        # derivations attached (older workbooks predate the sheet).
+        umf = _report_umf_with_derivations()
+        path = tmp_path / "report.xlsx"
+        wb = UMFToExcelConverter().convert(umf)
+        del wb[ExcelConstants.SHEET_DERIVATIONS]
+        wb.save(path)
+        rt, notes = ExcelToUMFConverter().convert(path)
+        assert all(c.derivation is None for c in rt.columns)
+        assert not {k: v for k, v in notes.items() if v}
+
+    def test_columns_without_derivation_have_none(self, tmp_path):
+        rt = self._round_trip(_report_umf_with_derivations(), tmp_path)
+        plain = next(c for c in rt.columns if c.name == "id")
+        assert plain.derivation is None
+
+
+# ---------------------------------------------------------------------------
+# Data-validation limits (Excel rejects inline list formulas over 255 chars)
+# ---------------------------------------------------------------------------
+
+
+class TestDataValidationLimits:
+    """Excel silently strips (and reports as 'recovered') any data-validation
+    whose inline string-literal formula exceeds 255 characters. Long option
+    lists (e.g. domain types) must reference a range instead."""
+
+    def test_no_formula1_exceeds_excel_limit(self):
+        # A column with a domain_type triggers the domain-type dropdown, the
+        # longest option list the exporter emits.
+        umf = UMF(
+            version="1.0",
+            table_name="dv_table",
+            canonical_name="dv_table",
+            columns=[
+                UMFColumn(
+                    name="state",
+                    data_type="VARCHAR",
+                    length=2,
+                    domain_type="us_state_code",
+                ),
+            ],
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        offenders: list[tuple[str, int]] = []
+        for ws in wb.worksheets:
+            for dv in ws.data_validations.dataValidation:
+                f1 = dv.formula1 or ""
+                # Inline list = a quoted string literal; range refs are exempt.
+                if f1.startswith('"') and len(f1) > 255:
+                    offenders.append((ws.title, len(f1)))
+        assert not offenders, f"data-validation formula1 over 255 chars: {offenders}"
+
+    def test_domain_type_dropdown_references_instructions_range(self):
+        umf = UMF(
+            version="1.0",
+            table_name="dv_table",
+            canonical_name="dv_table",
+            columns=[
+                UMFColumn(name="c", data_type="VARCHAR", domain_type="email"),
+            ],
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        ws = wb[ExcelConstants.SHEET_COLUMNS]
+        formulas = [dv.formula1 for dv in ws.data_validations.dataValidation]
+        assert any(
+            (f or "").startswith(f"'{ExcelConstants.SHEET_INSTRUCTIONS}'!$P$")
+            for f in formulas
+        ), formulas
