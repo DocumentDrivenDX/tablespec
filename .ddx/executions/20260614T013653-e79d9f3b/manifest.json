@@ -1,0 +1,43 @@
+{
+  "attempt_id": "20260614T013653-e79d9f3b",
+  "bead_id": "tablespec-da6ee32b",
+  "base_rev": "03e2577acbaac8c0c0d550e5da6689ecd0750228",
+  "created_at": "2026-06-14T01:36:54.801160527Z",
+  "requested": {
+    "prompt": "synthesized"
+  },
+  "bead": {
+    "id": "tablespec-da6ee32b",
+    "title": "Kaggle flat-file onboarding demo notebooks (US-044)",
+    "description": "FEAT-031 / US-044, shipped code only: notebooks/kaggle-demo/ pair mirroring northwind-demo — 01 acquires a Kaggle/shared CSV dataset (widget-swappable; default NYC Airbnb AB_NYC_2019.csv), 02 lands delimited raw, profiles via NativeSparkProfiler, maps to UMF via SparkToUmfMapper, validates, exports workbook, generates artifacts, staged validation scorecard. Prove on dbw-dev-eus2 like Northwind.",
+    "acceptance": "Both notebooks committed under notebooks/kaggle-demo/ with README; Databricks job run green (scorecard PASS) with run id recorded; US-044 ACs checked with evidence.",
+    "parent": "tablespec-ef91646f",
+    "labels": [
+      "area:demo",
+      "feat-031",
+      "databricks"
+    ],
+    "metadata": {
+      "events": [
+        {
+          "actor": "erik",
+          "body": "{\"decision\":\"warn\",\"decision_source\":\"pre_claim_intake\",\"detail\":\"readiness route unavailable: lifecycle dispatch: project root mutation rejected for bead tablespec-da6ee32b\",\"fingerprint\":\"82e06a44ba5295fda985dc3a5c7356709886051e86964139abac47679741fc2b\",\"policy_mode\":\"warn-only\",\"reason\":\"system_unready\",\"rule_id\":\"pre_claim_intake.system_unready\",\"suggested_action\":\"revise the rewrite so it preserves every explicit commitment\",\"warning_fingerprint\":\"82e06a44ba5295fda985dc3a5c7356709886051e86964139abac47679741fc2b\"}",
+          "created_at": "2026-06-13T03:43:51.525637768Z",
+          "kind": "intake.warn",
+          "source": "ddx work",
+          "summary": "system_unready"
+        }
+      ]
+    }
+  },
+  "paths": {
+    "dir": ".ddx/executions/20260614T013653-e79d9f3b",
+    "prompt": ".ddx/executions/20260614T013653-e79d9f3b/prompt.md",
+    "manifest": ".ddx/executions/20260614T013653-e79d9f3b/manifest.json",
+    "result": ".ddx/executions/20260614T013653-e79d9f3b/result.json",
+    "checks": ".ddx/executions/20260614T013653-e79d9f3b/checks.json",
+    "usage": ".ddx/executions/20260614T013653-e79d9f3b/usage.json",
+    "worktree": "Users/erik/Projects/.ddx-exec-wt/.execute-bead-wt-tablespec-da6ee32b-20260614T013653-e79d9f3b"
+  },
+  "prompt_sha": "784a2cf46434ea12cab0dfe2fc3c8a6afc4fe4f4e036abb2601a6b75d8029bf9"
+}
