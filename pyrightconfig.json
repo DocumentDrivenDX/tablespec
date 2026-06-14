@@ -15,6 +15,7 @@
     "src/tablespec/quality/storage.py",
     "src/tablespec/sample_data/engine.py",
     "src/tablespec/umf_loader.py",
+    "src/tablespec/tui.py",
     "src/tablespec/validation/__init__.py",
     "src/tablespec/validation/table_validator.py"
   ],
