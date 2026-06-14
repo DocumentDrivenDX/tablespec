@@ -1,0 +1,15 @@
+canonical_name: providers
+description: Individual clinicians who deliver care, each employed by an
+  organization.
+primary_key:
+  - Id
+relationships:
+  foreign_keys:
+    - column: ORGANIZATION
+      cross_pipeline: false
+      references_column: Id
+      references_table: organizations
+      type: foreign_key
+table_name: providers
+table_type: ingested
+version: '1.0'

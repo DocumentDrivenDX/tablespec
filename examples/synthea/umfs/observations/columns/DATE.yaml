@@ -1,0 +1,7 @@
+column:
+  data_type: DATETIME
+  description: Date and time the observation was recorded.
+  exclude_from_change_detection: false
+  name: DATE
+  preserve_literal_null: false
+  source: data

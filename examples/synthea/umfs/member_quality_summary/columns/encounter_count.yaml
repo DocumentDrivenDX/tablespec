@@ -1,0 +1,14 @@
+column:
+  data_type: INTEGER
+  description: Total number of encounters for the patient.
+  exclude_from_change_detection: false
+  name: encounter_count
+  preserve_literal_null: false
+  source: data
+derivation:
+  candidates:
+    - column: Id
+      expression: COUNT(DISTINCT Id)
+      priority: 1
+      reason: Distinct encounters per patient.
+      table: encounters

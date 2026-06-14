@@ -1,0 +1,9 @@
+canonical_name: member_quality_summary
+description: One row per patient summarizing care-quality signals. 
+  Computed by joining encounters, observations, conditions, and 
+  providers.
+primary_key:
+  - patient_id
+table_name: member_quality_summary
+table_type: generated
+version: '1.0'

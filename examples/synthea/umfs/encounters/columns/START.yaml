@@ -1,0 +1,9 @@
+column:
+  data_type: DATETIME
+  description: Encounter start time (ISO 8601 UTC).
+  exclude_from_change_detection: false
+  name: START
+  preserve_literal_null: false
+  sample_values:
+    - '2021-03-04T09:00:00Z'
+  source: data

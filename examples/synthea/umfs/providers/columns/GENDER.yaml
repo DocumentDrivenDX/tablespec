@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: Provider's gender. M is male, F is female.
+  exclude_from_change_detection: false
+  length: 1
+  name: GENDER
+  preserve_literal_null: false
+  sample_values:
+    - M
+    - F
+  source: data

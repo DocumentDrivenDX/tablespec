@@ -1,0 +1,12 @@
+column:
+  data_type: VARCHAR
+  description: Description of the patient's primary race.
+  exclude_from_change_detection: false
+  length: 40
+  name: RACE
+  preserve_literal_null: false
+  sample_values:
+    - white
+    - black
+    - asian
+  source: data

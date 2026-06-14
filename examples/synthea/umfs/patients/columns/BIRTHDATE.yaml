@@ -1,0 +1,10 @@
+column:
+  data_type: DATE
+  description: Date the patient was born.
+  exclude_from_change_detection: false
+  name: BIRTHDATE
+  preserve_literal_null: false
+  sample_values:
+    - '1980-04-12'
+    - '1955-11-30'
+  source: data

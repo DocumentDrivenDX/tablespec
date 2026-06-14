@@ -1,0 +1,7 @@
+column:
+  data_type: DATE
+  description: Date the patient died, if applicable.
+  exclude_from_change_detection: false
+  name: DEATHDATE
+  preserve_literal_null: false
+  source: data

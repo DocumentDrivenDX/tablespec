@@ -1,0 +1,11 @@
+column:
+  data_type: DECIMAL
+  description: Per-dispense base cost of the medication.
+  exclude_from_change_detection: false
+  name: BASE_COST
+  precision: 12
+  preserve_literal_null: false
+  sample_values:
+    - '12.00'
+  scale: 2
+  source: data

@@ -1,0 +1,8 @@
+canonical_name: payers
+description: Insurance payers that cover encounters, medications, and 
+  claims.
+primary_key:
+  - Id
+table_name: payers
+table_type: ingested
+version: '1.0'

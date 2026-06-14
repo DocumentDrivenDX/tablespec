@@ -1,0 +1,8 @@
+canonical_name: patients
+description: Patient demographics. Root entity of the EHR; every 
+  clinical record links back to a patient.
+primary_key:
+  - Id
+table_name: patients
+table_type: ingested
+version: '1.0'

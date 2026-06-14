@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: Description of the patient's primary ethnicity.
+  exclude_from_change_detection: false
+  length: 40
+  name: ETHNICITY
+  preserve_literal_null: false
+  sample_values:
+    - hispanic
+    - nonhispanic
+  source: data

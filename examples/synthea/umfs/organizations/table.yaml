@@ -1,0 +1,8 @@
+canonical_name: organizations
+description: Healthcare organizations (hospitals, clinics) that host 
+  encounters and employ providers.
+primary_key:
+  - Id
+table_name: organizations
+table_type: ingested
+version: '1.0'

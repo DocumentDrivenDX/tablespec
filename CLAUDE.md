@@ -11,6 +11,7 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
 - `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
 - `formatting/` - YAML formatting helpers and shared formatting constants.
+- `guidebook/` - Static HTML guidebook generator (discovery, lineage, rendering) for UMF directories.
 - `inference/` - Domain-type inference and registry helpers.
 - `ingestion/` - Raw/JDBC ingestion helpers and ingestion constants.
 - `ldp/` - Local data-product project rendering and expectations.

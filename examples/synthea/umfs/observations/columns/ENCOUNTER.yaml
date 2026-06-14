@@ -1,0 +1,9 @@
+column:
+  data_type: VARCHAR
+  description: Foreign key to the Encounter where the observation was 
+    made.
+  exclude_from_change_detection: false
+  length: 36
+  name: ENCOUNTER
+  preserve_literal_null: false
+  source: data

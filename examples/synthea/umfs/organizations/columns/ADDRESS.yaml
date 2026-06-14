@@ -1,0 +1,8 @@
+column:
+  data_type: VARCHAR
+  description: Organization's street address.
+  exclude_from_change_detection: false
+  length: 200
+  name: ADDRESS
+  preserve_literal_null: false
+  source: data

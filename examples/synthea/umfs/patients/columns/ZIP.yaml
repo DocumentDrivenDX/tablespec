@@ -1,0 +1,10 @@
+column:
+  data_type: VARCHAR
+  description: Patient's zip code.
+  exclude_from_change_detection: false
+  length: 10
+  name: ZIP
+  preserve_literal_null: false
+  sample_values:
+    - '02118'
+  source: data

@@ -1,0 +1,10 @@
+column:
+  data_type: VARCHAR
+  description: Patient Social Security Number.
+  exclude_from_change_detection: false
+  length: 11
+  name: SSN
+  preserve_literal_null: false
+  sample_values:
+    - 999-21-1234
+  source: data

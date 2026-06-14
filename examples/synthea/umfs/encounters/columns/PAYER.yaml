@@ -1,0 +1,8 @@
+column:
+  data_type: VARCHAR
+  description: Foreign key to the Payer covering this encounter.
+  exclude_from_change_detection: false
+  length: 36
+  name: PAYER
+  preserve_literal_null: false
+  source: data

@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: Type of payer ownership.
+  exclude_from_change_detection: false
+  length: 40
+  name: OWNERSHIP
+  preserve_literal_null: false
+  sample_values:
+    - GOVERNMENT
+    - PRIVATE
+  source: data

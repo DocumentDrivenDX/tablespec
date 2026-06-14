@@ -1,0 +1,8 @@
+column:
+  data_type: VARCHAR
+  description: Foreign key to the Patient the claim is for.
+  exclude_from_change_detection: false
+  length: 36
+  name: PATIENTID
+  preserve_literal_null: false
+  source: data

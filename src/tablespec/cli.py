@@ -1426,6 +1426,44 @@ def apply_response(
         raise typer.Exit(1)
 
 
+@app.command()
+def guidebook(
+    root: Path = typer.Argument(
+        ...,
+        help="Directory of UMFs to render (split table.yaml dirs and/or *.umf.json).",
+    ),
+    output: Path = typer.Option(
+        Path("guidebook"),
+        "--output",
+        "-o",
+        help="Output directory for generated HTML.",
+    ),
+    group: str | None = typer.Option(
+        None,
+        "--group",
+        "-g",
+        help="Only render UMFs in this group (subfolder). Default: all groups.",
+    ),
+) -> None:
+    """Render a directory of UMFs into a navigable HTML guidebook."""
+    from tablespec.guidebook import generate as _generate
+
+    if not root.exists():
+        console.print(f"[red]Error:[/red] Root path not found: {root}")
+        raise typer.Exit(1)
+
+    written = _generate(root=root, output_dir=output, group=group)
+    if not written:
+        console.print("[yellow]Warning:[/yellow] No UMFs found to render.")
+        return
+
+    console.print(f"[green]Wrote {len(written)} file(s) to {output}[/green]")
+    for path in written[:10]:
+        console.print(f"  {path}")
+    if len(written) > 10:
+        console.print(f"  ... and {len(written) - 10} more")
+
+
 @app.callback(invoke_without_command=True)
 def version_callback(ctx: typer.Context) -> None:
     """Show version info or help."""

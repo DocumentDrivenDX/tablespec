@@ -1,0 +1,7 @@
+column:
+  data_type: DATETIME
+  description: Date and time the procedure was performed.
+  exclude_from_change_detection: false
+  name: START
+  preserve_literal_null: false
+  source: data

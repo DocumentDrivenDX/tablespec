@@ -1,0 +1,7 @@
+column:
+  data_type: DATETIME
+  description: Date the service was rendered.
+  exclude_from_change_detection: false
+  name: SERVICEDATE
+  preserve_literal_null: false
+  source: data

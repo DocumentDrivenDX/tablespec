@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>claims</title>
+<style>:root {
+  --bg: #fafafa; --fg: #1a1a1a; --muted: #666; --accent: #0b5fff;
+  --border: #e3e3e3; --card: #fff; --code-bg: #f4f4f4; --badge-bg: #eef2ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+       color: var(--fg); background: var(--bg); }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px 32px 80px; }
+h1, h2, h3, h4 { line-height: 1.25; }
+h1 { font-size: 1.9rem; margin: 0 0 4px; }
+h2 { font-size: 1.35rem; margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { font-size: 1.1rem; margin: 20px 0 6px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.muted { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 16px; }
+.chip { background: var(--badge-bg); color: var(--accent); border-radius: 999px;
+        padding: 2px 10px; font-size: 0.8rem; }
+.chip-warn { background: #fff4e5; color: #b75c00; }
+.chip-bronze { background: #f3e7d8; color: #8a5a1a; }
+.chip-silver { background: #e6e9ee; color: #495465; }
+.chip-gold { background: #fff5d6; color: #8a6a00; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+        padding: 16px 20px; margin: 12px 0; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 18px; font-size: 0.92rem; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border);
+         vertical-align: top; }
+th { background: #f7f7f7; font-weight: 600; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 6px;
+      overflow-x: auto; font-size: 0.85rem; }
+details { margin: 6px 0 14px; }
+details summary { cursor: pointer; color: var(--accent); font-weight: 500; }
+.col-anchor { scroll-margin-top: 12px; padding: 14px 16px; border-left: 3px solid var(--border);
+              margin: 18px 0; }
+.col-anchor:target { border-left-color: var(--accent); background: #f0f6ff; }
+.kv { display: grid; grid-template-columns: 160px 1fr; gap: 4px 16px; margin: 8px 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.toc { columns: 2; column-gap: 32px; font-size: 0.92rem; }
+.toc a { display: block; padding: 2px 0; }
+.footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border);
+          color: var(--muted); font-size: 0.85rem; }
+.warn { color: #b75c00; }
+.crumbs { font-size: 0.9rem; margin-bottom: 16px; color: var(--muted); }
+.crumbs a { color: var(--accent); }
+/* Column-overview table: fixed layout so expanding a lineage cell does
+   not reflow the other columns. Widths come from the <colgroup> in the
+   renderer. */
+table.column-overview { table-layout: fixed; }
+table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
+.lineage-cell { display: flex; flex-direction: column; gap: 2px; max-width: 100%; }
+.lineage-side { margin: 0; max-width: 100%; }
+.lineage-side summary {
+  display: inline;
+  list-style: none;
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+}
+.lineage-side summary::marker,
+.lineage-side summary::-webkit-details-marker { display: none; }
+.lineage-side summary::before { content: "\25B8\00A0"; color: var(--muted); }
+.lineage-side[open] summary::before { content: "\25BE\00A0"; }
+.lineage-side .arrow { color: var(--muted); margin-right: 4px; }
+.lineage-side ul {
+  margin: 6px 0 0 4px;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  max-width: 100%;
+}
+.lineage-side li { margin: 2px 0; overflow-wrap: anywhere; }
+/* Prose blocks produced by `format_prose` (survivorship explanations, etc.) */
+.prose-block { margin: 0; }
+.prose-block p { margin: 0 0 8px; }
+.prose-block p:last-child { margin-bottom: 0; }
+.prose-block strong { color: var(--fg); }
+.prose-block ol, .prose-block ul { margin: 4px 0 10px; padding-left: 22px; }
+.prose-block li { margin: 2px 0; }
+.prose-block code { background: var(--code-bg); padding: 1px 4px;
+                    border-radius: 3px; font-size: 0.9em; }
+.prose-block pre { margin: 6px 0 10px; }
+.prose-block hr { border: 0; border-top: 1px solid var(--border);
+                  margin: 10px 0; }
+/* Per-candidate SQL block: header (priority + source) + reason prose +
+   <pre><code>. Used when a column has multiple derivation candidates so
+   the reader can tell why two near-identical SQL blocks both appear. */
+.candidate-block { margin: 10px 0; padding: 8px 12px;
+                   border-left: 3px solid var(--border); background: #fff; }
+.candidate-block + .candidate-block { margin-top: 14px; }
+.candidate-header { font-size: 0.9rem; margin-bottom: 6px;
+                    color: var(--muted); }
+.candidate-header .chip { margin-right: 6px; }
+.candidate-filter { margin-top: 4px; font-size: 0.88rem; color: var(--muted); }
+.candidate-filter code { background: var(--code-bg); padding: 1px 5px;
+                         border-radius: 3px; font-size: 0.92em;
+                         color: var(--fg); }
+.candidate-block .prose-block { margin: 4px 0 0; font-size: 0.92rem; }
+.candidate-block pre { margin: 0; }
+.candidate-reason { margin-top: 8px; font-size: 0.92rem; }
+.candidate-reason > strong { color: var(--muted); margin-right: 4px; }</style>
+</head>
+<body>
+<div class="container">
+<nav class="crumbs"><a href="index.html">All tables</a> · claims</nav><h1>claims</h1><div class="chips"><span class="chip">claims</span><span class="chip">ingested</span></div>
+<section class="business-view">
+<h2>Overview</h2>
+<div class="card">
+<p>Insurance claims. The densest lineage node — links patients, providers, payers, and encounters.</p>
+<dl class="kv">
+<dt>Primary key</dt><dd><code>Id</code></dd>
+<dt>Total columns</dt><dd>9</dd>
+</dl>
+</div>
+<h2>Columns</h2>
+<table class="column-overview">
+<colgroup><col style="width: 20%"><col style="width: 14%"><col style="width: 32%"><col style="width: 34%"></colgroup>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th><th>Lineage</th></tr></thead><tbody>
+<tr><td><a href='#col-APPOINTMENTID'><code>APPOINTMENTID</code></a></td><td><code>VARCHAR</code></td><td>Foreign key to the Encounter the claim is associated with.</td><td>—</td></tr>
+<tr><td><a href='#col-CURRENTILLNESSDATE'><code>CURRENTILLNESSDATE</code></a></td><td><code>DATETIME</code></td><td>Date of the current illness.</td><td>—</td></tr>
+<tr><td><a href='#col-Id'><code>Id</code></a></td><td><code>VARCHAR</code></td><td>Primary key. Unique claim identifier (UUID).</td><td>—</td></tr>
+<tr><td><a href='#col-OUTSTANDING1'><code>OUTSTANDING1</code></a></td><td><code>DECIMAL</code></td><td>Outstanding balance to the primary insurance.</td><td>—</td></tr>
+<tr><td><a href='#col-PATIENTID'><code>PATIENTID</code></a></td><td><code>VARCHAR</code></td><td>Foreign key to the Patient the claim is for.</td><td>—</td></tr>
+<tr><td><a href='#col-PRIMARYPATIENTINSURANCEID'><code>PRIMARYPATIENTINSURANCEID</code></a></td><td><code>VARCHAR</code></td><td>Foreign key to the primary Payer for the claim.</td><td>—</td></tr>
+<tr><td><a href='#col-PROVIDERID'><code>PROVIDERID</code></a></td><td><code>VARCHAR</code></td><td>Foreign key to the Provider who rendered the service.</td><td>—</td></tr>
+<tr><td><a href='#col-SERVICEDATE'><code>SERVICEDATE</code></a></td><td><code>DATETIME</code></td><td>Date the service was rendered.</td><td>—</td></tr>
+<tr><td><a href='#col-STATUS1'><code>STATUS1</code></a></td><td><code>VARCHAR</code></td><td>Status of the claim to the primary insurance.</td><td>—</td></tr>
+</tbody></table>
+</section>
+<section class="engineering-view">
+<h2>Engineering detail</h2>
+<p class='muted'>Per-column derivations, validations, downstream links. Click any column above to jump.</p>
+<div class="col-anchor" id="col-APPOINTMENTID">
+<h3><code>APPOINTMENTID</code></h3>
+<div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 36</span></div>
+<p>Foreign key to the Encounter the claim is associated with.</p>
+</div>
+<div class="col-anchor" id="col-CURRENTILLNESSDATE">
+<h3><code>CURRENTILLNESSDATE</code></h3>
+<div class="chips"><span class="chip">DATETIME</span></div>
+<p>Date of the current illness.</p>
+</div>
+<div class="col-anchor" id="col-Id">
+<h3><code>Id</code></h3>
+<div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 36</span></div>
+<p>Primary key. Unique claim identifier (UUID).</p>
+</div>
+<div class="col-anchor" id="col-OUTSTANDING1">
+<h3><code>OUTSTANDING1</code></h3>
+<div class="chips"><span class="chip">DECIMAL</span></div>
+<p>Outstanding balance to the primary insurance.</p>
+<p class='muted'>Examples: <code>0.00</code></p>
+</div>
+<div class="col-anchor" id="col-PATIENTID">
+<h3><code>PATIENTID</code></h3>
+<div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 36</span></div>
+<p>Foreign key to the Patient the claim is for.</p>
+</div>
+<div class="col-anchor" id="col-PRIMARYPATIENTINSURANCEID">
+<h3><code>PRIMARYPATIENTINSURANCEID</code></h3>
+<div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 36</span></div>
+<p>Foreign key to the primary Payer for the claim.</p>
+</div>
+<div class="col-anchor" id="col-PROVIDERID">
+<h3><code>PROVIDERID</code></h3>
+<div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 36</span></div>
+<p>Foreign key to the Provider who rendered the service.</p>
+</div>
+<div class="col-anchor" id="col-SERVICEDATE">
+<h3><code>SERVICEDATE</code></h3>
+<div class="chips"><span class="chip">DATETIME</span></div>
+<p>Date the service was rendered.</p>
+</div>
+<div class="col-anchor" id="col-STATUS1">
+<h3><code>STATUS1</code></h3>
+<div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 40</span></div>
+<p>Status of the claim to the primary insurance.</p>
+<p class='muted'>Examples: <code>BILLED</code>, <code>CLOSED</code></p>
+</div>
+</section>
+<div class="footer">Generated 2026-06-14T21:58:32+00:00</div>
+</div>
+</body>
+</html>

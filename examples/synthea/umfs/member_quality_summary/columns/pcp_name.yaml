@@ -1,0 +1,28 @@
+column:
+  data_type: VARCHAR
+  description: Name of the patient's primary care provider.
+  exclude_from_change_detection: false
+  length: 200
+  name: pcp_name
+  preserve_literal_null: false
+  source: data
+derivation:
+  candidates:
+    - column: NAME
+      join_filter: SPECIALITY = 'GENERAL PRACTICE'
+      priority: 1
+      reason: Prefer the provider whose specialty is general practice.
+      table: providers
+    - column: NAME
+      join_filter: encounter_rank = 1
+      priority: 2
+      reason: Fall back to the most recent encounter's provider.
+      table: providers
+  survivorship:
+    explanation: |-
+      Strategy: choose the patient's general-practice provider when one exists.
+
+      Fallback: if no GP is assigned, use the provider from the patient's most recent encounter.
+
+      Cardinality: 1:1 per patient. Null when the patient has no provider on file.
+    strategy: highest_priority

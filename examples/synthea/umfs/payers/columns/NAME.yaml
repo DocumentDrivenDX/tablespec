@@ -1,0 +1,12 @@
+column:
+  data_type: VARCHAR
+  description: Name of the payer.
+  exclude_from_change_detection: false
+  length: 200
+  name: NAME
+  preserve_literal_null: false
+  sample_values:
+    - Medicare
+    - Aetna
+    - NO_INSURANCE
+  source: data
