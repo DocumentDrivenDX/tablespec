@@ -14,6 +14,7 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - **LLM Prompt Generation** -- Generate structured prompts for documentation, validation rules, relationships, and survivorship logic
 - **CLI** -- Typer-based command-line interface with Rich output for schema management and conversion
 - **Excel Conversion** -- Bidirectional Excel export/import for domain expert collaboration
+- **Guidebook** -- Render a directory of UMFs into a navigable, self-contained HTML site with column metadata, FK + derivation lineage, and search
 - **Split-Format UMF** -- Git-friendly directory-based storage with automatic format detection
 - **Sample Data Generation** -- Healthcare-specific, constraint-aware sample data from UMF specs
 - **Domain Type Inference** -- Automatic detection of domain types (SSN, NPI, phone, state codes, etc.)

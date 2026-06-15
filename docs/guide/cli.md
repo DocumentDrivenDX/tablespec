@@ -23,6 +23,9 @@ tablespec export-excel tables/medical_claims/ claims.xlsx
 # Import edited Excel back to UMF (split format)
 tablespec import-excel claims.xlsx tables/medical_claims/
 
+# Render a directory of UMFs into a navigable HTML guidebook
+tablespec guidebook tables/ --output guidebook/
+
 # List all registered domain types
 tablespec domains-list
 
