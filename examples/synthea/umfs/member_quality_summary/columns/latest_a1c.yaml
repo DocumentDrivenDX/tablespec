@@ -1,0 +1,29 @@
+column:
+  data_type: DECIMAL
+  description: Most recent Hemoglobin A1c result for the patient.
+  exclude_from_change_detection: false
+  name: latest_a1c
+  precision: 5
+  preserve_literal_null: false
+  scale: 2
+  source: data
+derivation:
+  candidates:
+    - column: VALUE
+      order_by:
+        - DATE
+      priority: 1
+      reason: Latest A1c observation by observation date.
+      row_filter: DESCRIPTION = 'Hemoglobin A1c/Hemoglobin.total in 
+        Blood'
+      select_columns:
+        - VALUE
+        - UNITS
+      table: observations
+  survivorship:
+    default_condition: when no A1c observation exists
+    explanation: |-
+      Strategy: take the most recent qualifying A1c observation.
+
+      Default: null when the patient has no A1c on file.
+    strategy: most_recent

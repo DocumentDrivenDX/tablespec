@@ -127,7 +127,7 @@ table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
 <tr><td><a href='#col-PATIENT'><code>PATIENT</code></a></td><td><code>VARCHAR</code></td><td>Foreign key to the Patient observed.</td><td>—</td></tr>
 <tr><td><a href='#col-TYPE'><code>TYPE</code></a></td><td><code>VARCHAR</code></td><td>Datatype of the observation value.</td><td>—</td></tr>
 <tr><td><a href='#col-UNITS'><code>UNITS</code></a></td><td><code>VARCHAR</code></td><td>Units of the observation value.</td><td>—</td></tr>
-<tr><td><a href='#col-VALUE'><code>VALUE</code></a></td><td><code>VARCHAR</code></td><td>Recorded value of the observation.</td><td>—</td></tr>
+<tr><td><a href='#col-VALUE'><code>VALUE</code></a></td><td><code>VARCHAR</code></td><td>Recorded value of the observation.</td><td><div class='lineage-cell'><details class='lineage-side'><summary><span class='arrow'>↓</span> 1 downstream</summary><ul><li><a href="./member_quality_summary.html#col-latest_a1c" title="Most recent Hemoglobin A1c result for the patient.">member_quality_summary.latest_a1c</a></li></ul></details></div></td></tr>
 </tbody></table>
 </section>
 <section class="engineering-view">
@@ -176,10 +176,13 @@ table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
 <h3><code>VALUE</code></h3>
 <div class="chips"><span class="chip">VARCHAR</span><span class="chip">len ≤ 100</span></div>
 <p>Recorded value of the observation.</p>
+<h4>Downstream consumers</h4><ul>
+<li><a href="./member_quality_summary.html#col-latest_a1c" title="Most recent Hemoglobin A1c result for the patient.">member_quality_summary.latest_a1c</a></li>
+</ul>
 <p class='muted'>Examples: <code>170.2</code>, <code>120</code></p>
 </div>
 </section>
-<div class="footer">Generated 2026-06-14T21:58:32+00:00</div>
+<div class="footer">Generated 2026-06-15T00:42:53+00:00</div>
 </div>
 </body>
 </html>

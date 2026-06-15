@@ -114,7 +114,7 @@ table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
 <p>One row per patient summarizing care-quality signals. Computed by joining encounters, observations, conditions, and providers.</p>
 <dl class="kv">
 <dt>Primary key</dt><dd><code>patient_id</code></dd>
-<dt>Total columns</dt><dd>5</dd>
+<dt>Total columns</dt><dd>6</dd>
 </dl>
 </div>
 <h2>Columns</h2>
@@ -123,6 +123,7 @@ table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
 <thead><tr><th>Column</th><th>Type</th><th>Description</th><th>Lineage</th></tr></thead><tbody>
 <tr><td><a href='#col-diabetes_flag'><code>diabetes_flag</code></a></td><td><code>BOOLEAN</code></td><td>True if the patient has ever been diagnosed with type 2 diabetes.</td><td><div class='lineage-cell'><details class='lineage-side'><summary><span class='arrow'>↑</span> 1 upstream</summary><ul><li><a href="./conditions.html#col-CODE" title="SNOMED 44054006 = Diabetes mellitus type 2.">conditions.CODE</a></li></ul></details></div></td></tr>
 <tr><td><a href='#col-encounter_count'><code>encounter_count</code></a></td><td><code>INTEGER</code></td><td>Total number of encounters for the patient.</td><td><div class='lineage-cell'><details class='lineage-side'><summary><span class='arrow'>↑</span> 1 upstream</summary><ul><li><a href="./encounters.html#col-Id" title="Distinct encounters per patient.">encounters.Id</a></li></ul></details></div></td></tr>
+<tr><td><a href='#col-latest_a1c'><code>latest_a1c</code></a></td><td><code>DECIMAL</code></td><td>Most recent Hemoglobin A1c result for the patient.</td><td><div class='lineage-cell'><details class='lineage-side'><summary><span class='arrow'>↑</span> 1 upstream</summary><ul><li><a href="./observations.html#col-VALUE" title="Latest A1c observation by observation date.">observations.VALUE</a></li></ul></details></div></td></tr>
 <tr><td><a href='#col-latest_bmi'><code>latest_bmi</code></a></td><td><code>DECIMAL</code></td><td>Most recent recorded Body Mass Index for the patient.</td><td>—</td></tr>
 <tr><td><a href='#col-patient_id'><code>patient_id</code></a></td><td><code>VARCHAR</code></td><td>Patient this summary is for.</td><td><div class='lineage-cell'><details class='lineage-side'><summary><span class='arrow'>↑</span> 1 upstream</summary><ul><li><a href="./patients.html#col-Id" title="One summary row per patient, keyed by the patient id.">patients.Id</a></li></ul></details></div></td></tr>
 <tr><td><a href='#col-pcp_name'><code>pcp_name</code></a></td><td><code>VARCHAR</code></td><td>Name of the patient&#x27;s primary care provider.</td><td><div class='lineage-cell'><details class='lineage-side'><summary><span class='arrow'>↑</span> 2 upstream</summary><ul><li><a href="./providers.html#col-NAME" title="Prefer the provider whose specialty is general practice.">providers.NAME</a></li><li><a href="./providers.html#col-NAME" title="Fall back to the most recent encounter&#x27;s provider.">providers.NAME</a></li></ul></details></div></td></tr>
@@ -162,6 +163,23 @@ table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
 <div class="prose-block"><p>Distinct encounters per patient.</p></div>
 </div>
 </div>
+</details>
+</div>
+<div class="col-anchor" id="col-latest_a1c">
+<h3><code>latest_a1c</code></h3>
+<div class="chips"><span class="chip">DECIMAL</span></div>
+<p>Most recent Hemoglobin A1c result for the patient.</p>
+<details open><summary>Derivation rule</summary>
+<div class="candidate-block">
+<div class="candidate-header"><span class="chip">Priority 1</span> Source: <a href="./observations.html#col-VALUE">observations.VALUE</a></div>
+<div class="candidate-reason">
+<strong>Why:</strong>
+<div class="prose-block"><p>Latest A1c observation by observation date.</p></div>
+</div>
+</div>
+</details>
+<details><summary>Survivorship logic</summary>
+<div class="prose-block"><p><strong>Strategy:</strong> take the most recent qualifying A1c observation.</p><p><strong>Default:</strong> null when the patient has no A1c on file.</p></div>
 </details>
 </div>
 <div class="col-anchor" id="col-latest_bmi">
@@ -219,7 +237,7 @@ table.column-overview td { word-wrap: break-word; overflow-wrap: anywhere; }
 </details>
 </div>
 </section>
-<div class="footer">Generated 2026-06-14T21:58:32+00:00</div>
+<div class="footer">Generated 2026-06-15T00:42:53+00:00</div>
 </div>
 </body>
 </html>
