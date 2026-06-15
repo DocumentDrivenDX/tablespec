@@ -402,7 +402,8 @@ out-of-scope notes):
 
 - **[MAJOR] `_rewrite_join_filter` does NOT skip quoted literals.** Verified:
   sql_generator.py:1635-1647 runs `re.sub` token-replacement over the RAW filter
-  string with a `(?<![.\w])col(?![\w])` boundary — it WILL rewrite a column-named
+  string with a word-boundary regex around `col` (negative lookbehind/lookahead
+  on `[.\w]`) — it WILL rewrite a column-named
   token inside `'...'` and produces an ambiguous bare reference when a column
   exists on both sides. Item 1's mitigation ("keep the filter free of string
   literals / ambiguous columns") is the dodge. Add the adversarial filter Codex
