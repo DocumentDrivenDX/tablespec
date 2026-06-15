@@ -20,6 +20,7 @@ from tablespec.models.umf import (
     FileFormatSpec,
     FilenamePattern,
     JdbcSource,
+    JoinViaSpec,
     Nullable,
     OutgoingRelationship,
     Relationships,
@@ -1071,6 +1072,223 @@ class TestDerivationsRoundTrip:
         rt = self._round_trip(_report_umf_with_derivations(), tmp_path)
         plain = next(c for c in rt.columns if c.name == "id")
         assert plain.derivation is None
+
+    # -- SQL-relevant fields the SQLPlanGenerator consumes ------------------
+
+    def test_top_level_strategy_round_trips_not_as_survivorship(self, tmp_path):
+        """A primary_key-strategy column (no candidates) keeps the strategy on
+        derivation.strategy, NOT survivorship.strategy."""
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            canonical_name="t",
+            table_type="generated",
+            columns=[
+                UMFColumn(
+                    name="id",
+                    data_type="VARCHAR",
+                    length=36,
+                    derivation=UMFColumnDerivation(strategy="primary_key"),
+                ),
+            ],
+        )
+        rt = self._round_trip(umf, tmp_path)
+        d = rt.columns[0].derivation
+        assert d is not None
+        assert d.strategy == "primary_key"
+        assert d.survivorship is None
+
+    def test_max_across_sources_strategy_round_trips(self, tmp_path):
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            canonical_name="t",
+            table_type="generated",
+            columns=[
+                UMFColumn(
+                    name="score",
+                    data_type="INTEGER",
+                    derivation=UMFColumnDerivation(
+                        strategy="max_across_sources",
+                        candidates=[
+                            DerivationCandidate(table="s1", column="v", priority=1),
+                            DerivationCandidate(table="s2", column="v", priority=2),
+                        ],
+                    ),
+                ),
+            ],
+        )
+        rt = self._round_trip(umf, tmp_path)
+        assert rt.columns[0].derivation.strategy == "max_across_sources"
+
+    def test_window_candidate_fields_round_trip(self, tmp_path):
+        """row_filter / order_by / select_columns / join_via survive the trip."""
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            canonical_name="t",
+            table_type="generated",
+            columns=[
+                UMFColumn(
+                    name="a1c",
+                    data_type="DECIMAL",
+                    precision=5,
+                    scale=2,
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="labs",
+                                column="result",
+                                priority=1,
+                                row_filter="test_name = 'A1C'",
+                                order_by=["result_date", "snapshot"],
+                                select_columns=["result", "source"],
+                                join_via=JoinViaSpec(
+                                    lookup_table="dw",
+                                    source_key="cmid",
+                                    lookup_key="mid",
+                                    target_key="pid",
+                                ),
+                                reason="latest A1C",
+                            )
+                        ],
+                    ),
+                ),
+            ],
+        )
+        rt = self._round_trip(umf, tmp_path)
+        cand = rt.columns[0].derivation.candidates[0]
+        assert cand.row_filter == "test_name = 'A1C'"
+        assert cand.order_by == ["result_date", "snapshot"]
+        assert cand.select_columns == ["result", "source"]
+        assert cand.join_via is not None
+        assert cand.join_via.lookup_table == "dw"
+        assert cand.join_via.target_key == "pid"
+
+    def test_survivorship_defaults_round_trip(self, tmp_path):
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            canonical_name="t",
+            table_type="generated",
+            columns=[
+                UMFColumn(
+                    name="status",
+                    data_type="VARCHAR",
+                    length=20,
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(table="s", column="status", priority=1)
+                        ],
+                        survivorship=Survivorship(
+                            strategy="highest_priority",
+                            explanation="Pick the highest priority source.",
+                            default_value="IHA",
+                            default_condition="until assessment completed",
+                        ),
+                    ),
+                ),
+            ],
+        )
+        rt = self._round_trip(umf, tmp_path)
+        surv = rt.columns[0].derivation.survivorship
+        assert surv is not None
+        assert surv.default_value == "IHA"
+        assert surv.default_condition == "until assessment completed"
+
+
+# ---------------------------------------------------------------------------
+# SQL-plan identity across an Excel round-trip
+# ---------------------------------------------------------------------------
+
+
+class TestDerivationSqlIdentity:
+    """The strongest completeness guard: a derived table's generated gold SQL
+    must be byte-identical before and after an Excel round-trip — proving no
+    SQL-relevant derivation field is lost."""
+
+    def _sql_corpus(self):
+        from tablespec.schemas import generate_sql_plan
+
+        base = UMF(
+            version="1.0",
+            table_name="member",
+            canonical_name="member",
+            table_type="ingested",
+            primary_key=["member_id"],
+            columns=[
+                UMFColumn(name="member_id", data_type="VARCHAR", length=36),
+                UMFColumn(name="bmi", data_type="DECIMAL", precision=5, scale=2),
+            ],
+        )
+        providers = UMF(
+            version="1.0",
+            table_name="providers",
+            canonical_name="providers",
+            table_type="ingested",
+            primary_key=["member_id"],
+            columns=[
+                UMFColumn(name="member_id", data_type="VARCHAR", length=36),
+                UMFColumn(name="name", data_type="VARCHAR", length=200),
+            ],
+        )
+        target = UMF(
+            version="1.0",
+            table_name="member_summary",
+            canonical_name="member_summary",
+            table_type="generated",
+            primary_key=["member_id"],
+            metadata={"base_table": "member"},
+            columns=[
+                UMFColumn(
+                    name="member_id",
+                    data_type="VARCHAR",
+                    length=36,
+                    derivation=UMFColumnDerivation(strategy="primary_key"),
+                ),
+                UMFColumn(
+                    name="bmi",
+                    data_type="DECIMAL",
+                    precision=5,
+                    scale=2,
+                    derivation=UMFColumnDerivation(strategy="base_column"),
+                ),
+                UMFColumn(
+                    name="pcp_name",
+                    data_type="VARCHAR",
+                    length=200,
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="providers",
+                                column="name",
+                                priority=1,
+                                join_filter="specialty = 'GP'",
+                            ),
+                        ],
+                        survivorship=Survivorship(
+                            strategy="highest_priority",
+                            explanation="GP provider name.",
+                            default_value="UNKNOWN",
+                        ),
+                    ),
+                ),
+            ],
+        )
+        related = {"member": base, "providers": providers}
+        return generate_sql_plan, target, related
+
+    def test_gold_sql_identical_after_round_trip(self, tmp_path):
+        generate_sql_plan, target, related = self._sql_corpus()
+        before = generate_sql_plan(target, related, mode="cte")
+
+        path = tmp_path / "member_summary.xlsx"
+        UMFToExcelConverter().convert(target).save(path)
+        rt, notes = ExcelToUMFConverter().convert(path)
+        assert not {k: v for k, v in notes.items() if v}, notes
+
+        after = generate_sql_plan(rt, related, mode="cte")
+        assert after == before
 
 
 # ---------------------------------------------------------------------------
