@@ -49,6 +49,7 @@ Requirements and problem definition for tablespec.
 - [FEAT-030](features/FEAT-030-product-microsite.md) - Product Microsite (Specified)
 - [FEAT-031](features/FEAT-031-multi-source-ingestion.md) - Multi-Source Ingestion (Specified; JDBC vertical toward the Northwind goal)
 - [FEAT-032](features/FEAT-032-embeddings-and-document-corpus.md) - Embeddings & Document Corpus (Draft; SEC 10-K demo goal)
+- [FEAT-033](features/FEAT-033-guidebook.md) - Guidebook (HTML schema guidebook with FK + derivation lineage)
 
 ## User Stories
 
@@ -157,8 +158,12 @@ Requirements and problem definition for tablespec.
 ### FEAT-032: Embeddings & Document Corpus
 - [US-045](user-stories/US-045-sec-10k-corpus-and-facts.md) - SEC 10-K Corpus and Facts (acceptance goal, Draft)
 
+### FEAT-033: Guidebook
+- [US-046](user-stories/US-046-browse-schema-guidebook.md) - Browse a Schema as a Guidebook
+
 ## Status
 
 - Frame phase backfilled from existing codebase and documentation (2026-03-15).
 - Updated for post-merge codebase with ~50 new source files across 4 new packages (2026-03-16).
 - Index refreshed to cover FEAT-001..FEAT-032 and US-001..US-045 (2026-06-10).
+- Added FEAT-033 (Guidebook) and US-046; ADR-018 records its lineage/discovery decisions (2026-06-15).
