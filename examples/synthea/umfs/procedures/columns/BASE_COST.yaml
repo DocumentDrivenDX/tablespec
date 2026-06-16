@@ -1,0 +1,11 @@
+column:
+  data_type: DECIMAL
+  description: Cost of the procedure.
+  exclude_from_change_detection: false
+  name: BASE_COST
+  precision: 12
+  preserve_literal_null: false
+  sample_values:
+    - '431.40'
+  scale: 2
+  source: data

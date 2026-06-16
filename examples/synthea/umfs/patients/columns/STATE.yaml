@@ -1,0 +1,10 @@
+column:
+  data_type: VARCHAR
+  description: Patient's home state.
+  exclude_from_change_detection: false
+  length: 40
+  name: STATE
+  preserve_literal_null: false
+  sample_values:
+    - Massachusetts
+  source: data

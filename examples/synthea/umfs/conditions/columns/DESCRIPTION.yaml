@@ -1,0 +1,10 @@
+column:
+  data_type: VARCHAR
+  description: Description of the condition.
+  exclude_from_change_detection: false
+  length: 200
+  name: DESCRIPTION
+  preserve_literal_null: false
+  sample_values:
+    - Diabetes mellitus type 2
+  source: data

@@ -1,0 +1,11 @@
+column:
+  data_type: DECIMAL
+  description: Base cost of the encounter, before line items.
+  exclude_from_change_detection: false
+  name: BASE_ENCOUNTER_COST
+  precision: 12
+  preserve_literal_null: false
+  sample_values:
+    - '142.58'
+  scale: 2
+  source: data

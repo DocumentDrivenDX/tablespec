@@ -1,0 +1,11 @@
+column:
+  data_type: DECIMAL
+  description: Total cost of all dispenses of this medication.
+  exclude_from_change_detection: false
+  name: TOTALCOST
+  precision: 12
+  preserve_literal_null: false
+  sample_values:
+    - '144.00'
+  scale: 2
+  source: data

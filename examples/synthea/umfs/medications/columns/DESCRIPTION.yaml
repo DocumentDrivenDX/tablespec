@@ -1,0 +1,10 @@
+column:
+  data_type: VARCHAR
+  description: Description of the medication.
+  exclude_from_change_detection: false
+  length: 200
+  name: DESCRIPTION
+  preserve_literal_null: false
+  sample_values:
+    - Metformin 500 MG Oral Tablet
+  source: data

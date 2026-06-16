@@ -1,0 +1,17 @@
+canonical_name: procedures
+description: Procedures performed on patients during encounters.
+relationships:
+  foreign_keys:
+    - column: PATIENT
+      cross_pipeline: false
+      references_column: Id
+      references_table: patients
+      type: foreign_key
+    - column: ENCOUNTER
+      cross_pipeline: false
+      references_column: Id
+      references_table: encounters
+      type: foreign_key
+table_name: procedures
+table_type: ingested
+version: '1.0'

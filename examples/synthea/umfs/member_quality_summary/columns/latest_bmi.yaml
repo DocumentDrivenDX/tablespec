@@ -1,0 +1,16 @@
+column:
+  data_type: DECIMAL
+  description: Most recent recorded Body Mass Index for the patient.
+  exclude_from_change_detection: false
+  name: latest_bmi
+  precision: 5
+  preserve_literal_null: false
+  scale: 2
+  source: data
+derivation:
+  candidates:
+    - expression: MAX_BY(CAST(VALUE AS DECIMAL(5,2)), DATE) FILTER 
+        (WHERE DESCRIPTION = 'Body Mass Index')
+      priority: 1
+      reason: Latest BMI observation by observation date.
+      table: observations

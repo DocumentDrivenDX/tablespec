@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: Datatype of the observation value.
+  exclude_from_change_detection: false
+  length: 40
+  name: TYPE
+  preserve_literal_null: false
+  sample_values:
+    - numeric
+    - text
+  source: data

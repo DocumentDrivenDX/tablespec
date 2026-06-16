@@ -1,0 +1,9 @@
+column:
+  data_type: VARCHAR
+  description: Foreign key to the Encounter the claim is associated 
+    with.
+  exclude_from_change_detection: false
+  length: 36
+  name: APPOINTMENTID
+  preserve_literal_null: false
+  source: data

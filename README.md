@@ -166,6 +166,51 @@ This is the development bootstrap path. Production installs the published
 `tablespec` wheel and consumes the committed artifact tree through the manifest;
 it does not re-run the bootstrap orchestration from source-time Python.
 
+### Generating a Guidebook
+
+Render any directory of UMFs into a navigable, self-contained HTML guidebook —
+one page per table, with per-column lineage (upstream derivation sources and
+downstream consumers), validation rules, and a search index.
+
+```bash
+# Point it at a directory of UMFs (split table.yaml dirs and/or *.umf.json)
+tablespec guidebook ./tables -o ./guidebook
+
+# Then open ./guidebook/index.html in a browser, or serve it:
+python -m http.server -d ./guidebook
+```
+
+```python
+from pathlib import Path
+from tablespec import generate_guidebook
+
+written = generate_guidebook(root=Path("tables"), output_dir=Path("guidebook"))
+print(f"Wrote {len(written)} files")
+```
+
+Discovery is flat and recursive. When UMFs live in subfolders, the guidebook
+nests output as `<subfolder>/<table>.html` and the top index lists each
+subfolder as a group; when every UMF sits at the root, the guidebook is flat.
+Every page is self-contained (inline CSS, no JS frameworks, no network
+requests) so it works opened from disk or served statically.
+
+**Guidebook a Databricks catalog (two-step).** The guidebook consumes UMFs on
+disk, so first generate UMFs from the catalog, then render them:
+
+```python
+from pathlib import Path
+from tablespec import bootstrap_from_tables, generate_guidebook
+
+# 1. Reflect catalog tables into UMFs (writes the artifact tree, incl. UMFs)
+bootstrap_from_tables(spark, ["member", "claims"], "/tmp/catalog-umfs", profile=True)
+
+# 2. Render the guidebook over the generated UMFs
+generate_guidebook(root=Path("/tmp/catalog-umfs"), output_dir=Path("guidebook"))
+```
+
+`JdbcToUmfMapper` / `SparkToUmfMapper` (in `tablespec[spark]`) are the lower-level
+entry points if you want to control UMF generation directly before rendering.
+
 ## Documentation
 
 Full documentation is available at [documentdrivendx.github.io/tablespec](https://documentdrivendx.github.io/tablespec/):

@@ -8,7 +8,7 @@ ddx:
 
 **Version**: 3.0
 **Status**: Evolved to govern committed-artifact compilation and Connect-safe multi-engine execution
-**Last Updated**: 2026-06-06
+**Last Updated**: 2026-06-15
 
 ## Summary
 
@@ -312,6 +312,15 @@ edits; do not renumber on edit.
 - **FR-17.1** — Supported date/datetime format definitions with UMF notation
 - **FR-17.2** — Format validation and strftime conversion
 - **FR-17.3** — Consistent format handling across sample data, validation, and type conversion
+
+### Subsystem: Guidebook
+
+**FR-22** requirement family.
+
+- **FR-22.1** — Discover UMFs flatly and recursively under a root directory (split `table.yaml` directories and `*.umf.json` artifacts), grouping output by parent subfolder when present and flat otherwise
+- **FR-22.2** — Render one self-contained HTML page per table (inline CSS, no JS frameworks, no network requests) with per-column metadata, plus top-level and per-group indexes and a JSON search index
+- **FR-22.3** — Surface cross-table lineage: foreign keys as downstream consumers on the referenced table, and column derivations as upstream sources (with SQL expression and survivorship) on the derived column
+- **FR-22.4** — Expose generation through the `tablespec guidebook` CLI command and the `generate_guidebook` Python API
 
 ## Acceptance Test Sketches
 

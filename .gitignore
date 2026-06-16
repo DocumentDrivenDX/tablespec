@@ -252,3 +252,6 @@ derby.log
 .codex/
 .agent/logs/
 .agent/sessions/
+
+# macOS
+.DS_Store

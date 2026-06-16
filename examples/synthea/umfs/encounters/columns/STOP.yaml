@@ -1,0 +1,7 @@
+column:
+  data_type: DATETIME
+  description: Encounter stop time (ISO 8601 UTC).
+  exclude_from_change_detection: false
+  name: STOP
+  preserve_literal_null: false
+  source: data

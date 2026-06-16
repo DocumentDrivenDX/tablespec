@@ -1,0 +1,14 @@
+column:
+  data_type: VARCHAR
+  description: Patient this summary is for.
+  exclude_from_change_detection: false
+  length: 36
+  name: patient_id
+  preserve_literal_null: false
+  source: data
+derivation:
+  candidates:
+    - column: Id
+      priority: 1
+      reason: One summary row per patient, keyed by the patient id.
+      table: patients

@@ -76,6 +76,7 @@ from tablespec.compatibility import (
     check_compatibility,
 )
 from tablespec.bootstrap import bootstrap_from_tables
+from tablespec.guidebook import generate as generate_guidebook
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
 from tablespec.sample_data import GenerationConfig, SampleDataGenerator
@@ -99,6 +100,7 @@ __all__ = [
     "build_ingest_select",
     "generate_dbt_dag_project",
     "generate_dbt_project",
+    "generate_guidebook",
     "generate_ingest_sql",
     "generate_json_schema",
     "generate_pyspark_schema",

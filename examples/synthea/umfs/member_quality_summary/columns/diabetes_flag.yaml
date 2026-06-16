@@ -1,0 +1,16 @@
+column:
+  data_type: BOOLEAN
+  description: True if the patient has ever been diagnosed with type 2 
+    diabetes.
+  exclude_from_change_detection: false
+  name: diabetes_flag
+  preserve_literal_null: false
+  source: data
+derivation:
+  candidates:
+    - column: CODE
+      expression: MAX(CASE WHEN CODE = '44054006' THEN TRUE ELSE FALSE 
+        END)
+      priority: 1
+      reason: SNOMED 44054006 = Diabetes mellitus type 2.
+      table: conditions

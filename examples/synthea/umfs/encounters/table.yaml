@@ -1,0 +1,30 @@
+canonical_name: encounters
+description: Patient encounters (visits). Central clinical event; most 
+  records reference an encounter.
+primary_key:
+  - Id
+relationships:
+  foreign_keys:
+    - column: PATIENT
+      cross_pipeline: false
+      references_column: Id
+      references_table: patients
+      type: foreign_key
+    - column: ORGANIZATION
+      cross_pipeline: false
+      references_column: Id
+      references_table: organizations
+      type: foreign_key
+    - column: PROVIDER
+      cross_pipeline: false
+      references_column: Id
+      references_table: providers
+      type: foreign_key
+    - column: PAYER
+      cross_pipeline: false
+      references_column: Id
+      references_table: payers
+      type: foreign_key
+table_name: encounters
+table_type: ingested
+version: '1.0'

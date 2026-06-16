@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: Recorded value of the observation.
+  exclude_from_change_detection: false
+  length: 100
+  name: VALUE
+  preserve_literal_null: false
+  sample_values:
+    - '170.2'
+    - '120'
+  source: data

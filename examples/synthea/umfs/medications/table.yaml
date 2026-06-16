@@ -1,0 +1,23 @@
+canonical_name: medications
+description: Medications prescribed to patients, with payer coverage and
+  cost.
+relationships:
+  foreign_keys:
+    - column: PATIENT
+      cross_pipeline: false
+      references_column: Id
+      references_table: patients
+      type: foreign_key
+    - column: PAYER
+      cross_pipeline: false
+      references_column: Id
+      references_table: payers
+      type: foreign_key
+    - column: ENCOUNTER
+      cross_pipeline: false
+      references_column: Id
+      references_table: encounters
+      type: foreign_key
+table_name: medications
+table_type: ingested
+version: '1.0'

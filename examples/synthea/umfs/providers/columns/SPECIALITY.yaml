@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: Provider's clinical specialty.
+  exclude_from_change_detection: false
+  length: 100
+  name: SPECIALITY
+  preserve_literal_null: false
+  sample_values:
+    - GENERAL PRACTICE
+    - CARDIOLOGY
+  source: data

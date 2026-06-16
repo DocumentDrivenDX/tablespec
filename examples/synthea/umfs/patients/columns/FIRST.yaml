@@ -1,0 +1,11 @@
+column:
+  data_type: VARCHAR
+  description: First (given) name of the patient.
+  exclude_from_change_detection: false
+  length: 100
+  name: FIRST
+  preserve_literal_null: false
+  sample_values:
+    - Maria
+    - James
+  source: data

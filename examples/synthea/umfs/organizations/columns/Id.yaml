@@ -1,0 +1,8 @@
+column:
+  data_type: VARCHAR
+  description: Primary key. Unique organization identifier (UUID).
+  exclude_from_change_detection: false
+  length: 36
+  name: Id
+  preserve_literal_null: false
+  source: data

@@ -1,0 +1,9 @@
+column:
+  data_type: DATE
+  description: Date the condition was diagnosed.
+  exclude_from_change_detection: false
+  name: START
+  preserve_literal_null: false
+  sample_values:
+    - '2021-03-04'
+  source: data

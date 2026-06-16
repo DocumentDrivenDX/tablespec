@@ -1,0 +1,10 @@
+column:
+  data_type: VARCHAR
+  description: Diagnosis code (SNOMED-CT).
+  exclude_from_change_detection: false
+  length: 40
+  name: CODE
+  preserve_literal_null: false
+  sample_values:
+    - '44054006'
+  source: data

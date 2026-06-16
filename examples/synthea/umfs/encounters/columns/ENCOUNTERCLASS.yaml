@@ -1,0 +1,28 @@
+column:
+  data_type: VARCHAR
+  description: Class of encounter.
+  exclude_from_change_detection: false
+  length: 40
+  name: ENCOUNTERCLASS
+  preserve_literal_null: false
+  sample_values:
+    - ambulatory
+    - emergency
+    - wellness
+  source: data
+validations:
+  - kwargs:
+      column: ENCOUNTERCLASS
+      value_set:
+        - ambulatory
+        - emergency
+        - inpatient
+        - outpatient
+        - wellness
+        - urgentcare
+    meta:
+      description: Encounter class is one of the known Synthea classes.
+      generated_from: user_input
+      rule_index: 0
+      severity: warning
+    type: expect_column_values_to_be_in_set
