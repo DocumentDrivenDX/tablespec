@@ -6,7 +6,7 @@ ddx:
 # Feature Registry
 
 **Status**: Active
-**Last Updated**: 2026-06-11
+**Last Updated**: 2026-06-15
 
 ## Active Features
 
@@ -20,7 +20,7 @@ ddx:
 | FEAT-006 | [LLM Prompt Generation](features/FEAT-006-llm-prompts.md) | Structured prompts for LLM-based schema enrichment: documentation, validation, relationships, survivorship. | Built | P1 | Data-Quality Platform | PRD: LLM Prompt Generation (FR-6.1–FR-6.7) | 2026-06-11 |
 | FEAT-007 | [Table Validation](features/FEAT-007-validation.md) | Validate Spark DataFrames against UMF specs and UMF files against JSON schema; Connect-safe suite execution; includes table merge slice. | Built | P0 | Data-Quality Platform | PRD: Table Validation; Table Merge (FR-7.1–FR-7.8, FR-15.1–FR-15.3, with FR-20.4) | 2026-06-11 |
 | FEAT-008 | [CLI Interface](features/FEAT-008-cli.md) | Typer-based `tablespec` CLI for schema management, conversion, and validation workflows with Rich output. | Built | P0 | Platform / Data Engineering | PRD: CLI Interface (FR-8.1–FR-8.6) | 2026-06-11 |
-| FEAT-009 | [Excel Bidirectional Conversion](features/FEAT-009-excel-conversion.md) | Round-trip conversion between Excel workbooks and UMF schemas for non-technical domain expert collaboration. | Built | P1 | Data Stewardship | PRD: Excel Bidirectional Conversion (FR-9.1–FR-9.4) | 2026-06-11 |
+| FEAT-009 | [Excel Bidirectional Conversion](features/FEAT-009-excel-conversion.md) | Round-trip conversion between Excel workbooks and UMF schemas for non-technical domain expert collaboration, including lossless column-derivation round-trip (ADR-017). | Built | P1 | Data Stewardship | PRD: Excel Bidirectional Conversion (FR-9.1–FR-9.4) | 2026-06-15 |
 | FEAT-010 | [UMF Change Management](features/FEAT-010-change-management.md) | Split-format UMF storage, schema diffing, atomic change application, and git-based changelog generation. | Built | P0 | Platform / Data Engineering | PRD: Split-Format UMF; Schema Change Management (FR-10.1–FR-10.4, FR-11.1–FR-11.5) | 2026-06-11 |
 | FEAT-011 | [Sample Data Generation](features/FEAT-011-sample-data.md) | Generate realistic healthcare-specific sample data from UMF specs, respecting constraints, foreign keys, and domain types. | Built | P1 | Data-Quality Platform | PRD: Sample Data Generation (FR-12.1–FR-12.6) | 2026-06-11 |
 | FEAT-012 | [Quality Baselines](features/FEAT-012-quality-baselines.md) | Capture, store, and compare quality baselines from DataFrames for drift detection; requires PySpark. | Built | P1 | Data-Quality Platform | PRD: Quality Baselines (FR-13.1–FR-13.5) | 2026-06-11 |

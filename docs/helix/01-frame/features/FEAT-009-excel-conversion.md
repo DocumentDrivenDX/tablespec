@@ -1,6 +1,8 @@
 ---
 ddx:
   id: FEAT-009
+  links:
+    - ADR-017
 ---
 
 # Feature Specification: FEAT-009 — Excel Bidirectional Conversion
@@ -32,6 +34,7 @@ A data engineer can rely on Excel Bidirectional Conversion as a governed tablesp
 | Area | User question or job | Feature responsibility |
 |------|----------------------|------------------------|
 | Components | What must tablespec preserve for components? | Maintain the source-backed components behavior documented in this feature. |
+| Derivation round-trip | When I edit a derived column's spec in Excel, is its full derivation preserved? | Round-trip a column's complete `derivation` (candidates, expressions, join/window options, the two strategy fields, and survivorship) losslessly via a dedicated machine-readable Derivations sheet (ADR-017). |
 
 ## Requirements
 
@@ -41,6 +44,12 @@ A data engineer can rely on Excel Bidirectional Conversion as a governed tablesp
 
 F009-COMPON-01. The feature SHALL provide the components behavior described in the existing scope evidence and cited source modules below.
 F009-COMPON-02. Changes to the components behavior SHALL update this feature specification, affected user stories, and registry metadata in the same governed change.
+
+#### Derivation round-trip
+
+F009-DERIV-01. The converter SHALL export and re-import a column's full `derivation` (candidates with priority, source table/column, expression, join filter, table instance, row filter, order-by, select-columns, and join-via; the top-level derivation strategy; and the survivorship strategy, defaults, and explanation) through a dedicated machine-readable Derivations sheet, distinct from the human-oriented Survivorship sheet (ADR-017).
+F009-DERIV-02. The round-trip SHALL be lossless for every derivation field consumed by SQL generation: `generate_sql_plan` output SHALL be identical before and after an Excel round-trip.
+F009-DERIV-03. Workbooks authored before the Derivations sheet existed SHALL continue to import unchanged (the sheet is optional), and a malformed JSON-encoded cell SHALL surface a benign review note rather than failing the import.
 
 ### Non-Functional Requirements
 
@@ -63,6 +72,13 @@ This section preserves the pre-template feature content as source-backed scope e
 ##### Excel to UMF (`ExcelToUMFConverter`)
 - Strict validation of Excel input against UMF schema rules
 - Type inference and constraint extraction from cell values
+- Parses the machine-readable Derivations sheet back into each column's `derivation` (guarded on sheet presence for back-compat)
+
+##### Derivations sheet (ADR-017)
+- Machine-readable, one row per derivation candidate; distinct from the human-oriented Survivorship sheet (which is presentation-only and not parsed back)
+- Two distinct strategy columns — `Derivation Strategy` (top-level) and `Survivorship Strategy` — that drive different SQL paths
+- List/nested candidate fields (Order By, Select Columns, Join Via) are JSON-encoded into a single cell
+- Domain-type dropdown references an `_Instructions` sheet range rather than an inline list, staying under Excel's 255-char data-validation limit
 
 ##### Git-Integrated Import (`excel_import_git.py`)
 - Atomic per-change commits using UMF diff
@@ -104,6 +120,11 @@ This section preserves the pre-template feature content as source-backed scope e
 
 - `src/tablespec/excel_converter.py`
 - `src/tablespec/excel_import_git.py`
+- `tests/unit/test_excel_converter.py` (`TestDerivationsRoundTrip`, `TestDerivationSqlIdentity`, `TestDataValidationLimits`)
+
+### Design Decisions
+
+- ADR-017 (machine-readable Derivations sheet for lossless Excel round-trip)
 
 ## Out of Scope
 
