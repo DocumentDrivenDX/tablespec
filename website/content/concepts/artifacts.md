@@ -6,7 +6,8 @@ weight: 3
 This page is for readers who need to know what files tablespec generates and
 why those files should be reviewed. A compiled artifact is a file generated
 from a Universal Metadata Format (UMF) source-table spec: SQL, schema code,
-validation suites, dbt project files, Lakeflow project files, or a manifest.
+validation suites, dbt project files, Lakeflow project files, Excel review
+workbooks, static guidebooks, or a manifest.
 
 tablespec compiles one UMF spec into a reusable catalog of generated files.
 Every generated file is derived from the same spec. Recompiling an unchanged
@@ -27,6 +28,7 @@ A full compile produces these generated files for each table:
 | GX baseline suite | `BaselineExpectationGenerator` | `validation/<table>.suite.json` |
 | Key-candidate evidence | profiling (optional) | `validation/<table>.keycandidates.json` |
 | dbt ingest project | `generate_dbt_project` | `dbt_ingest/<table>/` |
+| Excel review workbook | `UMFToExcelConverter` | `excel/<table>.xlsx` |
 
 A compile for a set of related tables also produces these generated files:
 
@@ -34,6 +36,7 @@ A compile for a set of related tables also produces these generated files:
 |----------|----------|----------|
 | dbt gold DAG project | `generate_dbt_dag_project` | `dbt_gold/` |
 | Lakeflow Declarative Pipelines project | `tablespec.ldp.generate_ldp_project` | `ldp/` (`raw_<t>.sql`, `ingested_<t>.sql`, `gold_<t>.sql`) |
+| Guidebook site | `tablespec.guidebook.generate` | `guidebook/` (`index.html`, one page per table, `search_index.json`) |
 | Manifest | compile orchestrator | `manifest.json` — every persisted path, so consumers never re-derive filenames |
 
 `tablespec.e2e.manifest` pins this layout in tests. `bootstrap_from_tables`
@@ -155,3 +158,20 @@ The Lakeflow emitter writes Databricks Lakeflow Declarative Pipelines files:
 a raw streaming table, a typed ingested dataset with expectations, and gold
 datasets. Use this artifact when the pipeline should run natively on
 Databricks.
+
+## Excel workbooks and guidebooks
+
+`tablespec export-excel` writes a review workbook for a UMF table. The
+workbook includes dropdown validations and a machine-readable `Derivations`
+sheet, so column derivation candidates, SQL expressions, row filters, order
+fields, join-via definitions, survivorship strategy, and defaults can
+round-trip back into UMF. Long dropdowns are stored as hidden-sheet ranges
+instead of inline Excel formulas, avoiding the 255-character data-validation
+limit.
+
+`tablespec guidebook tables/ -o guidebook/` renders a directory of UMFs into a
+static HTML guidebook. It discovers split `table.yaml` directories and
+`.umf.json` artifacts, writes one self-contained page per table, builds a
+search index, and shows cross-table lineage: foreign keys as downstream
+consumers and derivations as upstream source columns with SQL and
+survivorship detail.

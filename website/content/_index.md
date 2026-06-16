@@ -1,6 +1,6 @@
 ---
 title: tablespec
-description: "tablespec helps data teams define the ingested bronze contract for source tables and compile one UMF spec into SQL, dbt, Lakeflow, schema, and validation artifacts."
+description: "tablespec helps data teams define the ingested bronze contract for source tables and compile one UMF spec into SQL, dbt, Lakeflow, schema, validation, Excel, and guidebook artifacts."
 layout: hextra-home
 ---
 
@@ -16,8 +16,8 @@ layout: hextra-home
       ready for downstream work. It defines a source-semantic ingested bronze
       contract: the source meaning is preserved, while types, validation,
       keys, and relationships are declared. Then it compiles one Universal
-      Metadata Format (UMF) spec into SQL, dbt, Lakeflow, schema, and
-      validation artifacts.
+      Metadata Format (UMF) spec into SQL, dbt, Lakeflow, schema,
+      validation, Excel review workbooks, and static guidebook artifacts.
     </p>
     <div class="ts-hero-actions" aria-label="Primary actions">
       <a class="ts-button ts-button-primary" href="getting-started/">Start with a UMF</a>
@@ -61,6 +61,7 @@ layout: hextra-home
       <div><span>dbt</span><code>models/claims.sql</code></div>
       <div><span>Lakeflow</span><code>pipeline.yml</code></div>
       <div><span>GX</span><code>suite.json</code></div>
+      <div><span>Guidebook</span><code>index.html</code></div>
     </div>
     <div class="ts-contract-row" aria-label="Ingested bronze contract checklist">
       <span>types declared</span>
@@ -86,7 +87,7 @@ layout: hextra-home
     <article>
       <span>02</span>
       <h3>Compile committed artifacts</h3>
-      <p>Generate the SQL DDL, ingest transform, dbt model, Lakeflow pipeline, JSON Schema, and Great Expectations suite from that spec.</p>
+      <p>Generate the SQL DDL, ingest transform, dbt model, Lakeflow pipeline, JSON Schema, Great Expectations suite, Excel workbook, and guidebook from that spec.</p>
     </article>
     <article>
       <span>03</span>
@@ -104,7 +105,7 @@ layout: hextra-home
       Start with a split-format UMF directory for `medical_claims`: one
       table-level YAML file plus one YAML file per column. tablespec validates
       that source-table contract, then emits raw-to-ingested SQL, a dbt project,
-      and a Great Expectations suite from the same spec.
+      a Great Expectations suite, and a guidebook from the same spec.
     </p>
     <a class="ts-button ts-button-secondary" href="worked-example/">Open the example</a>
   </div>
@@ -116,7 +117,8 @@ layout: hextra-home
     <pre><code>tablespec validate tables/
 tablespec generate tables/medical_claims -f ingest &gt; claims.ingest.sql
 tablespec emit tables/ out/dbt --backend dbt --dialect databricks
-tablespec validation-sync tables/medical_claims --out gx/</code></pre>
+tablespec validation-sync tables/medical_claims --out gx/
+tablespec guidebook tables/ -o site/guidebook</code></pre>
   </div>
 </section>
 

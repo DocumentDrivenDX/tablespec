@@ -44,6 +44,32 @@ covers cluster setup, wheel upload, and running against an external SQL
 Server instead. The same flow runs locally without Databricks via the
 Docker-gated test: `uv run pytest tests/integration/test_northwind_e2e.py`.
 
+## Synthea guidebook
+
+The Synthea guidebook demo shows the static guidebook generator against a
+small healthcare schema: ten raw Synthea-style source tables plus a computed
+`member_quality_summary` report table. The report demonstrates derivation
+lineage, including a window-function candidate for latest A1C and
+survivorship defaults preserved through Excel review.
+
+The committed demo artifacts live under
+[`examples/synthea/`](https://github.com/DocumentDrivenDX/tablespec/tree/main/examples/synthea):
+
+- `umfs/` — split UMF specs for raw tables and the computed report.
+- `specs/` — Excel review workbooks generated from those UMFs.
+- `guidebook/` — rendered static HTML output, one page per table plus
+  `index.html` and `search_index.json`.
+
+Run it locally after installing tablespec:
+
+```bash
+tablespec guidebook examples/synthea/umfs -o /tmp/synthea-guidebook
+```
+
+Open `/tmp/synthea-guidebook/index.html` in a browser to inspect table
+metadata, validation rules, foreign-key consumers, derivation sources, SQL
+expressions, and survivorship notes without running a web app.
+
 ## Library walkthrough (screencast)
 
 The library walkthrough is a scripted local demo. It loads UMF specs,

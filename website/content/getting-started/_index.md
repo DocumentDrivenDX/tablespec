@@ -149,6 +149,21 @@ enforced contracts, sources, and profiles. Pass `--dialect duckdb` (the
 default) to run it locally, or add `--run` to execute `dbt build` through
 dbt-duckdb against the emitted project.
 
+## Generate a guidebook
+
+```bash
+tablespec guidebook tables/ -o out/guidebook
+```
+
+The guidebook is a static HTML review site for a directory of UMF specs. It
+writes one page per table, a table index, column metadata, validation rules,
+foreign-key consumers, derivation sources, survivorship notes, and a JSON
+search index. Pages are self-contained: no JavaScript framework, no network
+dependency, and no server required.
+
+When tables are organized in subfolders, guidebook output keeps those groups
+as folders. When every UMF sits at the root, output is flat.
+
 ## Compile from Python
 
 The same artifact generators are available as Python functions. They take a
@@ -198,6 +213,6 @@ staged validation reports that work on classic clusters and serverless.
 
 {{< cards >}}
   {{< card link="/concepts" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
-  {{< card link="/cli-reference" title="CLI Reference" subtitle="All 21 commands with their options." icon="terminal" >}}
-  {{< card link="/demos" title="Demos" subtitle="Northwind on Databricks, plus the local screencast demo." icon="play" >}}
+  {{< card link="/cli-reference" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
+  {{< card link="/demos" title="Demos" subtitle="Northwind on Databricks, the Synthea guidebook, and the local screencast demo." icon="play" >}}
 {{< /cards >}}

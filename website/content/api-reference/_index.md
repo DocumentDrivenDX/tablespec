@@ -91,18 +91,22 @@ related UMF specs.
 
 ## Project emitters (dbt and Lakeflow)
 
-These functions generate project directories, not only single files. Use them
-when dbt or Databricks Lakeflow should run from UMF-derived artifacts.
+These functions generate project directories or static sites, not only single
+files. Use them when dbt, Databricks Lakeflow, or a browsable review surface
+should run from UMF-derived artifacts.
 
 | Symbol | Signature | Purpose |
 |--------|-----------|---------|
 | `generate_dbt_project` | `(umf_data: dict, *, dialect="duckdb", target=None, out_dir=None, project_name="tablespec_ingest", related=None) -> dict[str, str]` | Single-table ingest dbt project (model SQL, contracts/tests, sources, profiles). |
 | `generate_dbt_dag_project` | `(umfs: list[UMF], *, dialect="duckdb", ..., project_name="tablespec_gold") -> dict[str, str]` | Multi-table gold dbt DAG project. |
 | `tablespec.ldp.generate_ldp_project` | `(umfs: list[UMF], *, dialect="spark", file_format="csv", out_dir=None) -> dict[str, str]` | Lakeflow Declarative Pipelines project (raw/ingested/gold datasets). |
+| `generate_guidebook` | `(root: Path, output_dir: Path, *, group=None, provenance_sha=None) -> list[Path]` | Static HTML guidebook from split UMF directories or `.umf.json` artifacts. |
 
-Both return `{relative_path: file_content}`. Pass `out_dir` to also write the
-project tree to disk. The CLI front-end is
-[`tablespec emit`](/cli-reference/#emit).
+The dbt and Lakeflow functions return `{relative_path: file_content}`. Pass
+`out_dir` to also write the project tree to disk. The CLI front-end is
+[`tablespec emit`](/cli-reference/#emit). The guidebook function writes HTML
+files directly and returns the paths written; its CLI front-end is
+[`tablespec guidebook`](/cli-reference/#guidebook).
 
 ## Great Expectations integration
 
@@ -119,6 +123,10 @@ project tree to disk. The CLI front-end is
 |--------|-------|
 | `UMFToExcelConverter` | `.convert(...)` — write a reviewable workbook with dropdowns and helper columns. |
 | `ExcelToUMFConverter` | `.convert(...)` — validate a workbook and convert back to UMF. |
+
+The workbook round-trips column derivations through a `Derivations` sheet,
+including candidates, expressions, row filters, order-by fields, join-via
+metadata, survivorship strategy, defaults, and explanations.
 
 CLI front-ends: `tablespec export-excel` / `import-excel`.
 

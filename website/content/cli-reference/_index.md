@@ -5,7 +5,7 @@ next: /api-reference
 ---
 
 This page is for readers who want command names, inputs, outputs, and exit
-codes. The `tablespec` command line interface (CLI) has 21 commands. Run
+codes. The `tablespec` command line interface (CLI) has 22 commands. Run
 `tablespec --help` for the live list, or `tablespec COMMAND --help` for one
 command's options.
 
@@ -114,6 +114,24 @@ tablespec emit tables/ out/dbt --backend dbt --dialect databricks
 `--run` targets a DuckDB database at `<out_dir>/tablespec.duckdb`; the raw
 landing table (`raw_<table>`) must exist there for the build to pass.
 
+### `guidebook`
+
+Render a directory of UMF specs into a static HTML guidebook.
+
+```bash
+tablespec guidebook tables/ -o out/guidebook
+tablespec guidebook tables/ -o out/guidebook --group clinical
+```
+
+| Option | Description |
+|--------|-------------|
+| `--output`, `-o` | Output directory for generated HTML (default `guidebook`). |
+| `--group`, `-g` | Render only one discovered group/subfolder. Indexes are left unchanged in single-group mode. |
+
+The command discovers split `table.yaml` directories and `.umf.json` files
+recursively. It writes one self-contained page per table, group and top-level
+indexes, and `search_index.json`.
+
 ## Convert formats
 
 ### `convert`
@@ -149,7 +167,8 @@ tablespec batch-convert tables/ json_out/ --format json
 
 Round-trip a spec through an Excel workbook for review by people who do not
 edit YAML. The workbook carries data-validation dropdowns, helper columns,
-and instructions; import validates before converting back to split format.
+instructions, and a machine-readable `Derivations` sheet; import validates
+before converting back to split format.
 
 ```bash
 tablespec export-excel tables/medical_claims/ medical_claims.xlsx --force

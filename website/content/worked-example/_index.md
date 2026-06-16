@@ -108,6 +108,7 @@ CREATE TABLE medical_claims (
 tablespec emit tables/ out/dbt --backend dbt --dialect databricks
 tablespec generate tables/medical_claims/ -f json > medical_claims.schema.json
 tablespec validation-sync tables/medical_claims/ --out gx/
+tablespec guidebook tables/ -o review/guidebook
 ```
 
 The review surface is now a concrete set of generated files:
@@ -118,6 +119,7 @@ The review surface is now a concrete set of generated files:
 | `out/dbt/models/medical_claims.sql` | The dbt model and contract generated from the UMF spec |
 | `medical_claims.schema.json` | Machine-readable schema for integrations |
 | `gx/medical_claims/suite.json` | Baseline validation generated from the same contract |
+| `review/guidebook/index.html` | Static browsable review surface for tables, columns, validations, and lineage |
 
 ## 5. Hand off to silver
 
@@ -132,4 +134,5 @@ source-table contract is complete, not hidden inside ingestion.
 - Types and nullability are declared.
 - Keys and relationships are explicit.
 - Validation is generated from the same UMF.
+- The guidebook exposes tables, columns, validation rules, and lineage for review.
 - Runtime artifacts are committed and reviewable.

@@ -115,6 +115,40 @@ relationships:
 multiple UMF specs are present. The dbt and Lakeflow emitters turn declared
 keys into generated tests and expectations.
 
+## Derivations and survivorship
+
+Generated or report-style tables can describe where each output column comes
+from with `derivation`. A derivation can carry ordered source candidates,
+source SQL expressions, join filters, row filters, window ordering columns,
+join-via metadata, and a survivorship rule. That metadata feeds gold SQL
+generation and the guidebook lineage view.
+
+```yaml
+column:
+  name: latest_a1c
+  data_type: DECIMAL
+  precision: 5
+  scale: 2
+  derivation:
+    candidates:
+      - table: observations
+        column: VALUE
+        priority: 1
+        row_filter: "DESCRIPTION = 'Hemoglobin A1c/Hemoglobin.total in Blood'"
+        order_by:
+          - DATE
+    survivorship:
+      strategy: highest_priority
+      explanation: Prefer the latest qualifying A1C observation.
+      default_value: 0
+      default_condition: No qualifying observation is available.
+```
+
+Excel review workbooks preserve this structure through the `Derivations`
+sheet. That sheet is machine-readable and separate from the human-oriented
+survivorship sheet, so an Excel-authored derivation can regenerate the same
+gold SQL after import.
+
 ## Expectations
 
 Quality rules live in an expectation suite. In tablespec, an expectation is a
