@@ -1,0 +1,201 @@
+practitioner_id|npi|entity_type|name_prefix|first_name|middle_name|last_name|name_suffix|credential|specialty|sex|address|city|state|zip_code|latitude|longitude|phone|data_source|META_data_source|META_Load_DTTM
+PR00001|1000000001|individual||Emily|Scarlett|Taylor||PA-C|Family Medicine|female|5912 Medical Plaza Dr|CA City|CA|96823|42.291222|-108.969545|(379) 418-4779|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00002|1000000002|individual||Harper||Garcia||NP-C|Psychiatry|female|7788 Medical Plaza Dr|MA City|MA|35067|34.70599|-123.76757|(537) 446-5930|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00003|1000000003|individual||Emma|Grace|King||FNP-C|Oncology|female|9899 Medical Plaza Dr|IL City|IL|63385|46.685962|-67.120741|(237) 226-6225|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00004|1000000004|individual|Dr.|Henry||Walker||DO|Internal Medicine|male|3483 Medical Plaza Dr|TX City|TX|73378|26.164255|-98.294688|(640) 311-5998|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00005|1000000005|individual||Ava||Lee||APRN|Oncology|female|5674 Medical Plaza Dr|IL City|IL|47604|34.534903|-118.681111|(756) 669-5774|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00006|1000000006|individual|Dr.|Daniel|Noah|White||MD|Obstetrics|male|2530 Medical Plaza Dr|WA City|WA|35991|26.903132|-105.732635|(365) 539-6763|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00007|1000000007|individual|Dr.|Ella||Miller||MD|Family Medicine|female|8445 Medical Plaza Dr|MI City|MI|88449|43.430548|-80.494919|(658) 301-8756|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00008|1000000008|individual|Dr.|Benjamin||Miller||DO|Family Medicine|male|9461 Medical Plaza Dr|FL City|FL|64584|38.029906|-73.907476|(917) 861-7248|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00009|1000000009|individual||James|Henry|Jones||FNP-C|Dermatology|male|2899 Medical Plaza Dr|MA City|MA|70666|40.154832|-76.745169|(954) 748-4716|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00010|1000000010|individual||Ava|Grace|Taylor||NP-C|Urgent Care|female|2405 Medical Plaza Dr|VA City|VA|67736|43.985694|-95.347189|(835) 628-5877|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00011|1000000011|individual|Dr.|Grace||Ramirez||DO|Obstetrics|female|9275 Medical Plaza Dr|GA City|GA|42214|33.334166|-107.954425|(725) 916-9938|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00012|1000000012|individual||Daniel|Jackson|Thompson||PA-C|Neurology|male|3692 Medical Plaza Dr|PA City|PA|42511|47.298158|-108.870918|(945) 655-7575|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00013|1000000013|individual||James|Henry|Robinson||RN|Dermatology|male|5009 Medical Plaza Dr|NY City|NY|43026|31.493059|-98.133832|(450) 384-6761|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00014|1000000014|individual||Jackson|Noah|Lopez||PA-C|Psychiatry|male|4360 Medical Plaza Dr|VA City|VA|18701|38.961586|-98.167427|(961) 233-7106|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00015|1000000015|individual||Jacob|Evelyn|Ramirez||NP-C|Oncology|male|5127 Medical Plaza Dr|NC City|NC|17918|46.542763|-69.214514|(629) 250-6865|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00016|1000000016|individual||Amelia||Lee||FNP-C|Internal Medicine|female|2742 Medical Plaza Dr|FL City|FL|10896|44.507169|-111.24878|(986) 327-1901|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00017|1000000017|individual|Dr.|Liam|Sophia|Sanchez||MD|Psychiatry|male|9706 Medical Plaza Dr|FL City|FL|64903|46.457906|-111.97971|(442) 839-9628|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00018|1000000018|individual||Henry||Harris||CNM|Family Medicine|male|1763 Medical Plaza Dr|PA City|PA|81256|36.017989|-93.331572|(716) 994-7244|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00019|1000000019|individual||Ella|Charlotte|Young||CNM|Psychiatry|female|9889 Medical Plaza Dr|MI City|MI|10931|30.560911|-74.8224|(513) 931-3972|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00020|1000000020|individual|Dr.|Michael||Lewis||DO|Internal Medicine|male|9181 Medical Plaza Dr|NY City|NY|45260|26.876196|-69.361742|(331) 459-3834|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00021|1000000021|individual|Dr.|James|William|Martinez||MD|Dermatology|male|291 Medical Plaza Dr|OH City|OH|70305|34.183561|-79.269071|(995) 535-6433|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00022|1000000022|individual|Dr.|Lucas||Taylor||DO|Pediatrics|male|1560 Medical Plaza Dr|AZ City|AZ|58589|32.59355|-90.903937|(439) 507-9405|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00023|1000000023|individual||Alexander|Alexander|Young||CNM|Urgent Care|male|1113 Medical Plaza Dr|WA City|WA|75679|44.389101|-87.913302|(239) 477-5443|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00024|1000000024|individual||Sofia|Abigail|Jones||RN|Psychiatry|female|5443 Medical Plaza Dr|CA City|CA|50216|38.651339|-98.58699|(744) 255-5488|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00025|1000000025|individual||Liam||Miller||APRN|Urgent Care|male|2575 Medical Plaza Dr|MI City|MI|21414|39.649886|-98.755339|(406) 331-8724|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00026|1000000026|individual||Daniel|Grace|Garcia||CNM|Family Medicine|male|8950 Medical Plaza Dr|AZ City|AZ|20723|26.934422|-75.579875|(481) 547-3676|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00027|1000000027|individual||Scarlett||Brown||NP|Obstetrics|female|9112 Medical Plaza Dr|PA City|PA|46472|31.386461|-106.846408|(629) 477-1447|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00028|1000000028|individual|Dr.|Elizabeth|William|Flores||MD|Obstetrics|female|9727 Medical Plaza Dr|CA City|CA|95496|36.194566|-77.606379|(880) 915-4132|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00029|1000000029|individual|Dr.|Emma||Walker||MD|Family Medicine|female|6258 Medical Plaza Dr|NY City|NY|57896|32.922208|-93.947475|(515) 605-4552|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00030|1000000030|individual||James|Amelia|Wright||NP-C|Pediatrics|male|2917 Medical Plaza Dr|NC City|NC|62956|38.811443|-82.905333|(872) 534-8872|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00031|1000000031|individual||Lucas||Nguyen||PA-C|Dermatology|male|1399 Medical Plaza Dr|WA City|WA|22118|38.904907|-67.707507|(524) 949-3154|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00032|1000000032|individual||Elizabeth|Elijah|Lewis||NP-C|Cardiology|female|1671 Medical Plaza Dr|AZ City|AZ|91949|31.796439|-102.504504|(534) 513-3581|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00033|1000000033|individual||Avery||Lee||PA-C|Dermatology|female|1021 Medical Plaza Dr|NC City|NC|39798|32.472758|-110.080592|(290) 763-9413|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00034|1000000034|individual|Dr.|Emma||Davis||MD|Oncology|female|670 Medical Plaza Dr|NC City|NC|70210|42.661134|-104.52881|(590) 480-4634|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00035|1000000035|individual||Jackson||Ramirez||NP|Family Medicine|male|4582 Medical Plaza Dr|AZ City|AZ|98594|43.31194|-72.209608|(366) 842-6581|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00036|1000000036|individual||James|Lucas|Perez||APRN|Neurology|male|9304 Medical Plaza Dr|TX City|TX|10672|47.28789|-104.309161|(984) 242-7019|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00037|1000000037|individual||Avery||Thompson||PA-C|Orthopedics|female|7905 Medical Plaza Dr|NY City|NY|24847|42.094292|-110.227696|(927) 333-6191|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00038|1000000038|individual||Jackson|Ava|Moore||NP-C|Neurology|male|8280 Medical Plaza Dr|OH City|OH|20774|39.440219|-92.702253|(587) 382-5106|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00039|1000000039|individual||James||Gonzalez||NP|Cardiology|male|137 Medical Plaza Dr|OH City|OH|12867|36.533081|-90.307557|(681) 936-3263|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00040|1000000040|individual|Dr.|Ella||Thomas||MD|Orthopedics|female|967 Medical Plaza Dr|PA City|PA|79334|28.932279|-74.626613|(545) 956-1216|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00041|1000000041|individual||Abigail|Lucas|Moore||FNP-C|Obstetrics|female|7693 Medical Plaza Dr|NJ City|NJ|84232|29.114628|-82.502625|(826) 524-9210|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00042|1000000042|individual||Noah||Lewis||APRN|Psychiatry|male|7801 Medical Plaza Dr|IL City|IL|27089|45.994323|-84.248371|(567) 497-2050|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00043|1000000043|individual||Emma|Ethan|King||PA-C|Dermatology|female|3032 Medical Plaza Dr|MI City|MI|61842|31.805947|-89.431515|(426) 213-3365|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00044|1000000044|individual|Dr.|Olivia||Allen||DO|Neurology|female|3092 Medical Plaza Dr|VA City|VA|75975|32.835133|-99.596347|(223) 921-8138|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00045|1000000045|individual||Avery|Mia|Hill||PA-C|Pediatrics|female|814 Medical Plaza Dr|NC City|NC|65228|32.060839|-67.909751|(810) 896-3528|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00046|1000000046|individual||Mia|Jackson|Hill||PA-C|Pediatrics|female|309 Medical Plaza Dr|AZ City|AZ|96628|44.362891|-100.687938|(980) 921-8443|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00047|1000000047|individual||Jackson||Clark||RN|Pediatrics|male|3121 Medical Plaza Dr|WA City|WA|50171|47.523711|-97.016202|(715) 531-1271|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00048|1000000048|individual||William||Harris||CNM|Obstetrics|male|8423 Medical Plaza Dr|MA City|MA|81933|25.946089|-104.016304|(511) 827-2119|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00049|1000000049|individual||Ava||Scott||FNP-C|Obstetrics|female|1579 Medical Plaza Dr|NJ City|NJ|64567|35.535776|-111.623971|(846) 316-7219|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00050|1000000050|individual||James|Liam|Hill||FNP-C|Cardiology|male|5238 Medical Plaza Dr|WA City|WA|75100|47.262188|-109.795868|(998) 205-9945|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00051|1000000051|individual||Mia|Evelyn|Lewis||NP-C|Neurology|female|7104 Medical Plaza Dr|IL City|IL|76962|35.39914|-68.843219|(834) 678-3214|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00052|1000000052|individual||Sofia||Brown||FNP-C|Urgent Care|female|1020 Medical Plaza Dr|TX City|TX|32149|44.895537|-95.680189|(849) 417-3352|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00053|1000000053|individual||Oliver|Emily|King||FNP-C|Family Medicine|male|4537 Medical Plaza Dr|NJ City|NJ|37031|42.348916|-102.409583|(939) 490-6870|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00054|1000000054|individual||William|Jackson|Williams||CNM|Dermatology|male|3400 Medical Plaza Dr|CA City|CA|49217|45.26055|-112.590483|(752) 211-5451|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00055|1000000055|individual||Noah|Emily|Perez||RN|Pediatrics|male|8247 Medical Plaza Dr|PA City|PA|12341|32.227754|-118.307037|(252) 812-1729|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00056|1000000056|individual||Lucas||Flores||PA-C|Psychiatry|male|2225 Medical Plaza Dr|NY City|NY|36761|36.693886|-106.420608|(334) 839-1069|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00057|1000000057|individual|Dr.|Ethan|Ella|Harris||MD|Cardiology|male|8975 Medical Plaza Dr|VA City|VA|20266|43.273894|-98.643703|(647) 822-4482|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00058|1000000058|individual|Dr.|Logan||Martin||DO|Oncology|male|6687 Medical Plaza Dr|NJ City|NJ|62116|40.028153|-100.033396|(654) 740-8445|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00059|1000000059|individual||Grace||Flores||RN|Internal Medicine|female|6551 Medical Plaza Dr|VA City|VA|31634|33.336575|-85.452034|(846) 934-3787|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00060|1000000060|individual||Elizabeth||Flores||APRN|Dermatology|female|4299 Medical Plaza Dr|NY City|NY|40775|41.732118|-113.319515|(918) 539-2660|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00061|1000000061|individual||Amelia|Olivia|Thompson||NP|Oncology|female|3793 Medical Plaza Dr|PA City|PA|54569|27.929909|-93.723645|(425) 409-3523|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00062|1000000062|individual||William|Emma|Miller||RN|Pediatrics|male|4734 Medical Plaza Dr|PA City|PA|43154|47.249786|-76.513295|(379) 399-5866|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00063|1000000063|individual||Michael|Elizabeth|Brown||NP|Pediatrics|male|5899 Medical Plaza Dr|WA City|WA|63563|26.762355|-80.979614|(265) 360-3767|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00064|1000000064|individual||Ella|Jacob|Gonzalez||PA-C|Urgent Care|female|9509 Medical Plaza Dr|NJ City|NJ|24465|40.826601|-103.609795|(211) 921-5346|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00065|1000000065|individual||Evelyn||Allen||NP|Internal Medicine|female|2970 Medical Plaza Dr|MI City|MI|73459|28.910013|-120.535107|(922) 859-5683|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00066|1000000066|individual||Sebastian|Henry|Martinez||NP|Internal Medicine|male|5987 Medical Plaza Dr|WA City|WA|93803|43.337104|-74.379539|(546) 270-1157|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00067|1000000067|individual||Lucas|Logan|Torres||APRN|Cardiology|male|4574 Medical Plaza Dr|GA City|GA|34719|35.193584|-69.364642|(707) 874-7847|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00068|1000000068|individual||Alexander||Lee||PA-C|Orthopedics|male|5192 Medical Plaza Dr|FL City|FL|39617|38.439086|-99.627379|(653) 250-1921|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00069|1000000069|individual||Emily|Logan|Martin||NP|Internal Medicine|female|3967 Medical Plaza Dr|WA City|WA|67287|39.666205|-111.427253|(592) 760-3988|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00070|1000000070|individual||Alexander||King||APRN|Obstetrics|male|8114 Medical Plaza Dr|VA City|VA|32152|32.262874|-103.179938|(882) 572-4159|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00071|1000000071|individual||Jacob|Emily|Anderson||CNM|Urgent Care|male|3454 Medical Plaza Dr|WA City|WA|38987|41.673485|-76.532299|(956) 821-9724|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00072|1000000072|individual||Grace|Amelia|Lewis||CNM|Neurology|female|7269 Medical Plaza Dr|FL City|FL|89530|28.199185|-95.632517|(326) 723-9062|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00073|1000000073|individual||Ella||Williams||PA-C|Cardiology|female|4205 Medical Plaza Dr|NY City|NY|70423|43.080689|-76.476807|(535) 530-9874|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00074|1000000074|individual||Benjamin|Alexander|Scott||CNM|Neurology|male|1573 Medical Plaza Dr|CA City|CA|16397|37.711378|-98.615073|(722) 587-3820|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00075|1000000075|individual||Ethan|Scarlett|Thomas||RN|Internal Medicine|male|755 Medical Plaza Dr|IL City|IL|89378|31.065567|-81.477941|(920) 613-6711|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00076|1000000076|individual||Olivia|Logan|Hernandez||RN|Orthopedics|female|2070 Medical Plaza Dr|IL City|IL|41244|33.335266|-80.783635|(928) 335-1945|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00077|1000000077|individual||Lucas|Mason|White||NP|Oncology|male|290 Medical Plaza Dr|WA City|WA|20991|27.762639|-82.179372|(298) 911-8782|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00078|1000000078|individual||Emily||Taylor||PA-C|Cardiology|female|2747 Medical Plaza Dr|NY City|NY|81748|36.011429|-68.31486|(986) 530-7338|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00079|1000000079|individual||Jacob|Harper|Hill||APRN|Oncology|male|4011 Medical Plaza Dr|TX City|TX|26083|33.493446|-106.221605|(924) 267-3794|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00080|1000000080|individual||Daniel||Sanchez||PA-C|Internal Medicine|male|6232 Medical Plaza Dr|NJ City|NJ|38199|28.75153|-119.383366|(772) 881-7648|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00081|1000000081|individual||Jacob||Lewis||PA-C|Neurology|male|8725 Medical Plaza Dr|PA City|PA|53164|26.563281|-89.707684|(218) 414-9149|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00082|1000000082|individual||Oliver|Jackson|Hill||NP-C|Orthopedics|male|4381 Medical Plaza Dr|GA City|GA|41726|46.266662|-94.97387|(598) 738-3857|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00083|1000000083|individual||Grace||Williams||APRN|Obstetrics|female|3302 Medical Plaza Dr|GA City|GA|13753|25.904136|-96.899347|(483) 733-4390|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00084|1000000084|individual||Sebastian|Elijah|Young||CNM|Psychiatry|male|8160 Medical Plaza Dr|NJ City|NJ|66953|26.310334|-78.851708|(989) 879-2783|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00085|1000000085|individual||Alexander||Harris||PA-C|Psychiatry|male|2940 Medical Plaza Dr|NC City|NC|55148|42.097351|-85.89787|(250) 491-9794|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00086|1000000086|individual||Elijah||Jackson||PA-C|Urgent Care|male|2935 Medical Plaza Dr|VA City|VA|22719|33.402694|-107.50486|(516) 695-8557|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00087|1000000087|individual||Amelia|William|Thompson||CNM|Obstetrics|female|8539 Medical Plaza Dr|OH City|OH|42565|45.093526|-98.541375|(322) 519-2474|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00088|1000000088|individual|Dr.|Scarlett|Benjamin|Wilson||DO|Oncology|female|1073 Medical Plaza Dr|VA City|VA|26339|33.570618|-81.313112|(314) 405-7924|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00089|1000000089|individual|Dr.|Mason||Lewis||MD|Orthopedics|male|3459 Medical Plaza Dr|NJ City|NJ|77752|41.514157|-103.247705|(875) 388-4123|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00090|1000000090|individual||Harper|Evelyn|Wilson||PA-C|Pediatrics|female|8015 Medical Plaza Dr|AZ City|AZ|11514|26.705703|-76.545994|(869) 960-9521|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00091|1000000091|individual||Evelyn||Rodriguez||FNP-C|Oncology|female|1269 Medical Plaza Dr|AZ City|AZ|22706|31.519464|-84.864353|(920) 594-8262|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00092|1000000092|individual||Ethan||Walker||NP|Obstetrics|male|3506 Medical Plaza Dr|PA City|PA|76011|44.340082|-71.752544|(255) 535-1681|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00093|1000000093|individual||Ava|Michael|Scott||RN|Cardiology|female|6041 Medical Plaza Dr|NC City|NC|61000|37.83244|-102.450838|(393) 968-4133|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00094|1000000094|individual||Daniel||Lopez||RN|Neurology|male|415 Medical Plaza Dr|VA City|VA|68411|31.661124|-112.397565|(788) 924-6982|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00095|1000000095|individual||Mia|Daniel|Garcia||NP-C|Orthopedics|female|9430 Medical Plaza Dr|FL City|FL|96477|29.403944|-93.145503|(750) 995-4989|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00096|1000000096|individual|Dr.|Benjamin||Rodriguez||MD|Obstetrics|male|601 Medical Plaza Dr|CA City|CA|12049|47.40538|-67.168042|(747) 315-3574|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00097|1000000097|individual||Jacob|Avery|Robinson||NP|Psychiatry|male|1602 Medical Plaza Dr|OH City|OH|89598|39.41877|-85.611364|(596) 312-3275|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00098|1000000098|individual||Olivia||Wilson||FNP-C|Obstetrics|female|2434 Medical Plaza Dr|FL City|FL|10849|31.057342|-83.707065|(383) 828-1949|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00099|1000000099|individual||Mia||Clark||NP-C|Internal Medicine|female|2343 Medical Plaza Dr|IL City|IL|53638|36.049961|-122.666675|(451) 440-2732|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00100|1000000100|individual||Grace||Wright||FNP-C|Neurology|female|9589 Medical Plaza Dr|VA City|VA|27407|33.840076|-75.582188|(580) 459-9099|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00101|1000000101|individual||Harper||Martinez||RN|Orthopedics|female|6231 Medical Plaza Dr|IL City|IL|14327|45.39988|-83.215162|(219) 397-7982|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00102|1000000102|individual||Avery|James|Johnson||NP-C|Dermatology|female|8895 Medical Plaza Dr|MA City|MA|63186|28.374189|-70.983417|(478) 840-1265|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00103|1000000103|individual||Liam|Sophia|Martinez||RN|Obstetrics|male|9572 Medical Plaza Dr|WA City|WA|91492|38.365882|-69.203539|(936) 308-3119|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00104|1000000104|individual||Sofia||Rodriguez||PA-C|Urgent Care|female|8483 Medical Plaza Dr|NC City|NC|88056|37.450304|-97.359222|(852) 800-1425|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00105|1000000105|individual|Dr.|Mia||Thompson||MD|Internal Medicine|female|6287 Medical Plaza Dr|VA City|VA|17844|35.961619|-88.557649|(873) 249-5664|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00106|1000000106|individual|Dr.|Olivia|Jacob|Walker||DO|Internal Medicine|female|4201 Medical Plaza Dr|GA City|GA|11710|34.292865|-86.312081|(354) 617-3607|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00107|1000000107|individual||Abigail|Mason|Williams||CNM|Internal Medicine|female|5595 Medical Plaza Dr|TX City|TX|86800|33.800835|-96.637068|(559) 205-3695|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00108|1000000108|individual||Sebastian||Sanchez||PA-C|Orthopedics|male|3524 Medical Plaza Dr|OH City|OH|84412|42.051424|-93.844484|(814) 593-6424|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00109|1000000109|individual||Scarlett|Mason|Lewis||NP|Dermatology|female|9276 Medical Plaza Dr|CA City|CA|74914|34.813342|-88.602745|(487) 803-5163|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00110|1000000110|individual||Sebastian|Emma|Flores||PA-C|Family Medicine|male|9376 Medical Plaza Dr|NY City|NY|66383|25.783173|-123.393675|(988) 702-4390|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00111|1000000111|individual||Logan|Harper|Hill||FNP-C|Family Medicine|male|4194 Medical Plaza Dr|IL City|IL|38452|26.044287|-86.893763|(734) 719-7236|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00112|1000000112|individual||Henry||Jones||RN|Internal Medicine|male|6628 Medical Plaza Dr|AZ City|AZ|89814|39.172429|-117.890198|(854) 546-6568|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00113|1000000113|individual||Charlotte|Scarlett|Jackson||CNM|Dermatology|female|5308 Medical Plaza Dr|PA City|PA|78510|33.985163|-109.393469|(745) 472-2552|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00114|1000000114|individual||Noah||Flores||APRN|Urgent Care|male|8438 Medical Plaza Dr|GA City|GA|24895|28.191886|-116.342397|(976) 529-5604|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00115|1000000115|individual||Logan|Henry|Miller||NP-C|Dermatology|male|3448 Medical Plaza Dr|TX City|TX|39044|42.790353|-71.235904|(893) 613-2708|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00116|1000000116|individual|Dr.|Scarlett||Wilson||DO|Pediatrics|female|5400 Medical Plaza Dr|OH City|OH|14326|43.54476|-73.221148|(954) 526-9262|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00117|1000000117|individual||Ella|Ella|Sanchez||APRN|Pediatrics|female|8725 Medical Plaza Dr|NC City|NC|30457|39.383385|-123.654866|(894) 490-4112|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00118|1000000118|individual||Elijah|Liam|Torres||CNM|Psychiatry|male|2972 Medical Plaza Dr|NY City|NY|99767|25.129565|-99.154981|(224) 913-8784|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00119|1000000119|individual||Scarlett|Benjamin|Hernandez||APRN|Oncology|female|7568 Medical Plaza Dr|MA City|MA|49893|30.189631|-83.162988|(977) 628-6998|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00120|1000000120|individual|Dr.|Daniel||Clark||DO|Psychiatry|male|3896 Medical Plaza Dr|NC City|NC|40298|31.232403|-107.829704|(840) 289-2398|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00121|1000000121|individual|Dr.|Harper||White||MD|Neurology|female|6748 Medical Plaza Dr|NY City|NY|61899|47.221854|-84.366126|(651) 643-3883|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00122|1000000122|individual||Elizabeth||Brown||NP|Oncology|female|9686 Medical Plaza Dr|OH City|OH|46714|28.29357|-114.747459|(448) 473-1992|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00123|1000000123|individual|Dr.|Ella||Gonzalez||MD|Urgent Care|female|5166 Medical Plaza Dr|MI City|MI|92387|35.500198|-111.124564|(261) 809-1195|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00124|1000000124|individual||Sophia||Hill||FNP-C|Family Medicine|female|1400 Medical Plaza Dr|MA City|MA|58340|39.480572|-83.551111|(292) 233-9064|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00125|1000000125|individual||Ethan||Ramirez||RN|Psychiatry|male|5129 Medical Plaza Dr|NC City|NC|72052|26.701548|-99.762221|(227) 834-7580|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00126|1000000126|individual||Henry|Henry|Young||APRN|Obstetrics|male|9181 Medical Plaza Dr|NJ City|NJ|16488|36.645461|-112.631309|(523) 878-3253|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00127|1000000127|individual||Ava||Wilson||NP-C|Cardiology|female|7440 Medical Plaza Dr|PA City|PA|12425|27.924894|-92.347665|(233) 325-4093|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00128|1000000128|individual||Amelia||Sanchez||CNM|Family Medicine|female|5726 Medical Plaza Dr|AZ City|AZ|77184|42.202931|-86.42373|(969) 737-6828|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00129|1000000129|individual||Liam|Olivia|Hill||APRN|Oncology|male|2296 Medical Plaza Dr|FL City|FL|50260|38.620666|-105.143329|(579) 286-7446|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00130|1000000130|individual||Oliver||Thompson||APRN|Internal Medicine|male|7753 Medical Plaza Dr|NJ City|NJ|13259|34.008208|-114.31053|(811) 209-4906|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00131|1000000131|individual|Dr.|Henry|William|Lopez||MD|Family Medicine|male|9849 Medical Plaza Dr|PA City|PA|86297|46.23993|-122.797303|(976) 503-2079|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00132|1000000132|individual||Elizabeth||Clark||APRN|Obstetrics|female|6077 Medical Plaza Dr|MA City|MA|51364|46.184018|-73.93436|(775) 592-9542|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00133|1000000133|individual||Daniel||Thompson||FNP-C|Internal Medicine|male|7348 Medical Plaza Dr|FL City|FL|81553|26.657568|-119.52057|(733) 645-7034|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00134|1000000134|individual||Noah|Elijah|King||RN|Urgent Care|male|7596 Medical Plaza Dr|NY City|NY|94223|39.786742|-93.401885|(314) 229-1896|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00135|1000000135|individual||Elizabeth|Sophia|Wilson||FNP-C|Pediatrics|female|9494 Medical Plaza Dr|AZ City|AZ|82927|39.754187|-70.552078|(334) 854-4749|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00136|1000000136|individual||Sebastian||Ramirez||NP-C|Oncology|male|1199 Medical Plaza Dr|AZ City|AZ|23321|44.544035|-103.987315|(245) 260-1010|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00137|1000000137|individual|Dr.|Sofia|William|Johnson||DO|Pediatrics|female|1036 Medical Plaza Dr|NJ City|NJ|77213|41.200331|-102.93186|(590) 318-8934|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00138|1000000138|individual||Mia|Olivia|Nguyen||RN|Oncology|female|5783 Medical Plaza Dr|TX City|TX|43061|39.981842|-71.06447|(545) 617-9979|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00139|1000000139|individual||Ella|Benjamin|Lewis||APRN|Cardiology|female|5095 Medical Plaza Dr|MA City|MA|10519|35.831865|-85.478993|(403) 344-5264|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00140|1000000140|individual||Elijah|Amelia|Allen||RN|Dermatology|male|2848 Medical Plaza Dr|IL City|IL|86370|35.842493|-91.995038|(395) 259-5760|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00141|1000000141|individual||Jacob||Flores||NP|Orthopedics|male|1585 Medical Plaza Dr|WA City|WA|59152|41.421439|-120.702322|(254) 803-5826|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00142|1000000142|individual||Alexander||Davis||RN|Dermatology|male|3788 Medical Plaza Dr|MI City|MI|39330|40.725948|-90.074198|(493) 447-1452|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00143|1000000143|individual|Dr.|Noah|Amelia|Flores||DO|Orthopedics|male|3979 Medical Plaza Dr|MI City|MI|46356|40.23596|-68.690038|(423) 278-7736|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00144|1000000144|individual||Evelyn||Lewis||APRN|Internal Medicine|female|3359 Medical Plaza Dr|NJ City|NJ|91493|41.632329|-85.613974|(332) 978-8398|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00145|1000000145|individual||James|Ella|White||PA-C|Dermatology|male|7085 Medical Plaza Dr|NC City|NC|83285|29.017841|-75.468006|(213) 556-8537|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00146|1000000146|individual||Logan|Logan|Jones||PA-C|Urgent Care|male|3089 Medical Plaza Dr|PA City|PA|77466|31.788859|-117.21462|(873) 793-6961|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00147|1000000147|individual||Ethan|Scarlett|King||NP-C|Dermatology|male|1295 Medical Plaza Dr|VA City|VA|16397|34.042127|-67.950322|(953) 519-4696|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00148|1000000148|individual||Sophia||Johnson||APRN|Urgent Care|female|6814 Medical Plaza Dr|CA City|CA|99490|25.584927|-105.462686|(272) 735-9993|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00149|1000000149|individual||Charlotte||Miller||NP-C|Internal Medicine|female|3901 Medical Plaza Dr|AZ City|AZ|75859|25.665201|-117.16801|(614) 495-4392|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00150|1000000150|individual||Oliver|Scarlett|Lewis||RN|Pediatrics|male|8681 Medical Plaza Dr|WA City|WA|78316|47.652337|-84.102744|(489) 244-1085|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00151|1000000151|individual||Michael|Ethan|Walker||NP-C|Psychiatry|male|2599 Medical Plaza Dr|WA City|WA|10667|32.587062|-94.798133|(335) 863-8768|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00152|1000000152|individual||Olivia|Lucas|Hernandez||CNM|Pediatrics|female|9975 Medical Plaza Dr|MA City|MA|26879|47.639329|-93.073097|(913) 209-5244|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00153|1000000153|individual||Grace||Moore||NP|Obstetrics|female|3238 Medical Plaza Dr|VA City|VA|82152|41.645493|-121.965787|(657) 869-4996|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00154|1000000154|individual||Evelyn|Evelyn|Jones||NP|Family Medicine|female|938 Medical Plaza Dr|NC City|NC|95952|33.629172|-107.369505|(929) 274-6013|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00155|1000000155|individual|Dr.|Abigail||Perez||DO|Urgent Care|female|561 Medical Plaza Dr|TX City|TX|40214|41.389628|-87.920841|(815) 699-3729|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00156|1000000156|individual||Logan||Lopez||NP|Orthopedics|male|4275 Medical Plaza Dr|NC City|NC|15950|37.687482|-109.143399|(932) 977-9507|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00157|1000000157|individual||Emily|Amelia|Jones||RN|Neurology|female|6137 Medical Plaza Dr|CA City|CA|69378|33.029827|-118.197311|(296) 537-3908|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00158|1000000158|individual|Dr.|Liam||Brown||DO|Oncology|male|1520 Medical Plaza Dr|NY City|NY|56947|28.929819|-110.246522|(872) 804-9851|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00159|1000000159|individual||Henry||Young||NP|Obstetrics|male|6367 Medical Plaza Dr|FL City|FL|61142|43.847478|-104.286449|(817) 695-6621|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00160|1000000160|individual||Evelyn||Anderson||NP-C|Internal Medicine|female|2162 Medical Plaza Dr|PA City|PA|53326|40.139241|-109.68556|(389) 408-7005|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00161|1000000161|individual||James|Lucas|Allen||RN|Neurology|male|7134 Medical Plaza Dr|VA City|VA|71088|43.831721|-106.105765|(953) 782-4387|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00162|1000000162|individual||Jacob||Wilson||APRN|Urgent Care|male|4882 Medical Plaza Dr|GA City|GA|35336|41.939963|-75.927439|(355) 283-8030|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00163|1000000163|individual||James|Lucas|Rodriguez||NP|Pediatrics|male|7849 Medical Plaza Dr|MI City|MI|30772|41.667086|-67.579714|(226) 382-7184|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00164|1000000164|individual||Ella|Daniel|Davis||CNM|Neurology|female|6834 Medical Plaza Dr|CA City|CA|43840|26.629737|-93.972652|(745) 906-6774|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00165|1000000165|individual|Dr.|Mason|Jacob|Williams||DO|Urgent Care|male|7895 Medical Plaza Dr|NJ City|NJ|42611|32.564375|-118.940038|(947) 480-1797|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00166|1000000166|individual|Dr.|Henry||Harris||DO|Pediatrics|male|4800 Medical Plaza Dr|CA City|CA|49665|25.92104|-84.94878|(603) 444-6769|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00167|1000000167|individual|Dr.|William|Alexander|Hill||MD|Dermatology|male|9697 Medical Plaza Dr|IL City|IL|78540|32.965272|-88.082402|(491) 429-8585|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00168|1000000168|individual|Dr.|Amelia|Charlotte|Ramirez||DO|Oncology|female|491 Medical Plaza Dr|IL City|IL|58843|33.227649|-119.901702|(811) 538-1815|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00169|1000000169|individual||Sophia||Hill||NP|Psychiatry|female|4209 Medical Plaza Dr|MA City|MA|13805|41.860452|-99.922049|(831) 686-4297|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00170|1000000170|individual|Dr.|Charlotte|Elizabeth|Brown||MD|Family Medicine|female|8338 Medical Plaza Dr|MI City|MI|82682|47.178405|-111.466317|(216) 934-1069|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00171|1000000171|individual||Olivia|Lucas|Lee||RN|Dermatology|female|910 Medical Plaza Dr|AZ City|AZ|82411|30.88802|-83.664375|(951) 995-5073|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00172|1000000172|individual||Mia|Jacob|Lopez||PA-C|Family Medicine|female|3659 Medical Plaza Dr|NJ City|NJ|90744|35.544852|-67.106466|(211) 704-7609|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00173|1000000173|individual|Dr.|Isabella||Rodriguez||MD|Neurology|female|5275 Medical Plaza Dr|NJ City|NJ|74867|28.213478|-105.53833|(808) 467-3111|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00174|1000000174|individual||Daniel||Jackson||CNM|Oncology|male|4955 Medical Plaza Dr|MI City|MI|37337|43.158529|-89.830052|(289) 438-6490|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00175|1000000175|individual||William|Abigail|Davis||NP|Neurology|male|1525 Medical Plaza Dr|AZ City|AZ|82333|46.939065|-80.088253|(450) 559-7164|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00176|1000000176|individual|Dr.|Mason||Young||MD|Family Medicine|male|307 Medical Plaza Dr|WA City|WA|82927|39.406287|-90.191976|(711) 698-3170|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00177|1000000177|individual||Jacob|Sofia|Smith||FNP-C|Oncology|male|3225 Medical Plaza Dr|NY City|NY|86021|34.674867|-74.308588|(523) 550-2292|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00178|1000000178|individual||Ava|Jacob|Flores||FNP-C|Orthopedics|female|3298 Medical Plaza Dr|PA City|PA|47720|35.421317|-95.257528|(585) 427-2957|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00179|1000000179|individual||William||Davis||FNP-C|Internal Medicine|male|1246 Medical Plaza Dr|IL City|IL|51815|31.975617|-122.77046|(292) 328-6506|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00180|1000000180|individual||Michael|Sophia|Miller||NP-C|Obstetrics|male|1215 Medical Plaza Dr|PA City|PA|66875|47.726801|-100.381243|(595) 766-4951|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00181|1000000181|individual||Oliver||Walker||NP|Family Medicine|male|8648 Medical Plaza Dr|MA City|MA|58499|36.273526|-120.261262|(229) 494-9232|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00182|1000000182|individual||Sofia|Ethan|Young||FNP-C|Orthopedics|female|9603 Medical Plaza Dr|CA City|CA|74097|37.890241|-118.964796|(973) 220-4600|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00183|1000000183|individual||Emma|Elijah|White||PA-C|Psychiatry|female|239 Medical Plaza Dr|OH City|OH|95285|26.912603|-74.822992|(709) 582-9805|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00184|1000000184|individual||William||Walker||RN|Dermatology|male|2887 Medical Plaza Dr|WA City|WA|67820|28.364916|-109.544277|(492) 945-2814|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00185|1000000185|individual||Scarlett|Scarlett|Wright||CNM|Dermatology|female|1938 Medical Plaza Dr|MI City|MI|49592|41.654818|-69.872023|(858) 527-4507|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00186|1000000186|individual||Avery|Alexander|Allen||NP-C|Pediatrics|female|9691 Medical Plaza Dr|MI City|MI|79154|32.789882|-104.252486|(934) 795-1119|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00187|1000000187|individual||Ava|Emily|Hernandez||PA-C|Pediatrics|female|7160 Medical Plaza Dr|VA City|VA|71004|38.242732|-110.888758|(778) 372-3680|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00188|1000000188|individual||Daniel|Oliver|Lopez||NP-C|Pediatrics|male|6460 Medical Plaza Dr|CA City|CA|61967|26.70804|-75.053778|(929) 478-9646|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00189|1000000189|individual|Dr.|Ella|Ava|Harris||MD|Obstetrics|female|2594 Medical Plaza Dr|AZ City|AZ|27465|44.355718|-91.468553|(417) 390-1083|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00190|1000000190|individual||Elizabeth||Thomas||NP|Psychiatry|female|9320 Medical Plaza Dr|WA City|WA|99339|29.197691|-68.860081|(465) 503-5086|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00191|1000000191|individual||Harper|Harper|Lee||RN|Urgent Care|female|6559 Medical Plaza Dr|NJ City|NJ|10084|42.040789|-68.902328|(987) 761-2508|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00192|1000000192|individual||Harper|Sebastian|Lopez||CNM|Dermatology|female|163 Medical Plaza Dr|CA City|CA|78717|35.287415|-87.613509|(962) 975-9832|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00193|1000000193|individual||Abigail||King||PA-C|Urgent Care|female|6229 Medical Plaza Dr|AZ City|AZ|59061|32.345913|-115.117418|(747) 823-7405|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00194|1000000194|individual||Isabella|Oliver|King||RN|Oncology|female|138 Medical Plaza Dr|FL City|FL|81633|37.278711|-122.914422|(611) 931-8065|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00195|1000000195|individual||Mia||Perez||PA-C|Oncology|female|995 Medical Plaza Dr|TX City|TX|99805|35.500514|-81.816965|(338) 873-1334|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00196|1000000196|individual|Dr.|Emily||Lopez||MD|Urgent Care|female|995 Medical Plaza Dr|TX City|TX|61483|28.830218|-109.519735|(492) 604-3191|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00197|1000000197|individual||Avery|Olivia|Williams||PA-C|Orthopedics|female|7980 Medical Plaza Dr|IL City|IL|46726|27.729431|-101.914366|(791) 965-9724|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00198|1000000198|individual||Olivia||Sanchez||NP-C|Orthopedics|female|689 Medical Plaza Dr|MA City|MA|55521|26.7435|-90.266196|(412) 402-4667|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00199|1000000199|individual||Amelia|Jackson|Wilson||PA-C|Internal Medicine|female|8214 Medical Plaza Dr|GA City|GA|62959|33.745591|-99.472174|(427) 216-7231|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
+PR00200|1000000200|individual|Dr.|Jackson|William|Sanchez||MD|Oncology|male|3388 Medical Plaza Dr|OH City|OH|71078|46.255625|-80.907339|(320) 752-3883|SynaptiqPOC|META_SynaptiqPOC|2026-06-18 02:00:00
