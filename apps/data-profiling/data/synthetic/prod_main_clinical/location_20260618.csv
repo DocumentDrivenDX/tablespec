@@ -1,0 +1,51 @@
+location_id,npi,name,facility_type,parent_organization,address,city,state,zip_code,latitude,longitude,data_source,META_data_source,META_Load_DTTM
+L0001,1500000001,NJ Health Clinic 001,lab,Health System 2,6691 Healthcare Blvd,NJ Metro,NJ,46518,47.291231,-114.747924,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0002,1500000002,MA Health Pharmacy 002,clinic,Health System 1,1100 Healthcare Blvd,MA Metro,MA,40416,40.587625,-88.857552,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0003,1500000003,OH Health Pharmacy 003,urgent care,Health System 3,4073 Healthcare Blvd,OH Metro,OH,94566,46.31522,-83.212411,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0004,1500000004,OH Health Clinic 004,imaging center,Health System 4,1173 Healthcare Blvd,OH Metro,OH,91067,37.048845,-112.761727,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0005,1500000005,MA Health Hospital 005,lab,Health System 5,6563 Healthcare Blvd,MA Metro,MA,17851,37.562748,-112.404839,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0006,1500000006,NY Health Hospital 006,pharmacy,Health System 5,9682 Healthcare Blvd,NY Metro,NY,34895,40.720733,-80.259045,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0007,1500000007,MI Health Hospital 007,urgent care,Health System 1,4056 Healthcare Blvd,MI Metro,MI,79493,35.433246,-107.590863,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0008,1500000008,FL Health Hospital 008,urgent care,Health System 5,5578 Healthcare Blvd,FL Metro,FL,68166,37.03047,-117.490856,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0009,1500000009,PA Health Pharmacy 009,lab,Health System 2,6038 Healthcare Blvd,PA Metro,PA,81165,45.822745,-112.266793,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0010,1500000010,AZ Health Pharmacy 010,hospital,Health System 5,5532 Healthcare Blvd,AZ Metro,AZ,60950,41.659226,-108.188536,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0011,1500000011,TX Health Lab 011,urgent care,Health System 3,9675 Healthcare Blvd,TX Metro,TX,39293,41.028051,-102.161714,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0012,1500000012,AZ Health Lab 012,hospital,Health System 5,5160 Healthcare Blvd,AZ Metro,AZ,34373,29.749484,-105.739144,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0013,1500000013,NY Health Urgent Care 013,pharmacy,Health System 4,6622 Healthcare Blvd,NY Metro,NY,49373,40.949748,-67.263016,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0014,1500000014,FL Health Hospital 014,urgent care,Health System 4,1647 Healthcare Blvd,FL Metro,FL,52910,34.617836,-89.705426,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0015,1500000015,WA Health Clinic 015,urgent care,Health System 2,4207 Healthcare Blvd,WA Metro,WA,34655,39.039901,-111.175519,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0016,1500000016,NY Health Clinic 016,clinic,Health System 1,2783 Healthcare Blvd,NY Metro,NY,79707,40.727879,-75.574952,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0017,1500000017,FL Health Lab 017,clinic,Health System 1,3454 Healthcare Blvd,FL Metro,FL,73101,37.580865,-69.17781,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0018,1500000018,WA Health Hospital 018,lab,Health System 1,2066 Healthcare Blvd,WA Metro,WA,84959,34.72183,-97.211808,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0019,1500000019,VA Health Lab 019,imaging center,Health System 1,900 Healthcare Blvd,VA Metro,VA,50591,43.453491,-90.137202,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0020,1500000020,NY Health Pharmacy 020,hospital,Health System 5,6878 Healthcare Blvd,NY Metro,NY,34614,43.302474,-87.739788,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0021,1500000021,PA Health Clinic 021,urgent care,Health System 2,1351 Healthcare Blvd,PA Metro,PA,77839,44.456808,-115.157989,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0022,1500000022,VA Health Lab 022,urgent care,Health System 2,9112 Healthcare Blvd,VA Metro,VA,26516,27.267086,-118.372406,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0023,1500000023,PA Health Urgent Care 023,lab,Health System 1,3609 Healthcare Blvd,PA Metro,PA,64539,43.976905,-99.916859,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0024,1500000024,AZ Health Imaging Center 024,pharmacy,Health System 5,9647 Healthcare Blvd,AZ Metro,AZ,84166,32.211279,-91.753156,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0025,1500000025,WA Health Urgent Care 025,imaging center,Health System 1,6513 Healthcare Blvd,WA Metro,WA,27979,26.939852,-111.331864,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0026,1500000026,NJ Health Pharmacy 026,clinic,Health System 5,3010 Healthcare Blvd,NJ Metro,NJ,84102,44.469179,-71.590699,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0027,1500000027,CA Health Hospital 027,clinic,Health System 3,710 Healthcare Blvd,CA Metro,CA,43887,29.428272,-116.201398,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0028,1500000028,GA Health Pharmacy 028,pharmacy,Health System 4,9493 Healthcare Blvd,GA Metro,GA,73737,45.493674,-113.249045,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0029,1500000029,VA Health Pharmacy 029,urgent care,Health System 3,4972 Healthcare Blvd,VA Metro,VA,40961,46.560298,-109.145184,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0030,1500000030,MI Health Pharmacy 030,hospital,Health System 1,7173 Healthcare Blvd,MI Metro,MI,64043,39.268628,-105.04761,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0031,1500000031,IL Health Imaging Center 031,urgent care,Health System 5,1684 Healthcare Blvd,IL Metro,IL,43606,27.742783,-97.904914,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0032,1500000032,OH Health Clinic 032,hospital,Health System 4,304 Healthcare Blvd,OH Metro,OH,76561,25.814332,-76.642167,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0033,1500000033,NY Health Lab 033,clinic,Health System 3,5412 Healthcare Blvd,NY Metro,NY,10520,29.109678,-98.050182,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0034,1500000034,FL Health Lab 034,pharmacy,Health System 1,7129 Healthcare Blvd,FL Metro,FL,72731,25.396336,-93.683941,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0035,1500000035,VA Health Hospital 035,lab,Health System 4,4182 Healthcare Blvd,VA Metro,VA,23908,44.550761,-80.813242,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0036,1500000036,VA Health Pharmacy 036,pharmacy,Health System 3,6753 Healthcare Blvd,VA Metro,VA,29843,42.084341,-93.458272,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0037,1500000037,VA Health Clinic 037,clinic,Health System 1,8109 Healthcare Blvd,VA Metro,VA,31572,40.899885,-73.089019,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0038,1500000038,GA Health Hospital 038,imaging center,Health System 3,7901 Healthcare Blvd,GA Metro,GA,66802,44.320081,-74.049872,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0039,1500000039,WA Health Urgent Care 039,imaging center,Health System 1,8791 Healthcare Blvd,WA Metro,WA,27595,39.746851,-95.294818,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0040,1500000040,VA Health Clinic 040,clinic,Health System 5,8850 Healthcare Blvd,VA Metro,VA,69405,43.676793,-102.676255,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0041,1500000041,GA Health Urgent Care 041,hospital,Health System 2,2576 Healthcare Blvd,GA Metro,GA,27282,46.085465,-74.465606,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0042,1500000042,NC Health Imaging Center 042,imaging center,Health System 2,3238 Healthcare Blvd,NC Metro,NC,36262,28.01233,-83.944739,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0043,1500000043,MI Health Clinic 043,lab,Health System 4,6775 Healthcare Blvd,MI Metro,MI,77657,25.126392,-88.353952,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0044,1500000044,CA Health Imaging Center 044,clinic,Health System 1,5269 Healthcare Blvd,CA Metro,CA,75201,29.815554,-98.622407,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0045,1500000045,NJ Health Hospital 045,clinic,Health System 1,2460 Healthcare Blvd,NJ Metro,NJ,80865,40.490301,-78.689134,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0046,1500000046,VA Health Urgent Care 046,imaging center,Health System 2,9169 Healthcare Blvd,VA Metro,VA,72058,33.233077,-84.844547,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0047,1500000047,GA Health Clinic 047,urgent care,Health System 2,7167 Healthcare Blvd,GA Metro,GA,85867,31.022198,-112.372625,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0048,1500000048,PA Health Urgent Care 048,hospital,Health System 2,3502 Healthcare Blvd,PA Metro,PA,21508,35.626184,-109.567668,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0049,1500000049,OH Health Pharmacy 049,urgent care,Health System 3,8004 Healthcare Blvd,OH Metro,OH,33184,26.168388,-77.870482,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+L0050,1500000050,TX Health Urgent Care 050,clinic,Health System 2,3462 Healthcare Blvd,TX Metro,TX,30722,41.540681,-91.766889,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00

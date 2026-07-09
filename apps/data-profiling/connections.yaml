@@ -1,0 +1,22 @@
+# Connections the app can read from.
+#
+# POC topology: single `dev` catalog. Environments are distinguished by
+# schema name prefix (e.g. test_main_sales, prod_main_sales). All reads and
+# writes go to this one catalog. No Delta Sharing required.
+#
+# When the project moves to a multi-catalog workspace, split this into one
+# native connection per catalog and remove the prefix convention.
+
+connections:
+  - name: "DEV (single catalog POC)"
+    type: native
+    env_label: DEV
+    catalogs: ["dev"]
+
+# Env labels offered in the UI dropdown.
+env_labels:
+  - PROD
+  - STAGE
+  - QA
+  - TEST
+  - DEV

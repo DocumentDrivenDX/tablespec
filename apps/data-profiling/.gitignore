@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Local mock output folder (PROFILER_RUNTIME=mock)
+_mock_runs/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Zipped skills collide with same-named folders on Databricks Apps import
+# (Databricks auto-extracts .zip -> folder). Keep the unpacked folder only.
+.github/skills/*.zip

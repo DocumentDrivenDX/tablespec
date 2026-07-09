@@ -1,0 +1,201 @@
+practitioner_id,npi,first_name,last_name,practice_affiliation,specialty,sub_specialty,data_source,META_data_source,META_Load_DTTM
+PR00001,1000000001,Emily,Taylor,Regional Health System,Orthopedics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00002,1000000002,Henry,Jackson,Solo Practice,Urgent Care,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00003,1000000003,Sofia,Thomas,Community Medical Center,Obstetrics,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00004,1000000004,Harper,Garcia,StatCare Network,Cardiology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00005,1000000005,Benjamin,Young,Community Medical Center,Psychiatry,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00006,1000000006,Liam,Taylor,Community Medical Center,Orthopedics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00007,1000000007,Henry,Thomas,Solo Practice,Oncology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00008,1000000008,Grace,Flores,Solo Practice,Neurology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00009,1000000009,Grace,Johnson,Regional Health System,Orthopedics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00010,1000000010,Sofia,Garcia,Regional Health System,Internal Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00011,1000000011,Mia,Lewis,Solo Practice,Orthopedics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00012,1000000012,Harper,Garcia,Solo Practice,Orthopedics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00013,1000000013,Charlotte,Walker,Solo Practice,Family Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00014,1000000014,Amelia,Hernandez,Solo Practice,Obstetrics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00015,1000000015,Abigail,Perez,Regional Health System,Neurology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00016,1000000016,Olivia,Gonzalez,Solo Practice,Internal Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00017,1000000017,Benjamin,Thomas,Regional Health System,Internal Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00018,1000000018,Lucas,Sanchez,ValuMed Group,Psychiatry,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00019,1000000019,Emma,Smith,StatCare Network,Cardiology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00020,1000000020,Abigail,Ramirez,StatCare Network,Neurology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00021,1000000021,Henry,Taylor,Community Medical Center,Internal Medicine,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00022,1000000022,Liam,Lopez,Community Medical Center,Urgent Care,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00023,1000000023,Abigail,Allen,StatCare Network,Psychiatry,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00024,1000000024,Harper,Miller,Regional Health System,Urgent Care,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00025,1000000025,Scarlett,Brown,StatCare Network,Obstetrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00026,1000000026,Ethan,Martin,StatCare Network,Urgent Care,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00027,1000000027,Ethan,Miller,Solo Practice,Dermatology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00028,1000000028,Harper,Scott,StatCare Network,Pediatrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00029,1000000029,Avery,Martin,Solo Practice,Dermatology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00030,1000000030,Elizabeth,Flores,ValuMed Group,Oncology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00031,1000000031,Jackson,King,Community Medical Center,Obstetrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00032,1000000032,Charlotte,Lewis,Community Medical Center,Psychiatry,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00033,1000000033,Daniel,Thompson,Community Medical Center,Orthopedics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00034,1000000034,Sofia,Nguyen,Community Medical Center,Obstetrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00035,1000000035,Grace,Walker,Community Medical Center,Orthopedics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00036,1000000036,James,Robinson,Community Medical Center,Urgent Care,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00037,1000000037,Grace,Torres,Solo Practice,Cardiology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00038,1000000038,Mia,Lewis,Solo Practice,Pediatrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00039,1000000039,Jackson,Lopez,ValuMed Group,Orthopedics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00040,1000000040,Sofia,Perez,Solo Practice,Internal Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00041,1000000041,Abigail,Torres,Solo Practice,Family Medicine,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00042,1000000042,Jacob,Ramirez,Solo Practice,Cardiology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00043,1000000043,Jackson,Hernandez,Solo Practice,Family Medicine,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00044,1000000044,Scarlett,White,StatCare Network,Family Medicine,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00045,1000000045,Amelia,Lee,Regional Health System,Oncology,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00046,1000000046,Mia,Hernandez,Regional Health System,Family Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00047,1000000047,Oliver,Flores,Regional Health System,Internal Medicine,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00048,1000000048,Ethan,Miller,Regional Health System,Psychiatry,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00049,1000000049,Sebastian,Hill,ValuMed Group,Psychiatry,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00050,1000000050,Isabella,Gonzalez,StatCare Network,Urgent Care,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00051,1000000051,Emily,Lopez,StatCare Network,Family Medicine,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00052,1000000052,Olivia,Young,ValuMed Group,Orthopedics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00053,1000000053,Logan,Flores,ValuMed Group,Dermatology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00054,1000000054,Emily,Wright,StatCare Network,Obstetrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00055,1000000055,Sebastian,Smith,Community Medical Center,Dermatology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00056,1000000056,Henry,Torres,Community Medical Center,Obstetrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00057,1000000057,Isabella,Miller,Regional Health System,Family Medicine,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00058,1000000058,Amelia,Rodriguez,Regional Health System,Dermatology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00059,1000000059,Benjamin,Gonzalez,Regional Health System,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00060,1000000060,Noah,Allen,Solo Practice,Neurology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00061,1000000061,Daniel,Miller,Community Medical Center,Urgent Care,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00062,1000000062,Amelia,Harris,Regional Health System,Cardiology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00063,1000000063,Ava,Rodriguez,Regional Health System,Cardiology,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00064,1000000064,Mia,Lee,Community Medical Center,Urgent Care,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00065,1000000065,Jackson,Anderson,Solo Practice,Dermatology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00066,1000000066,Grace,Garcia,Solo Practice,Dermatology,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00067,1000000067,Emma,Young,StatCare Network,Dermatology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00068,1000000068,Mason,Ramirez,ValuMed Group,Internal Medicine,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00069,1000000069,Ella,Thomas,ValuMed Group,Obstetrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00070,1000000070,Daniel,Harris,Solo Practice,Dermatology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00071,1000000071,Mason,Miller,Regional Health System,Internal Medicine,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00072,1000000072,Grace,Hernandez,Solo Practice,Pediatrics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00073,1000000073,Ethan,Clark,Solo Practice,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00074,1000000074,Harper,Lewis,Regional Health System,Psychiatry,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00075,1000000075,Mason,Anderson,ValuMed Group,Psychiatry,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00076,1000000076,Noah,Rodriguez,StatCare Network,Obstetrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00077,1000000077,Jacob,Nguyen,Regional Health System,Obstetrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00078,1000000078,Jackson,Anderson,Regional Health System,Cardiology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00079,1000000079,Oliver,Wilson,Community Medical Center,Obstetrics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00080,1000000080,Elizabeth,Flores,Regional Health System,Family Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00081,1000000081,Logan,Thompson,StatCare Network,Urgent Care,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00082,1000000082,Harper,King,StatCare Network,Psychiatry,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00083,1000000083,Emma,Walker,Community Medical Center,Family Medicine,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00084,1000000084,Benjamin,Harris,Solo Practice,Family Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00085,1000000085,Logan,Thomas,Solo Practice,Cardiology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00086,1000000086,Henry,White,Solo Practice,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00087,1000000087,Abigail,Lopez,Solo Practice,Cardiology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00088,1000000088,Elizabeth,King,Solo Practice,Psychiatry,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00089,1000000089,Jackson,King,ValuMed Group,Dermatology,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00090,1000000090,Isabella,Garcia,Solo Practice,Urgent Care,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00091,1000000091,Sebastian,Nguyen,Community Medical Center,Neurology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00092,1000000092,Scarlett,Moore,Community Medical Center,Internal Medicine,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00093,1000000093,Ava,Torres,Solo Practice,Internal Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00094,1000000094,Elijah,Thomas,Community Medical Center,Dermatology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00095,1000000095,Abigail,Sanchez,ValuMed Group,Family Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00096,1000000096,Benjamin,Sanchez,Community Medical Center,Orthopedics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00097,1000000097,Daniel,Nguyen,StatCare Network,Family Medicine,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00098,1000000098,Emma,Lee,Regional Health System,Psychiatry,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00099,1000000099,Harper,Perez,ValuMed Group,Cardiology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00100,1000000100,Lucas,Lopez,StatCare Network,Neurology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00101,1000000101,Noah,Hill,Community Medical Center,Cardiology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00102,1000000102,Avery,Clark,StatCare Network,Pediatrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00103,1000000103,Amelia,Davis,Solo Practice,Internal Medicine,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00104,1000000104,Elizabeth,Smith,Solo Practice,Urgent Care,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00105,1000000105,Grace,Wilson,Community Medical Center,Urgent Care,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00106,1000000106,Emily,Young,Solo Practice,Pediatrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00107,1000000107,Avery,Miller,Regional Health System,Internal Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00108,1000000108,Sofia,Garcia,Community Medical Center,Internal Medicine,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00109,1000000109,Jackson,Moore,Solo Practice,Obstetrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00110,1000000110,Sofia,Williams,StatCare Network,Internal Medicine,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00111,1000000111,Ethan,Lee,Solo Practice,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00112,1000000112,James,Gonzalez,Solo Practice,Pediatrics,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00113,1000000113,James,Smith,Regional Health System,Obstetrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00114,1000000114,Abigail,Harris,StatCare Network,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00115,1000000115,Charlotte,Hernandez,Regional Health System,Orthopedics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00116,1000000116,Sophia,Walker,Solo Practice,Orthopedics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00117,1000000117,Ella,Nguyen,Regional Health System,Neurology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00118,1000000118,Daniel,Moore,Community Medical Center,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00119,1000000119,Sofia,Allen,ValuMed Group,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00120,1000000120,Jacob,Taylor,StatCare Network,Pediatrics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00121,1000000121,Charlotte,Clark,StatCare Network,Family Medicine,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00122,1000000122,Isabella,Hill,StatCare Network,Psychiatry,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00123,1000000123,Elijah,Jones,StatCare Network,Family Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00124,1000000124,Abigail,Walker,StatCare Network,Neurology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00125,1000000125,Alexander,Williams,Community Medical Center,Dermatology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00126,1000000126,Liam,Hernandez,ValuMed Group,Family Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00127,1000000127,Isabella,Clark,Community Medical Center,Internal Medicine,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00128,1000000128,Emma,Jones,Community Medical Center,Dermatology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00129,1000000129,Avery,Allen,StatCare Network,Urgent Care,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00130,1000000130,Sophia,Wright,ValuMed Group,Internal Medicine,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00131,1000000131,Sofia,Nguyen,Community Medical Center,Pediatrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00132,1000000132,Mia,Nguyen,Community Medical Center,Urgent Care,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00133,1000000133,Sophia,Clark,StatCare Network,Urgent Care,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00134,1000000134,Grace,Anderson,StatCare Network,Dermatology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00135,1000000135,Avery,Davis,StatCare Network,Neurology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00136,1000000136,Isabella,King,Regional Health System,Obstetrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00137,1000000137,Grace,Nguyen,Solo Practice,Neurology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00138,1000000138,Elijah,Garcia,ValuMed Group,Urgent Care,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00139,1000000139,Henry,Smith,Regional Health System,Dermatology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00140,1000000140,Liam,Williams,Community Medical Center,Dermatology,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00141,1000000141,Ava,Scott,ValuMed Group,Oncology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00142,1000000142,Mia,Garcia,ValuMed Group,Urgent Care,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00143,1000000143,Isabella,Allen,Regional Health System,Neurology,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00144,1000000144,Sebastian,King,Solo Practice,Cardiology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00145,1000000145,Logan,Lee,ValuMed Group,Oncology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00146,1000000146,Sophia,Flores,Regional Health System,Urgent Care,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00147,1000000147,Daniel,Wilson,Solo Practice,Neurology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00148,1000000148,Logan,Lewis,ValuMed Group,Internal Medicine,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00149,1000000149,Grace,Young,Solo Practice,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00150,1000000150,Olivia,Jones,Solo Practice,Urgent Care,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00151,1000000151,Noah,Martinez,StatCare Network,Cardiology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00152,1000000152,Mason,Hernandez,Community Medical Center,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00153,1000000153,Elizabeth,Jackson,Regional Health System,Orthopedics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00154,1000000154,Mason,Gonzalez,StatCare Network,Psychiatry,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00155,1000000155,Elijah,Anderson,ValuMed Group,Pediatrics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00156,1000000156,Noah,Scott,ValuMed Group,Obstetrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00157,1000000157,Charlotte,Moore,ValuMed Group,Internal Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00158,1000000158,James,Smith,Solo Practice,Obstetrics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00159,1000000159,Mia,Nguyen,Community Medical Center,Internal Medicine,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00160,1000000160,Michael,Johnson,Regional Health System,Cardiology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00161,1000000161,Olivia,Walker,Regional Health System,Cardiology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00162,1000000162,Sophia,Sanchez,StatCare Network,Orthopedics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00163,1000000163,Benjamin,Clark,Solo Practice,Internal Medicine,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00164,1000000164,Michael,Smith,Regional Health System,Neurology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00165,1000000165,Emma,Taylor,Solo Practice,Orthopedics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00166,1000000166,Ava,Sanchez,ValuMed Group,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00167,1000000167,Avery,Thomas,Community Medical Center,Oncology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00168,1000000168,Ava,Jackson,ValuMed Group,Internal Medicine,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00169,1000000169,Abigail,Jackson,ValuMed Group,Pediatrics,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00170,1000000170,Avery,Young,StatCare Network,Urgent Care,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00171,1000000171,Ava,Martinez,Regional Health System,Neurology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00172,1000000172,Elijah,Hernandez,ValuMed Group,Dermatology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00173,1000000173,Ethan,Clark,StatCare Network,Pediatrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00174,1000000174,Amelia,Robinson,Regional Health System,Obstetrics,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00175,1000000175,Sofia,Robinson,Regional Health System,Cardiology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00176,1000000176,Amelia,Thompson,Community Medical Center,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00177,1000000177,Sofia,Johnson,Community Medical Center,Oncology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00178,1000000178,Ava,Torres,Solo Practice,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00179,1000000179,William,Miller,Community Medical Center,Urgent Care,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00180,1000000180,Daniel,Smith,Solo Practice,Cardiology,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00181,1000000181,Grace,Taylor,StatCare Network,Pediatrics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00182,1000000182,Michael,Brown,StatCare Network,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00183,1000000183,Avery,Anderson,Solo Practice,Orthopedics,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00184,1000000184,Noah,Brown,ValuMed Group,Pediatrics,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00185,1000000185,Ella,Gonzalez,ValuMed Group,Neurology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00186,1000000186,Evelyn,Scott,StatCare Network,Internal Medicine,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00187,1000000187,Daniel,Perez,Community Medical Center,Psychiatry,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00188,1000000188,Evelyn,Allen,ValuMed Group,Obstetrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00189,1000000189,Harper,Lopez,ValuMed Group,Pediatrics,Interventional,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00190,1000000190,Noah,Torres,StatCare Network,Oncology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00191,1000000191,Sophia,King,Community Medical Center,Internal Medicine,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00192,1000000192,Ethan,White,StatCare Network,Cardiology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00193,1000000193,Henry,Moore,Regional Health System,Family Medicine,General,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00194,1000000194,Jackson,Martin,ValuMed Group,Cardiology,,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00195,1000000195,Logan,Jackson,Community Medical Center,Oncology,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00196,1000000196,Grace,Sanchez,StatCare Network,Dermatology,Pediatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00197,1000000197,Evelyn,Miller,ValuMed Group,Orthopedics,Geriatric,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00198,1000000198,Elijah,Wilson,Solo Practice,Neurology,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00199,1000000199,Amelia,Williams,Regional Health System,Orthopedics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
+PR00200,1000000200,Henry,Rodriguez,Regional Health System,Pediatrics,Sports Medicine,SynaptiqPOC,META_SynaptiqPOC,2026-06-18 02:00:00
