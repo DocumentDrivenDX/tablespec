@@ -29,6 +29,7 @@ from typing import Optional
 @dataclass
 class GenieResult:
     """Parsed response from one Genie message."""
+
     text_response: str = ""
     sql: Optional[str] = None
     col_names: list[str] = field(default_factory=list)
@@ -46,8 +47,11 @@ class GenieResult:
 
 def start_conversation(space_id: str, question: str) -> tuple[str, str]:
     """Start a new Genie conversation.  Returns (conversation_id, message_id)."""
-    resp = _api("POST", f"/api/2.0/genie/spaces/{space_id}/start-conversation",
-                body={"content": question})
+    resp = _api(
+        "POST",
+        f"/api/2.0/genie/spaces/{space_id}/start-conversation",
+        body={"content": question},
+    )
     conv_id = resp.get("conversation_id") or resp.get("id", "")
     msg = resp.get("message", {})
     msg_id = msg.get("id", "")
@@ -95,7 +99,9 @@ def poll_result(
     return GenieResult(error=f"Genie did not respond within {timeout_seconds}s.")
 
 
-def ask(space_id: str, question: str, conv_id: Optional[str] = None) -> tuple[GenieResult, str, str]:
+def ask(
+    space_id: str, question: str, conv_id: Optional[str] = None
+) -> tuple[GenieResult, str, str]:
     """High-level helper: send a question, poll, return (result, conv_id, msg_id).
 
     If conv_id is provided, sends a follow-up; otherwise starts a new conversation.
@@ -115,6 +121,7 @@ def ask(space_id: str, question: str, conv_id: Optional[str] = None) -> tuple[Ge
 
 def _api(method: str, path: str, body: Optional[dict] = None) -> dict:
     from .catalog import _workspace_client
+
     w = _workspace_client()
     kwargs: dict = {}
     if body is not None:
@@ -123,8 +130,14 @@ def _api(method: str, path: str, body: Optional[dict] = None) -> dict:
         return w.api_client.do(method, path, **kwargs) or {}
     except Exception as exc:
         msg = str(exc)
-        if "403" in msg or "PERMISSION_DENIED" in msg or "not authorized" in msg.lower():
-            space_id = path.split("/spaces/")[1].split("/")[0] if "/spaces/" in path else "?"
+        if (
+            "403" in msg
+            or "PERMISSION_DENIED" in msg
+            or "not authorized" in msg.lower()
+        ):
+            space_id = (
+                path.split("/spaces/")[1].split("/")[0] if "/spaces/" in path else "?"
+            )
             raise PermissionError(
                 f"The app service principal does not have access to Genie Space '{space_id}'.\n\n"
                 f"Fix: Databricks workspace → AI/BI → Genie Spaces → your space → "

@@ -42,11 +42,22 @@ from profiler.metamodel import (
 # ---------------------------------------------------------------------------
 # Builders — keep tests readable by hiding required-field plumbing
 
+
 def _numeric_stats(**overrides) -> NumericStats:
     defaults = dict(
-        min=0.0, max=100.0, mean=50.0, stddev=20.0,
-        p1=1.0, p5=5.0, p25=25.0, p50=50.0, p75=75.0, p95=95.0, p99=99.0,
-        skewness=0.1, kurtosis=2.8,
+        min=0.0,
+        max=100.0,
+        mean=50.0,
+        stddev=20.0,
+        p1=1.0,
+        p5=5.0,
+        p25=25.0,
+        p50=50.0,
+        p75=75.0,
+        p95=95.0,
+        p99=99.0,
+        skewness=0.1,
+        kurtosis=2.8,
         histogram_edges=[0.0, 25.0, 50.0, 75.0, 100.0],
         histogram_counts=[10, 30, 30, 10],
     )
@@ -57,9 +68,13 @@ def _numeric_stats(**overrides) -> NumericStats:
 def _column(name: str = "col_x", **overrides) -> ColumnProfile:
     defaults = dict(
         name=name,
-        logical_type="integer", physical_type="INT",
-        nullable=True, null_count=0, null_pct=0.0,
-        distinct_count=100, distinct_pct=0.1,
+        logical_type="integer",
+        physical_type="INT",
+        nullable=True,
+        null_count=0,
+        null_pct=0.0,
+        distinct_count=100,
+        distinct_pct=0.1,
     )
     defaults.update(overrides)
     return ColumnProfile(**defaults)
@@ -68,9 +83,14 @@ def _column(name: str = "col_x", **overrides) -> ColumnProfile:
 def _dataset(env: str = "TEST", n_cols: int = 2, **overrides) -> DatasetProfile:
     cols = overrides.pop("columns", [_column(name=f"c{i}") for i in range(n_cols)])
     defaults = dict(
-        env_label=env, connection="local",
-        catalog="test_main", schema="sales", table="orders",
-        row_count=1000, column_count=len(cols), columns=cols,
+        env_label=env,
+        connection="local",
+        catalog="test_main",
+        schema="sales",
+        table="orders",
+        row_count=1000,
+        column_count=len(cols),
+        columns=cols,
     )
     defaults.update(overrides)
     return DatasetProfile(**defaults)
@@ -90,6 +110,7 @@ def _run(**overrides) -> ProfilerRun:
 # ---------------------------------------------------------------------------
 # NumericStats
 
+
 class TestNumericStats:
     def test_valid(self):
         s = _numeric_stats()
@@ -99,8 +120,8 @@ class TestNumericStats:
     def test_edges_must_be_one_longer_than_counts(self):
         with pytest.raises(ValidationError, match="one longer"):
             _numeric_stats(
-                histogram_edges=[0.0, 5.0, 10.0],   # 3 edges
-                histogram_counts=[5],                # only 1 count → off by one
+                histogram_edges=[0.0, 5.0, 10.0],  # 3 edges
+                histogram_counts=[5],  # only 1 count → off by one
             )
 
     def test_negative_count_rejected(self):
@@ -128,6 +149,7 @@ class TestNumericStats:
 # ---------------------------------------------------------------------------
 # CategoricalStats
 
+
 class TestCategoricalStats:
     def test_valid(self):
         s = CategoricalStats(top_k={"US": 500, "UK": 200}, entropy=0.5)
@@ -151,6 +173,7 @@ class TestCategoricalStats:
 
 # ---------------------------------------------------------------------------
 # ColumnProfile
+
 
 class TestColumnProfile:
     def test_null_pct_must_be_in_range(self):
@@ -185,6 +208,7 @@ class TestColumnProfile:
 # ---------------------------------------------------------------------------
 # DatasetProfile
 
+
 class TestDatasetProfile:
     def test_column_count_must_match(self):
         with pytest.raises(ValidationError, match="column_count"):
@@ -193,18 +217,28 @@ class TestDatasetProfile:
     def test_fqn(self):
         d = _dataset(catalog="c", table="t")
         d2 = DatasetProfile(
-            env_label="X", connection="local",
-            catalog="c", schema="s", table="t",
-            row_count=0, column_count=0, columns=[],
+            env_label="X",
+            connection="local",
+            catalog="c",
+            schema="s",
+            table="t",
+            row_count=0,
+            column_count=0,
+            columns=[],
         )
         assert d2.fqn == "c.s.t"
 
     def test_schema_alias_on_input(self):
         """Input can use either 'schema' or 'schema_'."""
         d = DatasetProfile(
-            env_label="X", connection="local",
-            catalog="c", schema="s", table="t",   # alias form
-            row_count=0, column_count=0, columns=[],
+            env_label="X",
+            connection="local",
+            catalog="c",
+            schema="s",
+            table="t",  # alias form
+            row_count=0,
+            column_count=0,
+            columns=[],
         )
         assert d.schema_ == "s"
 
@@ -212,16 +246,20 @@ class TestDatasetProfile:
 # ---------------------------------------------------------------------------
 # ColumnComparison + verdict_from_psi
 
+
 class TestVerdictFromPSI:
-    @pytest.mark.parametrize("psi,verdict", [
-        (None, "stable"),
-        (0.0, "stable"),
-        (PSI_STABLE_MAX - 0.001, "stable"),
-        (PSI_STABLE_MAX, "moderate"),
-        (PSI_MODERATE_MAX - 0.001, "moderate"),
-        (PSI_MODERATE_MAX, "significant"),
-        (1.0, "significant"),
-    ])
+    @pytest.mark.parametrize(
+        "psi,verdict",
+        [
+            (None, "stable"),
+            (0.0, "stable"),
+            (PSI_STABLE_MAX - 0.001, "stable"),
+            (PSI_STABLE_MAX, "moderate"),
+            (PSI_MODERATE_MAX - 0.001, "moderate"),
+            (PSI_MODERATE_MAX, "significant"),
+            (1.0, "significant"),
+        ],
+    )
     def test_thresholds(self, psi, verdict):
         assert verdict_from_psi(psi) == verdict
 
@@ -258,6 +296,7 @@ class TestColumnComparison:
 # ---------------------------------------------------------------------------
 # Round-trip serialization
 
+
 class TestRoundTrip:
     def test_minimal_run_roundtrips(self):
         run = _run(run_label="smoke")
@@ -271,8 +310,13 @@ class TestRoundTrip:
 
     def test_full_run_roundtrips(self):
         col_a = _column(
-            name="amount", logical_type="double", physical_type="DOUBLE",
-            null_count=50, null_pct=0.05, distinct_count=987, distinct_pct=0.987,
+            name="amount",
+            logical_type="double",
+            physical_type="DOUBLE",
+            null_count=50,
+            null_pct=0.05,
+            distinct_count=987,
+            distinct_pct=0.987,
             numeric=_numeric_stats(),
             alerts=[Alert(rule="skewed", severity="warn", message="skew=2.3")],
             stereotypes=["MeasuredAttribute", "Skewed"],
@@ -280,8 +324,12 @@ class TestRoundTrip:
         ds_a = _dataset(env="TEST", columns=[col_a])
         ds_b = _dataset(env="PROD", columns=[col_a.model_copy()])
         cc = ColumnComparison(
-            column_name="amount", psi=0.25, ks_stat=0.18, ks_pvalue=0.001,
-            verdict="significant", stereotypes=["Drifted"],
+            column_name="amount",
+            psi=0.25,
+            ks_stat=0.18,
+            ks_pvalue=0.001,
+            verdict="significant",
+            stereotypes=["Drifted"],
         )
         run = ProfilerRun(
             run_id=new_run_id(),
@@ -312,6 +360,7 @@ class TestRoundTrip:
 # ---------------------------------------------------------------------------
 # Forward compatibility — unknown fields are dropped
 
+
 class TestForwardCompat:
     def test_unknown_top_level_field_ignored(self):
         run = _run()
@@ -331,6 +380,7 @@ class TestForwardCompat:
 
 # ---------------------------------------------------------------------------
 # Schema export
+
 
 class TestSchemaExport:
     def test_returns_dict(self):
@@ -353,6 +403,7 @@ class TestSchemaExport:
 
 # ---------------------------------------------------------------------------
 # UUIDv7
+
 
 class TestUuidV7:
     def test_returns_uuid(self):

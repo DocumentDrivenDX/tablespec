@@ -19,23 +19,32 @@ from profiler.metamodel import (
 # Builders
 
 
-def _col(name: str, logical_type: str = "string", nullable: bool = True, **kw) -> ColumnProfile:
+def _col(
+    name: str, logical_type: str = "string", nullable: bool = True, **kw
+) -> ColumnProfile:
     return ColumnProfile(
         name=name,
         logical_type=logical_type,
         physical_type=logical_type.upper(),
         nullable=nullable,
-        null_count=0, null_pct=0.0,
-        distinct_count=10, distinct_pct=0.1,
+        null_count=0,
+        null_pct=0.0,
+        distinct_count=10,
+        distinct_pct=0.1,
         **kw,
     )
 
 
 def _dataset(cols: list[ColumnProfile], env: str = "TEST") -> DatasetProfile:
     return DatasetProfile(
-        env_label=env, connection="local",
-        catalog="dev", schema="test_main_claims", table="medical_claim",
-        row_count=1000, column_count=len(cols), columns=cols,
+        env_label=env,
+        connection="local",
+        catalog="dev",
+        schema="test_main_claims",
+        table="medical_claim",
+        row_count=1000,
+        column_count=len(cols),
+        columns=cols,
     )
 
 
@@ -161,11 +170,17 @@ class TestSchemaChangeCounts:
         b = _dataset([_col("a"), _col("d")])  # b removed, c removed, d added
         comparisons = schema_diff(a, b)
         counts = schema_change_counts(comparisons)
-        assert counts["unchanged"] == 1   # a
-        assert counts["removed"] == 2     # b, c
-        assert counts["added"] == 1       # d
+        assert counts["unchanged"] == 1  # a
+        assert counts["removed"] == 2  # b, c
+        assert counts["added"] == 1  # d
 
     def test_all_keys_present(self):
         counts = schema_change_counts([])
-        for key in ("added", "removed", "type_changed", "nullability_changed", "unchanged"):
+        for key in (
+            "added",
+            "removed",
+            "type_changed",
+            "nullability_changed",
+            "unchanged",
+        ):
             assert key in counts

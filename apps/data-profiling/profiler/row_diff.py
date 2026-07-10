@@ -38,18 +38,18 @@ class RowDiffResult:
     key_columns: list[str]
 
     # Counts (over the full tables, not just the sample)
-    rows_only_in_a: int = 0   # removed — in A not B
-    rows_only_in_b: int = 0   # added   — in B not A
-    rows_changed:   int = 0   # same key, at least one value differs
-    rows_identical: int = 0   # same key, all values identical
+    rows_only_in_a: int = 0  # removed — in A not B
+    rows_only_in_b: int = 0  # added   — in B not A
+    rows_changed: int = 0  # same key, at least one value differs
+    rows_identical: int = 0  # same key, all values identical
 
     # Sample rows — list of row arrays matching col_names / col_names_changed
     sample_removed: list[list] = field(default_factory=list)
-    sample_added:   list[list] = field(default_factory=list)
+    sample_added: list[list] = field(default_factory=list)
     sample_changed: list[list] = field(default_factory=list)
 
     # Column names for display
-    col_names:         list[str] = field(default_factory=list)
+    col_names: list[str] = field(default_factory=list)
     col_names_changed: list[str] = field(default_factory=list)  # includes _side
 
     error: Optional[str] = None
@@ -86,12 +86,12 @@ def compute_row_diff(
     b = ref_b.fqn
 
     # Join condition using aliases (for LEFT JOINs)
-    join_on  = " AND ".join(f"a.`{k}` <=> b.`{k}`" for k in key_columns)
-    null_b   = f"b.`{key_columns[0]}` IS NULL"
-    null_a   = f"a.`{key_columns[0]}` IS NULL"
+    join_on = " AND ".join(f"a.`{k}` <=> b.`{k}`" for k in key_columns)
+    null_b = f"b.`{key_columns[0]}` IS NULL"
+    null_a = f"a.`{key_columns[0]}` IS NULL"
 
     # Key columns without alias (for CTEs where there is only one table)
-    key_sel  = ", ".join(f"`{k}`" for k in key_columns)
+    key_sel = ", ".join(f"`{k}`" for k in key_columns)
 
     # CTE join condition (ha/hb aliases from the CTE)
     key_join = " AND ".join(f"ha.`{k}` <=> hb.`{k}`" for k in key_columns)
@@ -105,19 +105,27 @@ def compute_row_diff(
 
     try:
         # ── 1. Rows only in A (removed) ───────────────────────────────────────
-        r = _sql(f"SELECT COUNT(*) FROM {a} a LEFT JOIN {b} b ON {join_on} WHERE {null_b}")
+        r = _sql(
+            f"SELECT COUNT(*) FROM {a} a LEFT JOIN {b} b ON {join_on} WHERE {null_b}"
+        )
         result.rows_only_in_a = _scalar_int(r)
 
         # ── 2. Rows only in B (added) ─────────────────────────────────────────
-        r = _sql(f"SELECT COUNT(*) FROM {b} b LEFT JOIN {a} a ON {join_on} WHERE {null_a}")
+        r = _sql(
+            f"SELECT COUNT(*) FROM {b} b LEFT JOIN {a} a ON {join_on} WHERE {null_a}"
+        )
         result.rows_only_in_b = _scalar_int(r)
 
         # ── 3. Rows changed — CTE approach avoids hash(alias.*) limitation ────
-        r = _sql(f"{hash_cte} SELECT COUNT(*) FROM ha JOIN hb ON {key_join} WHERE ha._rh != hb._rh")
+        r = _sql(
+            f"{hash_cte} SELECT COUNT(*) FROM ha JOIN hb ON {key_join} WHERE ha._rh != hb._rh"
+        )
         result.rows_changed = _scalar_int(r)
 
         # ── 4. Rows identical ─────────────────────────────────────────────────
-        r = _sql(f"{hash_cte} SELECT COUNT(*) FROM ha JOIN hb ON {key_join} WHERE ha._rh = hb._rh")
+        r = _sql(
+            f"{hash_cte} SELECT COUNT(*) FROM ha JOIN hb ON {key_join} WHERE ha._rh = hb._rh"
+        )
         result.rows_identical = _scalar_int(r)
 
         # ── 5. Column names from table A ──────────────────────────────────────
@@ -177,13 +185,13 @@ def compute_row_diff(
 
 def summarise(result: RowDiffResult) -> dict[str, Any]:
     return {
-        "key_columns":     result.key_columns,
-        "rows_only_in_a":  result.rows_only_in_a,
-        "rows_only_in_b":  result.rows_only_in_b,
-        "rows_changed":    result.rows_changed,
-        "rows_identical":  result.rows_identical,
+        "key_columns": result.key_columns,
+        "rows_only_in_a": result.rows_only_in_a,
+        "rows_only_in_b": result.rows_only_in_b,
+        "rows_changed": result.rows_changed,
+        "rows_identical": result.rows_identical,
         "has_differences": result.has_differences,
-        "error":           result.error,
+        "error": result.error,
     }
 
 
@@ -199,6 +207,7 @@ def diff_pct(changed: int, total: int) -> str:
 
 def _sql(statement: str):
     from .catalog import _workspace_client
+
     w = _workspace_client()
     wid = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
     result = w.statement_execution.execute_statement(
@@ -212,8 +221,11 @@ def _sql(statement: str):
         if "SUCCEEDED" in state:
             return result
         if any(s in state for s in ("FAILED", "CANCELLED", "CLOSED")):
-            err = (result.status.error.message
-                   if (result.status and result.status.error) else state)
+            err = (
+                result.status.error.message
+                if (result.status and result.status.error)
+                else state
+            )
             raise RuntimeError(f"Row diff SQL failed ({state}): {err}")
         if time.time() > deadline:
             raise TimeoutError("Row diff query timed out after 5 minutes.")

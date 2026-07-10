@@ -4,9 +4,10 @@ A Streamlit **Databricks App** that profiles Unity Catalog tables, compares any
 two of them, tracks statistical drift, surfaces nightly load results, and renders
 the tablespec [guidebook](guidebook.md) — all over the same UMF metadata.
 
-It lives at `apps/data-profiling/`, vendored from
-[FocusedDiversity/data-profiling-dbx-app](https://github.com/FocusedDiversity/data-profiling-dbx-app)
-via `git subtree` and relicensed under Apache-2.0 (see the repo root `NOTICE`).
+It lives at `apps/data-profiling/` as first-party code under the repository's
+Apache-2.0 license. It was first developed in a separate repository
+([FocusedDiversity/data-profiling-dbx-app](https://github.com/FocusedDiversity/data-profiling-dbx-app));
+the root `NOTICE` records that history.
 
 ## Where it fits
 
@@ -116,24 +117,24 @@ on `information_schema` for the catalogs it reflects.
 
 ## Development status
 
-While the app lives under `apps/`, it is **excluded from tablespec's ruff,
-pyright, and pytest gates** (`[tool.ruff] extend-exclude = ["apps"]`; pyright
-scopes to `src/`; pytest to `tests/`). This keeps `make check` green and keeps
-the vendored tree byte-identical to upstream so `git subtree pull` stays
-conflict-free.
+The app is formatted with `ruff format` like the rest of the repository.
 
-Pull upstream changes with:
+It is **not yet in `make check`**: `make lint` and `make test` scope to `src/`,
+`scripts/`, and `tests/`, and pyright scopes to `src/`. Run the app's own suite
+from its directory:
 
 ```bash
-git subtree pull --prefix=apps/data-profiling dpa main --squash
+cd apps/data-profiling && pytest tests/
 ```
 
 Planned, not yet done:
 
+- **Lint + test integration** — clear the outstanding `ruff check` findings under
+  `apps/`, then widen `TRACKED_LINT_FILES` and the pytest paths so `make check`
+  covers the app.
 - **Phase 2** — unify the two profile models. `tablespec.profiling` is
   spec-oriented (UMF + GX generation); the app's `profiler/` is
   observation-oriented (`ProfilerRun`, drift, Delta governance). Feeding observed
   profiles into the guidebook renderer would put *spec vs. reality* on one page.
 - **Phase 3** — move the app under `src/tablespec/app/`, add a `[app]` extra and
-  a `tablespec app` CLI command, decompose `streamlit_app.py`, and turn the
-  quality gates on.
+  a `tablespec app` CLI command, and decompose `streamlit_app.py`.

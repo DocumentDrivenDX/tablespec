@@ -36,9 +36,19 @@ from profiler.delta_repo import _ddl, flatten
 
 def _numeric(**kw) -> NumericStats:
     base = dict(
-        min=0.0, max=100.0, mean=50.0, stddev=20.0,
-        p1=1.0, p5=5.0, p25=25.0, p50=50.0, p75=75.0, p95=95.0, p99=99.0,
-        skewness=0.1, kurtosis=2.8,
+        min=0.0,
+        max=100.0,
+        mean=50.0,
+        stddev=20.0,
+        p1=1.0,
+        p5=5.0,
+        p25=25.0,
+        p50=50.0,
+        p75=75.0,
+        p95=95.0,
+        p99=99.0,
+        skewness=0.1,
+        kurtosis=2.8,
         histogram_edges=[0.0, 25.0, 50.0, 75.0, 100.0],
         histogram_counts=[10, 30, 30, 10],
     )
@@ -54,9 +64,14 @@ def _categorical(**kw) -> CategoricalStats:
 
 def _col(name: str = "col_x", **kw) -> ColumnProfile:
     base = dict(
-        name=name, logical_type="integer", physical_type="INT",
-        nullable=True, null_count=5, null_pct=0.05,
-        distinct_count=90, distinct_pct=0.9,
+        name=name,
+        logical_type="integer",
+        physical_type="INT",
+        nullable=True,
+        null_count=5,
+        null_pct=0.05,
+        distinct_count=90,
+        distinct_pct=0.9,
     )
     base.update(kw)
     return ColumnProfile(**base)
@@ -66,9 +81,14 @@ def _dataset(env: str = "TEST", cols=None, **kw) -> DatasetProfile:
     if cols is None:
         cols = [_col("id"), _col("amount")]
     base = dict(
-        env_label=env, connection="local",
-        catalog="dev", schema="test_main_sales", table="orders",
-        row_count=1000, column_count=len(cols), columns=cols,
+        env_label=env,
+        connection="local",
+        catalog="dev",
+        schema="test_main_sales",
+        table="orders",
+        row_count=1000,
+        column_count=len(cols),
+        columns=cols,
     )
     base.update(kw)
     return DatasetProfile(**base)
@@ -86,7 +106,9 @@ def _run(comparisons=None, **kw) -> ProfilerRun:
     return ProfilerRun(**base)
 
 
-def _comparison(col: str = "amount", psi: float = 0.25, schema_change: str = "unchanged"):
+def _comparison(
+    col: str = "amount", psi: float = 0.25, schema_change: str = "unchanged"
+):
     verdict = verdict_from_psi(psi, schema_change=schema_change)  # type: ignore[arg-type]
     return ColumnComparison(
         column_name=col,
@@ -104,8 +126,11 @@ class TestFlattenShape:
     def test_returns_all_five_tables(self):
         rows = flatten(_run())
         assert set(rows.keys()) == {
-            "profiler_runs", "dataset_profiles", "column_profiles",
-            "column_alerts", "column_comparisons",
+            "profiler_runs",
+            "dataset_profiles",
+            "column_profiles",
+            "column_alerts",
+            "column_comparisons",
         }
 
     def test_one_profiler_run_row(self):
@@ -161,6 +186,7 @@ class TestFlattenRunRow:
 
     def test_created_date_is_date(self):
         from datetime import date
+
         assert isinstance(self.row["created_date"], date)
 
     def test_side_fqns(self):
@@ -206,10 +232,12 @@ class TestFlattenColumnRows:
     def test_numeric_stats_flattened(self):
         cols = [_col("price", numeric=_numeric(mean=42.0, p50=40.0))]
         rows = flatten(_run(side_a=_dataset(cols=cols), side_b=_dataset(cols=cols)))
-        cp = flatten(_run(
-            side_a=_dataset(cols=cols),
-            side_b=_dataset(cols=cols),
-        ))["column_profiles"]
+        cp = flatten(
+            _run(
+                side_a=_dataset(cols=cols),
+                side_b=_dataset(cols=cols),
+            )
+        )["column_profiles"]
         a_rows = [r for r in cp if r["side"] == "A" and r["column_name"] == "price"]
         assert len(a_rows) == 1
         assert a_rows[0]["numeric_mean"] == pytest.approx(42.0)
@@ -218,10 +246,12 @@ class TestFlattenColumnRows:
 
     def test_categorical_stats_flattened(self):
         cols = [_col("status", categorical=_categorical(entropy=1.5))]
-        cp = flatten(_run(
-            side_a=_dataset(cols=cols),
-            side_b=_dataset(cols=cols),
-        ))["column_profiles"]
+        cp = flatten(
+            _run(
+                side_a=_dataset(cols=cols),
+                side_b=_dataset(cols=cols),
+            )
+        )["column_profiles"]
         a_rows = [r for r in cp if r["side"] == "A" and r["column_name"] == "status"]
         assert a_rows[0]["cat_entropy"] == pytest.approx(1.5)
         assert a_rows[0]["numeric_mean"] is None
@@ -229,10 +259,12 @@ class TestFlattenColumnRows:
 
     def test_stereotypes_joined(self):
         cols = [_col("x", stereotypes=["NullSpike", "Skewed"])]
-        cp = flatten(_run(
-            side_a=_dataset(cols=cols),
-            side_b=_dataset(cols=cols),
-        ))["column_profiles"]
+        cp = flatten(
+            _run(
+                side_a=_dataset(cols=cols),
+                side_b=_dataset(cols=cols),
+            )
+        )["column_profiles"]
         a_row = next(r for r in cp if r["side"] == "A")
         assert a_row["stereotypes"] == "NullSpike,Skewed"
 

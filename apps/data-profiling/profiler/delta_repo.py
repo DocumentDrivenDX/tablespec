@@ -52,7 +52,6 @@ def _ddl(catalog: str, schema: str) -> list[str]:
 USING DELTA
 CLUSTER BY (run_id)
 TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
-
         # ------------------------------------------------------------------
         f"""CREATE TABLE IF NOT EXISTS {q}.dataset_profiles (
     run_id          STRING        NOT NULL,
@@ -70,7 +69,6 @@ TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
 USING DELTA
 CLUSTER BY (catalog, schema, table)
 TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
-
         # ------------------------------------------------------------------
         f"""CREATE TABLE IF NOT EXISTS {q}.column_profiles (
     run_id          STRING        NOT NULL,
@@ -99,7 +97,6 @@ TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
 USING DELTA
 CLUSTER BY (catalog, schema, table, column_name)
 TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
-
         # ------------------------------------------------------------------
         f"""CREATE TABLE IF NOT EXISTS {q}.column_alerts (
     run_id          STRING        NOT NULL,
@@ -116,7 +113,6 @@ TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
 USING DELTA
 CLUSTER BY (catalog, schema, table, column_name)
 TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')""",
-
         # ------------------------------------------------------------------
         f"""CREATE TABLE IF NOT EXISTS {q}.column_comparisons (
     run_id          STRING        NOT NULL,
@@ -278,6 +274,7 @@ def _exec_sql(statement: str) -> None:
     """Execute one SQL statement via Statement Execution API (no JDBC)."""
     import os as _os, time as _time
     from .catalog import _workspace_client
+
     w = _workspace_client()
     wid = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
     result = w.statement_execution.execute_statement(
@@ -291,8 +288,11 @@ def _exec_sql(statement: str) -> None:
         if "SUCCEEDED" in state:
             return
         if any(s in state for s in ("FAILED", "CANCELLED", "CLOSED")):
-            err = (result.status.error.message
-                   if (result.status and result.status.error) else state)
+            err = (
+                result.status.error.message
+                if (result.status and result.status.error)
+                else state
+            )
             raise RuntimeError(f"SQL failed ({state}): {err}")
         if _time.time() > deadline:
             raise TimeoutError(f"SQL still {state} after 5 minutes")
@@ -314,8 +314,11 @@ def ensure_tables(catalog: str, schema: str) -> None:
     # USE SCHEMA is NOT granted here — the schema owner must do that separately.
     grant_errors: list[str] = []
     for tbl in (
-        "profiler_runs", "dataset_profiles", "column_profiles",
-        "column_alerts", "column_comparisons",
+        "profiler_runs",
+        "dataset_profiles",
+        "column_profiles",
+        "column_alerts",
+        "column_comparisons",
     ):
         try:
             _exec_sql(
@@ -335,7 +338,8 @@ def ensure_tables(catalog: str, schema: str) -> None:
             + "\n".join(
                 f"  GRANT SELECT ON TABLE {catalog}.{schema}.{t.strip()} TO `account users`;"
                 for t in tbls.split(",")
-            ) + f"\nErrors: {'; '.join(grant_errors)}"
+            )
+            + f"\nErrors: {'; '.join(grant_errors)}"
         )
 
 
@@ -367,14 +371,14 @@ def ingest(
             vals = ", ".join(_sql_literal(row[c]) for c in cols)
             value_rows.append(f"({vals})")
         _exec_sql(
-            f"INSERT INTO {full_name} ({col_list}) "
-            f"VALUES {', '.join(value_rows)}"
+            f"INSERT INTO {full_name} ({col_list}) VALUES {', '.join(value_rows)}"
         )
 
 
 def _sql_literal(val: Any) -> str:
     """Convert a Python value to a safe SQL literal string."""
     from datetime import date, datetime
+
     if val is None:
         return "NULL"
     if isinstance(val, bool):

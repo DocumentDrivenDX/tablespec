@@ -36,9 +36,19 @@ def _num(mean: float = 50.0, histogram_counts: list[int] | None = None) -> Numer
     n_bins = len(counts)
     edges = [float(i * 100 / n_bins) for i in range(n_bins + 1)]
     return NumericStats(
-        min=0.0, max=100.0, mean=mean, stddev=20.0,
-        p1=1.0, p5=5.0, p25=25.0, p50=mean, p75=75.0, p95=95.0, p99=99.0,
-        skewness=0.0, kurtosis=3.0,
+        min=0.0,
+        max=100.0,
+        mean=mean,
+        stddev=20.0,
+        p1=1.0,
+        p5=5.0,
+        p25=25.0,
+        p50=mean,
+        p75=75.0,
+        p95=95.0,
+        p99=99.0,
+        skewness=0.0,
+        kurtosis=3.0,
         histogram_edges=edges,
         histogram_counts=counts,
     )
@@ -50,18 +60,28 @@ def _cat(top_k: dict[str, int]) -> CategoricalStats:
 
 def _col_num(counts: list[int], mean: float = 50.0) -> ColumnProfile:
     return ColumnProfile(
-        name="amount", logical_type="double", physical_type="DOUBLE",
-        nullable=True, null_count=0, null_pct=0.0,
-        distinct_count=100, distinct_pct=0.1,
+        name="amount",
+        logical_type="double",
+        physical_type="DOUBLE",
+        nullable=True,
+        null_count=0,
+        null_pct=0.0,
+        distinct_count=100,
+        distinct_pct=0.1,
         numeric=_num(mean=mean, histogram_counts=counts),
     )
 
 
 def _col_cat(top_k: dict[str, int]) -> ColumnProfile:
     return ColumnProfile(
-        name="status", logical_type="string", physical_type="STRING",
-        nullable=True, null_count=0, null_pct=0.0,
-        distinct_count=len(top_k), distinct_pct=0.1,
+        name="status",
+        logical_type="string",
+        physical_type="STRING",
+        nullable=True,
+        null_count=0,
+        null_pct=0.0,
+        distinct_count=len(top_k),
+        distinct_pct=0.1,
         categorical=_cat(top_k),
     )
 
@@ -91,6 +111,7 @@ class TestPSI:
 
     def test_psi_non_negative(self):
         import random
+
         rng = random.Random(42)
         for _ in range(20):
             a = [rng.randint(0, 100) for _ in range(5)]
@@ -255,6 +276,7 @@ class TestJSDivergence:
 
     def test_result_between_0_and_1(self):
         import random
+
         rng = random.Random(99)
         for _ in range(20):
             a = [float(rng.randint(1, 100)) for _ in range(4)]
@@ -292,8 +314,8 @@ class TestComputeColumnDrift:
         assert result.chi_square is None  # numeric — no chi-square
 
     def test_shifted_numeric_columns_higher_psi(self):
-        col_a = _col_num([200, 100, 50, 50])   # left-heavy
-        col_b = _col_num([50, 50, 100, 200])   # right-heavy
+        col_a = _col_num([200, 100, 50, 50])  # left-heavy
+        col_b = _col_num([50, 50, 100, 200])  # right-heavy
         result = compute_column_drift(col_a, col_b)
         assert result.psi is not None
         assert result.psi > 0.1  # clearly drifted
@@ -304,7 +326,7 @@ class TestComputeColumnDrift:
         result = compute_column_drift(col, col)
         assert result.psi == pytest.approx(0.0, abs=1e-9)
         assert result.chi_square is not None
-        assert result.ks_stat is None   # categorical — no KS
+        assert result.ks_stat is None  # categorical — no KS
 
     def test_shifted_categorical_psi_positive(self):
         col_a = _col_cat({"A": 100, "B": 100})
@@ -316,9 +338,14 @@ class TestComputeColumnDrift:
     def test_no_stats_returns_empty_result(self):
         # Temporal column — no numeric or categorical stats
         col = ColumnProfile(
-            name="dt", logical_type="date", physical_type="DATE",
-            nullable=True, null_count=0, null_pct=0.0,
-            distinct_count=100, distinct_pct=0.5,
+            name="dt",
+            logical_type="date",
+            physical_type="DATE",
+            nullable=True,
+            null_count=0,
+            null_pct=0.0,
+            distinct_count=100,
+            distinct_pct=0.5,
         )
         result = compute_column_drift(col, col)
         assert result.psi is None
@@ -350,18 +377,26 @@ class TestStatDiffIntegration:
         col_b_cat = _col_cat({"X": 150, "Y": 50})
 
         side_a = DatasetProfile(
-            env_label="PROD", connection="local",
-            catalog="dev", schema="prod_main_claims", table="orders",
-            row_count=400, column_count=2,
+            env_label="PROD",
+            connection="local",
+            catalog="dev",
+            schema="prod_main_claims",
+            table="orders",
+            row_count=400,
+            column_count=2,
             columns=[
                 col_a_num.__class__(**{**col_a_num.model_dump(), "name": "amount"}),
                 col_a_cat.__class__(**{**col_a_cat.model_dump(), "name": "status"}),
             ],
         )
         side_b = DatasetProfile(
-            env_label="TEST", connection="local",
-            catalog="dev", schema="test_main_claims", table="orders",
-            row_count=400, column_count=2,
+            env_label="TEST",
+            connection="local",
+            catalog="dev",
+            schema="test_main_claims",
+            table="orders",
+            row_count=400,
+            column_count=2,
             columns=[
                 col_b_num.__class__(**{**col_b_num.model_dump(), "name": "amount"}),
                 col_b_cat.__class__(**{**col_b_cat.model_dump(), "name": "status"}),
@@ -371,6 +406,7 @@ class TestStatDiffIntegration:
 
     def test_psi_populated_for_numeric(self):
         from profiler.compare import compare_tables
+
         side_a, side_b = self._profiles()
         comparisons = compare_tables(side_a, side_b)
         num_cmp = next(c for c in comparisons if c.column_name == "amount")
@@ -378,6 +414,7 @@ class TestStatDiffIntegration:
 
     def test_ks_populated_for_numeric(self):
         from profiler.compare import compare_tables
+
         side_a, side_b = self._profiles()
         comparisons = compare_tables(side_a, side_b)
         num_cmp = next(c for c in comparisons if c.column_name == "amount")
@@ -385,6 +422,7 @@ class TestStatDiffIntegration:
 
     def test_chi_square_populated_for_categorical(self):
         from profiler.compare import compare_tables
+
         side_a, side_b = self._profiles()
         comparisons = compare_tables(side_a, side_b)
         cat_cmp = next(c for c in comparisons if c.column_name == "status")
@@ -392,6 +430,7 @@ class TestStatDiffIntegration:
 
     def test_js_divergence_populated(self):
         from profiler.compare import compare_tables
+
         side_a, side_b = self._profiles()
         comparisons = compare_tables(side_a, side_b)
         for cmp in comparisons:
@@ -399,6 +438,7 @@ class TestStatDiffIntegration:
 
     def test_verdict_set_from_psi(self):
         from profiler.compare import compare_tables
+
         side_a, side_b = self._profiles()
         comparisons = compare_tables(side_a, side_b)
         for cmp in comparisons:
@@ -407,6 +447,7 @@ class TestStatDiffIntegration:
 
     def test_drifted_stereotype_added_for_high_psi(self):
         from profiler.compare import compare_tables
+
         side_a, side_b = self._profiles()
         comparisons = compare_tables(side_a, side_b)
         # amount is clearly drifted (opposite histogram shapes)
@@ -417,20 +458,31 @@ class TestStatDiffIntegration:
     def test_schema_changed_columns_no_drift_metrics(self):
         from profiler.compare import compare_tables
         from profiler.metamodel import DatasetProfile
+
         # Side A has "old_col", Side B has "new_col"
         col_a = _col_num([100, 100])
         col_b = _col_num([100, 100])
         col_a_mod = col_a.__class__(**{**col_a.model_dump(), "name": "old_col"})
         col_b_mod = col_b.__class__(**{**col_b.model_dump(), "name": "new_col"})
         side_a = DatasetProfile(
-            env_label="A", connection="local",
-            catalog="dev", schema="s", table="t",
-            row_count=200, column_count=1, columns=[col_a_mod],
+            env_label="A",
+            connection="local",
+            catalog="dev",
+            schema="s",
+            table="t",
+            row_count=200,
+            column_count=1,
+            columns=[col_a_mod],
         )
         side_b = DatasetProfile(
-            env_label="B", connection="local",
-            catalog="dev", schema="s", table="t",
-            row_count=200, column_count=1, columns=[col_b_mod],
+            env_label="B",
+            connection="local",
+            catalog="dev",
+            schema="s",
+            table="t",
+            row_count=200,
+            column_count=1,
+            columns=[col_b_mod],
         )
         comparisons = compare_tables(side_a, side_b)
         for cmp in comparisons:

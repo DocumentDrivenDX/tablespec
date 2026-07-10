@@ -27,12 +27,13 @@ import yaml
 # ---------------------------------------------------------------------------
 # Types
 
+
 @dataclass(frozen=True)
 class Connection:
     name: str
-    type: str              # "native" | "delta_share"
-    env_label: str         # DEV/TEST/QA/STAGE/PROD/...
-    catalogs: List[str]    # empty list on native = auto-discover
+    type: str  # "native" | "delta_share"
+    env_label: str  # DEV/TEST/QA/STAGE/PROD/...
+    catalogs: List[str]  # empty list on native = auto-discover
 
     @property
     def is_shared(self) -> bool:
@@ -65,6 +66,7 @@ class VolumeRef:
 # ---------------------------------------------------------------------------
 # Config loading
 
+
 def load_connections(path: str = "connections.yaml") -> List[Connection]:
     with open(path, "r", encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh) or {}
@@ -87,6 +89,7 @@ def load_env_labels(path: str = "connections.yaml") -> List[str]:
 
 # ---------------------------------------------------------------------------
 # Runtime dispatch
+
 
 def _runtime() -> str:
     return os.environ.get("PROFILER_RUNTIME", "mock").lower()
@@ -126,9 +129,11 @@ def list_volumes(catalog: str, schema: str) -> List[str]:
 # The SQL warehouse (_sql_connect / _sql_query) is kept ONLY for actual
 # data queries during profile runs (profile.py). Never use it for UI dropdowns.
 
+
 @lru_cache(maxsize=1)
 def _workspace_client():
     from databricks.sdk import WorkspaceClient
+
     return WorkspaceClient()
 
 
@@ -142,7 +147,8 @@ def _dbx_list_catalogs(conn: Connection) -> List[str]:
 def _dbx_list_schemas(catalog: str) -> List[str]:
     w = _workspace_client()
     return sorted(
-        s.name for s in w.schemas.list(catalog_name=catalog)
+        s.name
+        for s in w.schemas.list(catalog_name=catalog)
         if s.name and s.name != "information_schema"
     )
 
@@ -150,7 +156,8 @@ def _dbx_list_schemas(catalog: str) -> List[str]:
 def _dbx_list_tables(catalog: str, schema: str) -> List[str]:
     w = _workspace_client()
     return sorted(
-        t.name for t in w.tables.list(catalog_name=catalog, schema_name=schema)
+        t.name
+        for t in w.tables.list(catalog_name=catalog, schema_name=schema)
         if t.name
     )
 
@@ -158,7 +165,8 @@ def _dbx_list_tables(catalog: str, schema: str) -> List[str]:
 def _dbx_list_volumes(catalog: str, schema: str) -> List[str]:
     w = _workspace_client()
     return sorted(
-        v.name for v in w.volumes.list(catalog_name=catalog, schema_name=schema)
+        v.name
+        for v in w.volumes.list(catalog_name=catalog, schema_name=schema)
         if v.name
     )
 
@@ -173,7 +181,9 @@ def _sql_connect():
     http_path = f"/sql/1.0/warehouses/{warehouse_id}"
 
     # Use PAT token if set, otherwise rely on app runtime auto-auth.
-    token = os.environ.get("DATABRICKS_TOKEN") or os.environ.get("DATABRICKS_ACCESS_TOKEN")
+    token = os.environ.get("DATABRICKS_TOKEN") or os.environ.get(
+        "DATABRICKS_ACCESS_TOKEN"
+    )
     kwargs: dict = dict(server_hostname=host, http_path=http_path)
     if token:
         kwargs["access_token"] = token
@@ -196,24 +206,58 @@ def _sql_query(q: str) -> List[tuple]:
 _MOCK = {
     "dev": {
         # Profiler output volume
-        "test_main_profiler":  {"_volumes": ["ab_runs"]},
+        "test_main_profiler": {"_volumes": ["ab_runs"]},
         # Tuva input layer — claims domain
-        "test_main_claims":    ["medical_claim", "pharmacy_claim", "provider_attribution", "location", "practitioner"],
-        "prod_main_claims":    ["medical_claim", "pharmacy_claim", "provider_attribution", "location", "practitioner"],
+        "test_main_claims": [
+            "medical_claim",
+            "pharmacy_claim",
+            "provider_attribution",
+            "location",
+            "practitioner",
+        ],
+        "prod_main_claims": [
+            "medical_claim",
+            "pharmacy_claim",
+            "provider_attribution",
+            "location",
+            "practitioner",
+        ],
         # Tuva input layer — clinical domain
-        "test_main_clinical":  ["encounter", "condition", "procedure", "lab_result", "observation", "medication", "immunization", "appointment", "location", "practitioner"],
-        "prod_main_clinical":  ["encounter", "condition", "procedure", "lab_result", "observation", "medication", "immunization", "appointment", "location", "practitioner"],
+        "test_main_clinical": [
+            "encounter",
+            "condition",
+            "procedure",
+            "lab_result",
+            "observation",
+            "medication",
+            "immunization",
+            "appointment",
+            "location",
+            "practitioner",
+        ],
+        "prod_main_clinical": [
+            "encounter",
+            "condition",
+            "procedure",
+            "lab_result",
+            "observation",
+            "medication",
+            "immunization",
+            "appointment",
+            "location",
+            "practitioner",
+        ],
         # Tuva input layer — members domain
-        "test_main_members":   ["eligibility", "patient", "location", "practitioner"],
-        "prod_main_members":   ["eligibility", "patient", "location", "practitioner"],
+        "test_main_members": ["eligibility", "patient", "location", "practitioner"],
+        "prod_main_members": ["eligibility", "patient", "location", "practitioner"],
         # Other domain schemas (non-Tuva)
-        "test_main_sales":     ["orders", "order_items", "customers", "products"],
-        "test_main_finance":   ["invoices", "payments", "ledger"],
-        "prod_main_sales":     ["orders", "order_items", "customers", "products"],
-        "prod_main_finance":   ["invoices", "payments", "ledger"],
-        "qa_main_sales":       ["orders", "customers"],
-        "stage_main_sales":    ["orders", "customers", "products"],
-        "dev_sandbox":         ["experiment_a", "experiment_b", "scratch"],
+        "test_main_sales": ["orders", "order_items", "customers", "products"],
+        "test_main_finance": ["invoices", "payments", "ledger"],
+        "prod_main_sales": ["orders", "order_items", "customers", "products"],
+        "prod_main_finance": ["invoices", "payments", "ledger"],
+        "qa_main_sales": ["orders", "customers"],
+        "stage_main_sales": ["orders", "customers", "products"],
+        "dev_sandbox": ["experiment_a", "experiment_b", "scratch"],
     }
 }
 
@@ -244,6 +288,7 @@ def _mock_list_volumes(catalog: str, schema: str) -> List[str]:
 
 # ---------------------------------------------------------------------------
 # Helpers used by the UI
+
 
 def describe_table(ref: TableRef) -> Optional[int]:
     """Verify a table is accessible and return its row count if available.

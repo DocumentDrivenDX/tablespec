@@ -8,10 +8,9 @@
 #   tablespec package itself. Deploying apps/data-profiling/ directly would ship
 #   the Streamlit code without the library it now depends on.
 #
-#   The app still resolves `connections.yaml` (and its assets/) relative to the
-#   working directory, so the command chdir's into the app directory before
-#   launching Streamlit. That keeps the vendored tree byte-identical to upstream
-#   and keeps `git subtree pull` conflict-free.
+#   The app resolves `connections.yaml` (and its assets/) relative to the working
+#   directory, so the command chdir's into the app directory before launching
+#   Streamlit.
 #
 # apps/data-profiling/app.yaml is retained for standalone deploys of the app
 # without tablespec. Keep the `resources` and `env` blocks below in sync with it.

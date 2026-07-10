@@ -107,8 +107,15 @@ class TestSummarise:
 
     def test_all_keys_present(self):
         s = summarise(RowDiffResult(key_columns=["id"]))
-        for key in ("key_columns", "rows_only_in_a", "rows_only_in_b",
-                    "rows_changed", "rows_identical", "has_differences", "error"):
+        for key in (
+            "key_columns",
+            "rows_only_in_a",
+            "rows_only_in_b",
+            "rows_changed",
+            "rows_identical",
+            "has_differences",
+            "error",
+        ):
             assert key in s
 
     def test_values_match(self):

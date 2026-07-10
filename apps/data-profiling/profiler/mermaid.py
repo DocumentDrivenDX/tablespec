@@ -108,7 +108,7 @@ def _safe(name: str) -> str:
 
 def _tbl_id(profile: DatasetProfile) -> str:
     # Keep IDs short to avoid Dagre layout errors with long identifiers.
-    sch = _safe(profile.schema_)[-15:]   # last 15 chars of schema (env suffix)
+    sch = _safe(profile.schema_)[-15:]  # last 15 chars of schema (env suffix)
     tbl = _safe(profile.table)[:20]
     return f"tbl_{sch}_{tbl}"
 
@@ -157,7 +157,9 @@ def _column_class(col_id: str, col: ColumnProfile) -> list[str]:
         lines.append(f"        entropy : {col.categorical.entropy:.4g}")
         if col.categorical.top_k:
             top1_key = next(iter(col.categorical.top_k))
-            lines.append(f"        top1 : {top1_key} ({col.categorical.top_k[top1_key]:,})")
+            lines.append(
+                f"        top1 : {top1_key} ({col.categorical.top_k[top1_key]:,})"
+            )
     for alert in col.alerts:
         lines.append(f"        ALERT : {alert.severity} {alert.rule}")
     lines.append("    }")

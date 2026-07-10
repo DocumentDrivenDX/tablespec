@@ -133,14 +133,5 @@ exclude_lines = [
     "@overload",
 ]
 
-[tool.ruff]
-# apps/ holds the vendored Databricks Streamlit app (git subtree of
-# FocusedDiversity/data-profiling-dbx-app). It is deliberately NOT held to
-# tablespec's lint/format standards yet -- `make lint` already scopes to
-# src/ + scripts/, but `ruff format .` would otherwise rewrite the vendored
-# tree and make future `git subtree pull` merges painful. Gates get turned on
-# when the app moves under src/tablespec/app/ (Phase 3).
-extend-exclude = ["apps"]
-
 [tool.uv]
 package = true

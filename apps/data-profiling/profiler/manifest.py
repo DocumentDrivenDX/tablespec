@@ -21,7 +21,7 @@ from . import __version__
 class SideSpec:
     env_label: str
     connection: str
-    connection_type: str       # "native" | "delta_share"
+    connection_type: str  # "native" | "delta_share"
     catalog: str
     schema: str
     table: str
@@ -30,10 +30,10 @@ class SideSpec:
 
 @dataclass
 class ComparisonParams:
-    depth: str                         # "aggregate_only" | "with_row_level"
+    depth: str  # "aggregate_only" | "with_row_level"
     row_keys: List[str] = field(default_factory=list)
     max_sample_mismatches: int = 100
-    sampling_mode: str = "full"        # "full" | "sample_n" | "stratified"
+    sampling_mode: str = "full"  # "full" | "sample_n" | "stratified"
     sample_n: Optional[int] = None
     stratify_by: Optional[str] = None
 

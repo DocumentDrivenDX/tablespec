@@ -64,7 +64,9 @@ def profile_table(
     """
     if _runtime() == "mock":
         return _mock_profile(ref, env_label, folder, html_filename)
-    return _databricks_profile(ref, env_label, folder, html_filename, sample_n, load_date)
+    return _databricks_profile(
+        ref, env_label, folder, html_filename, sample_n, load_date
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -107,8 +109,11 @@ def _fetch_via_statement_api(fqn: str, limit: int, where: str = "") -> pd.DataFr
         if "SUCCEEDED" in state:
             break
         if any(s in state for s in ("FAILED", "CANCELLED", "CLOSED")):
-            err = (result.status.error.message
-                   if (result.status and result.status.error) else state)
+            err = (
+                result.status.error.message
+                if (result.status and result.status.error)
+                else state
+            )
             raise RuntimeError(f"Statement execution failed ({state}): {err}")
         if _time.time() > _deadline:
             raise TimeoutError(
@@ -122,7 +127,9 @@ def _fetch_via_statement_api(fqn: str, limit: int, where: str = "") -> pd.DataFr
         return pd.DataFrame()
 
     col_names = [c.name for c in result.manifest.schema.columns]
-    data = result.result.data_array if (result.result and result.result.data_array) else []
+    data = (
+        result.result.data_array if (result.result and result.result.data_array) else []
+    )
     return pd.DataFrame(data, columns=col_names)
 
 
@@ -143,6 +150,7 @@ def _databricks_profile(
     try:
         from .catalog import _workspace_client
         import os as _os
+
         _wid = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
         if _wid:
             _w = _workspace_client()
@@ -173,11 +181,7 @@ def _databricks_profile(
 
     # Phase 2: column stats → metamodel.
     columns = _profile_columns(pdf, sampled_rows, skip_histogram=wide)
-    dup_rows = (
-        int(pdf.duplicated().sum())
-        if not wide and sampled_rows <= 50_000
-        else 0
-    )
+    dup_rows = int(pdf.duplicated().sum()) if not wide and sampled_rows <= 50_000 else 0
 
     return DatasetProfile(
         env_label=env_label,
@@ -208,14 +212,20 @@ def _generate_html(pdf: pd.DataFrame, title: str, wide: bool) -> str:
         null_pct = nulls / rows * 100 if rows else 0
         distinct = int(s.nunique(dropna=True))
 
-        null_style = "background:#ffe0e0" if null_pct > 50 else (
-                     "background:#fff8e0" if null_pct > 10 else "")
+        null_style = (
+            "background:#ffe0e0"
+            if null_pct > 50
+            else ("background:#fff8e0" if null_pct > 10 else "")
+        )
 
         if pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s):
             clean = s.dropna()
-            stats = (f"min={clean.min():.4g} / mean={clean.mean():.4g} / "
-                     f"max={clean.max():.4g} / std={clean.std():.4g}"
-                     if len(clean) else "all null")
+            stats = (
+                f"min={clean.min():.4g} / mean={clean.mean():.4g} / "
+                f"max={clean.max():.4g} / std={clean.std():.4g}"
+                if len(clean)
+                else "all null"
+            )
         else:
             vc = s.dropna().astype(str).value_counts().head(5)
             stats = " | ".join(f"{v}: {c:,}" for v, c in vc.items()) if len(vc) else "—"
@@ -289,7 +299,9 @@ def _profile_columns(
         distinct_count = int(series.nunique(dropna=True))
         distinct_pct = distinct_count / row_count if row_count > 0 else 0.0
 
-        is_numeric = pd.api.types.is_numeric_dtype(dtype) and not pd.api.types.is_bool_dtype(dtype)
+        is_numeric = pd.api.types.is_numeric_dtype(
+            dtype
+        ) and not pd.api.types.is_bool_dtype(dtype)
         is_temporal = pd.api.types.is_datetime64_any_dtype(dtype)
 
         numeric: Optional[NumericStats] = None
@@ -304,24 +316,32 @@ def _profile_columns(
             null_pct, distinct_count, distinct_pct, row_count, numeric, categorical
         )
         alerts = _fire_alerts(
-            col_name, null_pct, null_count, distinct_count, distinct_pct,
-            row_count, numeric, categorical,
+            col_name,
+            null_pct,
+            null_count,
+            distinct_count,
+            distinct_pct,
+            row_count,
+            numeric,
+            categorical,
         )
 
-        columns.append(ColumnProfile(
-            name=col_name,
-            logical_type=logical_type,
-            physical_type=physical_type,
-            nullable=nullable,
-            null_count=null_count,
-            null_pct=null_pct,
-            distinct_count=distinct_count,
-            distinct_pct=distinct_pct,
-            numeric=numeric,
-            categorical=categorical,
-            alerts=alerts,
-            stereotypes=stereotypes,
-        ))
+        columns.append(
+            ColumnProfile(
+                name=col_name,
+                logical_type=logical_type,
+                physical_type=physical_type,
+                nullable=nullable,
+                null_count=null_count,
+                null_pct=null_pct,
+                distinct_count=distinct_count,
+                distinct_pct=distinct_pct,
+                numeric=numeric,
+                categorical=categorical,
+                alerts=alerts,
+                stereotypes=stereotypes,
+            )
+        )
 
     return columns
 
@@ -344,11 +364,17 @@ def _numeric_stats(series: pd.Series, skip_histogram: bool) -> Optional[NumericS
         counts = [int(c) for c in hist_counts]
 
     return NumericStats(
-        min=lo, max=hi,
+        min=lo,
+        max=hi,
         mean=float(clean.mean()),
         stddev=float(clean.std()),
-        p1=pcts[0], p5=pcts[1], p25=pcts[2], p50=pcts[3],
-        p75=pcts[4], p95=pcts[5], p99=pcts[6],
+        p1=pcts[0],
+        p5=pcts[1],
+        p25=pcts[2],
+        p50=pcts[3],
+        p75=pcts[4],
+        p95=pcts[5],
+        p99=pcts[6],
         skewness=float(clean.skew()),
         kurtosis=float(clean.kurtosis()),
         histogram_edges=edges,
@@ -440,36 +466,69 @@ def _fire_alerts(
     alerts: list[Alert] = []
 
     if row_count > 0 and null_count == row_count:
-        alerts.append(Alert(rule="missing", severity="critical",
-                            message="Column is entirely null"))
+        alerts.append(
+            Alert(
+                rule="missing", severity="critical", message="Column is entirely null"
+            )
+        )
         return alerts
 
     if null_pct > 0.5:
         severity = "critical" if null_pct > 0.8 else "warn"
-        alerts.append(Alert(rule="missing", severity=severity,
-                            message=f"{null_pct:.1%} null ({null_count:,} of {row_count:,} rows)"))
+        alerts.append(
+            Alert(
+                rule="missing",
+                severity=severity,
+                message=f"{null_pct:.1%} null ({null_count:,} of {row_count:,} rows)",
+            )
+        )
 
     if distinct_count == 1:
-        alerts.append(Alert(rule="constant", severity="warn",
-                            message="Only one distinct non-null value"))
+        alerts.append(
+            Alert(
+                rule="constant",
+                severity="warn",
+                message="Only one distinct non-null value",
+            )
+        )
 
     if categorical is not None:
         if distinct_count == row_count and row_count > 0:
-            alerts.append(Alert(rule="unique", severity="info",
-                                message="Every non-null value is unique (potential key column)"))
+            alerts.append(
+                Alert(
+                    rule="unique",
+                    severity="info",
+                    message="Every non-null value is unique (potential key column)",
+                )
+            )
         elif distinct_pct > 0.9:
-            alerts.append(Alert(rule="high_cardinality", severity="info",
-                                message=f"{distinct_pct:.1%} unique ({distinct_count:,} distinct values)"))
+            alerts.append(
+                Alert(
+                    rule="high_cardinality",
+                    severity="info",
+                    message=f"{distinct_pct:.1%} unique ({distinct_count:,} distinct values)",
+                )
+            )
         if categorical.top_k:
             top_count = max(categorical.top_k.values())
             if row_count > 0 and top_count / row_count > 0.9:
                 top_val = max(categorical.top_k, key=categorical.top_k.get)
-                alerts.append(Alert(rule="imbalanced", severity="warn",
-                                    message=f"'{top_val}' represents {top_count / row_count:.1%} of all rows"))
+                alerts.append(
+                    Alert(
+                        rule="imbalanced",
+                        severity="warn",
+                        message=f"'{top_val}' represents {top_count / row_count:.1%} of all rows",
+                    )
+                )
 
     if numeric is not None and abs(numeric.skewness) > 2.0:
-        alerts.append(Alert(rule="skewed", severity="info",
-                            message=f"Skewness = {numeric.skewness:.2f} (threshold |skewness| > 2)"))
+        alerts.append(
+            Alert(
+                rule="skewed",
+                severity="info",
+                message=f"Skewness = {numeric.skewness:.2f} (threshold |skewness| > 2)",
+            )
+        )
 
     return alerts
 

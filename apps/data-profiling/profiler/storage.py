@@ -43,6 +43,7 @@ def _runtime() -> str:
 def _wc():
     """Cached WorkspaceClient — shared across all storage calls."""
     from databricks.sdk import WorkspaceClient
+
     return WorkspaceClient()
 
 
@@ -53,9 +54,9 @@ def _wc():
 @dataclass(frozen=True)
 class RunFolder:
     volume: VolumeRef
-    run_id: str       # YYYY-MM-DD_HHMM
+    run_id: str  # YYYY-MM-DD_HHMM
     folder_name: str  # full run folder basename
-    path: str         # /Volumes/... path (or _mock_runs/... in mock mode)
+    path: str  # /Volumes/... path (or _mock_runs/... in mock mode)
 
 
 def make_run_folder(
@@ -70,7 +71,8 @@ def make_run_folder(
     now = now or datetime.now(timezone.utc)
     run_id = now.strftime("%Y-%m-%d_%H%M")
     tbl_slug = (
-        _slug(table_name_a) if table_name_a == table_name_b
+        _slug(table_name_a)
+        if table_name_a == table_name_b
         else f"{_slug(table_name_a)}-vs-{_slug(table_name_b)}"
     )
     parts = [run_id, f"{_slug(side_a_env)}-vs-{_slug(side_b_env)}", tbl_slug]
@@ -157,9 +159,12 @@ def list_runs(output: VolumeRef, limit: int = 20) -> list[str]:
             path = runs_path if runs_path.endswith("/") else runs_path + "/"
             entries = list(_wc().files.list_directory_contents(path))
             dirs = sorted(
-                [e.name.rstrip("/") for e in entries
-                 if getattr(e, "is_directory", False) or
-                    (e.name and not e.name.endswith("."))],
+                [
+                    e.name.rstrip("/")
+                    for e in entries
+                    if getattr(e, "is_directory", False)
+                    or (e.name and not e.name.endswith("."))
+                ],
                 reverse=True,
             )
             return dirs[:limit]
@@ -186,13 +191,17 @@ def write_metamodel(folder: RunFolder, run: "ProfilerRun") -> str:
 
 def write_json_schema(folder: RunFolder) -> str:
     from .metamodel import METAMODEL_VERSION, schema_for_current_version
+
     major = METAMODEL_VERSION.split(".")[0]
     filename = f"dq-metamodel-v{major}.schema.json"
     return write_json(folder, filename, schema_for_current_version())
 
 
-def write_mermaid_diagrams(folder: RunFolder, run: "ProfilerRun") -> tuple[str, str, str]:
+def write_mermaid_diagrams(
+    folder: RunFolder, run: "ProfilerRun"
+) -> tuple[str, str, str]:
     from .mermaid import render_all
+
     a_mmd, b_mmd, drift_mmd = render_all(run)
     return (
         write_text(folder, "schema_a.mmd", a_mmd),

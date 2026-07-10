@@ -36,9 +36,19 @@ from profiler.mermaid import (
 
 def _numeric(**kw) -> NumericStats:
     base = dict(
-        min=0.0, max=100.0, mean=50.0, stddev=20.0,
-        p1=1.0, p5=5.0, p25=25.0, p50=50.0, p75=75.0, p95=95.0, p99=99.0,
-        skewness=0.1, kurtosis=2.8,
+        min=0.0,
+        max=100.0,
+        mean=50.0,
+        stddev=20.0,
+        p1=1.0,
+        p5=5.0,
+        p25=25.0,
+        p50=50.0,
+        p75=75.0,
+        p95=95.0,
+        p99=99.0,
+        skewness=0.1,
+        kurtosis=2.8,
         histogram_edges=[0.0, 25.0, 50.0, 75.0, 100.0],
         histogram_counts=[10, 30, 30, 10],
     )
@@ -54,21 +64,33 @@ def _categorical(**kw) -> CategoricalStats:
 
 def _col(name: str = "col_x", **kw) -> ColumnProfile:
     base = dict(
-        name=name, logical_type="integer", physical_type="INT",
-        nullable=True, null_count=0, null_pct=0.0,
-        distinct_count=100, distinct_pct=0.1,
+        name=name,
+        logical_type="integer",
+        physical_type="INT",
+        nullable=True,
+        null_count=0,
+        null_pct=0.0,
+        distinct_count=100,
+        distinct_pct=0.1,
     )
     base.update(kw)
     return ColumnProfile(**base)
 
 
-def _dataset(env: str = "TEST", cols: list[ColumnProfile] | None = None, **kw) -> DatasetProfile:
+def _dataset(
+    env: str = "TEST", cols: list[ColumnProfile] | None = None, **kw
+) -> DatasetProfile:
     if cols is None:
         cols = [_col("id"), _col("amount")]
     base = dict(
-        env_label=env, connection="local",
-        catalog="dev", schema="test_main_sales", table="orders",
-        row_count=1000, column_count=len(cols), columns=cols,
+        env_label=env,
+        connection="local",
+        catalog="dev",
+        schema="test_main_sales",
+        table="orders",
+        row_count=1000,
+        column_count=len(cols),
+        columns=cols,
     )
     base.update(kw)
     return DatasetProfile(**base)
@@ -212,8 +234,8 @@ class TestRenderDrift:
 
     def test_stable_column_excluded(self):
         comps = [
-            _comparison("amount", psi=0.25),   # significant — included
-            _comparison("id", psi=0.02),        # stable — excluded
+            _comparison("amount", psi=0.25),  # significant — included
+            _comparison("id", psi=0.02),  # stable — excluded
         ]
         run = _run(comparisons=comps)
         out = render_drift(run)
@@ -301,8 +323,8 @@ class TestIdentifierSafety:
         # line still shows the original catalog name for readability.
         profile = _dataset(catalog="my.catalog")
         out = render_side_schema(profile)
-        assert "tbl_" in out                      # identifier generated
-        assert "tbl_my.catalog" not in out        # raw dot never in an identifier
+        assert "tbl_" in out  # identifier generated
+        assert "tbl_my.catalog" not in out  # raw dot never in an identifier
 
     def test_spaces_in_name_replaced(self):
         cols = [_col("my col")]

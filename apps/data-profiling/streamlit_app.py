@@ -68,7 +68,8 @@ st.set_page_config(
 #   Charcoal       #2D3748  — primary text
 #   Off-white      #EEF3F8  — secondary backgrounds
 
-st.markdown("""
+st.markdown(
+    """
 <style>
 /* ── Brand header bar ─────────────────────────────────────────── */
 .synaptiq-header {
@@ -199,11 +200,14 @@ div[data-testid="stAlert"][data-type="success"] {
     background: #FDF5EE;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 # ---------------------------------------------------------------------------
 # Cached data loaders
+
 
 @st.cache_data(ttl=60)
 def _connections() -> List[Connection]:
@@ -223,10 +227,10 @@ def _table_has_meta_load(catalog: str, schema: str, table: str) -> bool:
     """Check if table has META_Load_DTTM column (via UC REST — no warehouse needed)."""
     try:
         from profiler.catalog import _workspace_client
+
         info = _workspace_client().tables.get(full_name=f"{catalog}.{schema}.{table}")
         return any(
-            (c.name or "").lower() == "meta_load_dttm"
-            for c in (info.columns or [])
+            (c.name or "").lower() == "meta_load_dttm" for c in (info.columns or [])
         )
     except Exception:
         return False
@@ -236,6 +240,7 @@ def _table_has_meta_load(catalog: str, schema: str, table: str) -> bool:
 def _load_dates_for_table(catalog: str, schema: str, table: str) -> List[str]:
     """Return distinct load dates from META_Load_DTTM, newest first."""
     from profiler.catalog import _runtime
+
     if _runtime() != "databricks":
         return []
     try:
@@ -312,7 +317,9 @@ def _table_picker(key: str, title: str = "", default_env_idx: int = 0) -> dict:
         catalogs = []
 
     catalog = st.selectbox(
-        "Catalog", options=catalogs, key=f"{key}_catalog",
+        "Catalog",
+        options=catalogs,
+        key=f"{key}_catalog",
         index=0 if catalogs else None,
     )
 
@@ -330,10 +337,14 @@ def _table_picker(key: str, title: str = "", default_env_idx: int = 0) -> dict:
             )
 
     if catalog and not schemas:
-        st.caption(f"No schemas visible in `{catalog}` — check service principal grants.")
+        st.caption(
+            f"No schemas visible in `{catalog}` — check service principal grants."
+        )
 
     schema = st.selectbox(
-        "Schema", options=schemas, key=f"{key}_schema",
+        "Schema",
+        options=schemas,
+        key=f"{key}_schema",
         index=0 if schemas else None,
         placeholder="— pick a schema —",
     )
@@ -350,7 +361,9 @@ def _table_picker(key: str, title: str = "", default_env_idx: int = 0) -> dict:
         st.caption(f"No tables in `{catalog}.{schema}`.")
 
     table = st.selectbox(
-        "Table", options=tables, key=f"{key}_table",
+        "Table",
+        options=tables,
+        key=f"{key}_table",
         index=0 if tables else None,
         placeholder="— pick a table —",
     )
@@ -397,17 +410,24 @@ def _sampling_section(key: str) -> tuple[str, int, str]:
             sampling_mode = st.selectbox(
                 "Mode",
                 options=["Full table", "Sample N rows", "Stratified by column"],
-                index=0, key=f"{key}_sampling_mode",
+                index=0,
+                key=f"{key}_sampling_mode",
             )
         with col2:
             sample_n = st.number_input(
-                "N rows", min_value=1_000, max_value=100_000_000, value=1_000_000, step=1_000,
+                "N rows",
+                min_value=1_000,
+                max_value=100_000_000,
+                value=1_000_000,
+                step=1_000,
                 disabled=(sampling_mode != "Sample N rows"),
                 key=f"{key}_sample_n",
             )
         with col3:
             stratify_by = st.text_input(
-                "Stratify column", value="", placeholder="e.g. region",
+                "Stratify column",
+                value="",
+                placeholder="e.g. region",
                 disabled=(sampling_mode != "Stratified by column"),
                 key=f"{key}_stratify",
             )
@@ -442,23 +462,35 @@ def _output_section(key: str) -> tuple[Optional[VolumeRef], str, str]:
 
     c1, c2, c3, c4 = st.columns([2, 2, 2, 3])
     with c1:
-        out_cat = st.selectbox("Catalog", options=local_cats,
-                               index=_idx(local_cats, def_cat) if local_cats else None,
-                               key=f"{key}_out_cat")
+        out_cat = st.selectbox(
+            "Catalog",
+            options=local_cats,
+            index=_idx(local_cats, def_cat) if local_cats else None,
+            key=f"{key}_out_cat",
+        )
     with c2:
         out_schs = list_schemas(local_conn, out_cat) if (local_conn and out_cat) else []
-        out_sch = st.selectbox("Schema", options=out_schs,
-                               index=_idx(out_schs, def_sch) if out_schs else None,
-                               key=f"{key}_out_sch")
+        out_sch = st.selectbox(
+            "Schema",
+            options=out_schs,
+            index=_idx(out_schs, def_sch) if out_schs else None,
+            key=f"{key}_out_sch",
+        )
     with c3:
         out_vols = list_volumes(out_cat, out_sch) if (out_cat and out_sch) else []
-        out_vol = st.selectbox("Volume", options=out_vols,
-                               index=0 if out_vols else None,
-                               key=f"{key}_out_vol")
+        out_vol = st.selectbox(
+            "Volume",
+            options=out_vols,
+            index=0 if out_vols else None,
+            key=f"{key}_out_vol",
+        )
     with c4:
-        run_label = st.text_input("Run label (optional)", value="",
-                                  key=f"{key}_run_label",
-                                  help="Appended to run folder name.")
+        run_label = st.text_input(
+            "Run label (optional)",
+            value="",
+            key=f"{key}_run_label",
+            help="Appended to run folder name.",
+        )
 
     if out_cat and out_sch and not out_vols:
         st.warning(
@@ -493,10 +525,10 @@ def _render_run_outputs(
     col1, col2, col3, col4 = st.columns(4)
 
     # Use neutral labels in profile mode; "Side A / Side B" only in compare mode
-    col1.metric("Side A rows"    if is_compare else "Rows",    f"{a.row_count:,}")
+    col1.metric("Side A rows" if is_compare else "Rows", f"{a.row_count:,}")
     col1.metric("Side A columns" if is_compare else "Columns", a.column_count)
     if b:
-        col2.metric("Side B rows",    f"{b.row_count:,}")
+        col2.metric("Side B rows", f"{b.row_count:,}")
         col2.metric("Side B columns", b.column_count)
 
     total_alerts_a = sum(len(c.alerts) for c in a.columns)
@@ -508,7 +540,8 @@ def _render_run_outputs(
     if is_compare and profiler_run.comparisons:
         changes = schema_change_counts(profiler_run.comparisons)
         n_drifted = sum(
-            1 for c in profiler_run.comparisons
+            1
+            for c in profiler_run.comparisons
             if c.verdict in ("moderate", "significant")
         )
         n_schema_changed = sum(v for k, v in changes.items() if k != "unchanged")
@@ -517,11 +550,19 @@ def _render_run_outputs(
 
     # Mermaid diagrams
     st.markdown("#### Schema diagrams")
-    mmd_tab_labels = ["Side A schema", "Side B schema", "Drift view"] if mode == "compare" else ["Schema"]
-    mmd_files = (["schema_a.mmd", "schema_b.mmd", "drift.mmd"]
-                 if mode == "compare" else ["schema_a.mmd"])
+    mmd_tab_labels = (
+        ["Side A schema", "Side B schema", "Drift view"]
+        if mode == "compare"
+        else ["Schema"]
+    )
+    mmd_files = (
+        ["schema_a.mmd", "schema_b.mmd", "drift.mmd"]
+        if mode == "compare"
+        else ["schema_a.mmd"]
+    )
 
     import html as _html
+
     mmd_tabs = st.tabs(mmd_tab_labels)
     for tab, fname in zip(mmd_tabs, mmd_files):
         with tab:
@@ -529,7 +570,8 @@ def _render_run_outputs(
             try:
                 mmd_src = read_text(path)
                 mmd_escaped = _html.escape(mmd_src)
-                components.html(f"""<!DOCTYPE html>
+                components.html(
+                    f"""<!DOCTYPE html>
 <html><head>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
 <style>
@@ -587,7 +629,8 @@ document.addEventListener('DOMContentLoaded',async function(){{
 }});
 </script>
 </body></html>""",
-                    height=580, scrolling=False,
+                    height=580,
+                    scrolling=False,
                 )
             except Exception as exc:
                 st.warning(f"`{fname}` — {exc}")
@@ -596,7 +639,8 @@ document.addEventListener('DOMContentLoaded',async function(){{
     st.markdown("#### Profile reports")
     html_files = (
         [("Side A", "profile_a.html"), ("Side B", "profile_b.html")]
-        if mode == "compare" else [("Profile", "profile_a.html")]
+        if mode == "compare"
+        else [("Profile", "profile_a.html")]
     )
     html_tabs = st.tabs([label for label, _ in html_files])
     for tab, (label, fname) in zip(html_tabs, html_files):
@@ -606,7 +650,9 @@ document.addEventListener('DOMContentLoaded',async function(){{
                 html_content = read_text(path)
                 components.html(html_content, height=800, scrolling=True)
             except Exception:
-                st.info(f"`{fname}` not yet available — profile may still be generating.")
+                st.info(
+                    f"`{fname}` not yet available — profile may still be generating."
+                )
 
     # Row diff results
     if row_diff is not None and mode == "compare":
@@ -615,17 +661,30 @@ document.addEventListener('DOMContentLoaded',async function(){{
             st.warning(f"Row diff error: {row_diff.error}")
         else:
             r1, r2, r3, r4 = st.columns(4)
-            r1.metric("Removed", f"{row_diff.rows_only_in_a:,}",
-                      help="Rows in Side A with no matching key in Side B")
-            r2.metric("Added",   f"{row_diff.rows_only_in_b:,}",
-                      help="Rows in Side B with no matching key in Side A")
-            r3.metric("Changed", f"{row_diff.rows_changed:,}",
-                      help="Rows with same key but different values")
-            r4.metric("Identical", f"{row_diff.rows_identical:,}",
-                      help="Rows with same key and identical values")
+            r1.metric(
+                "Removed",
+                f"{row_diff.rows_only_in_a:,}",
+                help="Rows in Side A with no matching key in Side B",
+            )
+            r2.metric(
+                "Added",
+                f"{row_diff.rows_only_in_b:,}",
+                help="Rows in Side B with no matching key in Side A",
+            )
+            r3.metric(
+                "Changed",
+                f"{row_diff.rows_changed:,}",
+                help="Rows with same key but different values",
+            )
+            r4.metric(
+                "Identical",
+                f"{row_diff.rows_identical:,}",
+                help="Rows with same key and identical values",
+            )
 
             if row_diff.has_differences:
                 import pandas as _pd
+
                 cols = row_diff.col_names or []
                 rdiff_tabs = st.tabs(["Removed", "Added", "Changed"])
                 with rdiff_tabs[0]:
@@ -653,14 +712,23 @@ document.addEventListener('DOMContentLoaded',async function(){{
                     else:
                         st.caption("No changed rows.")
             else:
-                st.success("All matched rows are identical — no row-level differences found.")
+                st.success(
+                    "All matched rows are identical — no row-level differences found."
+                )
 
     # Artifact paths
     with st.expander("Output file locations", expanded=False):
         st.code(folder.path, language="text")
-        for art in ["manifest.json", "metamodel.json", "ab_summary.xlsx",
-                    "profile_a.html", "profile_b.html",
-                    "schema_a.mmd", "schema_b.mmd", "drift.mmd"]:
+        for art in [
+            "manifest.json",
+            "metamodel.json",
+            "ab_summary.xlsx",
+            "profile_a.html",
+            "profile_b.html",
+            "schema_a.mmd",
+            "schema_b.mmd",
+            "drift.mmd",
+        ]:
             st.caption(f"`{folder.path}/{art}`")
 
 
@@ -675,6 +743,7 @@ def _exec_suggestion_sql(statement: str) -> any:
     """Run a SQL statement for suggestions via Statement Execution API."""
     import os as _os, time as _time
     from profiler.catalog import _workspace_client
+
     w = _workspace_client()
     wid = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
     result = w.statement_execution.execute_statement(
@@ -686,8 +755,11 @@ def _exec_suggestion_sql(statement: str) -> any:
         if "SUCCEEDED" in state:
             return result
         if any(s in state for s in ("FAILED", "CANCELLED", "CLOSED")):
-            err = (result.status.error.message
-                   if (result.status and result.status.error) else state)
+            err = (
+                result.status.error.message
+                if (result.status and result.status.error)
+                else state
+            )
             raise RuntimeError(err)
         if _time.time() > deadline:
             raise TimeoutError("Timed out after 2 minutes")
@@ -704,6 +776,7 @@ def _query_df(statement: str):
     don't re-hit the warehouse on every widget interaction.
     """
     import pandas as pd
+
     res = _exec_suggestion_sql(statement)
     schema = res.manifest.schema if (res.manifest and res.manifest.schema) else None
     cols = [c.name for c in schema.columns] if (schema and schema.columns) else []
@@ -716,6 +789,7 @@ def _submit_suggestion(name: str, suggestion: str) -> str:
     import uuid
     from datetime import datetime, timezone
     from profiler.catalog import _runtime
+
     if _runtime() != "databricks":
         return "Suggestions are only stored in Databricks mode."
     sid = str(uuid.uuid4())
@@ -742,6 +816,7 @@ def _submit_suggestion(name: str, suggestion: str) -> str:
 def _load_suggestions() -> list:
     """Return up to 20 most-recent suggestions."""
     from profiler.catalog import _runtime
+
     if _runtime() != "databricks":
         return []
     try:
@@ -764,6 +839,7 @@ def _load_suggestions() -> list:
 def _load_run_history(limit: int = 20) -> list[dict]:
     """Query the governance Delta tables for recent run summaries."""
     from profiler.catalog import _runtime
+
     if _runtime() != "databricks":
         return []
     try:
@@ -814,17 +890,17 @@ def _load_run_history(limit: int = 20) -> list[dict]:
 def _render_run_card(run: dict) -> None:
     """Render a compact run summary card in the sidebar."""
     created = str(run.get("created_utc", ""))[:16].replace("T", " ")
-    label   = run.get("run_label") or ""
-    a_fqn   = str(run.get("side_a_fqn", ""))
-    b_fqn   = str(run.get("side_b_fqn", ""))
+    label = run.get("run_label") or ""
+    a_fqn = str(run.get("side_a_fqn", ""))
+    b_fqn = str(run.get("side_b_fqn", ""))
     # Show just table name for brevity
     a_short = a_fqn.split(".")[-1] if a_fqn else "?"
     b_short = b_fqn.split(".")[-1] if b_fqn else "?"
-    rows_a  = int(run.get("rows_a", 0))
-    rows_b  = int(run.get("rows_b", 0))
+    rows_a = int(run.get("rows_a", 0))
+    rows_b = int(run.get("rows_b", 0))
     drifted = int(run.get("drifted_cols", 0))
-    schema  = int(run.get("schema_changes", 0))
-    alerts  = int(run.get("alerts_a", 0)) + int(run.get("alerts_b", 0))
+    schema = int(run.get("schema_changes", 0))
+    alerts = int(run.get("alerts_a", 0)) + int(run.get("alerts_b", 0))
 
     drift_colour = "#e74c3c" if drifted > 0 else "#27ae60"
     title = f"{a_short} vs {b_short}" + (f" — {label}" if label else "")
@@ -849,14 +925,17 @@ def _render_run_card(run: dict) -> None:
 
 
 def _sidebar():
-    st.sidebar.markdown("""
+    st.sidebar.markdown(
+        """
 <div style='text-align:center; padding: 0.5rem 0 0.8rem 0;'>
   <div style='font-size:1.1rem; font-weight:700; letter-spacing:0.05em;
               color:#FFFFFF;'>Synaptiq</div>
   <div style='font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase;
               color:rgba(255,255,255,0.65); margin-top:2px;'>Data Profiling Tool</div>
 </div>
-""", unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )
     st.sidebar.divider()
 
     with st.sidebar.expander("Run history", expanded=False):
@@ -939,6 +1018,7 @@ _logo_col, _spacer_col, _dash_col = st.columns([2, 6, 2])
 
 with _logo_col:
     import os as _os
+
     _logo_path = _os.path.join(_os.path.dirname(__file__), "assets", "Synaptiq_001.png")
     if _os.path.exists(_logo_path):
         st.image(_logo_path, width=150)
@@ -965,7 +1045,8 @@ with _dash_col:
     )
 
 # Blue brand header bar (logo mark removed — replaced by image above)
-st.markdown("""
+st.markdown(
+    """
 <div class="synaptiq-header" style="margin-top:6px;">
   <div>
     <div class="synaptiq-wordmark">Synaptiq</div>
@@ -975,7 +1056,9 @@ st.markdown("""
     <div class="synaptiq-product-name">Data Profiling Tool</div>
   </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 st.caption(
     "Profile Unity Catalog tables and surface data quality issues. "
@@ -1004,22 +1087,30 @@ if _runtime_mode == "databricks":
                     with st.spinner(f"Starting warehouse `{_warehouse_id}` …"):
                         import time as _time
                         from datetime import timedelta as _td
+
                         _t0 = _time.time()
                         try:
                             from profiler.catalog import _workspace_client
+
                             _w = _workspace_client()
                             # Check current state (requires CAN USE or CAN MANAGE).
                             try:
                                 _wh = _w.warehouses.get(id=_warehouse_id)
-                                _state = str(_wh.state).upper() if _wh.state else "UNKNOWN"
+                                _state = (
+                                    str(_wh.state).upper() if _wh.state else "UNKNOWN"
+                                )
                             except Exception:
                                 _state = "UNKNOWN"
 
                             if "RUNNING" in _state:
-                                st.success(f"✅ Warehouse already RUNNING — ready immediately.")
+                                st.success(
+                                    f"✅ Warehouse already RUNNING — ready immediately."
+                                )
                                 st.session_state["compute_warmed"] = True
                             else:
-                                st.caption(f"Warehouse state: **{_state}**. Attempting to start …")
+                                st.caption(
+                                    f"Warehouse state: **{_state}**. Attempting to start …"
+                                )
                                 try:
                                     _w.warehouses.start(id=_warehouse_id)
                                     _w.warehouses.wait_get_warehouse_running(
@@ -1027,7 +1118,9 @@ if _runtime_mode == "databricks":
                                         timeout=_td(minutes=10),
                                     )
                                     _elapsed = _time.time() - _t0
-                                    st.success(f"✅ Warehouse RUNNING — took {_elapsed:.1f}s. Run your comparison now.")
+                                    st.success(
+                                        f"✅ Warehouse RUNNING — took {_elapsed:.1f}s. Run your comparison now."
+                                    )
                                     st.session_state["compute_warmed"] = True
                                 except Exception as _start_exc:
                                     st.warning(
@@ -1055,13 +1148,15 @@ if _runtime_mode == "databricks":
 st.divider()
 _GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "")
 
-tab_compare, tab_profile, tab_genie, tab_load, tab_guidebook = st.tabs([
-    "⚖️  Compare two tables",
-    "🔍  Profile table(s)",
-    "🤖  Ask Genie",
-    "📥  Load Results",
-    "📖  Guidebook",
-])
+tab_compare, tab_profile, tab_genie, tab_load, tab_guidebook = st.tabs(
+    [
+        "⚖️  Compare two tables",
+        "🔍  Profile table(s)",
+        "🤖  Ask Genie",
+        "📥  Load Results",
+        "📖  Guidebook",
+    ]
+)
 
 
 # ===========================================================================
@@ -1086,15 +1181,23 @@ with tab_compare:
     with col_a:
         try:
             idx_a = _cmp_labels.index("PROD") if "PROD" in _cmp_labels else 0
-            _default_a = _table_picker("cmp_a", title="Side A — baseline", default_env_idx=idx_a)
+            _default_a = _table_picker(
+                "cmp_a", title="Side A — baseline", default_env_idx=idx_a
+            )
         except Exception as exc:  # noqa: BLE001
             st.error(f"Side A error: {exc}")
             st.code(traceback.format_exc(), language="python")
 
     with col_b:
         try:
-            idx_b = _cmp_labels.index("TEST") if "TEST" in _cmp_labels else min(1, len(_cmp_labels) - 1)
-            _default_b = _table_picker("cmp_b", title="Side B — candidate / TEST", default_env_idx=idx_b)
+            idx_b = (
+                _cmp_labels.index("TEST")
+                if "TEST" in _cmp_labels
+                else min(1, len(_cmp_labels) - 1)
+            )
+            _default_b = _table_picker(
+                "cmp_b", title="Side B — candidate / TEST", default_env_idx=idx_b
+            )
         except Exception as exc:  # noqa: BLE001
             st.error(f"Side B error: {exc}")
             st.code(traceback.format_exc(), language="python")
@@ -1113,7 +1216,9 @@ with tab_compare:
                 "Aggregate + distributions + schema diff",
                 "Include row-level diff (requires row key)",
             ],
-            index=0, horizontal=False, key="cmp_depth",
+            index=0,
+            horizontal=False,
+            key="cmp_depth",
         )
         with_row_level = depth.startswith("Include row-level")
         row_keys: List[str] = []
@@ -1129,8 +1234,12 @@ with tab_compare:
                 row_keys = [k.strip() for k in keys_str.split(",") if k.strip()]
             with ck2:
                 max_mismatches = st.number_input(
-                    "Max sample mismatches", min_value=10, max_value=10_000,
-                    value=100, step=10, key="cmp_max_mm",
+                    "Max sample mismatches",
+                    min_value=10,
+                    max_value=10_000,
+                    value=100,
+                    step=10,
+                    key="cmp_max_mm",
                 )
 
     cmp_sampling_mode, cmp_sample_n, cmp_stratify = _sampling_section("cmp")
@@ -1146,7 +1255,9 @@ with tab_compare:
     # ---- Validate + Run ----
     st.subheader("4. Run")
     cmp_col_v, cmp_col_r, _ = st.columns([1, 1, 3])
-    cmp_validate = cmp_col_v.button("Validate", type="secondary", key="cmp_validate_btn")
+    cmp_validate = cmp_col_v.button(
+        "Validate", type="secondary", key="cmp_validate_btn"
+    )
     cmp_run = cmp_col_r.button(
         "Run compare",
         type="primary",
@@ -1160,8 +1271,12 @@ with tab_compare:
         msgs: List[str] = []
         ok = True
         for side, label in [(side_a, "A"), (side_b, "B")]:
-            if not all([side["connection"], side["catalog"], side["schema"], side["table"]]):
-                msgs.append(f"❌ Side {label}: catalog/schema/table not fully selected.")
+            if not all(
+                [side["connection"], side["catalog"], side["schema"], side["table"]]
+            ):
+                msgs.append(
+                    f"❌ Side {label}: catalog/schema/table not fully selected."
+                )
                 ok = False
         if cmp_vol_ref is None:
             msgs.append("❌ Output volume not selected.")
@@ -1172,8 +1287,12 @@ with tab_compare:
         if not ok:
             return ok, msgs
         for side, label in [(side_a, "A"), (side_b, "B")]:
-            ref = TableRef(connection=side["connection"].name,
-                           catalog=side["catalog"], schema=side["schema"], table=side["table"])
+            ref = TableRef(
+                connection=side["connection"].name,
+                catalog=side["catalog"],
+                schema=side["schema"],
+                table=side["table"],
+            )
             try:
                 rc = describe_table(ref)
                 msgs.append(
@@ -1222,20 +1341,29 @@ with tab_compare:
                     st.error(f"❌ Cannot write to volume: {exc}")
                     raise
 
-                _sample_n = cmp_sample_n if cmp_sampling_mode == "Sample N rows" else None
+                _sample_n = (
+                    cmp_sample_n if cmp_sampling_mode == "Sample N rows" else None
+                )
 
                 t_profile = time.time()
                 st.caption("⏳ Step 1/5: profiling Side A …")
                 try:
                     dataset_a = profile_table(
-                        ref=TableRef(connection=side_a["connection"].name,
-                                     catalog=side_a["catalog"], schema=side_a["schema"],
-                                     table=side_a["table"]),
-                        env_label=side_a["env_label"], folder=folder,
-                        html_filename="profile_a.html", sample_n=_sample_n,
+                        ref=TableRef(
+                            connection=side_a["connection"].name,
+                            catalog=side_a["catalog"],
+                            schema=side_a["schema"],
+                            table=side_a["table"],
+                        ),
+                        env_label=side_a["env_label"],
+                        folder=folder,
+                        html_filename="profile_a.html",
+                        sample_n=_sample_n,
                         load_date=side_a.get("load_date"),
                     )
-                    st.caption(f"✅ Step 1/5: Side A — {dataset_a.row_count:,} rows, {dataset_a.column_count} cols")
+                    st.caption(
+                        f"✅ Step 1/5: Side A — {dataset_a.row_count:,} rows, {dataset_a.column_count} cols"
+                    )
                 except Exception as exc:
                     st.error(f"❌ Step 1/5 failed — {exc}")
                     st.code(traceback.format_exc(), language="python")
@@ -1244,14 +1372,21 @@ with tab_compare:
                 st.caption("⏳ Step 2/5: profiling Side B …")
                 try:
                     dataset_b = profile_table(
-                        ref=TableRef(connection=side_b["connection"].name,
-                                     catalog=side_b["catalog"], schema=side_b["schema"],
-                                     table=side_b["table"]),
-                        env_label=side_b["env_label"], folder=folder,
-                        html_filename="profile_b.html", sample_n=_sample_n,
+                        ref=TableRef(
+                            connection=side_b["connection"].name,
+                            catalog=side_b["catalog"],
+                            schema=side_b["schema"],
+                            table=side_b["table"],
+                        ),
+                        env_label=side_b["env_label"],
+                        folder=folder,
+                        html_filename="profile_b.html",
+                        sample_n=_sample_n,
                         load_date=side_b.get("load_date"),
                     )
-                    st.caption(f"✅ Step 2/5: Side B — {dataset_b.row_count:,} rows, {dataset_b.column_count} cols")
+                    st.caption(
+                        f"✅ Step 2/5: Side B — {dataset_b.row_count:,} rows, {dataset_b.column_count} cols"
+                    )
                 except Exception as exc:
                     st.error(f"❌ Step 2/5 failed — {exc}")
                     st.code(traceback.format_exc(), language="python")
@@ -1269,12 +1404,14 @@ with tab_compare:
                     st.caption(f"⏳ Step 3b/5: row-level diff on keys {row_keys} …")
                     ref_a = TableRef(
                         connection=side_a["connection"].name,
-                        catalog=side_a["catalog"], schema=side_a["schema"],
+                        catalog=side_a["catalog"],
+                        schema=side_a["schema"],
                         table=side_a["table"],
                     )
                     ref_b = TableRef(
                         connection=side_b["connection"].name,
-                        catalog=side_b["catalog"], schema=side_b["schema"],
+                        catalog=side_b["catalog"],
+                        schema=side_b["schema"],
                         table=side_b["table"],
                     )
                     row_diff_result = compute_row_diff(
@@ -1291,9 +1428,12 @@ with tab_compare:
                         )
 
                 profiler_run = ProfilerRun(
-                    run_id=new_run_id(), run_label=cmp_run_label or None,
+                    run_id=new_run_id(),
+                    run_label=cmp_run_label or None,
                     created_utc=datetime.now(timezone.utc),
-                    side_a=dataset_a, side_b=dataset_b, comparisons=comparisons,
+                    side_a=dataset_a,
+                    side_b=dataset_b,
+                    comparisons=comparisons,
                     lineage=Lineage(
                         manifest="manifest.json",
                         html_profile_a="profile_a.html",
@@ -1303,7 +1443,9 @@ with tab_compare:
                 )
 
                 st.caption("⏳ Step 4/5: writing artifacts …")
-                with st.spinner("Writing Excel workbook, metamodel, and Mermaid diagrams …"):
+                with st.spinner(
+                    "Writing Excel workbook, metamodel, and Mermaid diagrams …"
+                ):
                     write_workbook(folder, profiler_run, row_diff=row_diff_result)
                     write_metamodel(folder, profiler_run)
                     write_json_schema(folder)
@@ -1311,26 +1453,35 @@ with tab_compare:
                     st.caption(f"✅ Artifacts written to `{folder.path}`")
 
                 manifest = new_manifest(
-                    run_id=folder.run_id, run_label=cmp_run_label or None,
-                    side_a=SideSpec(env_label=side_a["env_label"],
-                                    connection=side_a["connection"].name,
-                                    connection_type=side_a["connection"].type,
-                                    catalog=side_a["catalog"], schema=side_a["schema"],
-                                    table=side_a["table"],
-                                    row_count=dataset_a.row_count),
-                    side_b=SideSpec(env_label=side_b["env_label"],
-                                    connection=side_b["connection"].name,
-                                    connection_type=side_b["connection"].type,
-                                    catalog=side_b["catalog"], schema=side_b["schema"],
-                                    table=side_b["table"],
-                                    row_count=dataset_b.row_count),
+                    run_id=folder.run_id,
+                    run_label=cmp_run_label or None,
+                    side_a=SideSpec(
+                        env_label=side_a["env_label"],
+                        connection=side_a["connection"].name,
+                        connection_type=side_a["connection"].type,
+                        catalog=side_a["catalog"],
+                        schema=side_a["schema"],
+                        table=side_a["table"],
+                        row_count=dataset_a.row_count,
+                    ),
+                    side_b=SideSpec(
+                        env_label=side_b["env_label"],
+                        connection=side_b["connection"].name,
+                        connection_type=side_b["connection"].type,
+                        catalog=side_b["catalog"],
+                        schema=side_b["schema"],
+                        table=side_b["table"],
+                        row_count=dataset_b.row_count,
+                    ),
                     comparison=ComparisonParams(
                         depth="with_row_level" if with_row_level else "aggregate_only",
                         row_keys=row_keys,
                         max_sample_mismatches=int(max_mismatches),
-                        sampling_mode={"Full table": "full",
-                                       "Sample N rows": "sample_n",
-                                       "Stratified by column": "stratified"}[cmp_sampling_mode],
+                        sampling_mode={
+                            "Full table": "full",
+                            "Sample N rows": "sample_n",
+                            "Stratified by column": "stratified",
+                        }[cmp_sampling_mode],
                         sample_n=_sample_n,
                         stratify_by=cmp_stratify or None,
                     ),
@@ -1338,35 +1489,50 @@ with tab_compare:
                 )
                 manifest.add_timing("setup", time.time() - t0 - t_profiled)
                 manifest.add_timing("profiling", t_profiled)
-                for art in ["profile_a.html", "profile_b.html", "ab_summary.xlsx",
-                            "metamodel.json", "schema_a.mmd", "schema_b.mmd", "drift.mmd"]:
+                for art in [
+                    "profile_a.html",
+                    "profile_b.html",
+                    "ab_summary.xlsx",
+                    "metamodel.json",
+                    "schema_a.mmd",
+                    "schema_b.mmd",
+                    "drift.mmd",
+                ]:
                     manifest.add_artifact(art)
                 write_json(folder, "manifest.json", manifest.to_dict())
 
                 if os.environ.get("PROFILER_RUNTIME", "mock").lower() == "databricks":
                     try:
                         from profiler import delta_repo
+
                         delta_repo.ensure_tables(cmp_out_cat, cmp_out_sch)
                         delta_repo.ingest(profiler_run, cmp_out_cat, cmp_out_sch)
-                        st.caption(f"✅ Governance tables updated in `{cmp_out_cat}.{cmp_out_sch}`")
+                        st.caption(
+                            f"✅ Governance tables updated in `{cmp_out_cat}.{cmp_out_sch}`"
+                        )
                     except RuntimeError as exc:
                         # Grant errors surface here — ingest may have succeeded
                         msg = str(exc)
                         if "GRANT" in msg.upper() or "grant" in msg:
-                            st.warning(f"⚠️ Tables written but grants need admin help:\n{msg}")
+                            st.warning(
+                                f"⚠️ Tables written but grants need admin help:\n{msg}"
+                            )
                         else:
                             st.warning(f"Delta repo issue — {exc}")
                     except Exception as exc:  # noqa: BLE001
                         st.warning(f"Delta repo ingest skipped — {exc}")
                 else:
                     st.caption(
-                        f"⚠️ PROFILER_RUNTIME={os.environ.get('PROFILER_RUNTIME','NOT SET')} "
+                        f"⚠️ PROFILER_RUNTIME={os.environ.get('PROFILER_RUNTIME', 'NOT SET')} "
                         f"— Delta tables skipped (expected 'databricks')"
                     )
 
-                st.success(f"Compare run complete in {time.time() - t0:.1f}s — `{folder.folder_name}`")
-                _render_run_outputs(folder, profiler_run, mode="compare",
-                                    row_diff=row_diff_result)
+                st.success(
+                    f"Compare run complete in {time.time() - t0:.1f}s — `{folder.folder_name}`"
+                )
+                _render_run_outputs(
+                    folder, profiler_run, mode="compare", row_diff=row_diff_result
+                )
 
             except Exception:  # noqa: BLE001
                 st.error("Run failed.")
@@ -1404,8 +1570,11 @@ with tab_profile:
     if btn_col1.button("+ Add table", key="prf_add"):
         st.session_state["n_profile_tables"] += 1
         st.rerun()
-    if btn_col2.button("− Remove last", key="prf_rem",
-                       disabled=st.session_state["n_profile_tables"] <= 1):
+    if btn_col2.button(
+        "− Remove last",
+        key="prf_rem",
+        disabled=st.session_state["n_profile_tables"] <= 1,
+    ):
         st.session_state["n_profile_tables"] -= 1
         st.rerun()
 
@@ -1426,7 +1595,9 @@ with tab_profile:
     # ---- Validate + Run ----
     st.subheader("4. Run")
     prf_col_v, prf_col_r, _ = st.columns([1, 1, 3])
-    prf_validate = prf_col_v.button("Validate", type="secondary", key="prf_validate_btn")
+    prf_validate = prf_col_v.button(
+        "Validate", type="secondary", key="prf_validate_btn"
+    )
     prf_run = prf_col_r.button(
         "Run profile",
         type="primary",
@@ -1440,7 +1611,9 @@ with tab_profile:
         msgs: List[str] = []
         ok = True
         for i, side in enumerate(profile_sides):
-            if not all([side["connection"], side["catalog"], side["schema"], side["table"]]):
+            if not all(
+                [side["connection"], side["catalog"], side["schema"], side["table"]]
+            ):
                 msgs.append(f"❌ Table {i + 1}: not fully selected.")
                 ok = False
         if prf_vol_ref is None:
@@ -1449,8 +1622,12 @@ with tab_profile:
         if not ok:
             return ok, msgs
         for i, side in enumerate(profile_sides):
-            ref = TableRef(connection=side["connection"].name,
-                           catalog=side["catalog"], schema=side["schema"], table=side["table"])
+            ref = TableRef(
+                connection=side["connection"].name,
+                catalog=side["catalog"],
+                schema=side["schema"],
+                table=side["table"],
+            )
             try:
                 rc = describe_table(ref)
                 msgs.append(
@@ -1480,7 +1657,9 @@ with tab_profile:
         with prf_status:
             t0 = time.time()
             try:
-                _sample_n = prf_sample_n if prf_sampling_mode == "Sample N rows" else None
+                _sample_n = (
+                    prf_sample_n if prf_sampling_mode == "Sample N rows" else None
+                )
 
                 for i, side in enumerate(profile_sides):
                     tbl_label = f"{side['catalog']}.{side['schema']}.{side['table']}"
@@ -1498,20 +1677,27 @@ with tab_profile:
 
                     with st.spinner(f"Profiling `{tbl_label}` …"):
                         dataset = profile_table(
-                            ref=TableRef(connection=side["connection"].name,
-                                         catalog=side["catalog"], schema=side["schema"],
-                                         table=side["table"]),
-                            env_label=side["env_label"], folder=folder,
-                            html_filename="profile_a.html", sample_n=_sample_n,
+                            ref=TableRef(
+                                connection=side["connection"].name,
+                                catalog=side["catalog"],
+                                schema=side["schema"],
+                                table=side["table"],
+                            ),
+                            env_label=side["env_label"],
+                            folder=folder,
+                            html_filename="profile_a.html",
+                            sample_n=_sample_n,
                             load_date=side.get("load_date"),
                         )
 
                     # Build a single-side ProfilerRun (side_b mirrors side_a,
                     # comparisons empty — no cross-table diff in profile mode).
                     profiler_run = ProfilerRun(
-                        run_id=new_run_id(), run_label=prf_run_label or None,
+                        run_id=new_run_id(),
+                        run_label=prf_run_label or None,
                         created_utc=datetime.now(timezone.utc),
-                        side_a=dataset, side_b=dataset,
+                        side_a=dataset,
+                        side_b=dataset,
                         comparisons=[],
                         lineage=Lineage(
                             manifest="manifest.json",
@@ -1524,12 +1710,17 @@ with tab_profile:
                         write_json_schema(folder)
                         # Only the Side-A schema diagram is meaningful in profile mode
                         from profiler.mermaid import render_side_schema
+
                         schema_mmd = render_side_schema(dataset)
                         write_text(folder, "schema_a.mmd", schema_mmd)
 
-                    if os.environ.get("PROFILER_RUNTIME", "mock").lower() == "databricks":
+                    if (
+                        os.environ.get("PROFILER_RUNTIME", "mock").lower()
+                        == "databricks"
+                    ):
                         try:
                             from profiler import delta_repo
+
                             delta_repo.ensure_tables(prf_out_cat, prf_out_sch)
                             delta_repo.ingest(profiler_run, prf_out_cat, prf_out_sch)
                         except Exception as exc:  # noqa: BLE001
@@ -1542,7 +1733,9 @@ with tab_profile:
                     )
                     _render_run_outputs(folder, profiler_run, mode="profile")
 
-                st.success(f"All {n_tables} table(s) profiled in {time.time() - t0:.1f}s.")
+                st.success(
+                    f"All {n_tables} table(s) profiled in {time.time() - t0:.1f}s."
+                )
 
             except Exception:  # noqa: BLE001
                 st.error("Run failed.")
@@ -1564,7 +1757,7 @@ with tab_genie:
         st.warning(
             "**Genie Space ID not configured.**  \n"
             "Add `GENIE_SPACE_ID` to `app.yaml` → `env` section, then redeploy:\n"
-            "```yaml\n- name: GENIE_SPACE_ID\n  value: \"<your-space-id>\"\n```\n"
+            '```yaml\n- name: GENIE_SPACE_ID\n  value: "<your-space-id>"\n```\n'
             "Find your Space ID in the Databricks UI: "
             "**AI/BI → Genie Spaces → your space → URL contains the ID.**"
         )
@@ -1588,19 +1781,25 @@ with tab_genie:
         with gcol1:
             st.caption(
                 f"Space: `{_GENIE_SPACE_ID[:8]}...`  "
-                + ("| Conversation active" if st.session_state["genie_conv_id"] else "| New conversation")
+                + (
+                    "| Conversation active"
+                    if st.session_state["genie_conv_id"]
+                    else "| New conversation"
+                )
             )
 
         # Render conversation history
         for msg in st.session_state["genie_messages"]:
-            with st.chat_message(msg["role"],
-                                  avatar="🧑" if msg["role"] == "user" else "🤖"):
+            with st.chat_message(
+                msg["role"], avatar="🧑" if msg["role"] == "user" else "🤖"
+            ):
                 st.markdown(msg["content"])
                 if msg.get("sql"):
                     with st.expander("Generated SQL", expanded=False):
                         st.code(msg["sql"], language="sql")
                 if msg.get("rows") and msg.get("col_names"):
                     import pandas as _pd
+
                     st.dataframe(
                         _pd.DataFrame(msg["rows"], columns=msg["col_names"]),
                         use_container_width=True,
@@ -1635,9 +1834,12 @@ with tab_genie:
             # Render user bubble immediately
             with st.chat_message("user", avatar="🧑"):
                 st.markdown(prompt)
-            st.session_state["genie_messages"].append({
-                "role": "user", "content": prompt,
-            })
+            st.session_state["genie_messages"].append(
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            )
 
             # Render Genie response bubble
             with st.chat_message("assistant", avatar="🤖"):
@@ -1653,7 +1855,10 @@ with tab_genie:
                         if result.error:
                             response_text = f"⚠️ {result.error}"
                         else:
-                            response_text = result.text_response or "*(Genie returned no text — check the Generated SQL tab below for the query result)*"
+                            response_text = (
+                                result.text_response
+                                or "*(Genie returned no text — check the Generated SQL tab below for the query result)*"
+                            )
 
                         st.markdown(response_text)
 
@@ -1663,6 +1868,7 @@ with tab_genie:
 
                         if result.has_data:
                             import pandas as _pd
+
                             st.dataframe(
                                 _pd.DataFrame(result.rows, columns=result.col_names),
                                 use_container_width=True,
@@ -1671,28 +1877,37 @@ with tab_genie:
 
                         # Debug: show raw response structure when no text found
                         if not result.text_response and not result.error:
-                            with st.expander("Debug — raw Genie response", expanded=False):
-                                st.json({
-                                    "text_response": result.text_response,
-                                    "sql": result.sql,
-                                    "col_names": result.col_names,
-                                    "row_count": len(result.rows),
-                                })
+                            with st.expander(
+                                "Debug — raw Genie response", expanded=False
+                            ):
+                                st.json(
+                                    {
+                                        "text_response": result.text_response,
+                                        "sql": result.sql,
+                                        "col_names": result.col_names,
+                                        "row_count": len(result.rows),
+                                    }
+                                )
 
-                        st.session_state["genie_messages"].append({
-                            "role": "assistant",
-                            "content": response_text,
-                            "sql": result.sql,
-                            "rows": result.rows,
-                            "col_names": result.col_names,
-                        })
+                        st.session_state["genie_messages"].append(
+                            {
+                                "role": "assistant",
+                                "content": response_text,
+                                "sql": result.sql,
+                                "rows": result.rows,
+                                "col_names": result.col_names,
+                            }
+                        )
 
                     except Exception as exc:  # noqa: BLE001
                         err_msg = f"❌ Genie error: {exc}"
                         st.error(err_msg)
-                        st.session_state["genie_messages"].append({
-                            "role": "assistant", "content": err_msg,
-                        })
+                        st.session_state["genie_messages"].append(
+                            {
+                                "role": "assistant",
+                                "content": err_msg,
+                            }
+                        )
 
 
 # ===========================================================================
@@ -1797,13 +2012,14 @@ with tab_load:
             )
             st.dataframe(tbl, use_container_width=True, hide_index=True)
 
-            drift = tbl[
-                tbl["dropped_cols"].notna() | tbl["null_filled_cols"].notna()
-            ] if not tbl.empty else tbl
+            drift = (
+                tbl[tbl["dropped_cols"].notna() | tbl["null_filled_cols"].notna()]
+                if not tbl.empty
+                else tbl
+            )
             if not drift.empty:
                 st.caption(
-                    "⚠️ Schema drift detected on: "
-                    + ", ".join(drift["table"].tolist())
+                    "⚠️ Schema drift detected on: " + ", ".join(drift["table"].tolist())
                 )
 
             # ---- Validation issues -----------------------------------------
@@ -1824,17 +2040,30 @@ with tab_load:
             # ---- Trend across runs -----------------------------------------
             st.subheader("Trend across runs")
             trend = runs[
-                ["run_ts", "total_ingested_rows", "validation_errors", "validation_warnings"]
+                [
+                    "run_ts",
+                    "total_ingested_rows",
+                    "validation_errors",
+                    "validation_warnings",
+                ]
             ].copy()
-            for col in ("total_ingested_rows", "validation_errors", "validation_warnings"):
+            for col in (
+                "total_ingested_rows",
+                "validation_errors",
+                "validation_warnings",
+            ):
                 trend[col] = trend[col].apply(_num)
-            trend = trend.rename(
-                columns={
-                    "total_ingested_rows": "Ingested rows",
-                    "validation_errors": "Errors",
-                    "validation_warnings": "Warnings",
-                }
-            ).set_index("run_ts").sort_index()
+            trend = (
+                trend.rename(
+                    columns={
+                        "total_ingested_rows": "Ingested rows",
+                        "validation_errors": "Errors",
+                        "validation_warnings": "Warnings",
+                    }
+                )
+                .set_index("run_ts")
+                .sort_index()
+            )
             st.line_chart(trend[["Errors", "Warnings"]])
             st.line_chart(trend[["Ingested rows"]])
 
@@ -1843,12 +2072,16 @@ with tab_load:
             ].copy()
             for col in ("total_promoted_inserted", "total_promoted_updated"):
                 prom_trend[col] = prom_trend[col].apply(_num)
-            prom_trend = prom_trend.rename(
-                columns={
-                    "total_promoted_inserted": "Promoted (inserted)",
-                    "total_promoted_updated": "Promoted (updated)",
-                }
-            ).set_index("run_ts").sort_index()
+            prom_trend = (
+                prom_trend.rename(
+                    columns={
+                        "total_promoted_inserted": "Promoted (inserted)",
+                        "total_promoted_updated": "Promoted (updated)",
+                    }
+                )
+                .set_index("run_ts")
+                .sort_index()
+            )
             st.line_chart(prom_trend)
 
 
@@ -2124,4 +2357,3 @@ with tab_guidebook:
         if _cached_site:
             st.divider()
             _render_guidebook_site(_cached_site)
-

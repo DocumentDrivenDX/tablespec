@@ -276,17 +276,19 @@ After modifying any of these paths, stage and commit them:
 - Run `ddx doctor` to check environment health.
 - Run `ddx doc stale` to find documents needing review.
 
-## Vendored code: `apps/data-profiling/`
+## The Databricks App: `apps/data-profiling/`
 
-A `git subtree` of `FocusedDiversity/data-profiling-dbx-app` (Streamlit
-Databricks App), relicensed Apache-2.0 — see `NOTICE`.
+A Streamlit Databricks App maintained in this repository — first-party code under
+the same Apache-2.0 license as the library. `NOTICE` records that it began life in
+a separate repository.
 
-- It is **excluded from ruff, pyright, and pytest** (`[tool.ruff]
-  extend-exclude = ["apps"]`; pyright scopes to `src/`; pytest to `tests/`).
-  Do not "fix" its style: byte-identical files keep `git subtree pull` clean.
+- **Formatting:** `ruff format` covers it, like everything else.
+- **Lint / type-check / test:** `make lint` and `make test` scope to `src/`,
+  `scripts/`, and `tests/`; pyright scopes to `src/`. The app is not in those gates
+  yet. Run its own suite from its directory:
+  `cd apps/data-profiling && pytest tests/`.
 - It has its own `CLAUDE.md` with its own conventions (e.g. no emojis in code).
   Honor those inside that tree.
-- Pull upstream: `git subtree pull --prefix=apps/data-profiling dpa main --squash`
 - Library changes it depends on belong in `src/tablespec/`, not in the app.
 - See `docs/guide/data-profiling-app.md` for architecture and deployment.
 

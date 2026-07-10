@@ -31,9 +31,19 @@ from profiler.storage import RunFolder
 
 def _numeric(**kw) -> NumericStats:
     base = dict(
-        min=0.0, max=100.0, mean=50.0, stddev=20.0,
-        p1=1.0, p5=5.0, p25=25.0, p50=50.0, p75=75.0, p95=95.0, p99=99.0,
-        skewness=0.5, kurtosis=3.0,
+        min=0.0,
+        max=100.0,
+        mean=50.0,
+        stddev=20.0,
+        p1=1.0,
+        p5=5.0,
+        p25=25.0,
+        p50=50.0,
+        p75=75.0,
+        p95=95.0,
+        p99=99.0,
+        skewness=0.5,
+        kurtosis=3.0,
         histogram_edges=[0.0, 50.0, 100.0],
         histogram_counts=[40, 60],
     )
@@ -47,21 +57,32 @@ def _cat(**kw) -> CategoricalStats:
     return CategoricalStats(**base)
 
 
-def _col(name: str, logical_type: str = "string", nullable: bool = True, **kw) -> ColumnProfile:
+def _col(
+    name: str, logical_type: str = "string", nullable: bool = True, **kw
+) -> ColumnProfile:
     return ColumnProfile(
-        name=name, logical_type=logical_type,
+        name=name,
+        logical_type=logical_type,
         physical_type=logical_type.upper(),
-        nullable=nullable, null_count=0, null_pct=0.0,
-        distinct_count=10, distinct_pct=0.1,
+        nullable=nullable,
+        null_count=0,
+        null_pct=0.0,
+        distinct_count=10,
+        distinct_pct=0.1,
         **kw,
     )
 
 
 def _dataset(cols: list[ColumnProfile], env: str = "PROD") -> DatasetProfile:
     return DatasetProfile(
-        env_label=env, connection="local",
-        catalog="dev", schema="prod_main_claims", table="medical_claim",
-        row_count=50_000, column_count=len(cols), columns=cols,
+        env_label=env,
+        connection="local",
+        catalog="dev",
+        schema="prod_main_claims",
+        table="medical_claim",
+        row_count=50_000,
+        column_count=len(cols),
+        columns=cols,
     )
 
 
@@ -81,9 +102,14 @@ def _run(tmp_path: Path) -> tuple[ProfilerRun, RunFolder]:
     ]
     side_a = _dataset(cols_a, "PROD")
     side_b = DatasetProfile(
-        env_label="TEST", connection="local",
-        catalog="dev", schema="test_main_claims", table="medical_claim",
-        row_count=50_000, column_count=len(cols_b), columns=cols_b,
+        env_label="TEST",
+        connection="local",
+        catalog="dev",
+        schema="test_main_claims",
+        table="medical_claim",
+        row_count=50_000,
+        column_count=len(cols_b),
+        columns=cols_b,
     )
     comparisons = compare_tables(side_a, side_b)
     run = ProfilerRun(
@@ -171,8 +197,12 @@ class TestOverviewSheet:
         return openpyxl.load_workbook(path)["Overview"]
 
     def _cell_values(self, ws) -> set[str]:
-        return {str(ws.cell(r, c).value) for r in range(1, ws.max_row + 1)
-                for c in range(1, ws.max_column + 1) if ws.cell(r, c).value is not None}
+        return {
+            str(ws.cell(r, c).value)
+            for r in range(1, ws.max_row + 1)
+            for c in range(1, ws.max_column + 1)
+            if ws.cell(r, c).value is not None
+        }
 
     def test_contains_run_id(self, tmp_path):
         run, folder = _run(tmp_path)
@@ -203,10 +233,12 @@ class TestSchemaDiffSheet:
         return openpyxl.load_workbook(path)["SchemaDiff"]
 
     def _all_values(self, ws) -> list[str]:
-        return [str(ws.cell(r, c).value)
-                for r in range(1, ws.max_row + 1)
-                for c in range(1, ws.max_column + 1)
-                if ws.cell(r, c).value is not None]
+        return [
+            str(ws.cell(r, c).value)
+            for r in range(1, ws.max_row + 1)
+            for c in range(1, ws.max_column + 1)
+            if ws.cell(r, c).value is not None
+        ]
 
     def test_header_row_present(self, tmp_path):
         ws = self._ws(tmp_path)
@@ -241,10 +273,12 @@ class TestColumnMetricsSheet:
         return openpyxl.load_workbook(path)["ColumnMetrics"]
 
     def _all_values(self, ws) -> list[str]:
-        return [str(ws.cell(r, c).value)
-                for r in range(1, ws.max_row + 1)
-                for c in range(1, ws.max_column + 1)
-                if ws.cell(r, c).value is not None]
+        return [
+            str(ws.cell(r, c).value)
+            for r in range(1, ws.max_row + 1)
+            for c in range(1, ws.max_column + 1)
+            if ws.cell(r, c).value is not None
+        ]
 
     def test_charge_amount_column_present(self, tmp_path):
         assert "charge_amount" in self._all_values(self._ws(tmp_path))
@@ -271,10 +305,12 @@ class TestAlertsSheet:
         return openpyxl.load_workbook(path)["Alerts"]
 
     def _all_values(self, ws) -> list[str]:
-        return [str(ws.cell(r, c).value)
-                for r in range(1, ws.max_row + 1)
-                for c in range(1, ws.max_column + 1)
-                if ws.cell(r, c).value is not None]
+        return [
+            str(ws.cell(r, c).value)
+            for r in range(1, ws.max_row + 1)
+            for c in range(1, ws.max_column + 1)
+            if ws.cell(r, c).value is not None
+        ]
 
     def test_alert_rule_present(self, tmp_path):
         assert "missing" in self._all_values(self._ws(tmp_path))

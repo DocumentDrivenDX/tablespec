@@ -47,8 +47,8 @@ METAMODEL_VERSION: str = "1.0"
 HISTOGRAM_MAX_BINS: int = 50
 
 # Standard credit-risk PSI thresholds.
-PSI_STABLE_MAX: float = 0.1     # PSI < 0.1 → stable
-PSI_MODERATE_MAX: float = 0.2   # 0.1 ≤ PSI < 0.2 → moderate; ≥ 0.2 → significant
+PSI_STABLE_MAX: float = 0.1  # PSI < 0.1 → stable
+PSI_MODERATE_MAX: float = 0.2  # 0.1 ≤ PSI < 0.2 → moderate; ≥ 0.2 → significant
 
 
 # ---------------------------------------------------------------------------
@@ -94,16 +94,18 @@ Verdict = Literal["stable", "moderate", "significant", "schema_change"]
 # ---------------------------------------------------------------------------
 # Base class — shared config for every model
 
+
 class _Base(BaseModel):
     model_config = ConfigDict(
-        populate_by_name=True,        # accept either field name OR alias on input
+        populate_by_name=True,  # accept either field name OR alias on input
         str_strip_whitespace=True,
-        extra="ignore",               # forward-compat: drop unknown fields silently
+        extra="ignore",  # forward-compat: drop unknown fields silently
     )
 
 
 # ---------------------------------------------------------------------------
 # Per-column statistics
+
 
 class NumericStats(_Base):
     """Descriptive statistics for a numeric column.
@@ -125,7 +127,9 @@ class NumericStats(_Base):
     p99: float
     skewness: float
     kurtosis: float
-    histogram_edges: list[float] = Field(min_length=2, max_length=HISTOGRAM_MAX_BINS + 1)
+    histogram_edges: list[float] = Field(
+        min_length=2, max_length=HISTOGRAM_MAX_BINS + 1
+    )
     histogram_counts: list[int] = Field(min_length=1, max_length=HISTOGRAM_MAX_BINS)
 
     @model_validator(mode="after")
@@ -169,6 +173,7 @@ class CategoricalStats(_Base):
 # ---------------------------------------------------------------------------
 # Alerts
 
+
 class Alert(_Base):
     rule: AlertRule
     severity: AlertSeverity
@@ -178,10 +183,11 @@ class Alert(_Base):
 # ---------------------------------------------------------------------------
 # Column-level profile
 
+
 class ColumnProfile(_Base):
     name: str
-    logical_type: str          # e.g. "integer", "string", "decimal(10,2)"
-    physical_type: str         # e.g. "INT", "STRING", "DECIMAL(10,2)"
+    logical_type: str  # e.g. "integer", "string", "decimal(10,2)"
+    physical_type: str  # e.g. "INT", "STRING", "DECIMAL(10,2)"
     nullable: bool
     null_count: int = Field(ge=0)
     null_pct: float = Field(ge=0.0, le=1.0)
@@ -204,11 +210,12 @@ class ColumnProfile(_Base):
 # ---------------------------------------------------------------------------
 # Per-dataset (per-side) profile
 
+
 class DatasetProfile(_Base):
     env_label: str
     connection: str
     catalog: str
-    schema_: str = Field(alias="schema")    # `schema` is reserved-ish in some contexts
+    schema_: str = Field(alias="schema")  # `schema` is reserved-ish in some contexts
     table: str
     row_count: int = Field(ge=0)
     column_count: int = Field(ge=0)
@@ -232,6 +239,7 @@ class DatasetProfile(_Base):
 
 # ---------------------------------------------------------------------------
 # Cross-side column comparison
+
 
 class ColumnComparison(_Base):
     """Drift + schema-change verdict for a single column across two sides.
@@ -294,6 +302,7 @@ def verdict_from_psi(
 # ---------------------------------------------------------------------------
 # Lineage block — references to sibling artifacts in the same run folder
 
+
 class Lineage(_Base):
     """Pointers to sibling artifacts in the run folder.
 
@@ -312,6 +321,7 @@ class Lineage(_Base):
 
 # ---------------------------------------------------------------------------
 # Root model
+
 
 class ProfilerRun(_Base):
     metamodel_version: str = METAMODEL_VERSION
@@ -333,6 +343,7 @@ class ProfilerRun(_Base):
 # ---------------------------------------------------------------------------
 # Helpers exported for callers
 
+
 def schema_for_current_version() -> dict[str, Any]:
     """Return the JSON Schema for ProfilerRun at the current METAMODEL_VERSION.
 
@@ -352,15 +363,9 @@ def new_run_id() -> UUID:
          2 bits  variant (= 0b10)
         62 bits  rand_b
     """
-    ts_ms = int(time.time() * 1000) & 0xFFFFFFFFFFFF      # 48 bits
+    ts_ms = int(time.time() * 1000) & 0xFFFFFFFFFFFF  # 48 bits
     rand_a = int.from_bytes(os.urandom(2), "big") & 0x0FFF  # 12 bits
     rand_b = int.from_bytes(os.urandom(8), "big") & 0x3FFFFFFFFFFFFFFF  # 62 bits
 
-    value = (
-        (ts_ms << 80)
-        | (0x7 << 76)
-        | (rand_a << 64)
-        | (0x2 << 62)
-        | rand_b
-    )
+    value = (ts_ms << 80) | (0x7 << 76) | (rand_a << 64) | (0x2 << 62) | rand_b
     return UUID(int=value)

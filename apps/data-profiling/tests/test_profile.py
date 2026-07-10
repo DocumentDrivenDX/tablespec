@@ -40,11 +40,22 @@ from profiler.storage import RunFolder
 # ---------------------------------------------------------------------------
 # Helpers
 
+
 def _num_stats(**kw) -> NumericStats:
     base = dict(
-        min=0.0, max=100.0, mean=50.0, stddev=20.0,
-        p1=1.0, p5=5.0, p25=25.0, p50=50.0, p75=75.0, p95=95.0, p99=99.0,
-        skewness=0.2, kurtosis=2.8,
+        min=0.0,
+        max=100.0,
+        mean=50.0,
+        stddev=20.0,
+        p1=1.0,
+        p5=5.0,
+        p25=25.0,
+        p50=50.0,
+        p75=75.0,
+        p95=95.0,
+        p99=99.0,
+        skewness=0.2,
+        kurtosis=2.8,
         histogram_edges=[0.0, 50.0, 100.0],
         histogram_counts=[40, 60],
     )
@@ -165,10 +176,13 @@ class TestFireAlerts:
     def _base(self, **kw):
         defaults = dict(
             col_name="col_x",
-            null_pct=0.0, null_count=0,
-            distinct_count=50, distinct_pct=0.5,
+            null_pct=0.0,
+            null_count=0,
+            distinct_count=50,
+            distinct_pct=0.5,
             row_count=100,
-            numeric=None, categorical=None,
+            numeric=None,
+            categorical=None,
         )
         defaults.update(kw)
         return _fire_alerts(**defaults)
@@ -210,8 +224,10 @@ class TestFireAlerts:
     def test_unique_alert_categorical(self):
         cat = _cat_stats()
         alerts = self._base(
-            distinct_count=100, distinct_pct=1.0,
-            categorical=cat, row_count=100,
+            distinct_count=100,
+            distinct_pct=1.0,
+            categorical=cat,
+            row_count=100,
         )
         rules = [a.rule for a in alerts]
         assert "unique" in rules
@@ -252,9 +268,11 @@ class TestDetermineStereotypes:
     def _base(self, **kw):
         defaults = dict(
             null_pct=0.0,
-            distinct_count=50, distinct_pct=0.5,
+            distinct_count=50,
+            distinct_pct=0.5,
             row_count=100,
-            numeric=None, categorical=None,
+            numeric=None,
+            categorical=None,
         )
         defaults.update(kw)
         return _determine_stereotypes(**defaults)
