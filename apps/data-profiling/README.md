@@ -1,5 +1,19 @@
 # table-ab-profiler
 
+> **Provenance.** This directory is a vendored copy of
+> [FocusedDiversity/data-profiling-dbx-app](https://github.com/FocusedDiversity/data-profiling-dbx-app),
+> incorporated into tablespec via `git subtree` and relicensed under the Apache
+> License 2.0 (see the repository root `LICENSE` and `NOTICE`).
+>
+> Pull upstream changes with:
+>
+> ```bash
+> git subtree pull --prefix=apps/data-profiling dpa main --squash
+> ```
+>
+> While it lives under `apps/`, this tree is **excluded from tablespec's
+> ruff / pyright / pytest gates**. See `docs/guide/data-profiling-app.md`.
+
 A Databricks App that profiles two Unity Catalog tables and surfaces the
 differences. Built for an **Azure Databricks** deployment with separate
 workspaces per environment (TEST, PROD, …), all in the **same Databricks

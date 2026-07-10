@@ -1,0 +1,19 @@
+tablespec
+Copyright 2025-2026 The tablespec authors
+
+This product includes software developed by the tablespec authors,
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+--------------------------------------------------------------------------------
+Vendored components
+--------------------------------------------------------------------------------
+
+apps/data-profiling/
+    Originally developed as the standalone "data-profiling-dbx-app"
+    (https://github.com/FocusedDiversity/data-profiling-dbx-app), a Streamlit
+    Databricks App for Unity Catalog table profiling, comparison, drift metrics,
+    and data-quality governance.
+
+    Incorporated into this repository via `git subtree` with the copyright
+    holder's authorization, and relicensed under the Apache License,
+    Version 2.0, consistent with the rest of this project.

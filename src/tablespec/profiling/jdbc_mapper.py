@@ -39,7 +39,8 @@ from tablespec.ingestion.jdbc import (
     sanitize_identifier,
 )
 from tablespec.models.umf import UMF
-from tablespec.profiling.spark_mapper import SQL_TO_UMF_TYPE, SparkToUmfMapper
+from tablespec.profiling.spark_mapper import SparkToUmfMapper
+from tablespec.profiling.sql_reflect import normalize_sql_type
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame, SparkSession
@@ -107,14 +108,10 @@ _LENGTH_BEARING_TYPES = frozenset(
 def _normalize_declared_type(declared: str) -> str | None:
     """Map an INFORMATION_SCHEMA DATA_TYPE to a UMF type via SQL_TO_UMF_TYPE.
 
-    Reuses the existing SQL->UMF map (no second type-mapping seam): national
-    variants (``nchar``/``nvarchar``/``ntext``) resolve through their base
-    names.
+    Thin alias for :func:`tablespec.profiling.sql_reflect.normalize_sql_type`,
+    kept for the existing call sites. No second type-mapping seam.
     """
-    base = declared.strip().upper()
-    if base not in SQL_TO_UMF_TYPE and base.startswith("N"):
-        base = base[1:]
-    return SQL_TO_UMF_TYPE.get(base)
+    return normalize_sql_type(declared)
 
 
 class JdbcToUmfMapper:

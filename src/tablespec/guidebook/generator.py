@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 
 from tablespec.guidebook._styles import CSS
-from tablespec.guidebook.discovery import discover_umfs
+from tablespec.guidebook.discovery import discover_umfs, load_discovered_umf
 from tablespec.guidebook.index_renderer import (
     render_group_index,
     render_top_index_flat,
@@ -21,7 +21,6 @@ from tablespec.guidebook.index_renderer import (
 from tablespec.guidebook.renderer import render_table_page
 from tablespec.guidebook.reverse_lineage import build_reverse_lineage_index
 from tablespec.guidebook.search_index import build_search_index
-from tablespec.umf_loader import UMFLoader
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +59,14 @@ def generate(
     selected = [d for d in discovered if group is None or d.group == group]
     has_groups = any(d.group for d in discovered)
 
-    loader = UMFLoader()
     written: list[Path] = []
     # group -> [(table, table_type, description)] for index pages.
     per_group: dict[str, list[tuple[str, str, str | None]]] = {}
 
     for unit in selected:
         try:
-            umf = loader.load(unit.path)
+            # Same dispatch discovery used -- split dir / .umf.json / .umf.yaml.
+            umf = load_discovered_umf(unit.path)
             html = render_table_page(
                 umf,
                 reverse_index,

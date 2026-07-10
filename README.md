@@ -18,6 +18,7 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - **Sample Data Generation**: Healthcare-specific, constraint-aware sample data from UMF specs
 - **Domain Type Inference**: Automatic detection of domain types (SSN, NPI, phone, state codes, etc.)
 - **Change Management**: UMF diffing, atomic change application, and git-based changelogs
+- **Data Profiling App**: Streamlit Databricks App for profiling, drift, load results, and in-app guidebook (`apps/data-profiling/`)
 
 ## Demo
 
@@ -173,7 +174,8 @@ one page per table, with per-column lineage (upstream derivation sources and
 downstream consumers), validation rules, and a search index.
 
 ```bash
-# Point it at a directory of UMFs (split table.yaml dirs and/or *.umf.json)
+# Point it at a directory of UMFs
+# (split table.yaml dirs, *.umf.json, and/or *.umf.yaml)
 tablespec guidebook ./tables -o ./guidebook
 
 # Then open ./guidebook/index.html in a browser, or serve it:
@@ -210,6 +212,23 @@ generate_guidebook(root=Path("/tmp/catalog-umfs"), output_dir=Path("guidebook"))
 
 `JdbcToUmfMapper` / `SparkToUmfMapper` (in `tablespec[spark]`) are the lower-level
 entry points if you want to control UMF generation directly before rendering.
+
+**Without a Spark session** — e.g. inside a Databricks App, which has a SQL
+warehouse but no `SparkSession` — reflect a UMF from `INFORMATION_SCHEMA` rows
+instead. tablespec opens no connection; you supply the rows:
+
+```python
+from tablespec.profiling import umf_from_information_schema
+
+umf = umf_from_information_schema("encounter", rows)  # rows from your warehouse
+```
+
+### Data Profiling App
+
+`apps/data-profiling/` holds a Streamlit **Databricks App** that profiles and
+compares Unity Catalog tables, tracks drift, shows nightly load + validation
+results, and renders the guidebook in-app. See
+[the guide](https://documentdrivendx.github.io/tablespec/guide/data-profiling-app/).
 
 ## Documentation
 

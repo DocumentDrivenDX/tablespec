@@ -7,6 +7,9 @@ Components:
     - ``ProfileToGxMapper``: Generates GX expectations directly from profiling results.
     - ``SparkToUmfMapper``: Maps Spark DataFrame schema to UMF (requires pyspark).
 
+    - ``umf_from_information_schema``: Builds a UMF from INFORMATION_SCHEMA rows
+      with no Spark session (the Databricks Apps path).
+
 Type mappings:
     - ``SPARK_TO_UMF_TYPE``: Spark DataType class name → UMF data_type string.
     - ``SQL_TO_UMF_TYPE``: SQL/warehouse type name → UMF data_type string (for dbt, etc.).
@@ -16,6 +19,13 @@ Spark-dependent components require installing tablespec[spark]:
 """
 
 from tablespec.profiling.gx_expectation_builder import ProfileToGxMapper
+from tablespec.profiling.sql_reflect import (
+    SQL_TO_UMF_TYPE,
+    ColumnMeta,
+    column_meta_from_row,
+    normalize_sql_type,
+    umf_from_information_schema,
+)
 from tablespec.profiling.types import (
     ColumnProfile,
     DataFrameProfile,
@@ -24,22 +34,26 @@ from tablespec.profiling.types import (
 )
 
 __all__ = [
+    "SQL_TO_UMF_TYPE",
+    "ColumnMeta",
     "ColumnProfile",
     "DataFrameProfile",
     "KeyCandidate",
     "KeyCandidateEvidence",
     "ProfileToGxMapper",
+    "column_meta_from_row",
+    "normalize_sql_type",
+    "umf_from_information_schema",
 ]
 
-# SparkToUmfMapper and type mapping dicts are available only if pyspark is installed
+# SparkToUmfMapper is available only if pyspark is installed.
 try:
     from tablespec.profiling.spark_mapper import (  # noqa: F401
         SPARK_TO_UMF_TYPE,
-        SQL_TO_UMF_TYPE,
         SparkToUmfMapper,
     )
 
-    __all__.extend(["SparkToUmfMapper", "SPARK_TO_UMF_TYPE", "SQL_TO_UMF_TYPE"])
+    __all__.extend(["SparkToUmfMapper", "SPARK_TO_UMF_TYPE"])
 except ImportError:
     # pyspark not available - SparkToUmfMapper won't be exported
     pass

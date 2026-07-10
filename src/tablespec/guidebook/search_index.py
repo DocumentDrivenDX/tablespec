@@ -11,7 +11,7 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any
 
-from tablespec.umf_loader import UMFLoader
+from tablespec.guidebook.discovery import load_discovered_umf
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -32,12 +32,11 @@ def _column_url(group: str, table: str, column: str) -> str:
 
 def build_search_index(output_dir: Path, discovered: list[DiscoveredUmf]) -> Path:
     """Write ``search_index.json`` under ``output_dir``. Returns the path."""
-    loader = UMFLoader()
     entries: list[dict[str, Any]] = []
 
     for unit in discovered:
         try:
-            umf = loader.load(unit.path)
+            umf = load_discovered_umf(unit.path)
         except Exception as exc:
             logger.warning("Skipping %s in search index: %s", unit.path, exc)
             continue

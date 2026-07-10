@@ -1055,11 +1055,12 @@ if _runtime_mode == "databricks":
 st.divider()
 _GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "")
 
-tab_compare, tab_profile, tab_genie, tab_load = st.tabs([
+tab_compare, tab_profile, tab_genie, tab_load, tab_guidebook = st.tabs([
     "⚖️  Compare two tables",
     "🔍  Profile table(s)",
     "🤖  Ask Genie",
     "📥  Load Results",
+    "📖  Guidebook",
 ])
 
 
@@ -1849,4 +1850,278 @@ with tab_load:
                 }
             ).set_index("run_ts").sort_index()
             st.line_chart(prom_trend)
+
+
+# ===========================================================================
+# TAB 5 - GUIDEBOOK
+# ===========================================================================
+# Renders tablespec's static UMF guidebook inside this app, from either:
+#   1. a UC Volume directory of UMFs written by the tablespec pipeline, or
+#   2. Spark-free reflection of a catalog/schema via INFORMATION_SCHEMA.
+#
+# Databricks Apps have a SQL warehouse and the workspace SDK but NO
+# SparkSession, so reflection goes through tablespec's
+# umf_from_information_schema rather than SparkToUmfMapper/JdbcToUmfMapper,
+# both of which require Spark.
+#
+# The guidebook is a multi-page static site whose pages link to one another.
+# st.components.v1.html renders a srcdoc iframe in which those relative links
+# cannot resolve, so a page selector replaces cross-page navigation. The full
+# site is still downloadable as a zip, where the links work normally.
+
+_GUIDEBOOK_HEIGHT = 900
+
+_INFO_SCHEMA_COLS = (
+    "column_name, data_type, is_nullable, character_maximum_length, "
+    "numeric_precision, numeric_scale, comment, ordinal_position"
+)
+
+
+def _tablespec_import_error() -> str:
+    """Return '' when tablespec is importable, else the failure message."""
+    try:
+        import tablespec  # noqa: F401
+    except Exception as exc:  # noqa: BLE001
+        return str(exc)
+    return ""
+
+
+def _collect_site(out_dir) -> dict:
+    """Read a generated guidebook into {relative_path: text}."""
+    files = {}
+    for path in sorted(out_dir.rglob("*")):
+        if path.is_file():
+            files[path.relative_to(out_dir).as_posix()] = path.read_text(
+                encoding="utf-8"
+            )
+    return files
+
+
+def _zip_site(files: dict) -> bytes:
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, text in files.items():
+            archive.writestr(name, text)
+    return buf.getvalue()
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def _guidebook_from_reflection(catalog: str, schema: str, tables: tuple) -> dict:
+    """Reflect tables via INFORMATION_SCHEMA, then render the guidebook."""
+    import tempfile
+    from pathlib import Path as _Path
+
+    from tablespec import generate_guidebook, save_umf_to_yaml
+    from tablespec.profiling import umf_from_information_schema
+
+    with tempfile.TemporaryDirectory() as tmp:
+        umf_dir = _Path(tmp) / "umf"
+        umf_dir.mkdir()
+        for table in tables:
+            rows = _query_df(
+                f"SELECT {_INFO_SCHEMA_COLS} "
+                f"FROM `{catalog}`.information_schema.columns "
+                f"WHERE table_schema = '{schema}' AND table_name = '{table}' "
+                "ORDER BY ordinal_position"
+            ).to_dict("records")
+            if not rows:
+                continue
+            umf = umf_from_information_schema(table, rows)
+            save_umf_to_yaml(umf, umf_dir / f"{table}.umf.yaml")
+
+        out_dir = _Path(tmp) / "guidebook"
+        generate_guidebook(root=umf_dir, output_dir=out_dir)
+        return _collect_site(out_dir)
+
+
+def _list_volume_umfs(volume_dir: str) -> list:
+    """Return (filename, full_path) for UMF artifacts directly under volume_dir."""
+    from profiler.catalog import _runtime, _workspace_client
+
+    suffixes = (".umf.yaml", ".umf.json")
+    if _runtime() != "databricks":
+        from pathlib import Path as _Path
+
+        local = _Path(volume_dir)
+        if not local.is_dir():
+            return []
+        return [
+            (p.name, str(p))
+            for p in sorted(local.iterdir())
+            if p.name.endswith(suffixes)
+        ]
+
+    entries = _workspace_client().files.list_directory_contents(
+        directory_path=volume_dir
+    )
+    return [
+        (entry.name, entry.path)
+        for entry in entries
+        if (entry.name or "").endswith(suffixes)
+    ]
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def _guidebook_from_volume(volume_dir: str) -> dict:
+    """Download UMFs from a UC Volume, then render the guidebook."""
+    import tempfile
+    from pathlib import Path as _Path
+
+    from profiler.storage import read_text
+    from tablespec import generate_guidebook
+
+    found = _list_volume_umfs(volume_dir)
+    if not found:
+        return {}
+
+    with tempfile.TemporaryDirectory() as tmp:
+        umf_dir = _Path(tmp) / "umf"
+        umf_dir.mkdir()
+        for name, path in found:
+            (umf_dir / name).write_text(read_text(path), encoding="utf-8")
+
+        out_dir = _Path(tmp) / "guidebook"
+        generate_guidebook(root=umf_dir, output_dir=out_dir)
+        return _collect_site(out_dir)
+
+
+def _render_guidebook_site(files: dict) -> None:
+    """Page selector + inline render + zip download for a generated site."""
+    pages = sorted(name for name in files if name.endswith(".html"))
+    if not pages:
+        st.warning("The guidebook generated no pages - no UMFs were discovered.")
+        return
+
+    # index.html first; then table pages alphabetically.
+    ordered = [p for p in pages if p == "index.html"] + [
+        p for p in pages if p != "index.html"
+    ]
+
+    left, right = st.columns([3, 1])
+    with left:
+        selected = st.selectbox(
+            "Page",
+            options=ordered,
+            format_func=lambda p: "Index" if p == "index.html" else p[:-5],
+            key="guidebook_page",
+            help="Links between pages do not work inside the embedded frame; "
+            "use this selector, or download the site.",
+        )
+    with right:
+        st.download_button(
+            "Download site (.zip)",
+            data=_zip_site(files),
+            file_name="guidebook.zip",
+            mime="application/zip",
+            use_container_width=True,
+        )
+
+    st.caption(f"{len(pages)} page(s) generated.")
+    components.html(files[selected], height=_GUIDEBOOK_HEIGHT, scrolling=True)
+
+
+with tab_guidebook:
+    st.markdown(
+        "Render the **tablespec guidebook** - one page per table with columns, "
+        "types, lineage, and validation rules - from UMF specs."
+    )
+    st.divider()
+
+    _ts_error = _tablespec_import_error()
+    if _ts_error:
+        st.error(
+            "tablespec is not importable in this app environment, so the "
+            "guidebook cannot be rendered.\n\n"
+            f"Details: {_ts_error}\n\n"
+            "Ensure the app's requirements install the tablespec package "
+            "(see docs/guide/data-profiling-app.md)."
+        )
+    else:
+        _source = st.radio(
+            "UMF source",
+            options=["Reflect from catalog", "From UC Volume"],
+            horizontal=True,
+            key="guidebook_source",
+            help="Reflection reads INFORMATION_SCHEMA via the SQL warehouse "
+            "(no Spark required). Volume reads UMFs written by the pipeline.",
+        )
+
+        _site = None
+
+        if _source == "Reflect from catalog":
+            _conn = _connections()[0] if _connections() else None
+            try:
+                _catalogs = list_catalogs(_conn) if _conn else []
+            except Exception as exc:  # noqa: BLE001
+                st.error(f"Cannot load catalogs: {exc}")
+                _catalogs = []
+
+            _c1, _c2 = st.columns(2)
+            with _c1:
+                _gb_catalog = st.selectbox(
+                    "Catalog", options=_catalogs, key="guidebook_catalog"
+                )
+            with _c2:
+                _gb_schemas = _cached_schemas(_gb_catalog) if _gb_catalog else []
+                _gb_schema = st.selectbox(
+                    "Schema", options=_gb_schemas, key="guidebook_schema"
+                )
+
+            _gb_tables = (
+                _cached_tables(_gb_catalog, _gb_schema)
+                if (_gb_catalog and _gb_schema)
+                else []
+            )
+            _picked = st.multiselect(
+                "Tables",
+                options=_gb_tables,
+                default=_gb_tables[:10],
+                key="guidebook_tables",
+                help="Each table is reflected from INFORMATION_SCHEMA into a UMF.",
+            )
+
+            if st.button("Build guidebook", type="primary", key="guidebook_build"):
+                if not _picked:
+                    st.warning("Pick at least one table.")
+                else:
+                    with st.spinner(f"Reflecting {len(_picked)} table(s)..."):
+                        try:
+                            _site = _guidebook_from_reflection(
+                                _gb_catalog, _gb_schema, tuple(_picked)
+                            )
+                            st.session_state["guidebook_site"] = _site
+                        except Exception as exc:  # noqa: BLE001
+                            st.error(f"Guidebook generation failed: {exc}")
+
+        else:
+            _vol = st.text_input(
+                "Volume directory",
+                value=st.session_state.get(
+                    "guidebook_volume", "/Volumes/dev/test_main_profiler/ab_runs/umf"
+                ),
+                key="guidebook_volume",
+                help="Directory holding *.umf.yaml or *.umf.json artifacts.",
+            )
+            if st.button(
+                "Build guidebook from Volume", type="primary", key="guidebook_build_vol"
+            ):
+                with st.spinner(f"Reading UMFs from {_vol}..."):
+                    try:
+                        _site = _guidebook_from_volume(_vol)
+                        if not _site:
+                            st.warning(
+                                f"No *.umf.yaml or *.umf.json files found in {_vol}."
+                            )
+                        else:
+                            st.session_state["guidebook_site"] = _site
+                    except Exception as exc:  # noqa: BLE001
+                        st.error(f"Could not read {_vol}: {exc}")
+
+        _cached_site = st.session_state.get("guidebook_site")
+        if _cached_site:
+            st.divider()
+            _render_guidebook_site(_cached_site)
 

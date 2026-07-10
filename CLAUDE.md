@@ -4,6 +4,20 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 
 ## Project Structure
 
+Top-level layout:
+
+- `src/tablespec/` - the library (details below).
+- `apps/data-profiling/` - Streamlit **Databricks App**, vendored via `git subtree`
+  from `FocusedDiversity/data-profiling-dbx-app` and relicensed Apache-2.0 (see
+  `NOTICE`). Profiling, A/B comparison, drift, nightly Load Results, and an in-app
+  Guidebook tab. **Excluded from ruff/pyright/pytest gates** while it lives under
+  `apps/` -- keeping it byte-identical to upstream keeps `git subtree pull`
+  conflict-free. See `docs/guide/data-profiling-app.md`.
+- `app.yaml` + `requirements.txt` (repo root) - Databricks Apps manifest for that
+  app. The source root must be the repo root so `pip install .` provides
+  `tablespec` to the app; the command chdir's into `apps/data-profiling` because
+  the app resolves `connections.yaml` relative to the working directory.
+
 `src/tablespec/` is organized as a small public surface plus feature-focused subpackages:
 
 - `authoring/` - Apply-response models and mutation/preview helpers for authoring flows.
@@ -16,7 +30,7 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - `ingestion/` - Raw/JDBC ingestion helpers and ingestion constants.
 - `ldp/` - Local data-product project rendering and expectations.
 - `models/` - Pydantic UMF, quality, changelog, and pipeline models.
-- `profiling/` - Native profiler types plus Spark/JDBC profile-to-UMF mappers.
+- `profiling/` - Native profiler types plus Spark/JDBC profile-to-UMF mappers, and `sql_reflect` (Spark-free UMF reflection from INFORMATION_SCHEMA rows).
 - `prompts/` - LLM prompt templates for docs, validation, filenames, relationships, and survivorship.
 - `quality/` - Baseline capture/storage and quality execution helpers.
 - `sample_data/` - Synthetic data generation, registry, validation, and filename helpers.

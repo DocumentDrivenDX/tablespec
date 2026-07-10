@@ -1,8 +1,17 @@
 """Flat UMF discovery for the guidebook.
 
 Replaces pulseflow's pipeline-aware ``PipelineDiscovery`` with a simple
-recursive walk over a root directory. A "discovered UMF" is either a split
-directory (contains ``table.yaml``) or a single ``*.umf.json`` artifact.
+recursive walk over a root directory. A "discovered UMF" is a split directory
+(contains ``table.yaml``), a single ``*.umf.json`` artifact, or a single
+``*.umf.yaml`` artifact.
+
+``*.umf.yaml`` is the artifact format the compile/e2e pipeline emits (see
+``e2e.manifest`` and ``core.selection``, which globs the same pattern), so the
+guidebook must read it or it cannot render its own pipeline's output. Those
+whole-document YAML files are deliberately NOT auto-detected by
+``UMFLoader.load`` — that stance is intentional and left untouched here.
+Instead this module loads them through the public ``load_umf_from_yaml``,
+exactly as ``core.selection`` does.
 
 Each discovered UMF carries a ``group`` — its parent subdirectory relative to
 the root, or ``""`` when it sits at the root. The group becomes the output
@@ -17,9 +26,27 @@ from dataclasses import dataclass
 import logging
 from pathlib import Path
 
+from tablespec.models.umf import load_umf_from_yaml
 from tablespec.umf_loader import UMFLoader
 
 logger = logging.getLogger(__name__)
+
+# Whole-document YAML UMFs emitted by the compile pipeline.
+UMF_YAML_SUFFIX = ".umf.yaml"
+
+
+def load_discovered_umf(path: Path):
+    """Load a UMF from any guidebook-discoverable path.
+
+    Dispatches on shape: whole-document ``*.umf.yaml`` goes through the public
+    ``load_umf_from_yaml``; split dirs and ``*.umf.json`` go through
+    ``UMFLoader.load``. Kept in one place so discovery and rendering can never
+    disagree about how a given path is read.
+    """
+    path = Path(path)
+    if path.is_file() and path.name.endswith(UMF_YAML_SUFFIX):
+        return load_umf_from_yaml(path)
+    return UMFLoader().load(path)
 
 
 @dataclass(frozen=True)
@@ -61,28 +88,32 @@ def _group_for(path: Path, root: Path) -> str:
 def discover_umfs(root: Path) -> list[DiscoveredUmf]:
     """Recursively discover every UMF under ``root``.
 
-    Finds split-format directories (those containing a ``table.yaml``) and
-    JSON artifacts (``*.umf.json``). Loads each to read its ``table_name``.
-    A UMF that fails to load is logged and skipped.
+    Finds split-format directories (those containing a ``table.yaml``), JSON
+    artifacts (``*.umf.json``), and whole-document YAML artifacts
+    (``*.umf.yaml``, what the compile pipeline emits). Loads each to read its
+    ``table_name``. A UMF that fails to load is logged and skipped.
 
     Duplicate ``(group, table)`` pairs would collide on the same output path;
-    the first wins and subsequent duplicates are logged and skipped.
+    the first wins and subsequent duplicates are logged and skipped. Candidate
+    order is split dirs, then JSON, then YAML — so when a table exists in more
+    than one format the richer format wins deterministically.
 
     Returns the discovered UMFs sorted by ``(group, table)`` for stable output.
     """
     root = Path(root).resolve()
-    loader = UMFLoader()
 
     # Split dirs: the parent of every table.yaml.
     candidates: list[Path] = sorted({p.parent for p in root.rglob("table.yaml")})
     # JSON artifacts.
     candidates += sorted(root.rglob("*.umf.json"))
+    # Whole-document YAML artifacts (compile-pipeline output).
+    candidates += sorted(root.rglob(f"*{UMF_YAML_SUFFIX}"))
 
     seen: set[tuple[str, str]] = set()
     discovered: list[DiscoveredUmf] = []
     for path in candidates:
         try:
-            umf = loader.load(path)
+            umf = load_discovered_umf(path)
         except Exception as exc:
             logger.warning("Skipping %s during discovery: %s", path, exc)
             continue

@@ -276,6 +276,20 @@ After modifying any of these paths, stage and commit them:
 - Run `ddx doctor` to check environment health.
 - Run `ddx doc stale` to find documents needing review.
 
+## Vendored code: `apps/data-profiling/`
+
+A `git subtree` of `FocusedDiversity/data-profiling-dbx-app` (Streamlit
+Databricks App), relicensed Apache-2.0 — see `NOTICE`.
+
+- It is **excluded from ruff, pyright, and pytest** (`[tool.ruff]
+  extend-exclude = ["apps"]`; pyright scopes to `src/`; pytest to `tests/`).
+  Do not "fix" its style: byte-identical files keep `git subtree pull` clean.
+- It has its own `CLAUDE.md` with its own conventions (e.g. no emojis in code).
+  Honor those inside that tree.
+- Pull upstream: `git subtree pull --prefix=apps/data-profiling dpa main --squash`
+- Library changes it depends on belong in `src/tablespec/`, not in the app.
+- See `docs/guide/data-profiling-app.md` for architecture and deployment.
+
 ## Merge Policy
 
 Branches containing `ddx try` or `ddx work` commits

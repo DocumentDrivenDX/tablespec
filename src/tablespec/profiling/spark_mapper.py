@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from pyspark.sql.types import DecimalType, StructField
 
+from tablespec.profiling.sql_reflect import SQL_TO_UMF_TYPE as _SQL_TO_UMF_TYPE
+
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame
 
@@ -37,31 +39,11 @@ SPARK_TO_UMF_TYPE: dict[str, str] = {
 
 # SQL/warehouse type name → UMF data_type mapping.
 # Useful when importing from dbt catalog.json, information_schema, or DESCRIBE output.
-SQL_TO_UMF_TYPE: dict[str, str] = {
-    "STRING": "VARCHAR",
-    "VARCHAR": "VARCHAR",
-    "CHAR": "CHAR",
-    "TEXT": "TEXT",
-    "INT": "INTEGER",
-    "INTEGER": "INTEGER",
-    "BIGINT": "INTEGER",
-    "SMALLINT": "INTEGER",
-    "TINYINT": "INTEGER",
-    "LONG": "INTEGER",
-    "FLOAT": "FLOAT",
-    "DOUBLE": "FLOAT",
-    "REAL": "FLOAT",
-    "DECIMAL": "DECIMAL",
-    "NUMERIC": "DECIMAL",
-    "NUMBER": "DECIMAL",
-    "BOOLEAN": "BOOLEAN",
-    "BOOL": "BOOLEAN",
-    "DATE": "DATE",
-    "DATETIME": "DATETIME",
-    "TIMESTAMP": "TIMESTAMP",
-    "TIMESTAMP_NTZ": "TIMESTAMP",
-    "TIMESTAMP_LTZ": "TIMESTAMP",
-}
+#
+# Canonically defined in `sql_reflect` (which imports no pyspark) so callers
+# without a Spark install -- e.g. a Databricks App -- can still map declared SQL
+# types. Re-exported here for backwards compatibility: exactly one seam.
+SQL_TO_UMF_TYPE = _SQL_TO_UMF_TYPE
 
 
 class SparkToUmfMapper:
