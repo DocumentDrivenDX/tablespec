@@ -55,7 +55,7 @@ from profiler.storage import (
 # Page config
 
 st.set_page_config(
-    page_title="Synaptiq Data Profiling Tool",
+    page_title="Tablespec Guidebook and Profiling",
     page_icon="🔬",
     layout="wide",
 )
@@ -71,6 +71,12 @@ st.set_page_config(
 st.markdown(
     """
 <style>
+/* ── Trim the default top whitespace so the header sits near the top ── */
+.block-container,
+div[data-testid="stMainBlockContainer"] {
+    padding-top: 1.2rem !important;
+}
+
 /* ── Brand header bar ─────────────────────────────────────────── */
 .synaptiq-header {
     background: linear-gradient(135deg, #8BA4BD 0%, #6B8EAD 100%);
@@ -924,6 +930,82 @@ def _render_run_card(run: dict) -> None:
     )
 
 
+def _render_sidebar_compute():
+    """Initialize-compute control in the sidebar (databricks runtime only)."""
+    if os.environ.get("PROFILER_RUNTIME", "mock").lower() != "databricks":
+        return
+    with st.sidebar:
+        st.markdown(
+            "<div style='font-size:0.72rem;text-transform:uppercase;"
+            "letter-spacing:0.08em;opacity:0.8;margin-bottom:4px;'>Compute</div>",
+            unsafe_allow_html=True,
+        )
+        warm_clicked = st.button(
+            "⚡ Initialize Compute",
+            type="secondary",
+            help="Start the SQL warehouse before running a profile.",
+            use_container_width=True,
+        )
+        if warm_clicked:
+            wid = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+            if not wid:
+                st.error("DATABRICKS_WAREHOUSE_ID not set.")
+            else:
+                with st.spinner("Starting warehouse …"):
+                    import time as _time
+                    from datetime import timedelta as _td
+
+                    _t0 = _time.time()
+                    try:
+                        from profiler.catalog import _workspace_client
+
+                        _w = _workspace_client()
+                        try:
+                            _wh = _w.warehouses.get(id=wid)
+                            _state = str(_wh.state).upper() if _wh.state else "UNKNOWN"
+                        except Exception:
+                            _state = "UNKNOWN"
+                        if "RUNNING" in _state:
+                            st.success("✅ Warehouse already RUNNING.")
+                            st.session_state["compute_warmed"] = True
+                        else:
+                            st.caption(f"State: **{_state}**. Starting …")
+                            try:
+                                _w.warehouses.start(id=wid)
+                                _w.warehouses.wait_get_warehouse_running(
+                                    id=wid, timeout=_td(minutes=10)
+                                )
+                                st.success(f"✅ RUNNING — {_time.time() - _t0:.1f}s.")
+                                st.session_state["compute_warmed"] = True
+                            except Exception as _start_exc:  # noqa: BLE001
+                                st.warning(
+                                    f"Could not start automatically: {_start_exc}\n\n"
+                                    "Ask an admin to grant **Can use** on the warehouse "
+                                    "to the app's service principal, or start it in "
+                                    "**SQL → Warehouses**."
+                                )
+                    except Exception as _exc:  # noqa: BLE001
+                        st.error(f"Cannot reach warehouse `{wid}`: {_exc}")
+        elif "compute_warmed" not in st.session_state:
+            st.caption("💡 Start the warehouse before profiling.")
+
+
+def _render_sidebar_dashboard():
+    """Go-To-Dashboard button pinned at the bottom of the sidebar."""
+    st.sidebar.markdown(
+        """<div style='text-align:center;padding:10px 0 6px 0;'>
+        <a href="https://adb-7405619521761591.11.azuredatabricks.net/dashboardsv3/01f15f7d18171dac85cdc247e47d48a5/published?o=7405619521761591"
+           target="_blank" style="text-decoration:none;">
+          <button style="background:#C8956A;color:white;border:none;border-radius:6px;
+                         padding:9px 18px;font-weight:600;font-size:0.85rem;
+                         letter-spacing:0.04em;cursor:pointer;width:100%;">
+            Go To Dashboard ↗
+          </button>
+        </a></div>""",
+        unsafe_allow_html=True,
+    )
+
+
 def _sidebar():
     st.sidebar.markdown(
         """
@@ -931,11 +1013,14 @@ def _sidebar():
   <div style='font-size:1.1rem; font-weight:700; letter-spacing:0.05em;
               color:#FFFFFF;'>Synaptiq</div>
   <div style='font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase;
-              color:rgba(255,255,255,0.65); margin-top:2px;'>Data Profiling Tool</div>
+              color:rgba(255,255,255,0.65); margin-top:2px;'>Tablespec Guidebook and Profiling</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
+    st.sidebar.divider()
+
+    _render_sidebar_compute()
     st.sidebar.divider()
 
     with st.sidebar.expander("Run history", expanded=False):
@@ -1008,39 +1093,25 @@ def _sidebar():
                         unsafe_allow_html=True,
                     )
 
+    st.sidebar.divider()
+    _render_sidebar_dashboard()
+
 
 _sidebar()
 
 # ---------------------------------------------------------------------------
 # Main layout — logo row + dashboard link, then blue header bar
 
-_logo_col, _spacer_col, _dash_col = st.columns([2, 6, 2])
+import os as _os
 
-with _logo_col:
-    import os as _os
-
-    _logo_path = _os.path.join(_os.path.dirname(__file__), "assets", "Synaptiq_001.png")
-    if _os.path.exists(_logo_path):
-        st.image(_logo_path, width=150)
-    else:
-        # Fallback styled wordmark until logo file is added to assets/
-        st.markdown(
-            "<div style='font-size:1.3rem;font-weight:800;letter-spacing:0.05em;"
-            "color:#2D3748;padding-top:6px;'>Synaptiq.</div>",
-            unsafe_allow_html=True,
-        )
-
-with _dash_col:
+_logo_path = _os.path.join(_os.path.dirname(__file__), "assets", "Synaptiq_001.png")
+if _os.path.exists(_logo_path):
+    st.image(_logo_path, width=150)
+else:
+    # Fallback styled wordmark until logo file is added to assets/
     st.markdown(
-        """<div style='text-align:right;padding-top:4px;'>
-        <a href="https://adb-7405619521761591.11.azuredatabricks.net/dashboardsv3/01f15f7d18171dac85cdc247e47d48a5/published?o=7405619521761591"
-           target="_blank" style="text-decoration:none;">
-          <button style="background:#C8956A;color:white;border:none;border-radius:6px;
-                         padding:8px 18px;font-weight:600;font-size:0.85rem;
-                         letter-spacing:0.04em;cursor:pointer;white-space:nowrap;">
-            Go To Dashboard ↗
-          </button>
-        </a></div>""",
+        "<div style='font-size:1.3rem;font-weight:800;letter-spacing:0.05em;"
+        "color:#2D3748;padding-top:6px;'>Synaptiq.</div>",
         unsafe_allow_html=True,
     )
 
@@ -1053,7 +1124,7 @@ st.markdown(
     <div class="synaptiq-tagline">The Humankind of AI</div>
   </div>
   <div class="synaptiq-product">
-    <div class="synaptiq-product-name">Data Profiling Tool</div>
+    <div class="synaptiq-product-name">Tablespec Guidebook and Profiling</div>
   </div>
 </div>
 """,
@@ -1061,100 +1132,19 @@ st.markdown(
 )
 
 st.caption(
-    "Profile Unity Catalog tables and surface data quality issues. "
-    "Compare tables side-by-side to detect schema drift and statistical distribution shift."
+    "Your spec driven ingestion framework: Guidebook and Profiling tools"
 )
-
-# ---------------------------------------------------------------------------
-# Compute warm-up banner
-
-_runtime_mode = os.environ.get("PROFILER_RUNTIME", "mock").lower()
-if _runtime_mode == "databricks":
-    with st.container():
-        col_warm, col_status = st.columns([1, 4])
-        with col_warm:
-            warm_clicked = st.button(
-                "⚡ Initialize Compute",
-                type="secondary",
-                help="Start the SQL warehouse before running a profile.",
-            )
-        with col_status:
-            if warm_clicked:
-                _warehouse_id = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
-                if not _warehouse_id:
-                    st.error("DATABRICKS_WAREHOUSE_ID not set.")
-                else:
-                    with st.spinner(f"Starting warehouse `{_warehouse_id}` …"):
-                        import time as _time
-                        from datetime import timedelta as _td
-
-                        _t0 = _time.time()
-                        try:
-                            from profiler.catalog import _workspace_client
-
-                            _w = _workspace_client()
-                            # Check current state (requires CAN USE or CAN MANAGE).
-                            try:
-                                _wh = _w.warehouses.get(id=_warehouse_id)
-                                _state = (
-                                    str(_wh.state).upper() if _wh.state else "UNKNOWN"
-                                )
-                            except Exception:
-                                _state = "UNKNOWN"
-
-                            if "RUNNING" in _state:
-                                st.success(
-                                    f"✅ Warehouse already RUNNING — ready immediately."
-                                )
-                                st.session_state["compute_warmed"] = True
-                            else:
-                                st.caption(
-                                    f"Warehouse state: **{_state}**. Attempting to start …"
-                                )
-                                try:
-                                    _w.warehouses.start(id=_warehouse_id)
-                                    _w.warehouses.wait_get_warehouse_running(
-                                        id=_warehouse_id,
-                                        timeout=_td(minutes=10),
-                                    )
-                                    _elapsed = _time.time() - _t0
-                                    st.success(
-                                        f"✅ Warehouse RUNNING — took {_elapsed:.1f}s. Run your comparison now."
-                                    )
-                                    st.session_state["compute_warmed"] = True
-                                except Exception as _start_exc:
-                                    st.warning(
-                                        f"Could not start warehouse automatically: {_start_exc}\n\n"
-                                        f"Ask your admin to grant **Can manage** on warehouse "
-                                        f"`{_warehouse_id}` to SP `{_warehouse_id}`.\n\n"
-                                        f"Alternatively, manually start the warehouse in **SQL → "
-                                        f"Warehouses** before running a profile."
-                                    )
-                        except Exception as _exc:  # noqa: BLE001
-                            st.error(
-                                f"Cannot reach warehouse `{_warehouse_id}`: {_exc}\n\n"
-                                f"Your admin needs to run:\n"
-                                f"```sql\n"
-                                f"GRANT CAN USE ON SQL WAREHOUSE `{_warehouse_id}`\n"
-                                f"  TO `39ee93a7-c623-4614-90a8-c3798bb5b329`;\n"
-                                f"```"
-                            )
-            if not warm_clicked and "compute_warmed" not in st.session_state:
-                st.caption(
-                    "💡 Click **Initialize Compute** to start the SQL warehouse "
-                    "before running a profile — avoids the cold-start wait."
-                )
 
 st.divider()
 _GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "")
 
-tab_compare, tab_profile, tab_genie, tab_load, tab_guidebook = st.tabs(
+tab_guidebook, tab_compare, tab_profile, tab_load, tab_genie = st.tabs(
     [
+        "📖  Guidebook",
         "⚖️  Compare two tables",
         "🔍  Profile table(s)",
-        "🤖  Ask Genie",
         "📥  Load Results",
-        "📖  Guidebook",
+        "🤖  Ask Genie",
     ]
 )
 
