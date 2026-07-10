@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: encounter
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: encounter_id
+        data_type: STRING
+      - name: person_id
+        data_type: STRING
+      - name: patient_id
+        data_type: STRING
+      - name: encounter_type
+        data_type: STRING
+      - name: encounter_start_date
+        data_type: DATE
+      - name: encounter_end_date
+        data_type: DATE
+      - name: admit_source_code
+        data_type: STRING
+      - name: admit_type_code
+        data_type: STRING
+      - name: discharge_disposition_code
+        data_type: STRING
+      - name: attending_provider_id
+        data_type: STRING
+      - name: facility_npi
+        data_type: STRING
+      - name: facility_name
+        data_type: STRING
+      - name: primary_diagnosis_code_type
+        data_type: STRING
+      - name: primary_diagnosis_code
+        data_type: STRING
+      - name: drg_code_type
+        data_type: STRING
+      - name: drg_code
+        data_type: STRING
+      - name: paid_amount
+        data_type: DOUBLE
+      - name: allowed_amount
+        data_type: DOUBLE
+      - name: charge_amount
+        data_type: DOUBLE
+      - name: ingest_datetime
+        data_type: TIMESTAMP
+      - name: data_source
+        data_type: STRING
+      - name: attending_provider_name
+        data_type: STRING
+      - name: META_data_source
+        data_type: STRING
+      - name: META_Load_DTTM
+        data_type: TIMESTAMP

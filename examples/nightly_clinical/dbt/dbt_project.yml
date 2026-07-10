@@ -1,0 +1,9 @@
+name: 'tablespec_ingest'
+version: '1.0.0'
+config-version: 2
+
+profile: 'tablespec_ingest'
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
