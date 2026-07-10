@@ -117,21 +117,32 @@ on `information_schema` for the catalogs it reflects.
 
 ## Development status
 
-The app is formatted with `ruff format` like the rest of the repository.
+The app is formatted with `ruff format`, and its **258 tests run in `make test`
+and CI** alongside the library's. That wiring lives in the root
+`pyproject.toml`:
 
-It is **not yet in `make check`**: `make lint` and `make test` scope to `src/`,
-`scripts/`, and `tests/`, and pyright scopes to `src/`. Run the app's own suite
-from its directory:
-
-```bash
-cd apps/data-profiling && pytest tests/
+```toml
+[tool.pytest.ini_options]
+testpaths = ["tests", "apps/data-profiling/tests"]
+pythonpath = ["apps/data-profiling"]   # so the tests can import `profiler`
 ```
 
-Planned, not yet done:
+Two constraints that are easy to trip over:
 
-- **Lint + test integration** — clear the outstanding `ruff check` findings under
-  `apps/`, then widen `TRACKED_LINT_FILES` and the pytest paths so `make check`
-  covers the app.
+- `apps/data-profiling/tests/` is **not a package**. Adding an `__init__.py` would
+  create a second top-level `tests` package that shadows the library's, and
+  collection fails with `ModuleNotFoundError: No module named 'tests.…'`.
+- `pandas` and `scipy` are in the root `dev` dependency group solely so this suite
+  can run; `profiler` imports pandas at module import time.
+
+Not yet done:
+
+- **Lint + type-check integration** — `make lint` and pyright still scope to
+  `src/` (+ `scripts/`). `ruff check apps/` is not clean; clearing it and widening
+  `TRACKED_LINT_FILES` is open work.
+- **Python-version coverage** — the app previously ran its own CI on 3.10/3.11 to
+  match the Databricks Apps runtime. tablespec requires 3.12+, so the merged suite
+  runs on 3.12 only.
 - **Phase 2** — unify the two profile models. `tablespec.profiling` is
   spec-oriented (UMF + GX generation); the app's `profiler/` is
   observation-oriented (`ProfilerRun`, drift, Delta governance). Feeding observed

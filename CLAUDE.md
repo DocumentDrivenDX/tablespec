@@ -9,10 +9,10 @@ Top-level layout:
 - `src/tablespec/` - the library (details below).
 - `apps/data-profiling/` - Streamlit **Databricks App**: profiling, A/B comparison,
   drift, nightly Load Results, and an in-app Guidebook tab. First-party code, same
-  Apache-2.0 license as the library (`NOTICE` records its origin). It is formatted
-  with `ruff format` like the rest of the repo; `make lint`/`make test` still scope
-  to `src/`, `scripts/`, and `tests/`, so the app's own suite runs from its
-  directory (`pytest tests/`). See `docs/guide/data-profiling-app.md`.
+  Apache-2.0 license as the library (`NOTICE` records its origin). Formatted with
+  `ruff format`, and its suite runs in `make test`/CI via `testpaths` +
+  `pythonpath` (see `[tool.pytest.ini_options]`). `make lint` and pyright still
+  scope to `src/`. See `docs/guide/data-profiling-app.md`.
 - `app.yaml` + `requirements.txt` (repo root) - Databricks Apps manifest for that
   app. The source root must be the repo root so `pip install .` provides
   `tablespec` to the app; the command chdir's into `apps/data-profiling` because

@@ -1,7 +1,10 @@
 .PHONY: help install install-dev install-spark setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
 TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py')
-TRACKED_TEST_FILES := $(shell git ls-files -- 'tests/**/*.py' ':(exclude)tests/golden/**/*.expected.py')
+# Includes the Databricks app's suite (apps/data-profiling/tests), which pytest
+# also picks up via `testpaths` when invoked without explicit paths. That suite is
+# flat, and a `**/` pathspec matches no files there -- keep the single-star glob.
+TRACKED_TEST_FILES := $(shell git ls-files -- 'tests/**/*.py' 'apps/data-profiling/tests/*.py' ':(exclude)tests/golden/**/*.expected.py')
 
 # Shell snippet that resolves a PySpark-compatible JAVA_HOME and exports it, or
 # aborts the recipe if none can be found. Spark 4.0 needs JDK 17/21; newer JDKs

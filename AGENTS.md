@@ -283,10 +283,12 @@ the same Apache-2.0 license as the library. `NOTICE` records that it began life 
 a separate repository.
 
 - **Formatting:** `ruff format` covers it, like everything else.
-- **Lint / type-check / test:** `make lint` and `make test` scope to `src/`,
-  `scripts/`, and `tests/`; pyright scopes to `src/`. The app is not in those gates
-  yet. Run its own suite from its directory:
-  `cd apps/data-profiling && pytest tests/`.
+- **Tests:** its 258 tests run in `make test` and CI, wired in via `testpaths` +
+  `pythonpath` in the root `pyproject.toml`. Note `apps/data-profiling/tests/` is
+  deliberately **not a package** — a second top-level `tests` package would shadow
+  this repo's own.
+- **Lint / type-check:** `make lint` and pyright still scope to `src/` (+ `scripts/`).
+  `ruff check apps/` is not yet clean; bringing it under those gates is open work.
 - It has its own `CLAUDE.md` with its own conventions (e.g. no emojis in code).
   Honor those inside that tree.
 - Library changes it depends on belong in `src/tablespec/`, not in the app.

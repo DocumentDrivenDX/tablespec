@@ -23,10 +23,13 @@ non-trivial in the repo.
   statistical drift for data engineers shipping table changes between
   environments.
 - **Frontend:** Streamlit, deployed as a Databricks App.
-- **Profiling engine:** ydata-profiling with the Spark backend
-  (planned, milestone 2).
+- **Profiling engine:** pandas-derived statistics rendered directly to HTML.
+  ydata-profiling was evaluated and dropped -- too slow for interactive web
+  app use (see `requirements.txt`).
 - **Comparison engine:** custom PSI / KS / Chi-square / JS divergence with
-  schema-diff (planned, milestone 4).
+  schema-diff (`profiler/drift.py`, `profiler/compare.py`).
+- **Guidebook:** renders tablespec's static UMF guidebook in-app, from a UC
+  Volume of UMFs or by reflecting a catalog through the SQL warehouse.
 - **Outputs (per run):** per-side HTML profile, comparison HTML, Excel
   summary workbook, `metamodel.json`, schema file, 3 Mermaid diagrams,
   rows appended to Delta governance tables. All in a UC Volume.
@@ -37,15 +40,18 @@ non-trivial in the repo.
 
 - **Cloud:** Azure Databricks.
 - **Workspaces:** single workspace; one Unity Catalog metastore.
-- **Environments:** `test_main` and `prod_main` are catalogs in the same
-  metastore. **No Delta Sharing required** for current scope (Pattern 1
-  topology).
-- **Profiler Host:** `test_main`. The app's service principal writes
-  outputs to `test_main.profiler.ab_runs` (a UC Volume). Intentional —
-  keeps tooling artifacts out of PROD.
-- **Connections** are declared in `connections.yaml`. Both TEST and PROD
-  currently `type: native` since they live in the same metastore. If a
-  future env lives in a separate workspace, add a `type: delta_share`
+- **Environments:** a **single `dev` catalog**; environments are distinguished by
+  a schema-name prefix (`test_main_*`, `prod_main_*`), e.g.
+  `dev.test_main_clinical` and `dev.prod_main_clinical`. **No Delta Sharing
+  required** for current scope. See the header comment in `connections.yaml`;
+  when this moves to a multi-catalog workspace, split that file into one native
+  connection per catalog and drop the prefix convention.
+- **Profiler Host:** the app's service principal writes outputs to
+  `dev.test_main_profiler.ab_runs` (a UC Volume), and the Delta governance
+  tables live in `dev.test_main_profiler`. Intentional — keeps tooling
+  artifacts out of PROD.
+- **Connections** are declared in `connections.yaml`, currently one `type: native`
+  entry. If a future env lives in a separate workspace, add a `type: delta_share`
   entry — code supports it without changes (README §4 has the D2D Sharing
   runbook).
 
@@ -57,9 +63,9 @@ non-trivial in the repo.
 .
 ├── CLAUDE.md                     <- this file
 ├── README.md                     <- human-facing setup + deploy docs
-├── app.yaml                      <- Databricks Apps manifest
-├── streamlit_app.py              <- UI
-├── connections.yaml              <- connection registry (TEST + PROD)
+├── app.yaml                      <- Databricks Apps manifest (standalone deploys)
+├── streamlit_app.py              <- UI: 5 tabs (see below)
+├── connections.yaml              <- connection registry
 ├── requirements.txt              <- runtime deps
 ├── requirements-dev.txt          <- dev deps (pytest, coverage)
 ├── profiler/
@@ -68,32 +74,65 @@ non-trivial in the repo.
 │   ├── storage.py                <- run folder + volume I/O
 │   ├── manifest.py               <- per-run manifest (inputs/timings)
 │   ├── metamodel.py              <- DQ metamodel (Pydantic v2) — single source of truth
-│   ├── profile.py                <- (stub, milestone 2: ydata-profiling Spark)
-│   ├── compare.py                <- (stub, milestone 3/6: schema + stat + row diff)
-│   ├── drift.py                  <- (stub, milestone 4: PSI/KS/Chi-square/JS)
-│   └── excel.py                  <- (stub, milestone 3: workbook writer)
-├── tests/
-│   ├── __init__.py
-│   └── test_metamodel.py         <- 44 tests
-└── .github/workflows/test.yml    <- CI: pytest on Python 3.10/3.11
+│   ├── profile.py                <- single-table profiling + HTML report
+│   ├── compare.py                <- schema diff + aggregate stat diff
+│   ├── row_diff.py               <- row-level diff via row keys
+│   ├── drift.py                  <- PSI / KS / Chi-square / JS divergence
+│   ├── excel.py                  <- Excel summary workbook writer
+│   ├── mermaid.py                <- 3 Mermaid diagrams per run
+│   ├── delta_repo.py             <- Delta governance tables (DDL + ingest)
+│   └── genie_chat.py             <- Genie space conversational backend
+└── tests/                        <- 8 files, 258 tests; run by the parent repo's CI
 ```
+
+UI tabs in `streamlit_app.py`: Compare two tables, Profile table(s), Ask Genie,
+Load Results, Guidebook.
 
 ---
 
 ## Current status
 
-| #     | Scope                                                         | Status |
-|-------|---------------------------------------------------------------|--------|
-| 1     | Skeleton: UI, validation, run folder, manifest                | ✅ Done |
-| 2     | ydata-profiling Spark → per-side HTML                         |        |
-| 3     | Schema diff + aggregate stat diff → Excel workbook            |        |
-| 4     | Drift module: PSI, KS, Chi-square, JS divergence              |        |
-| 4.5.1 | DQ metamodel (Pydantic v2) + JSON + JSON Schema export        | ✅ Done |
-| 4.5.2 | Mermaid renderer (3 diagrams) + Delta repo ingestion          | 🔜 Next |
-| 5     | ydata `compare()` side-by-side HTML                           |        |
-| 6     | Optional row-level diff via row keys                          |        |
-| 7     | Runs-history sidebar table                                    |        |
-| 8     | Hardening: all-string-table guard, sampling heuristic, error UX |      |
+The original milestone plan is complete, except where noted. No module is a
+stub; `profiler/` has no `NotImplementedError`.
+
+Shipped:
+
+- Skeleton: UI, input validation, run folder, per-run manifest.
+- Single-table profiling with an HTML report (`profiler/profile.py`).
+- Schema diff + aggregate stat diff, exported to an Excel workbook
+  (`profiler/compare.py`, `profiler/excel.py`).
+- Row-level diff via row keys (`profiler/row_diff.py`).
+- Drift metrics: PSI, KS, Chi-square, JS divergence (`profiler/drift.py`).
+- DQ metamodel (Pydantic v2) + JSON + JSON Schema export
+  (`profiler/metamodel.py`).
+- Mermaid renderer, 3 diagrams per run (`profiler/mermaid.py`).
+- Delta governance repo: 5 tables, idempotent DDL + ingest
+  (`profiler/delta_repo.py`).
+- Runs-history sidebar.
+- Sampling controls (`sampling_mode`: full / sample_n / stratified).
+- Ask Genie tab (`profiler/genie_chat.py`).
+- Load Results tab: nightly load row counts, schema drift, Great Expectations
+  findings, and MERGE promotion metrics, read from the Delta governance schema.
+- Guidebook tab: renders tablespec's UMF guidebook from a UC Volume or by
+  reflecting a catalog through the SQL warehouse.
+
+Superseded, deliberately not built:
+
+- **ydata-profiling** (originally milestones 2 and 5, for per-side and
+  side-by-side HTML). Dropped -- too slow for interactive web app use. HTML
+  reports are generated directly from pandas statistics instead. Do not
+  reintroduce it without revisiting that decision.
+
+Known gaps:
+
+- **No all-string-table guard.** The hardening milestone called for detecting
+  all-string tables and auto-disabling correlations/interactions. Nothing
+  implements this today; a wide all-string table will still be profiled naively.
+- **`ruff check` is not clean here**, and the app is outside the parent repo's
+  `make lint` and pyright scopes.
+- **Tests now run on Python 3.12 only.** This app's old CI matrixed 3.10/3.11 to
+  match the Databricks Apps runtime; the parent repo requires 3.12+, so that
+  version coverage was lost when the suites merged.
 
 ---
 
@@ -189,11 +228,20 @@ a native auto-discover should not return shared catalogs.
 ## Workflow & conventions
 
 - **Branching:** trunk-based. Feature branches → PR → `main`. No `develop`.
-- **Branch names:** `feature/<slug>` (e.g., `feature/4.5.2-mermaid-delta`).
-- **Commits:** imperative mood ("Add Mermaid renderer"), milestone prefix
-  for substantive changes ("4.5.2: …").
-- **CI:** `.github/workflows/test.yml` runs pytest on Python 3.10 + 3.11
-  with coverage on every PR. Required to pass before merge.
+- **Branch names:** `feature/<slug>`.
+- **Commits:** imperative mood ("Add Mermaid renderer").
+- **CI:** this app's tests **run in the parent repo's CI** and in `make test`.
+  They are wired in via `[tool.pytest.ini_options]` in the root `pyproject.toml`
+  (`testpaths` includes `apps/data-profiling/tests`, and `pythonpath` includes
+  `apps/data-profiling` so `profiler` imports). `pandas` and `scipy` are in the
+  root `dev` dependency group for the same reason.
+  Two constraints to respect:
+    - `tests/` here is **not a package** (no `__init__.py`). Adding one would
+      create a second top-level `tests` package that shadows the parent repo's.
+    - Tests run on Python 3.12 (the library's floor), not the 3.10/3.11 matrix
+      this app used to run standalone.
+- **Formatting:** `ruff format` covers this tree, like the rest of the parent
+  repository. `ruff check` is not yet clean here.
 - **Tests:** add unit tests under `tests/` for every new module. Goal: ≥80%
   coverage on the metamodel and drift modules. Test files import directly
   from the `profiler` package — see `tests/test_metamodel.py` for the
@@ -205,11 +253,18 @@ a native auto-discover should not return shared catalogs.
 
 ## Local dev setup
 
+This app lives at `apps/data-profiling/` inside the tablespec repository. Run
+everything from this directory -- `connections.yaml` and `assets/` are resolved
+relative to the working directory.
+
 ```powershell
-cd C:\Users\garyf\synaptiqrepos\Synaptiq-dbx-dev
+cd apps\data-profiling
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -r requirements-dev.txt
+
+# The Guidebook tab imports tablespec; install the library from the repo root.
+python -m pip install ..\..
 
 # UI in mock mode
 $env:PROFILER_RUNTIME = "mock"
@@ -225,7 +280,7 @@ pytest tests/ -v
 
 See `README.md` §6 for full steps. Summary:
 
-- Output volume: `test_main.profiler.ab_runs` (must exist; create with the
+- Output volume: `dev.test_main_profiler.ab_runs` (must exist; create with the
   SQL in `README.md` §2).
 - SQL warehouse: any serverless warehouse the app SP can use.
 - Both wired in `app.yaml` → `resources.output-volume` and
@@ -233,6 +288,14 @@ See `README.md` §6 for full steps. Summary:
 - App SP needs: `USE CATALOG` + `USE SCHEMA` + `SELECT` on every catalog
   the app can read; `WRITE VOLUME` on the output volume; `CAN USE` on the
   warehouse; `SELECT` on `system.information_schema`.
+
+**Deploying with the Guidebook tab.** That tab does `import tablespec`, and
+Databricks Apps installs the `requirements.txt` at the app's *source root*. So
+deploy from the **repository root** using the root `app.yaml`, which installs the
+library (`pip install .`) and then chdir's into this directory. The `app.yaml` in
+this directory remains valid only for standalone deploys without tablespec, where
+the Guidebook tab will show an import error. See
+`docs/guide/data-profiling-app.md` in the repository root.
 
 ---
 
@@ -245,19 +308,16 @@ See `README.md` §6 for full steps. Summary:
 - Use `from __future__ import annotations` at the top of new modules.
 - Prefer explicit imports over wildcards.
 - **No emojis** in code, commits, or PR titles.
-- **Match the stub style** in `profile.py`/`compare.py`/`drift.py`/`excel.py`:
-  short docstring noting the milestone they belong to, then
-  `raise NotImplementedError("... — milestone N").` Replace, don't add
-  alongside.
+- **No stubs remain.** `profile.py`/`compare.py`/`drift.py`/`excel.py` are all
+  implemented; don't reintroduce `NotImplementedError` placeholders.
 
 ---
 
 ## Known gotchas
 
-- **ydata-profiling Spark backend** has reduced functionality for
-  all-string tables and some correlation types. Mitigation (planned,
-  milestone 8): detect all-string tables and auto-disable correlations +
-  interactions; flag in manifest.
+- **All-string tables are not guarded.** Correlations and interactions are still
+  attempted on tables with no numeric columns. Detecting that case and flagging
+  it in the manifest is unimplemented; see "Known gaps" above.
 - **OneDrive caching** can conflict with `.git/index.lock`. Repo lives at
   `C:\Users\garyf\synaptiqrepos\` (outside OneDrive) deliberately.
 - **`schema` is a reserved-ish name.** `DatasetProfile` uses `schema_`
@@ -267,8 +327,12 @@ See `README.md` §6 for full steps. Summary:
   killed. Safe to delete *only* after closing every git client (VS Code,
   PowerShell, etc.):
   `Remove-Item .git/index.lock -Force`
-- **ydata HTML can be large** (several MB for wide tables). Don't load it
+- **Profile HTML can be large** (several MB for wide tables). Don't load it
   into memory; let Streamlit iframe it directly from the Volume.
+- **The guidebook is a multi-page site.** Its pages link to each other, and
+  `st.components.v1.html` renders a `srcdoc` iframe where those relative links
+  cannot resolve. The Guidebook tab uses a page selector instead; don't "fix"
+  the links.
 
 ---
 
@@ -285,22 +349,21 @@ See `README.md` §6 for full steps. Summary:
 
 ---
 
-## How to pick up the next milestone
+## What to pick up next
 
-**4.5.2 next steps:**
-1. Branch: `feature/4.5.2-mermaid-delta` off `main`.
-2. Create `profiler/mermaid.py` that walks `ProfilerRun` → 3 `.mmd` strings.
-3. Update `profiler/storage.py` to write `metamodel.json` and
-   `dq-metamodel-v1.schema.json` into the run folder.
-4. Create `profiler/delta_repo.py` with table DDL (idempotent CREATE TABLE
-   IF NOT EXISTS), a flatten function `(ProfilerRun) -> dict[str, pd.DataFrame]`,
-   and a MERGE-based ingestion function. Liquid clustering applied at table
-   creation.
-5. Update `streamlit_app.py` Run action to call all three at end of run.
-6. Tests: `tests/test_mermaid.py` (snapshot-style for diagram strings),
-   `tests/test_delta_repo.py` (flatten correctness; ingestion against a
-   local SQLite or just check the SQL strings).
-7. PR → main; CI green → merge.
+The milestone plan is finished. The open work, roughly in order of value:
 
-See `tests/test_metamodel.py` for the test pattern. Run `pytest` before
-every push.
+1. **Make `ruff check` clean here**, then widen the parent repo's
+   `TRACKED_LINT_FILES` so `make lint` covers this directory. Pyright too.
+2. **All-string-table guard** (see "Known gaps"): detect tables with no numeric
+   columns, skip correlations/interactions, and record the decision in the
+   manifest.
+3. **Restore Databricks-runtime Python coverage** if it matters: the suite now
+   runs on 3.12 only. A separate CI job could exercise `apps/data-profiling` on
+   the Apps runtime's Python version.
+4. **Unify the profile models.** `profiler/metamodel.py` describes *observed*
+   data; tablespec's `profiling/` describes the *specification*. Feeding observed
+   profiles into the guidebook renderer would put spec and reality on one page.
+
+See `tests/test_metamodel.py` for the test pattern. `make test` and CI run this
+suite, but running `pytest tests/` here before pushing is faster.
