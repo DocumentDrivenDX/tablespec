@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tablespec.guidebook.discovery import discover_umfs
+from tablespec.guidebook.discovery import discover_umfs, load_discovered_umf
+from tablespec.models.umf import save_umf_to_yaml
 from tablespec.umf_loader import UMFLoader
 from tests.builders import UMFBuilder
 
@@ -55,6 +56,53 @@ def test_json_artifact_is_discovered(tmp_path: Path) -> None:
     assert len(found) == 1
     assert found[0].table == "widgets"
     assert found[0].group == ""
+
+
+def test_umf_yaml_artifact_is_discovered(tmp_path: Path) -> None:
+    """The compile pipeline emits ``*.umf.yaml``; the guidebook must render it.
+
+    These whole-document YAML files are not auto-detected by ``UMFLoader.load``
+    (deliberately), so discovery routes them through ``load_umf_from_yaml``.
+    """
+    umf = UMFBuilder("gadgets").column("id", "INTEGER").build()
+    save_umf_to_yaml(umf, tmp_path / "gadgets.umf.yaml")
+
+    found = discover_umfs(tmp_path)
+
+    assert len(found) == 1
+    assert found[0].table == "gadgets"
+    assert found[0].group == ""
+
+
+def test_umf_yaml_artifact_in_subfolder_gets_group(tmp_path: Path) -> None:
+    umf = UMFBuilder("gadgets").column("id", "INTEGER").build()
+    (tmp_path / "sales").mkdir()
+    save_umf_to_yaml(umf, tmp_path / "sales" / "gadgets.umf.yaml")
+
+    found = discover_umfs(tmp_path)
+
+    assert [(d.table, d.group) for d in found] == [("gadgets", "sales")]
+
+
+def test_json_wins_over_umf_yaml_for_same_table(tmp_path: Path) -> None:
+    """Candidate order is split -> json -> yaml, so JSON wins deterministically."""
+    umf = UMFBuilder("widgets").column("id", "INTEGER").build()
+    UMFLoader().save_json(umf, tmp_path / "widgets.umf.json")
+    save_umf_to_yaml(umf, tmp_path / "widgets.umf.yaml")
+
+    found = discover_umfs(tmp_path)
+
+    assert len(found) == 1
+    assert found[0].path.name == "widgets.umf.json"
+
+
+def test_load_discovered_umf_dispatches_on_shape(tmp_path: Path) -> None:
+    umf = UMFBuilder("gadgets").column("id", "INTEGER").build()
+    save_umf_to_yaml(umf, tmp_path / "gadgets.umf.yaml")
+    UMFLoader().save_json(umf, tmp_path / "gadgets.umf.json")
+
+    assert load_discovered_umf(tmp_path / "gadgets.umf.yaml").table_name == "gadgets"
+    assert load_discovered_umf(tmp_path / "gadgets.umf.json").table_name == "gadgets"
 
 
 def test_duplicate_group_table_keeps_first(tmp_path: Path, caplog) -> None:

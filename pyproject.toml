@@ -72,6 +72,13 @@ dev = [
     "pre-commit>=4.0.0",
     "hypothesis>=6.0.0",
     "sqlglot>=26.0.0",
+    # Required to run apps/data-profiling's suite (see [tool.pytest.ini_options]
+    # testpaths). `profiler` imports pandas at module import time; drift.py
+    # imports scipy lazily, but the drift tests exercise those paths. These are
+    # TEST-ONLY here -- the app declares its own runtime deps in
+    # apps/data-profiling/requirements.txt.
+    "pandas>=2.0",
+    "scipy>=1.11",
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",
     "mkdocstrings[python]>=0.27",
@@ -96,7 +103,12 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+# The Databricks app's suite runs alongside the library's. Its tests import the
+# `profiler` package directly, so the app directory goes on the import path.
+# (apps/data-profiling/tests is intentionally NOT a package: a second top-level
+# `tests` package would shadow this repo's own `tests` package at import time.)
+testpaths = ["tests", "apps/data-profiling/tests"]
+pythonpath = ["apps/data-profiling"]
 markers = [
     "acceptance: acceptance criteria tests tied to user stories",
     "contract: marks contract tests that require dedicated compatibility coverage",

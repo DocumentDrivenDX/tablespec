@@ -1,0 +1,56 @@
+# Databricks Apps manifest -- REPO ROOT deployment.
+#
+# Why this file exists at the root rather than in apps/data-profiling/:
+#
+#   The Guidebook tab does `import tablespec`. Databricks Apps installs the
+#   `requirements.txt` found at the app's *source root*, so the source root must
+#   be this repository root for `pip install .` to build and install the
+#   tablespec package itself. Deploying apps/data-profiling/ directly would ship
+#   the Streamlit code without the library it now depends on.
+#
+#   The app resolves `connections.yaml` (and its assets/) relative to the working
+#   directory, so the command chdir's into the app directory before launching
+#   Streamlit.
+#
+# apps/data-profiling/app.yaml is retained for standalone deploys of the app
+# without tablespec. Keep the `resources` and `env` blocks below in sync with it.
+#
+# Deploy:
+#   databricks sync --profile <p> . /Workspace/Users/<you>/<repo>
+#   databricks apps deploy <app-name> --profile <p> \
+#       --source-code-path /Workspace/Users/<you>/<repo>
+
+command:
+  - "sh"
+  - "-c"
+  - "cd apps/data-profiling && streamlit run streamlit_app.py --server.port=8000 --server.address=0.0.0.0"
+
+resources:
+  # Output volume — where HTML + Excel + manifest.json are written per run.
+  - name: output-volume
+    volume:
+      catalog: "dev"                       # POC: single catalog
+      schema:  "test_main_profiler"        # env prefix convention
+      volume:  "ab_runs"
+      permission: "WRITE"
+
+  # SQL warehouse — information_schema lookups for the catalog/schema/table
+  # dropdowns, the Load Results tab, and Guidebook reflection (no Spark needed).
+  - name: sql-warehouse
+    sql_warehouse:
+      id: "2ad65b4df5cd3a9e"
+      permission: "CAN_USE"
+
+env:
+  - name: "OUTPUT_VOLUME_CATALOG"
+    valueFrom: "output-volume"
+
+  - name: "DATABRICKS_WAREHOUSE_ID"
+    value: "2ad65b4df5cd3a9e"
+
+  - name: "PROFILER_RUNTIME"
+    value: "databricks"           # set to "mock" for local dev
+
+  # Genie Space ID for the Ask Genie conversational tab.
+  - name: "GENIE_SPACE_ID"
+    value: "01f15f8e849e1c31a47c5785d07751bf"

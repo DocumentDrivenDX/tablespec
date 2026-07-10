@@ -276,6 +276,24 @@ After modifying any of these paths, stage and commit them:
 - Run `ddx doctor` to check environment health.
 - Run `ddx doc stale` to find documents needing review.
 
+## The Databricks App: `apps/data-profiling/`
+
+A Streamlit Databricks App maintained in this repository — first-party code under
+the same Apache-2.0 license as the library. `NOTICE` records that it began life in
+a separate repository.
+
+- **Formatting:** `ruff format` covers it, like everything else.
+- **Tests:** its 258 tests run in `make test` and CI, wired in via `testpaths` +
+  `pythonpath` in the root `pyproject.toml`. Note `apps/data-profiling/tests/` is
+  deliberately **not a package** — a second top-level `tests` package would shadow
+  this repo's own.
+- **Lint / type-check:** `make lint` and pyright still scope to `src/` (+ `scripts/`).
+  `ruff check apps/` is not yet clean; bringing it under those gates is open work.
+- It has its own `CLAUDE.md` with its own conventions (e.g. no emojis in code).
+  Honor those inside that tree.
+- Library changes it depends on belong in `src/tablespec/`, not in the app.
+- See `docs/guide/data-profiling-app.md` for architecture and deployment.
+
 ## Merge Policy
 
 Branches containing `ddx try` or `ddx work` commits

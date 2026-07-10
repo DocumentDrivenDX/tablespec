@@ -1,0 +1,23 @@
+# Databricks Apps runtime dependencies (installed from the app's source root).
+#
+# This file exists ONLY for the Databricks App deployment described in the root
+# `app.yaml`. tablespec itself is developed with uv/pyproject.toml -- do not add
+# library dependencies here; add them to [project.dependencies] instead.
+#
+# `.` installs the tablespec package from this repo's pyproject.toml so the
+# app's Guidebook tab can `import tablespec` (guidebook rendering plus the
+# Spark-free `umf_from_information_schema` reflection). Version resolution falls
+# back to 0.0.0 when the deployed snapshot carries no git metadata -- see
+# [tool.uv-dynamic-versioning] in pyproject.toml.
+.
+
+# Mirrors apps/data-profiling/requirements.txt. Keep the two in sync.
+streamlit>=1.32,<2.0
+databricks-sdk>=0.28
+databricks-sql-connector>=3.0
+pyyaml>=6.0
+pandas>=2.0
+pydantic>=2.6,<3
+scipy>=1.11
+openpyxl>=3.1
+# pyspark is provided by the Databricks Apps runtime; do not pin here.

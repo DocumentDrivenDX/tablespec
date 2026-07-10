@@ -12,8 +12,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-from tablespec.guidebook.discovery import discover_umfs
-from tablespec.umf_loader import UMFLoader
+from tablespec.guidebook.discovery import discover_umfs, load_discovered_umf
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -100,7 +99,6 @@ def build_reverse_lineage_index(
     """
     if discovered is None:
         discovered = discover_umfs(root)
-    loader = UMFLoader()
 
     consumers: dict[str, list[DownstreamRef]] = {}
 
@@ -115,7 +113,7 @@ def build_reverse_lineage_index(
 
     for unit in discovered:
         try:
-            umf = loader.load(unit.path)
+            umf = load_discovered_umf(unit.path)
         except Exception as exc:
             logger.warning(
                 "Skipping %s during reverse-lineage build: %s",

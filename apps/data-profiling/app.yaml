@@ -1,0 +1,43 @@
+# Databricks Apps manifest.
+#
+# Fill in the TODOs for your PROD (Profiler Host) workspace before deploying.
+# Resources listed here are mounted into the app container at runtime; values
+# are exposed as env vars (see `valueFrom`).
+
+command: ["streamlit", "run", "streamlit_app.py", "--server.port=8000", "--server.address=0.0.0.0"]
+
+resources:
+  # Output volume — where HTML + Excel + manifest.json are written per run.
+  # Must exist in the Profiler Host workspace. See README §3 for create SQL.
+  - name: output-volume
+    volume:
+      catalog: "dev"                       # POC: single catalog
+      schema:  "test_main_profiler"        # env prefix convention
+      volume:  "ab_runs"
+      permission: "WRITE"
+
+  # SQL warehouse — used for information_schema lookups (catalog/schema/table
+  # dropdowns). A small/serverless warehouse is plenty.
+  - name: sql-warehouse
+    sql_warehouse:
+      id: "2ad65b4df5cd3a9e"
+      permission: "CAN_USE"
+
+env:
+  - name: "OUTPUT_VOLUME_CATALOG"
+    valueFrom: "output-volume"
+    # Note: valueFrom returns a volume-resource reference string; the app code
+    # re-reads the components via DATABRICKS_RESOURCE_* standard vars. See
+    # profiler/storage.py for details.
+
+  - name: "DATABRICKS_WAREHOUSE_ID"
+    value: "2ad65b4df5cd3a9e"
+
+  - name: "PROFILER_RUNTIME"
+    value: "databricks"           # set to "mock" for local dev
+
+  # Genie Space ID for the Ask Genie conversational tab.
+  # Find it in Databricks UI: AI/BI → Genie Spaces → your space → URL.
+  # Leave empty to hide the tab until a space is configured.
+  - name: "GENIE_SPACE_ID"
+    value: "01f15f8e849e1c31a47c5785d07751bf"

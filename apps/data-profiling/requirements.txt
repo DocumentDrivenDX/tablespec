@@ -1,0 +1,16 @@
+# Milestone 1 (skeleton) dependencies.
+streamlit>=1.32,<2.0
+databricks-sdk>=0.28
+databricks-sql-connector>=3.0
+pyyaml>=6.0
+pandas>=2.0
+
+# Milestone 4.5.1 — DQ metamodel (Pydantic v2).
+pydantic>=2.6,<3
+
+# Milestone 4 — drift metrics.
+scipy>=1.11
+# ydata-profiling removed: too slow for interactive web app use.
+# HTML profile reports are generated directly from pandas stats.
+openpyxl>=3.1
+# pyspark is provided by the Databricks Apps runtime; do not pin here.

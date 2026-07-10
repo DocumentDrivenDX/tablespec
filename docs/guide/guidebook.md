@@ -24,7 +24,8 @@ anywhere.
 ## Generate from the CLI
 
 ```bash
-# Point it at a directory of UMFs (split table.yaml dirs and/or *.umf.json)
+# Point it at a directory of UMFs
+# (split table.yaml dirs, *.umf.json, and/or *.umf.yaml)
 tablespec guidebook ./tables -o ./guidebook
 
 # Then open ./guidebook/index.html, or serve it:
@@ -48,9 +49,19 @@ print(f"Wrote {len(written)} files")
 
 ## Discovery and layout
 
-Discovery is **flat and recursive**: every split-format UMF (a directory with a
-`table.yaml`) and every `*.umf.json` under the root is found and rendered. A
-UMF's parent subfolder becomes its **group**:
+Discovery is **flat and recursive**. Three artifact shapes are found and
+rendered:
+
+- a split-format UMF (a directory containing `table.yaml`),
+- a `*.umf.json` artifact,
+- a `*.umf.yaml` artifact — the whole-document form the compile pipeline
+  (`bootstrap_from_tables`) emits, so the guidebook renders that output directly.
+
+When a table exists in more than one shape, candidate order is split → JSON →
+YAML, so the richer format wins deterministically and the duplicate is skipped
+with a warning.
+
+A UMF's parent subfolder becomes its **group**:
 
 - When UMFs live in subfolders, output nests as `<group>/<table>.html` and the
   top index lists each group.
