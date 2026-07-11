@@ -7,7 +7,7 @@ name = "tablespec"
 dynamic = ["version"]
 description = "Python library for working with table schemas in Universal Metadata Format (UMF)"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [
     {name = "Erik LaBianca", email = "erik.labianca@gmail.com"},
@@ -19,6 +19,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [

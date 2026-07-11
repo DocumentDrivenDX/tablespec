@@ -1,0 +1,94 @@
+# Databricks Asset Bundle: the clinical nightly pipeline as a scheduled Job.
+#
+#   Task 1  load_and_validate  (notebook, serverless)  CSV(Volume) -> raw -> ingested -> GX
+#   Task 2  dbt_build          (dbt task, warehouse)   raw -> final model, contract-enforced
+#
+# Deploy + run:
+#   cd examples/nightly_clinical
+#   databricks bundle validate  -p gfischer
+#   databricks bundle deploy    -p gfischer
+#   databricks bundle run nightly_clinical -p gfischer
+#
+# Why this beats the local scripts:
+#   - The notebook uses its OWN spark session (no Databricks Connect, no token).
+#   - The dbt task authenticates as the job's run-as identity against the
+#     warehouse -- no PAT, no OAuth token minting, none of the local plumbing.
+#     (PATs are disabled on this workspace; in-workspace jobs don't need them.)
+
+bundle:
+  name: nightly_clinical
+
+variables:
+  warehouse_id:
+    description: SQL warehouse the dbt models run on.
+    default: "2ad65b4df5cd3a9e" # dev-default-serverless
+  catalog:
+    default: "dev"
+  raw_schema:
+    description: Where raw_/ingested_ tables live (source for dbt).
+    default: "test_main_clinical"
+  gold_schema:
+    description: Target schema for the dbt model output (scratch for the demo).
+    default: "dbt_demo"
+
+resources:
+  jobs:
+    nightly_clinical:
+      name: nightly_clinical
+      # 03:00 daily. Remove to run on-demand only.
+      schedule:
+        quartz_cron_expression: "0 0 3 * * ?"
+        timezone_id: America/New_York
+        pause_status: PAUSED # unpause when you're ready to schedule for real
+
+      # Serverless (this workspace does not permit creating classic clusters).
+      # The notebook task loads with pure Spark and imports nothing extra, so its
+      # environment needs no dependencies -- this sidesteps serverless's immutable
+      # package constraints (which conflict with tablespec's great-expectations).
+      # Full tablespec Great Expectations validation runs in the data-profiling
+      # app and the local db_validate.py; the notebook here applies a lightweight
+      # inline gate.
+      environments:
+        - environment_key: notebook_env
+          spec:
+            client: "3"
+        - environment_key: dbt_env
+          spec:
+            client: "3"
+            dependencies:
+              - "dbt-databricks>=1.9,<2"
+
+      tasks:
+        # -- Task 1: load + inline gate (pure Spark) -------------------------
+        - task_key: load_and_validate
+          environment_key: notebook_env
+          notebook_task:
+            notebook_path: ./notebooks/01_load_and_validate.py
+            base_parameters:
+              catalog: ${var.catalog}
+              target_schema: ${var.raw_schema}
+              table: encounter
+              landing_dir: /Volumes/dev/test_main_profiler/ab_runs/nightly
+              ingest_sql_path: ../sql/encounter.ingest.sql
+
+        # -- Task 2: dbt build (runs only if the gate passed) ----------------
+        - task_key: dbt_build
+          depends_on:
+            - task_key: load_and_validate
+          environment_key: dbt_env
+          dbt_task:
+            project_directory: ./dbt
+            # Platform generates the connection profile from these + the job
+            # identity; profiles.yml in ./dbt is only for local runs.
+            catalog: ${var.catalog}
+            schema: ${var.gold_schema}
+            warehouse_id: ${var.warehouse_id}
+            commands:
+              - "dbt deps"
+              - "dbt run --full-refresh"
+
+targets:
+  dev:
+    default: true
+    workspace:
+      host: https://adb-7405619521761591.11.azuredatabricks.net
