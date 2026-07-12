@@ -14,3 +14,10 @@ scipy>=1.11
 # HTML profile reports are generated directly from pandas stats.
 openpyxl>=3.1
 # pyspark is provided by the Databricks Apps runtime; do not pin here.
+
+# tablespec powers the Guidebook tab. Installed from this repo's main branch:
+# the published index (0.0.x) predates the Guidebook feature, and Databricks
+# Apps deploy from the apps/data-profiling SUBFOLDER (not the repo root), so a
+# local `.` install is not an option. requires-python was relaxed to >=3.11 in
+# main (PR #4) so it installs on the Apps runtime (Python 3.11).
+tablespec @ git+https://github.com/DocumentDrivenDX/tablespec.git@main
