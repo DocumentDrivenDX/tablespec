@@ -24,6 +24,25 @@ resources:
       permission: "CAN_USE"
 
 env:
+  # ---------------------------------------------------------------------
+  # Metadata home — the declared address for governance tables and run
+  # artifacts (FEAT-034 CFG-01, ADR-019). These are the deployment-supplied
+  # tier and outrank connections.yaml and the built-in defaults.
+  #
+  # Change these to target a different environment. No application source
+  # edit is required, and none should be made.
+  #
+  # Run `python scripts/provision.py` once against a new environment before
+  # first start; it creates the schema, volume, and governance tables.
+  - name: "PROFILER_METADATA_CATALOG"
+    value: "dev"
+
+  - name: "PROFILER_METADATA_SCHEMA"
+    value: "test_main_profiler"
+
+  - name: "PROFILER_OUTPUT_VOLUME"
+    value: "ab_runs"
+
   - name: "OUTPUT_VOLUME_CATALOG"
     valueFrom: "output-volume"
     # Note: valueFrom returns a volume-resource reference string; the app code

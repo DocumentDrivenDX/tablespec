@@ -138,11 +138,28 @@ def _api(method: str, path: str, body: Optional[dict] = None) -> dict:
                 path.split("/spaces/")[1].split("/")[0] if "/spaces/" in path else "?"
             )
             raise PermissionError(
-                f"The app service principal does not have access to Genie Space '{space_id}'.\n\n"
+                f"The app's identity does not have access to Genie Space "
+                f"'{space_id}'.\n\n"
                 f"Fix: Databricks workspace → AI/BI → Genie Spaces → your space → "
-                f"Permissions → Add SP '39ee93a7-c623-4614-90a8-c3798bb5b329' with Can Run."
+                f"Permissions → add {_running_identity(w)} with Can Run."
             ) from exc
         raise
+
+
+def _running_identity(w) -> str:
+    """Describe the identity the app runs as, for grant instructions (DIAG-02).
+
+    Reported rather than hardcoded: the identity differs per deployment, and a
+    baked-in principal id would both be wrong elsewhere and violate CFG-02.
+    """
+    try:
+        me = w.current_user.me()
+        name = getattr(me, "user_name", None) or getattr(me, "display_name", None)
+        if name:
+            return f"'{name}'"
+    except Exception:  # noqa: BLE001
+        pass
+    return "the app's service principal"
 
 
 def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> GenieResult:
