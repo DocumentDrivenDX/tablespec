@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from profiler.row_diff import RowDiffResult, diff_pct, summarise
 

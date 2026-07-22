@@ -20,9 +20,8 @@ All tables:
 
 from __future__ import annotations
 
-import importlib
 from datetime import date, datetime
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .metamodel import ProfilerRun
@@ -272,7 +271,8 @@ def flatten(run: "ProfilerRun") -> dict[str, list[dict[str, Any]]]:
 
 def _exec_sql(statement: str) -> None:
     """Execute one SQL statement via Statement Execution API (no JDBC)."""
-    import os as _os, time as _time
+    import os as _os
+    import time as _time
     from .catalog import _workspace_client
 
     w = _workspace_client()
@@ -377,7 +377,6 @@ def ingest(
 
 def _sql_literal(val: Any) -> str:
     """Convert a Python value to a safe SQL literal string."""
-    from datetime import date, datetime
 
     if val is None:
         return "NULL"

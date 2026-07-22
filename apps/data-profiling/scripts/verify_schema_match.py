@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import os
 import time
 from pathlib import Path
 
@@ -28,8 +27,10 @@ parser.add_argument("--warehouse-id", default="2ad65b4df5cd3a9e")
 parser.add_argument("--profile", default="gfischer")
 args = parser.parse_args()
 
-from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.sql import StatementState
+# Imported after parse_args so --help returns immediately instead of paying the
+# databricks-sdk import cost first.
+from databricks.sdk import WorkspaceClient  # noqa: E402
+from databricks.sdk.service.sql import StatementState  # noqa: E402
 
 w = WorkspaceClient(profile=args.profile)
 

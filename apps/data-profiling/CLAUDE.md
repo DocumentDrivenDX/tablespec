@@ -128,8 +128,13 @@ Known gaps:
 - **No all-string-table guard.** The hardening milestone called for detecting
   all-string tables and auto-disabling correlations/interactions. Nothing
   implements this today; a wide all-string table will still be profiled naively.
-- **`ruff check` is not clean here**, and the app is outside the parent repo's
-  `make lint` and pyright scopes.
+- **`ruff check` is clean for app code but not for `notebooks/`.** The remaining
+  findings there are almost entirely F821/E402 from linting Databricks notebooks
+  as plain modules (`spark`, `dbutils`, and `display` are injected globals). That
+  wants an exclude pattern rather than edits; the parent repo's
+  `.pre-commit-config.yaml` already excludes `^notebooks/` but the pattern is
+  anchored to the repo root and misses this nested tree. The app is still outside
+  the parent repo's `make lint` and pyright scopes.
 - **Tests now run on Python 3.12 only.** This app's old CI matrixed 3.10/3.11 to
   match the Databricks Apps runtime; the parent repo requires 3.12+, so that
   version coverage was lost when the suites merged.
@@ -241,7 +246,8 @@ a native auto-discover should not return shared catalogs.
     - Tests run on Python 3.12 (the library's floor), not the 3.10/3.11 matrix
       this app used to run standalone.
 - **Formatting:** `ruff format` covers this tree, like the rest of the parent
-  repository. `ruff check` is not yet clean here.
+  repository. `ruff check` is clean for app code; keep it that way. `notebooks/`
+  is the exception (see "Known gaps").
 - **Tests:** add unit tests under `tests/` for every new module. Goal: ≥80%
   coverage on the metamodel and drift modules. Test files import directly
   from the `profiler` package — see `tests/test_metamodel.py` for the
@@ -353,8 +359,10 @@ the Guidebook tab will show an import error. See
 
 The milestone plan is finished. The open work, roughly in order of value:
 
-1. **Make `ruff check` clean here**, then widen the parent repo's
-   `TRACKED_LINT_FILES` so `make lint` covers this directory. Pyright too.
+1. **Widen the parent repo's `TRACKED_LINT_FILES` so `make lint` covers this
+   directory.** App code is now `ruff check` clean, so the remaining step is
+   settling the `notebooks/` exclude pattern and then wiring this tree in.
+   Pyright too.
 2. **All-string-table guard** (see "Known gaps"): detect tables with no numeric
    columns, skip correlations/interactions, and record the decision in the
    manifest.
