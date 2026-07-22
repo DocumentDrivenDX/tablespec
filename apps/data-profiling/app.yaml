@@ -1,39 +1,68 @@
 # Databricks Apps manifest.
 #
-# Fill in the TODOs for your PROD (Profiler Host) workspace before deploying.
-# Resources listed here are mounted into the app container at runtime; values
-# are exposed as env vars (see `valueFrom`).
+# Every environment-specific value this app needs is declared here (FEAT-034
+# PKG-01). Targeting a different workspace means editing this file and nothing
+# else — no application source change is required, and none should be made
+# (PKG-02).
+#
+# ---------------------------------------------------------------------------
+# Identity and grants (PKG-03)
+#
+# The app runs as its own Databricks Apps service principal. Its id is shown in
+# the workspace under Compute -> Apps -> <app> -> Authorization, and the running
+# identity is also displayed in the app's sidebar under "Environment".
+#
+# That service principal needs:
+#
+#   USE CATALOG   on PROFILER_METADATA_CATALOG
+#   USE SCHEMA    on PROFILER_METADATA_CATALOG.PROFILER_METADATA_SCHEMA
+#   SELECT,       on the governance tables in that schema
+#   MODIFY
+#   READ VOLUME,  on PROFILER_OUTPUT_VOLUME
+#   WRITE VOLUME
+#   CAN USE       on the SQL warehouse below
+#   SELECT        on every catalog the app is expected to profile
+#   CAN RUN       on the Genie space, if GENIE_SPACE_ID is set
+#
+# The app reports, but never acquires, these privileges: a missing grant is
+# named at startup with the exact statement an administrator must run.
+#
+# ---------------------------------------------------------------------------
+# First deploy into a new environment
+#
+#   1. Set the PROFILER_METADATA_* values below.
+#   2. Run `python scripts/provision.py` once against that environment. It
+#      creates the schema, the volume, and the governance tables, and is safe
+#      to re-run.
+#   3. Deploy. The sidebar "Environment" panel confirms where the app landed.
 
 command: ["streamlit", "run", "streamlit_app.py", "--server.port=8000", "--server.address=0.0.0.0"]
 
 resources:
   # Output volume — where HTML + Excel + manifest.json are written per run.
-  # Must exist in the Profiler Host workspace. See README §3 for create SQL.
+  # Keep in step with the PROFILER_* values below; both must name the same
+  # location, and provisioning creates it if absent.
   - name: output-volume
     volume:
-      catalog: "dev"                       # POC: single catalog
-      schema:  "test_main_profiler"        # env prefix convention
-      volume:  "ab_runs"
+      catalog: "dev"
+      schema: "test_main_profiler"
+      volume: "ab_runs"
       permission: "WRITE"
 
-  # SQL warehouse — used for information_schema lookups (catalog/schema/table
-  # dropdowns). A small/serverless warehouse is plenty.
+  # SQL warehouse — information_schema lookups, governance reads/writes, and
+  # startup validation. A small serverless warehouse is plenty.
   - name: sql-warehouse
     sql_warehouse:
       id: "2ad65b4df5cd3a9e"
       permission: "CAN_USE"
 
 env:
-  # ---------------------------------------------------------------------
-  # Metadata home — the declared address for governance tables and run
-  # artifacts (FEAT-034 CFG-01, ADR-019). These are the deployment-supplied
-  # tier and outrank connections.yaml and the built-in defaults.
+  # -------------------------------------------------------------------------
+  # Required — the metadata home (ADR-019: a declared address, never discovered)
   #
-  # Change these to target a different environment. No application source
-  # edit is required, and none should be made.
-  #
-  # Run `python scripts/provision.py` once against a new environment before
-  # first start; it creates the schema, volume, and governance tables.
+  # These outrank connections.yaml and the built-in defaults. Leave any of them
+  # unset and the app falls back to a generic default rather than to this
+  # workspace, which the sidebar reports as source "default".
   - name: "PROFILER_METADATA_CATALOG"
     value: "dev"
 
@@ -43,20 +72,31 @@ env:
   - name: "PROFILER_OUTPUT_VOLUME"
     value: "ab_runs"
 
-  - name: "OUTPUT_VOLUME_CATALOG"
-    valueFrom: "output-volume"
-    # Note: valueFrom returns a volume-resource reference string; the app code
-    # re-reads the components via DATABRICKS_RESOURCE_* standard vars. See
-    # profiler/storage.py for details.
-
   - name: "DATABRICKS_WAREHOUSE_ID"
     value: "2ad65b4df5cd3a9e"
 
   - name: "PROFILER_RUNTIME"
     value: "databricks"           # set to "mock" for local dev
 
-  # Genie Space ID for the Ask Genie conversational tab.
-  # Find it in Databricks UI: AI/BI → Genie Spaces → your space → URL.
-  # Leave empty to hide the tab until a space is configured.
+  - name: "OUTPUT_VOLUME_CATALOG"
+    valueFrom: "output-volume"
+    # Note: valueFrom returns a volume-resource reference string; the app code
+    # re-reads the components via DATABRICKS_RESOURCE_* standard vars. See
+    # profiler/storage.py for details.
+
+  # -------------------------------------------------------------------------
+  # Optional — each disables only its own surface when unset (DIAG-03)
+
+  # Ask Genie tab. Databricks UI: AI/BI -> Genie Spaces -> your space -> URL.
+  # Unset hides the tab.
   - name: "GENIE_SPACE_ID"
     value: "01f15f8e849e1c31a47c5785d07751bf"
+
+  # "Go To Dashboard" button in the sidebar. Unset hides the button.
+  - name: "PROFILER_DASHBOARD_URL"
+    value: "https://adb-7405619521761591.11.azuredatabricks.net/dashboardsv3/01f15f7d18171dac85cdc247e47d48a5/published?o=7405619521761591"
+
+  # Directory of pre-generated *.umf.yaml / *.umf.json specs for the Guidebook
+  # tab. Unset falls back to a path under the output volume.
+  # - name: "PROFILER_SPEC_VOLUME"
+  #   value: "/Volumes/<catalog>/<schema>/<volume>/umf"

@@ -1027,6 +1027,79 @@ def _render_sidebar_dashboard():
     )
 
 
+def _startup_faults() -> list:
+    """Validated configuration faults, computed once per session (DIAG-01).
+
+    Streamlit re-runs the whole script on every interaction, so this is cached
+    in session state: the checks make workspace round trips and re-running them
+    per keystroke would both be slow and pointless. "Re-check" clears it.
+    """
+    if "config_faults" not in st.session_state:
+        from profiler.diagnostics import validate_config
+
+        try:
+            st.session_state["config_faults"] = validate_config(get_config())
+        except Exception as exc:  # noqa: BLE001
+            # A diagnostic that throws is worse than the fault it checks for.
+            from profiler.diagnostics import ConfigFault
+
+            st.session_state["config_faults"] = [
+                ConfigFault(
+                    setting="(diagnostics)",
+                    resource="startup validation",
+                    problem=f"Configuration checks could not run ({exc}).",
+                    remedy="The app still works; verify settings manually.",
+                    severity="warning",
+                )
+            ]
+    return st.session_state["config_faults"]
+
+
+def _render_startup_banner():
+    """Surface configuration faults with the setting and the fix (DIAG-02)."""
+    from profiler.diagnostics import ERROR
+
+    faults = _startup_faults()
+    if not faults:
+        return
+
+    errors = [f for f in faults if f.severity == ERROR]
+    warnings = [f for f in faults if f.severity != ERROR]
+
+    if errors:
+        st.error(
+            "**Configuration problem — the app may not work correctly.**\n\n"
+            + "\n\n".join(f"- {f.message()}" for f in errors)
+        )
+    if warnings:
+        st.warning("\n\n".join(f"- {f.message()}" for f in warnings))
+
+
+def _render_sidebar_environment():
+    """Show where this deployment points, so an operator need not read source.
+
+    DIAG-04: the resolved metadata location and the tier each value came from,
+    which is what distinguishes a declared address from a default that quietly
+    filled in.
+    """
+    from profiler.diagnostics import describe_environment
+
+    faults = _startup_faults()
+    label = "Environment" if not faults else "Environment ⚠"
+    with st.sidebar.expander(label, expanded=False):
+        st.caption(f"Metadata home: **{get_config().metadata_fqn}**")
+        for name, value, source in describe_environment(get_config()):
+            st.markdown(
+                f"<div style='font-size:0.74rem;line-height:1.5;'>"
+                f"<b>{name}</b>: <code>{value}</code> "
+                f"<span style='opacity:0.6;'>({source})</span></div>",
+                unsafe_allow_html=True,
+            )
+        if st.button("Re-check configuration", key="recheck_config_btn"):
+            st.session_state.pop("config_faults", None)
+            st.rerun()
+
+
 def _sidebar():
     st.sidebar.markdown(
         """
@@ -1043,6 +1116,7 @@ def _sidebar():
 
     _render_sidebar_compute()
     _render_sidebar_dashboard()
+    _render_sidebar_environment()
     st.sidebar.divider()
 
     with st.sidebar.expander("Run history", expanded=False):
@@ -1157,6 +1231,12 @@ with _sub_logo_col:
         st.image(_logo_path, width=150)
 
 st.divider()
+
+# Configuration faults surface here, above the tabs, so a misconfigured
+# deployment is read as a message rather than discovered as a stack trace on
+# the first user action (DIAG-02).
+_render_startup_banner()
+
 _GENIE_SPACE_ID = get_config().genie_space_id or ""
 
 tab_guidebook, tab_compare, tab_profile, tab_load, tab_genie = st.tabs(
