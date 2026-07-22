@@ -8,10 +8,12 @@ ddx:
 Project Concerns declare active cross-cutting context for downstream work. They
 are not principles, requirements, ADRs, test plans, or implementation tasks.
 
-Selection recorded 2026-06-10 during a spec-compliance pass. No
-`concerns.local.yml` operator override exists; slot fillers below are recorded
-assumptions inferred from the product's nature (a pure-Python schema-compilation
-library), reviewable by the operator.
+Selection recorded 2026-06-10 during a spec-compliance pass; slots re-selected
+2026-07-12 after the data-profiling Databricks App entered the repository
+(`apps/data-profiling/`), which changed the product's nature from a pure-Python
+schema-compilation library to that library **plus a deployed operational UI**.
+No `concerns.local.yml` operator override exists; slot fillers below are
+recorded assumptions, reviewable by the operator.
 
 ## Active Concerns
 
@@ -25,6 +27,7 @@ library), reviewable by the operator.
 | databricks-declarative-pipelines | library | `area:data` | The LDP sibling emitter (FEAT-028, ADR-013) emits Lakeflow Declarative Pipelines projects; LDP semantics (APPLY CHANGES, EXPECTATIONS) constrain the shared core seam | LDP generated from the core seam only; no Databricks runtime imports at generation time (`tests/test_core_encapsulation.py`) |
 | hugo-hextra | library | `area:docs`, `area:infra` | FEAT-030 introduces a Hugo/Hextra product microsite under `website/` and ADR-014 requires it to coexist with the Pages package index | Hugo extended pinned in CI; Hextra as Hugo Module; content under `website/`; Playwright screenshots; combined Pages artifact preserves `/simple/` |
 | product-microsite-ia | library | `area:docs` | The microsite must serve evaluators, first-time users, active users, and operators instead of exposing repository internals as a flat document tree | Separate Evaluate/Start/Decide/Operate paths; homepage answers product/category/value/action; top-level sections distinguish Why, Use, Concepts, Reference, and Demos |
+| databricks-app | project | `area:app`, `area:infra` | `apps/data-profiling/` ships a Streamlit Databricks App (guidebook, profiling, comparison, load results) that is deployed and operated, not imported; its environment binding, provisioning, and failure reporting are governed by FEAT-034 and ADR-019 | Metadata home is a declared `(catalog, schema, volume)`; no environment literals in application source; provisioning is idempotent and additive; configuration faults reported at startup naming the grant required; privileges are reported, never escalated |
 
 ## Slot Resolution
 
@@ -34,11 +37,11 @@ shipped-default → recorded-assumption:
 | Slot | Filler | Source | Rationale |
 |------|--------|--------|-----------|
 | language-runtime | python-uv | assumption | Shipped default (`typescript-bun`) contradicts the product: tablespec is a Python 3.12+ library (`pyproject.toml`). Recorded as assumption per resolution order. |
-| frontend-framework | Hugo + Hextra for documentation | assumption | The product remains a non-UI library, but FEAT-030 adds a public documentation microsite. Hextra is the framework for that site only; it is not an operational app UI. |
-| e2e-framework | Playwright for microsite; conformance harness for library runtime | assumption | Browser e2e applies to FEAT-030 navigation and rendering. The product runtime remains covered by compile/backbone/conformance tests rather than browser flows. |
+| frontend-framework | Streamlit for the operational app; Hugo + Hextra for documentation | assumption | Two distinct UI surfaces with different jobs. Streamlit backs the deployed Databricks App (`apps/data-profiling/`), an operator UI; Hextra backs the FEAT-030 documentation microsite. The library core itself remains non-UI. Supersedes the prior record, which asserted the product had no operational app UI. |
+| e2e-framework | Playwright for microsite; conformance harness for library runtime; **none yet for the Databricks App** | assumption | Browser e2e applies to FEAT-030 navigation and rendering; the library runtime is covered by compile/backbone/conformance tests. The Streamlit app has **no whole-stack exercise** — selecting a tool is not coverage, so this is recorded as an open gap rather than a filled slot. See Concern Conflicts. |
 | auth-provider | — (not applicable) | assumption | No accounts, tenants, or sign-in surface. |
 | datastore | — (not applicable) | assumption | The library holds no state of its own; compiled artifacts target the consumer's platform (Databricks/UC, DuckDB in tests). |
-| deploy-target | Python package plus GitHub Pages docs/package index | assumption | Releases publish wheel/sdist and the Pages package index; FEAT-030 adds a Hugo microsite to the same Pages artifact while preserving `/simple/`. |
+| deploy-target | Python package plus GitHub Pages docs/package index, **and a Databricks App** | assumption | Releases publish wheel/sdist and the Pages package index; FEAT-030 adds a Hugo microsite to the same Pages artifact while preserving `/simple/`. FEAT-034 adds a third target: `apps/data-profiling/` deploys as a Databricks App from its own subdirectory (the full repository exceeds the Apps file-count limit) and installs tablespec as a dependency rather than shipping the repository. |
 | architecture-style | target-agnostic core seam (project-local) | assumption | Governed by ADR-013: framework-agnostic `core/` IR with sibling emitters (`dbt/`, `ldp/`, SQL) and enforced import encapsulation. |
 
 ## Project Overrides
@@ -54,6 +57,7 @@ shipped-default → recorded-assumption:
 This project uses the following area labels for concern scoping:
 
 - `area:api` — the public Python API surface (`src/tablespec/__init__.py`)
+- `area:app` — the deployed Databricks App (`apps/data-profiling/`): its UI, configuration, and deployment
 - `area:cli` — the Typer CLI (`tablespec` entry point) and TUI
 - `area:data` — UMF models, emitters, profiling, validation, sample data
 - `area:docs` — source docs, API reference, Hugo microsite, and documentation IA
@@ -65,3 +69,5 @@ This project uses the following area labels for concern scoping:
 |----------|------------|
 | unity-catalog (three-part runtime naming) vs. testing (local engines without catalogs) | The relation seam (`core/relations.py`) renders engine-appropriate references; conformance fixtures pin the per-engine expected form — never hardcode either shape in emitters |
 | sample-data (varied, generated data) vs. testing (byte-for-byte golden assertions) | Golden/parity tests use pinned deterministic generation configs; variability is exercised in generator unit tests, not in cross-engine golden comparisons |
+| unity-catalog (no hardcoded catalogs) vs. databricks-app (must address one concrete location at runtime) | ADR-019: the app receives a **declared** `(catalog, schema, volume)` as a deployment input and resolves it through one precedence chain — the location is concrete at runtime but never literal in tracked source |
+| databricks-app (a deployed operator UI) vs. verification (evidence must be observed, and e2e = compile→artifacts→backbone for this project) | The project-level e2e override covers the library runtime, not the app. The app currently has **no whole-stack exercise**; until one exists, app changes are evidenced by deploy-and-drive checks recorded per change, and the gap is tracked in the `e2e-framework` slot |
