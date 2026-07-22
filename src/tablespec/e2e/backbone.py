@@ -73,9 +73,7 @@ if TYPE_CHECKING:
 _SourceShape = DelimitedSource | JsonSource | ParquetSource
 
 
-def _source_suffix(
-    source: _SourceShape | None, batch: Path | None = None
-) -> str:
+def _source_suffix(source: _SourceShape | None, batch: Path | None = None) -> str:
     """File suffix used when synthesizing ``_source_file`` metadata."""
     if isinstance(source, ParquetSource):
         return ".parquet"
