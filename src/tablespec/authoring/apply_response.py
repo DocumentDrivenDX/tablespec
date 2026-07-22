@@ -68,9 +68,7 @@ def apply_validation_response(
             continue
 
         if exp_type not in known_types:
-            result.invalid.append(
-                (exp_dict, f"Unknown expectation type '{exp_type}'")
-            )
+            result.invalid.append((exp_dict, f"Unknown expectation type '{exp_type}'"))
             continue
 
         # Classify stage

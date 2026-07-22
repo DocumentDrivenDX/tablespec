@@ -153,7 +153,9 @@ expectations:
         # Use YAML that parses to non-dict (string), which triggers AttributeError
         # caught by the broad except in the parser - but ruamel.yaml may parse
         # some "invalid" strings successfully. Use truly broken YAML:
-        changes = parser.parse_validation_changes(":\n  :\n  - :", ":\n  :\n  - :", table_name="t")
+        changes = parser.parse_validation_changes(
+            ":\n  :\n  - :", ":\n  :\n  - :", table_name="t"
+        )
         # Even if parsed, without 'expectations' key, no changes should be detected
         assert changes == []
 
@@ -504,7 +506,10 @@ class TestValidationChangeFormat:
 class TestColumnChangeFormat:
     def test_data_type_change(self):
         cc = ColumnChange(
-            column_name="age", change_field="data_type", old_value="VARCHAR", new_value="INTEGER"
+            column_name="age",
+            change_field="data_type",
+            old_value="VARCHAR",
+            new_value="INTEGER",
         )
         desc = cc.format_description()
         assert "type" in desc
@@ -520,7 +525,11 @@ class TestColumnChangeFormat:
 
     def test_generic_field(self):
         cc = ColumnChange(
-            column_name="c", change_field="length", old_value=10, new_value=20, table_name="t"
+            column_name="c",
+            change_field="length",
+            old_value=10,
+            new_value=20,
+            table_name="t",
         )
         desc = cc.format_description()
         assert "t.c" in desc
@@ -542,14 +551,20 @@ class TestRelationshipChangeFormat:
 
     def test_removed(self):
         rc = RelationshipChange(
-            fk_column="user_id", change_field="removed", old_value="users.id", new_value=None
+            fk_column="user_id",
+            change_field="removed",
+            old_value="users.id",
+            new_value=None,
         )
         desc = rc.format_description()
         assert "Removed" in desc
 
     def test_references_table_change(self):
         rc = RelationshipChange(
-            fk_column="fk", change_field="references_table", old_value="t1", new_value="t2"
+            fk_column="fk",
+            change_field="references_table",
+            old_value="t1",
+            new_value="t2",
         )
         desc = rc.format_description()
         assert "table" in desc
@@ -558,7 +573,10 @@ class TestRelationshipChangeFormat:
 
     def test_references_column_change(self):
         rc = RelationshipChange(
-            fk_column="fk", change_field="references_column", old_value="c1", new_value="c2"
+            fk_column="fk",
+            change_field="references_column",
+            old_value="c1",
+            new_value="c2",
         )
         desc = rc.format_description()
         assert "column" in desc
@@ -773,7 +791,7 @@ class TestChangelogGeneratorReviewNote:
         # We need a real git repo to instantiate, so create one
         import git
 
-        repo = git.Repo.init(tmp_path)
+        git.Repo.init(tmp_path)
         table_dir = tmp_path / "table1"
         table_dir.mkdir()
 
@@ -781,13 +799,15 @@ class TestChangelogGeneratorReviewNote:
 
         gen = ChangelogGenerator(table_dir)
 
-        note = gen._extract_review_note("Summary line\n\nReview Note: This was approved\n")
+        note = gen._extract_review_note(
+            "Summary line\n\nReview Note: This was approved\n"
+        )
         assert note == "This was approved"
 
     def test_extract_review_note_multiline(self, tmp_path):
         import git
 
-        repo = git.Repo.init(tmp_path)
+        git.Repo.init(tmp_path)
         table_dir = tmp_path / "table1"
         table_dir.mkdir()
 
@@ -803,7 +823,7 @@ class TestChangelogGeneratorReviewNote:
     def test_extract_review_note_absent(self, tmp_path):
         import git
 
-        repo = git.Repo.init(tmp_path)
+        git.Repo.init(tmp_path)
         table_dir = tmp_path / "table1"
         table_dir.mkdir()
 
@@ -838,14 +858,20 @@ class TestChangelogGeneratorGenerate:
         # Initial commit with a columns file
         col_file = table_dir / "columns" / "col1.yaml"
         col_file.parent.mkdir(parents=True)
-        col_file.write_text("columns:\n  - name: col1\n    data_type: VARCHAR\n    length: 10\n")
+        col_file.write_text(
+            "columns:\n  - name: col1\n    data_type: VARCHAR\n    length: 10\n"
+        )
         repo.index.add([str(col_file.relative_to(tmp_path))])
         repo.index.commit("Initial columns setup")
 
         # Second commit: modify column
-        col_file.write_text("columns:\n  - name: col1\n    data_type: INTEGER\n    length: 10\n")
+        col_file.write_text(
+            "columns:\n  - name: col1\n    data_type: INTEGER\n    length: 10\n"
+        )
         repo.index.add([str(col_file.relative_to(tmp_path))])
-        repo.index.commit("Update col1 type to INTEGER\n\nReview Note: Approved by data team")
+        repo.index.commit(
+            "Update col1 type to INTEGER\n\nReview Note: Approved by data team"
+        )
 
         return repo, table_dir
 

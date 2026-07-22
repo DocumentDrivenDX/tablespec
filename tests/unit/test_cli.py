@@ -141,7 +141,9 @@ class TestValidate:
 
         with (
             patch("tablespec.cli._validation_context", mock_context),
-            patch("tablespec.cli.validate_table", return_value=(True, [])) as mock_validate_table,
+            patch(
+                "tablespec.cli.validate_table", return_value=(True, [])
+            ) as mock_validate_table,
             patch("tablespec.cli.validate_pipeline") as mock_validate_pipeline,
         ):
             result = runner.invoke(app, ["validate", str(table_dir)])

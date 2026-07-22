@@ -26,12 +26,18 @@ except ImportError:
     # Fallback: define provenance columns inline (canonical list from sync_baseline)
     PROVENANCE_COLUMNS: dict[str, Any] = {
         "meta_source_name": {"name": "meta_source_name", "data_type": "VARCHAR"},
-        "meta_source_checksum": {"name": "meta_source_checksum", "data_type": "VARCHAR"},
+        "meta_source_checksum": {
+            "name": "meta_source_checksum",
+            "data_type": "VARCHAR",
+        },
         "meta_load_dt": {"name": "meta_load_dt", "data_type": "DATETIME"},
         "meta_snapshot_dt": {"name": "meta_snapshot_dt", "data_type": "DATETIME"},
         "meta_source_offset": {"name": "meta_source_offset", "data_type": "INTEGER"},
         "meta_checksum": {"name": "meta_checksum", "data_type": "VARCHAR"},
-        "meta_pipeline_version": {"name": "meta_pipeline_version", "data_type": "VARCHAR"},
+        "meta_pipeline_version": {
+            "name": "meta_pipeline_version",
+            "data_type": "VARCHAR",
+        },
         "meta_component": {"name": "meta_component", "data_type": "VARCHAR"},
     }
 

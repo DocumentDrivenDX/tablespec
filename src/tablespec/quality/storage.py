@@ -43,7 +43,9 @@ QUALITY_CHECK_RESULT_SCHEMA = StructType(
         StructField("pipeline_name", StringType(), False),
         StructField("table_name", StringType(), False),
         # Check Type (for unified storage with validation_results)
-        StructField("check_type", StringType(), False),  # "quality_check" vs "validation"
+        StructField(
+            "check_type", StringType(), False
+        ),  # "quality_check" vs "validation"
         # Check Details
         StructField("check_id", StringType(), False),  # Unique check identifier
         StructField("expectation_type", StringType(), False),  # GX expectation type
@@ -56,7 +58,9 @@ QUALITY_CHECK_RESULT_SCHEMA = StructType(
         # Metrics
         StructField("unexpected_count", LongType(), True),  # Number of failing rows
         StructField("unexpected_percent", DoubleType(), True),  # Failure percentage
-        StructField("observed_value", StringType(), True),  # JSON-serialized observed value
+        StructField(
+            "observed_value", StringType(), True
+        ),  # JSON-serialized observed value
         # Metadata
         StructField("tags", StringType(), True),  # JSON-serialized list of tags
         StructField("details", StringType(), True),  # JSON-serialized check details
@@ -68,10 +72,18 @@ QUALITY_CHECK_RESULT_SCHEMA = StructType(
         StructField("should_block", BooleanType(), True),  # Pipeline should be blocked
         StructField("threshold_breached", BooleanType(), True),  # Threshold breached
         # Incremental validation fields
-        StructField("since_timestamp", TimestampType(), True),  # Cutoff for incremental validation
-        StructField("incremental_mode", BooleanType(), True),  # Whether incremental mode was used
-        StructField("total_source_records", LongType(), True),  # Total records before filtering
-        StructField("validated_records", LongType(), True),  # Records actually validated
+        StructField(
+            "since_timestamp", TimestampType(), True
+        ),  # Cutoff for incremental validation
+        StructField(
+            "incremental_mode", BooleanType(), True
+        ),  # Whether incremental mode was used
+        StructField(
+            "total_source_records", LongType(), True
+        ),  # Total records before filtering
+        StructField(
+            "validated_records", LongType(), True
+        ),  # Records actually validated
     ]
 )
 
@@ -130,7 +142,9 @@ class QualityResultsWriter:
         rows = self._quality_run_to_rows(quality_run)
 
         if not rows:
-            self.logger.warning(f"No quality check results to write for {quality_run.table_name}")
+            self.logger.warning(
+                f"No quality check results to write for {quality_run.table_name}"
+            )
             return
 
         # Create DataFrame
@@ -151,9 +165,13 @@ class QualityResultsWriter:
             partition_cols=["run_date", "table_name"],
         )
 
-        self.logger.info(f"Successfully wrote quality check results to {self.table_ref}")
+        self.logger.info(
+            f"Successfully wrote quality check results to {self.table_ref}"
+        )
 
-    def _quality_run_to_rows(self, quality_run: QualityCheckRun) -> list[dict[str, Any]]:
+    def _quality_run_to_rows(
+        self, quality_run: QualityCheckRun
+    ) -> list[dict[str, Any]]:
         """Convert QualityCheckRun to list of rows for Delta table.
 
         Args:
@@ -280,7 +298,9 @@ class QualityResultsWriter:
 
         """
         if not self.spark:
-            self.logger.warning("SparkSession required for reading last validation timestamp")
+            self.logger.warning(
+                "SparkSession required for reading last validation timestamp"
+            )
             return None
 
         try:
@@ -289,7 +309,9 @@ class QualityResultsWriter:
             df = self.backend.storage.read(full_table_ref)
 
             # Filter by pipeline and table
-            df = df.filter((df.pipeline_name == pipeline_name) & (df.table_name == table_name))
+            df = df.filter(
+                (df.pipeline_name == pipeline_name) & (df.table_name == table_name)
+            )
 
             # Get max run_timestamp
             from pyspark.sql import functions as F
@@ -306,10 +328,14 @@ class QualityResultsWriter:
                     return max_ts
                 return None
 
-            self.logger.info(f"No previous validation runs found for {pipeline_name}/{table_name}")
+            self.logger.info(
+                f"No previous validation runs found for {pipeline_name}/{table_name}"
+            )
             return None
 
         except Exception as e:
             # Table may not exist yet on first run
-            self.logger.debug(f"Could not read last validation timestamp (may be first run): {e}")
+            self.logger.debug(
+                f"Could not read last validation timestamp (may be first run): {e}"
+            )
             return None

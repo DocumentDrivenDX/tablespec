@@ -49,7 +49,14 @@ class TestDomainsSet:
         umf_file = _write_umf(tmp_path)
         result = runner.invoke(
             app,
-            ["domains-set", str(umf_file), "--column", "gender_cd", "--type", "nonexistent_type"],
+            [
+                "domains-set",
+                str(umf_file),
+                "--column",
+                "gender_cd",
+                "--type",
+                "nonexistent_type",
+            ],
         )
         assert result.exit_code != 0
         assert "Unknown domain type" in result.output
@@ -58,7 +65,14 @@ class TestDomainsSet:
         umf_file = _write_umf(tmp_path)
         result = runner.invoke(
             app,
-            ["domains-set", str(umf_file), "--column", "missing_col", "--type", "gender"],
+            [
+                "domains-set",
+                str(umf_file),
+                "--column",
+                "missing_col",
+                "--type",
+                "gender",
+            ],
         )
         assert result.exit_code != 0
         assert "not found" in result.output

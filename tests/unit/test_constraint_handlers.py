@@ -122,7 +122,12 @@ class TestShouldApplyUniqueWithinRecordConstraint:
                 ["col_a", "col_b"],
                 True,
             ),
-            ("any_value_is_missing", {"col_a": "val1", "col_b": None}, ["col_a", "col_b"], False),
+            (
+                "any_value_is_missing",
+                {"col_a": "val1", "col_b": None},
+                ["col_a", "col_b"],
+                False,
+            ),
             ("any_value_is_missing", {"col_a": "val1"}, ["col_a", "col_b"], False),
             # ignore_row_if='all_values_are_missing' - apply unless all missing
             (
@@ -131,8 +136,18 @@ class TestShouldApplyUniqueWithinRecordConstraint:
                 ["col_a", "col_b"],
                 True,
             ),
-            ("all_values_are_missing", {"col_a": "val1", "col_b": None}, ["col_a", "col_b"], True),
-            ("all_values_are_missing", {"col_a": None, "col_b": None}, ["col_a", "col_b"], False),
+            (
+                "all_values_are_missing",
+                {"col_a": "val1", "col_b": None},
+                ["col_a", "col_b"],
+                True,
+            ),
+            (
+                "all_values_are_missing",
+                {"col_a": None, "col_b": None},
+                ["col_a", "col_b"],
+                False,
+            ),
         ],
     )
     def test_unique_within_record_conditions(
@@ -140,7 +155,9 @@ class TestShouldApplyUniqueWithinRecordConstraint:
     ):
         """Test unique-within-record constraint with different conditions."""
         result = ConstraintHandlers.should_apply_unique_within_record_constraint(
-            record=record, constraint_columns=constraint_columns, ignore_row_if=ignore_row_if
+            record=record,
+            constraint_columns=constraint_columns,
+            ignore_row_if=ignore_row_if,
         )
         assert result == expected
 

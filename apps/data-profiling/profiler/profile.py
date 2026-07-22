@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import math
 import os
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -141,8 +141,6 @@ def _databricks_profile(
     sample_n: Optional[int],
     load_date: Optional[str] = None,
 ) -> DatasetProfile:
-    from .catalog import _sql_connect
-
     limit = sample_n or FETCH_LIMIT
 
     # Pre-flight: verify warehouse is RUNNING before opening SQL connection.

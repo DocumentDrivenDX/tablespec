@@ -4,11 +4,13 @@ repos:
     hooks:
       - id: ruff-format
         name: ruff format
-        exclude: "^notebooks/"
+        # notebooks: Databricks cell layout / injected globals
+        # tests/golden: expected artifacts must match generators byte-for-byte
+        exclude: "(^|/)notebooks/|^tests/golden/|^\\.ddx/"
       - id: ruff
         name: ruff check
         args: [--fix]
-        exclude: "^notebooks/"
+        exclude: "(^|/)notebooks/|^tests/golden/|^\\.ddx/"
 
   - repo: local
     hooks:
@@ -19,10 +21,12 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Full suite already runs in the Coverage workflow. Keep pytest available
+      # locally via: pre-commit run pytest --all-files --hook-stage manual
       - id: pytest
         name: pytest
         entry: env -u GIT_DIR -u GIT_WORK_TREE uv run pytest
         language: system
         types: [python]
         pass_filenames: false
-        stages: [commit]
+        stages: [manual]

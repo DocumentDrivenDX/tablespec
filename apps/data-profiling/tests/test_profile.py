@@ -15,8 +15,6 @@ from __future__ import annotations
 
 import math
 import os
-import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -25,7 +23,6 @@ from profiler.catalog import TableRef, VolumeRef
 from profiler.metamodel import (
     CategoricalStats,
     NumericStats,
-    new_run_id,
 )
 from profiler.profile import (
     _build_histogram,

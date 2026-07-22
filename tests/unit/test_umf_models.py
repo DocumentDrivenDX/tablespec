@@ -101,7 +101,9 @@ class TestDerivationCandidate:
 
     def test_creates_candidate(self):
         """Test creating derivation candidate."""
-        candidate = DerivationCandidate(table="outreach_list", column="birth_date", priority=1)
+        candidate = DerivationCandidate(
+            table="outreach_list", column="birth_date", priority=1
+        )
         assert candidate.table == "outreach_list"
         assert candidate.column == "birth_date"
         assert candidate.priority == 1
@@ -118,14 +120,17 @@ class TestSurvivorship:
     def test_creates_survivorship(self):
         """Test creating survivorship strategy."""
         survivorship = Survivorship(
-            strategy="highest_priority", explanation="Use value from highest priority source"
+            strategy="highest_priority",
+            explanation="Use value from highest priority source",
         )
         assert survivorship.strategy == "highest_priority"
         assert survivorship.explanation == "Use value from highest priority source"
 
     def test_allows_none_description(self):
         """Test explanation is required."""
-        survivorship = Survivorship(strategy="most_recent", explanation="Use most recent value")
+        survivorship = Survivorship(
+            strategy="most_recent", explanation="Use most recent value"
+        )
         assert survivorship.strategy == "most_recent"
         assert survivorship.explanation == "Use most recent value"
 
@@ -299,7 +304,9 @@ class TestUMFColumn:
             data_type="DATE",
             derivation=UMFColumnDerivation(
                 candidates=[
-                    DerivationCandidate(table="outreach_list", column="birth_date", priority=1),
+                    DerivationCandidate(
+                        table="outreach_list", column="birth_date", priority=1
+                    ),
                     DerivationCandidate(
                         table="outreach_list_diags", column="birth_date", priority=2
                     ),
@@ -353,7 +360,9 @@ class TestUMFColumn:
 
         # Invalid policy should fail
         with pytest.raises(ValidationError):
-            UMFColumn(name="test", data_type="VARCHAR", provenance_policy="invalid_policy")
+            UMFColumn(
+                name="test", data_type="VARCHAR", provenance_policy="invalid_policy"
+            )
 
     def test_validates_pivot_index_positive(self):
         """Test pivot_index must be >= 1."""
@@ -737,14 +746,15 @@ class TestPropertyBasedUMF:
             assert new_col.description == orig_col.description
 
 
-
 class TestDeprecationWarnings:
     """Test that legacy fields emit DeprecationWarning per ADR-005 Phase C."""
 
     def test_validation_rules_emits_warning(self):
         from tablespec.models.umf import ValidationRules
 
-        with pytest.warns(DeprecationWarning, match="UMF.validation_rules is deprecated"):
+        with pytest.warns(
+            DeprecationWarning, match="UMF.validation_rules is deprecated"
+        ):
             UMF(
                 version="1.0",
                 table_name="test",

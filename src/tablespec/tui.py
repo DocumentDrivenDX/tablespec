@@ -33,6 +33,7 @@ from textual.widgets import Footer, Header, Input, Static, TextArea, Tree
 # Data helpers (pure Python, no Textual dependency for testing)
 # ---------------------------------------------------------------------------
 
+
 def load_umfs_from_path(path: Path) -> list[dict[str, Any]]:
     """Load UMF data from a file or directory of YAML files.
 
@@ -123,7 +124,9 @@ def _format_column_detail(col: dict[str, Any]) -> str:
     if col.get("key_type"):
         lines.append(f"Key Type: {col['key_type']}")
     if col.get("sample_values"):
-        lines.append(f"Sample Values: {', '.join(str(v) for v in col['sample_values'][:5])}")
+        lines.append(
+            f"Sample Values: {', '.join(str(v) for v in col['sample_values'][:5])}"
+        )
     if col.get("notes"):
         for note in col["notes"]:
             lines.append(f"Note: {note}")
@@ -222,7 +225,9 @@ class UMFExplorer(App):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Input(placeholder="Search columns (name, type, description)...", id="search-bar")
+        yield Input(
+            placeholder="Search columns (name, type, description)...", id="search-bar"
+        )
         with Horizontal(id="main-layout"):
             yield Tree("UMF Tables", id="tree-panel")
             with Vertical(id="detail-panel"):
@@ -336,9 +341,9 @@ class UMFExplorer(App):
         for line in text.splitlines():
             line = line.strip()
             if line.startswith("description:"):
-                new_desc = line[len("description:"):].strip()
+                new_desc = line[len("description:") :].strip()
             elif line.startswith("data_type:"):
-                new_dtype = line[len("data_type:"):].strip()
+                new_dtype = line[len("data_type:") :].strip()
 
         umf = self._umfs[umf_idx]
         col = umf["columns"][col_idx]

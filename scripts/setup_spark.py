@@ -94,12 +94,16 @@ def cached_download(
             result = subprocess.run(
                 [
                     "curl",
-                    "-C", "-",
+                    "-C",
+                    "-",
                     "-L",
-                    "--retry", "5",
-                    "--retry-delay", "3",
+                    "--retry",
+                    "5",
+                    "--retry-delay",
+                    "3",
                     "--retry-connrefused",
-                    "-o", str(cache_path),
+                    "-o",
+                    str(cache_path),
                     "--progress-bar",
                     url,
                 ],
@@ -211,17 +215,26 @@ def setup_coursier(bin_dir: Path) -> None:
     system = platform.system().lower()
     machine = platform.machine().lower()
 
-    arch_map = {"x86_64": "x86_64", "amd64": "x86_64", "arm64": "aarch64", "aarch64": "aarch64"}
+    arch_map = {
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "arm64": "aarch64",
+        "aarch64": "aarch64",
+    }
     arch = arch_map.get(machine, machine)
 
     if system == "darwin":
         coursier_url = f"https://github.com/coursier/launchers/raw/master/cs-{arch}-apple-darwin.gz"
         use_zip = False
     elif system == "linux":
-        coursier_url = f"https://github.com/coursier/launchers/raw/master/cs-{arch}-pc-linux.gz"
+        coursier_url = (
+            f"https://github.com/coursier/launchers/raw/master/cs-{arch}-pc-linux.gz"
+        )
         use_zip = False
     elif system == "windows":
-        coursier_url = f"https://github.com/coursier/launchers/raw/master/cs-{arch}-pc-win32.zip"
+        coursier_url = (
+            f"https://github.com/coursier/launchers/raw/master/cs-{arch}-pc-win32.zip"
+        )
         use_zip = True
     else:
         msg = f"Unsupported platform: {system}"
@@ -337,7 +350,9 @@ def setup_jdk(bin_dir: Path, share_dir: Path) -> None:
             if platform.system().lower() == "windows":
                 localappdata = os.getenv("LOCALAPPDATA")
                 if localappdata:
-                    cache_locations.append(Path(localappdata) / "Coursier" / "cache" / "arc")
+                    cache_locations.append(
+                        Path(localappdata) / "Coursier" / "cache" / "arc"
+                    )
             else:
                 cache_locations.append(Path.home() / ".cache" / "coursier" / "arc")
 
@@ -448,14 +463,21 @@ def fetch_delta_lake(bin_dir: Path, spark_home: Path) -> None:
         cmd = [
             coursier_bin,
             "fetch",
-            "--cache", str(cache_dir),
-            "--repository", "central",
-            "--repository", "https://repo1.maven.org/maven2",
+            "--cache",
+            str(cache_dir),
+            "--repository",
+            "central",
+            "--repository",
+            "https://repo1.maven.org/maven2",
             dependency,
         ]
 
         result = subprocess.run(
-            cmd, capture_output=True, text=True, check=True, timeout=300,
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=300,
         )
         jar_paths = result.stdout.strip().split("\n")
 
@@ -508,7 +530,9 @@ def _is_spark_installation_valid(spark_dir: Path) -> bool:
 
     jars_dir = spark_dir / "jars"
     essential_jars = ["spark-core*", "spark-sql*", "spark-catalyst*"]
-    return all(list(jars_dir.glob(f"{jar_pattern}.jar")) for jar_pattern in essential_jars)
+    return all(
+        list(jars_dir.glob(f"{jar_pattern}.jar")) for jar_pattern in essential_jars
+    )
 
 
 def _is_complete_setup_valid(spark_home: Path, bin_dir: Path) -> bool:
@@ -653,13 +677,16 @@ def verify_spark_session() -> bool:
 
         # Test Delta Lake
         import tempfile
+
         temp_dir = tempfile.mkdtemp()
         try:
             test_df.write.format("delta").mode("overwrite").save(temp_dir)
             delta_df = spark.read.format("delta").load(temp_dir)
             delta_result = delta_df.collect()
             if len(delta_result) != 3:
-                print(f"  Delta Lake test failed: expected 3 rows, got {len(delta_result)}")
+                print(
+                    f"  Delta Lake test failed: expected 3 rows, got {len(delta_result)}"
+                )
                 spark.stop()
                 return False
             print("  Delta Lake write/read verified")
@@ -672,6 +699,7 @@ def verify_spark_session() -> bool:
     except Exception as e:
         print(f"  Spark session test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -683,7 +711,9 @@ def setup_spark() -> None:
     # Configuration
     spark_version = "4.0.0"
     spark_filename = f"spark-{spark_version}-bin-hadoop3.tgz"
-    spark_url = f"https://archive.apache.org/dist/spark/spark-{spark_version}/{spark_filename}"
+    spark_url = (
+        f"https://archive.apache.org/dist/spark/spark-{spark_version}/{spark_filename}"
+    )
     spark_checksum = "b5a9e2ea22ac971bad81ab079e510f1ab92732efaf790af4b895174b28d99a65d35543f4300caa073257b6fe42062daafe3eea106d1945806166098606f8d03c"
 
     # Directories
@@ -715,7 +745,12 @@ def setup_spark() -> None:
         # Step 3: Download and setup Spark
         print("\nStep 3: Setting up Spark...")
         download_and_extract_spark(
-            spark_url, spark_filename, spark_checksum, download_dir, local_dir, spark_home
+            spark_url,
+            spark_filename,
+            spark_checksum,
+            download_dir,
+            local_dir,
+            spark_home,
         )
 
     # Step 4: Fetch Delta Lake JARs

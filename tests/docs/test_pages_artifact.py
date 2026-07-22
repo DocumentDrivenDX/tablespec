@@ -74,7 +74,7 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
     assert (out_dir / ".nojekyll").is_file()
     assert (out_dir / "simple" / "index.html").is_file()
 
-    package_index = (out_dir / "simple" / "tablespec" / "index.html")
+    package_index = out_dir / "simple" / "tablespec" / "index.html"
     assert package_index.is_file()
     html = package_index.read_text(encoding="utf-8")
 

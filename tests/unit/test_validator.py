@@ -104,6 +104,7 @@ class TestValidationContext:
 
         # Change file content (and mtime)
         import time
+
         time.sleep(0.05)
         table_file.write_text("v2")
 
@@ -145,7 +146,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_valid_table_passes(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_valid_table_passes(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """A well-formed table should pass validation."""
         umf = _make_umf()
         ctx = self._make_context(umf)
@@ -161,7 +164,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_naming_errors_reported(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_naming_errors_reported(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Naming convention errors should be reported."""
         mock_naming.return_value = [("test_table", "Table name must be lowercase")]
         umf = _make_umf()
@@ -178,7 +183,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_invalid_pyspark_type_in_expectation(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_invalid_pyspark_type_in_expectation(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Expectation with invalid type_ should produce an error."""
         expectations = [
             {
@@ -202,7 +209,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_missing_expectation_type_field(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_missing_expectation_type_field(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Expectation without 'type' field should produce error."""
         expectations = [{"kwargs": {"column": "id"}}]
         umf = _make_umf(validation_rules=ValidationRules(expectations=expectations))
@@ -219,7 +228,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_pending_implementation_skipped(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_pending_implementation_skipped(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Pending implementation expectations should be silently skipped."""
         expectations = [
             {"type": "expect_validation_rule_pending_implementation", "kwargs": {}},
@@ -237,7 +248,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_nonexistent_column_reference(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_nonexistent_column_reference(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Expectation referencing non-existent column should produce error."""
         expectations = [
             {
@@ -260,7 +273,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_meta_prefix_columns_skipped(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_meta_prefix_columns_skipped(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Columns with meta_ or source_ prefix should not trigger missing column errors."""
         expectations = [
             {
@@ -285,7 +300,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_column_list_references_validated(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_column_list_references_validated(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """column_list, column_A, column_B, column_set kwargs should be validated."""
         expectations = [
             {
@@ -312,7 +329,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_table_reference_validation(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_table_reference_validation(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """expect_table_row_count_to_equal_other_table should validate table refs."""
         expectations = [
             {
@@ -334,7 +353,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_missing_other_table_name_param(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_missing_other_table_name_param(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Missing other_table_name param should produce error."""
         expectations = [
             {
@@ -356,7 +377,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_completeness_checks_disabled(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_completeness_checks_disabled(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """With check_completeness=False, completeness validators should not be called."""
         umf = _make_umf()
         ctx = self._make_context(umf)
@@ -374,7 +397,9 @@ class TestValidateTable:
     @patch("tablespec.validator.validate_provenance_columns")
     @patch("tablespec.validator.validate_domain_types")
     @patch("tablespec.validator.validate_baseline_expectations")
-    def test_completeness_errors_reported(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_completeness_errors_reported(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Completeness errors should be surfaced."""
         mock_prov.return_value = [("meta_col", "Missing required provenance column")]
         mock_domain.return_value = [("col1", "Invalid domain type")]
@@ -475,7 +500,9 @@ class TestValidatePipeline:
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
     @patch("tablespec.validator.validate_baseline_expectations", return_value=[])
-    def test_loads_all_table_dirs(self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path):
+    def test_loads_all_table_dirs(
+        self, mock_base, mock_domain, mock_prov, mock_naming, tmp_path
+    ):
         """Pipeline validation should process each subdirectory with table.yaml."""
         # Create table directories
         for name in ["table_a", "table_b"]:
@@ -559,7 +586,9 @@ class TestShowTableInfo:
 
     def test_info_with_relationships(self, tmp_path):
         """Should report FK count when relationships are present."""
-        fk = ForeignKey(column="cust_id", references_table="customers", references_column="id")
+        fk = ForeignKey(
+            column="cust_id", references_table="customers", references_column="id"
+        )
         umf = _make_umf(
             relationships=Relationships(foreign_keys=[fk]),
         )
@@ -577,7 +606,12 @@ class TestShowTableInfo:
         """Should report expectation count."""
         umf = _make_umf(
             validation_rules=ValidationRules(
-                expectations=[{"type": "expect_column_values_to_not_be_null", "kwargs": {"column": "id"}}]
+                expectations=[
+                    {
+                        "type": "expect_column_values_to_not_be_null",
+                        "kwargs": {"column": "id"},
+                    }
+                ]
             ),
         )
         ctx = ValidationContext()
@@ -685,12 +719,20 @@ class TestGetRuleIdentifier:
     """Tests for _get_rule_identifier."""
 
     def test_with_column(self):
-        exp = {"type": "expect_column_values_to_not_be_null", "kwargs": {"column": "name"}, "meta": {"rule_index": 3}}
+        exp = {
+            "type": "expect_column_values_to_not_be_null",
+            "kwargs": {"column": "name"},
+            "meta": {"rule_index": 3},
+        }
         result = _get_rule_identifier(exp, "orders")
         assert result == "orders.name.column_values_to_not_be_null.3"
 
     def test_without_column(self):
-        exp = {"type": "expect_table_row_count_to_be_between", "kwargs": {}, "meta": {"rule_index": 1}}
+        exp = {
+            "type": "expect_table_row_count_to_be_between",
+            "kwargs": {},
+            "meta": {"rule_index": 1},
+        }
         result = _get_rule_identifier(exp, "orders")
         assert result == "orders.table_row_count_to_be_between.1"
 
@@ -700,7 +742,11 @@ class TestGetRuleIdentifier:
         assert result == "t.id.column_values_to_be_unique.0"
 
     def test_dash_column_treated_as_no_column(self):
-        exp = {"type": "expect_something", "kwargs": {"column": "-"}, "meta": {"rule_index": 0}}
+        exp = {
+            "type": "expect_something",
+            "kwargs": {"column": "-"},
+            "meta": {"rule_index": 0},
+        }
         result = _get_rule_identifier(exp, "t")
         assert result == "t.something.0"
 

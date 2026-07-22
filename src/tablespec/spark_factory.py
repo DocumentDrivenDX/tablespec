@@ -75,7 +75,8 @@ class SparkSessionFactory:
 
         """
         return "DATABRICKS_RUNTIME_VERSION" in os.environ or (
-            "SPARK_HOME" in os.environ and "databricks" in os.environ.get("SPARK_HOME", "").lower()
+            "SPARK_HOME" in os.environ
+            and "databricks" in os.environ.get("SPARK_HOME", "").lower()
         )
 
     @staticmethod
@@ -184,7 +185,9 @@ class SparkSessionFactory:
                 if not spark_home.exists():
                     msg = f"SPARK_HOME path does not exist: {spark_home}"
                     raise RuntimeError(msg)
-                session_logger.info(f"Using Spark installation from SPARK_HOME: {spark_home}")
+                session_logger.info(
+                    f"Using Spark installation from SPARK_HOME: {spark_home}"
+                )
 
             if java_home_str:
                 java_home = Path(java_home_str)
@@ -202,7 +205,9 @@ class SparkSessionFactory:
         if is_databricks:
             # In Databricks, always reuse the runtime's pre-existing session.
             # Never create a new session — the runtime manages the connection.
-            session_logger.info("Detected Databricks environment - using runtime session")
+            session_logger.info(
+                "Detected Databricks environment - using runtime session"
+            )
 
             # 1. Try the active session (works when running in-process, e.g. pytest.main())
             try:
@@ -365,14 +370,20 @@ class SparkSessionFactory:
                 if "DeltaSparkSessionExtension" not in extensions:
                     cls._raise_delta_config_error()
 
-                session_logger.info("Spark session with Delta Lake configuration verified")
+                session_logger.info(
+                    "Spark session with Delta Lake configuration verified"
+                )
 
             except Exception as spark_e:
-                session_logger.exception(f"Spark session verification failed: {spark_e}")
+                session_logger.exception(
+                    f"Spark session verification failed: {spark_e}"
+                )
                 try:
                     spark.stop()
                 except Exception as stop_e:
-                    session_logger.warning(f"Error stopping failed Spark session: {stop_e}")
+                    session_logger.warning(
+                        f"Error stopping failed Spark session: {stop_e}"
+                    )
 
                 msg = f"Spark session initialization failed: {spark_e}"
                 raise RuntimeError(msg) from spark_e

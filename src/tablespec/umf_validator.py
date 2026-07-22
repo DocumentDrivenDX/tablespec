@@ -331,7 +331,11 @@ class UMFValidator:
         )
         from tablespec.expectation_migration import ensure_expectation_suite_data
 
-        known_types = RAW_VALIDATION_TYPES | INGESTED_QUALITY_CHECK_TYPES | REDUNDANT_VALIDATION_TYPES
+        known_types = (
+            RAW_VALIDATION_TYPES
+            | INGESTED_QUALITY_CHECK_TYPES
+            | REDUNDANT_VALIDATION_TYPES
+        )
         errors = []
 
         suite_data = ensure_expectation_suite_data(umf_data)
@@ -343,7 +347,9 @@ class UMFValidator:
         for exp in suite_data.get("pending", []):
             exp_type = exp.get("type", exp.get("expectation_type", ""))
             if exp_type and exp_type not in known_types:
-                errors.append(f"Unknown expectation type '{exp_type}' in expectations.pending.")
+                errors.append(
+                    f"Unknown expectation type '{exp_type}' in expectations.pending."
+                )
         return errors
 
     def _validate_business_rules(self, umf_data: dict[str, Any]) -> None:

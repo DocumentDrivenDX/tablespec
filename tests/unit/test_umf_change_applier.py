@@ -32,7 +32,9 @@ def _make_umf(columns=None, description=None, table_type=None, validation_rules=
 
 
 def _make_col(name, data_type="VARCHAR", length=None, description=None):
-    return UMFColumn(name=name, data_type=data_type, length=length, description=description)
+    return UMFColumn(
+        name=name, data_type=data_type, length=length, description=description
+    )
 
 
 class TestApplyColumnChange:
@@ -193,14 +195,18 @@ class TestApplyValidationChange:
 class TestApplyMetadataChange:
     def test_change_description(self):
         umf = _make_umf(description="old")
-        change = UMFMetadataChange(field_name="description", old_value="old", new_value="new")
+        change = UMFMetadataChange(
+            field_name="description", old_value="old", new_value="new"
+        )
         result = apply_metadata_change(umf, change)
         assert result.description == "new"
         assert umf.description == "old"
 
     def test_change_table_type(self):
         umf = _make_umf(table_type="provided")
-        change = UMFMetadataChange(field_name="table_type", old_value="provided", new_value="lookup")
+        change = UMFMetadataChange(
+            field_name="table_type", old_value="provided", new_value="lookup"
+        )
         result = apply_metadata_change(umf, change)
         assert result.table_type == "lookup"
 
@@ -251,7 +257,9 @@ class TestApplyChangesSequentially:
                 ),
             ],
             metadata_changes=[
-                UMFMetadataChange(field_name="description", old_value="old", new_value="new"),
+                UMFMetadataChange(
+                    field_name="description", old_value="old", new_value="new"
+                ),
             ],
         )
         assert len(result.columns) == 2

@@ -105,14 +105,16 @@ def generate_validation_prompt(umf_data: dict[str, Any]) -> str:
     )
 
     # Load the GX schema from tablespec package (same package now)
-    schema_path = Path(__file__).parent.parent / "schemas" / "gx_expectation_suite.schema.json"
+    schema_path = (
+        Path(__file__).parent.parent / "schemas" / "gx_expectation_suite.schema.json"
+    )
     with schema_path.open() as f:
         gx_schema = json.load(f)
 
     # Extract key schema information
-    severity_levels = gx_schema["properties"]["expectations"]["items"]["properties"]["meta"][
-        "properties"
-    ]["severity"]["enum"]
+    severity_levels = gx_schema["properties"]["expectations"]["items"]["properties"][
+        "meta"
+    ]["properties"]["severity"]["enum"]
     name_pattern = gx_schema["properties"]["name"]["pattern"]
 
     # Get table-level LLM-generatable expectations (NOT baseline expectations)
@@ -363,7 +365,10 @@ Generate expectations ONLY for:
                     sample_str.lower() == col_name.lower()
                     or sample_str.upper() == col_name.upper()
                     or sample_str.replace(" ", "_").lower() == col_name.lower()
-                    or (col_desc and sample_str.lower() == col_desc.lower()[: len(sample_str)])
+                    or (
+                        col_desc
+                        and sample_str.lower() == col_desc.lower()[: len(sample_str)]
+                    )
                 )
 
                 if not is_header:

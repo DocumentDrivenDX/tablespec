@@ -36,7 +36,9 @@ class ValidationChange:
                 key_str = f"{self.table_name}.{key_str}"
 
         if self.change_field == "severity":
-            return f"Changed {key_str} severity from {self.old_value} to {self.new_value}"
+            return (
+                f"Changed {key_str} severity from {self.old_value} to {self.new_value}"
+            )
         if self.change_field.startswith("kwargs."):
             field_name = self.change_field.split(".", 1)[1]
             return f"Changed {key_str} {field_name} from {self.old_value} to {self.new_value}"
@@ -59,11 +61,17 @@ class ColumnChange:
 
     def format_description(self) -> str:
         """Format as human-readable description."""
-        col_ref = f"{self.table_name}.{self.column_name}" if self.table_name else self.column_name
+        col_ref = (
+            f"{self.table_name}.{self.column_name}"
+            if self.table_name
+            else self.column_name
+        )
         if self.change_field == "data_type":
             return f"Changed {col_ref} type from {self.old_value} to {self.new_value}"
         if self.change_field == "nullable":
-            return f"Changed {col_ref} nullable from {self.old_value} to {self.new_value}"
+            return (
+                f"Changed {col_ref} nullable from {self.old_value} to {self.new_value}"
+            )
         return f"Changed {col_ref} {self.change_field} from {self.old_value} to {self.new_value}"
 
 
@@ -79,7 +87,9 @@ class RelationshipChange:
 
     def format_description(self) -> str:
         """Format as human-readable description."""
-        fk_ref = f"{self.table_name}.{self.fk_column}" if self.table_name else self.fk_column
+        fk_ref = (
+            f"{self.table_name}.{self.fk_column}" if self.table_name else self.fk_column
+        )
         if self.change_field == "added":
             return f"Added foreign key {fk_ref} → {self.new_value}"
         if self.change_field == "removed":
@@ -120,12 +130,12 @@ class DerivationChange:
     def format_description(self) -> str:
         """Format as human-readable description."""
         col_ref = (
-            f"{self.table_name}.{self.target_column}" if self.table_name else self.target_column
+            f"{self.table_name}.{self.target_column}"
+            if self.table_name
+            else self.target_column
         )
         if self.change_field == "strategy":
-            return (
-                f"Changed {col_ref} survivorship strategy from {self.old_value} to {self.new_value}"
-            )
+            return f"Changed {col_ref} survivorship strategy from {self.old_value} to {self.new_value}"
         if self.change_field == "candidates":
             return f"Modified {col_ref} source candidates"
         return f"Changed {col_ref} {self.change_field}"
@@ -431,7 +441,13 @@ class YAMLDiffParser:
         changes = []
 
         # Check metadata fields
-        for field in ["table_name", "description", "canonical_name", "version", "table_type"]:
+        for field in [
+            "table_name",
+            "description",
+            "canonical_name",
+            "version",
+            "table_type",
+        ]:
             old_val = old_data.get(field) if old_data else None
             new_val = new_data.get(field) if new_data else None
 
@@ -513,7 +529,9 @@ class YAMLDiffParser:
 
         return changes
 
-    def _get_composite_key(self, expectation: dict, table_name: str, position: int) -> str:
+    def _get_composite_key(
+        self, expectation: dict, table_name: str, position: int
+    ) -> str:
         """Create composite key: table.column.type.position.
 
         This ensures uniqueness even when rule_id is not present or not unique.

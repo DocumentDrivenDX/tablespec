@@ -22,7 +22,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
 
-from .catalog import TableRef, VolumeRef
+from .catalog import VolumeRef
 
 if TYPE_CHECKING:
     from .metamodel import ProfilerRun

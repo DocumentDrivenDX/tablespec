@@ -1,7 +1,6 @@
 """Tests for survivorship display formatting and validation."""
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -17,6 +16,7 @@ pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def minimal_surv_data():
@@ -335,7 +335,7 @@ class TestFormatSurvivorship:
         """Candidates are sorted by priority."""
         output = format_survivorship(full_surv_data)
         lines = output.split("\n")
-        source_lines = [l for l in lines if "[1]" in l or "[2]" in l]
+        source_lines = [line for line in lines if "[1]" in line or "[2]" in line]
         assert len(source_lines) == 2
 
     def test_format_no_candidates(self, full_surv_data):

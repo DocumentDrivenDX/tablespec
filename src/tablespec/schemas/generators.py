@@ -194,7 +194,9 @@ def generate_json_schema(umf_data: dict[str, Any]) -> dict[str, Any]:
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": f"{canonical_name} Schema",
         "type": "object",
-        "description": umf_data.get("description", f"Schema for {canonical_name} table"),
+        "description": umf_data.get(
+            "description", f"Schema for {canonical_name} table"
+        ),
         "properties": {},
         "required": [],
     }
@@ -213,7 +215,9 @@ def generate_json_schema(umf_data: dict[str, Any]) -> dict[str, Any]:
         if col.get("max_length"):
             prop["maxLength"] = col["max_length"]
 
-        if col.get("data_type", "").upper().startswith("EMBEDDING") and col.get("dimension"):
+        if col.get("data_type", "").upper().startswith("EMBEDDING") and col.get(
+            "dimension"
+        ):
             prop["items"] = {"type": "number"}
             prop["minItems"] = col["dimension"]
             prop["maxItems"] = col["dimension"]

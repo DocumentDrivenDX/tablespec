@@ -198,21 +198,30 @@ class BaselineWriter:
         distributions_json = None
         if baseline.column_distributions:
             distributions_json = json.dumps(
-                {col: dist.value_counts for col, dist in baseline.column_distributions.items()}
+                {
+                    col: dist.value_counts
+                    for col, dist in baseline.column_distributions.items()
+                }
             )
 
         # Serialize distinct counts
         distinct_json = None
         if baseline.column_distributions:
             distinct_json = json.dumps(
-                {col: dist.distinct_count for col, dist in baseline.column_distributions.items()}
+                {
+                    col: dist.distinct_count
+                    for col, dist in baseline.column_distributions.items()
+                }
             )
 
         # Serialize null counts
         null_json = None
         if baseline.column_distributions:
             null_json = json.dumps(
-                {col: dist.null_count for col, dist in baseline.column_distributions.items()}
+                {
+                    col: dist.null_count
+                    for col, dist in baseline.column_distributions.items()
+                }
             )
 
         # Serialize numeric stats
@@ -296,7 +305,9 @@ class BaselineWriter:
         column_distributions: dict[str, ColumnDistribution] = {}
         if row.column_distributions:
             dist_data = json.loads(row.column_distributions)
-            distinct_data = json.loads(row.distinct_counts) if row.distinct_counts else {}
+            distinct_data = (
+                json.loads(row.distinct_counts) if row.distinct_counts else {}
+            )
             null_data = json.loads(row.null_counts) if row.null_counts else {}
 
             for col, value_counts in dist_data.items():

@@ -108,7 +108,9 @@ def _fetch_github_releases(repo: str, token: str | None) -> list[PackageLink]:
             with urlopen(request, timeout=30) as response:
                 payload = json.loads(response.read().decode("utf-8"))
         except (HTTPError, URLError, TimeoutError) as exc:
-            raise SystemExit(f"failed to fetch GitHub releases for {repo}: {exc}") from exc
+            raise SystemExit(
+                f"failed to fetch GitHub releases for {repo}: {exc}"
+            ) from exc
 
         page_links = _links_from_release_payload(payload)
         links.extend(page_links)

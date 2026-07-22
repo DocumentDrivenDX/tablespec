@@ -240,7 +240,9 @@ class DomainTypeRegistry:
                     return type_value.upper().replace("TYPE", "")
         return None
 
-    def is_domain_type_compatible_with_data_type(self, domain_type: str, data_type: str) -> bool:
+    def is_domain_type_compatible_with_data_type(
+        self, domain_type: str, data_type: str
+    ) -> bool:
         """Check if a domain type is compatible with the given data_type.
 
         Domain types may have an expected base type (from validations).
@@ -317,7 +319,9 @@ class DomainTypeInference:
             confidence_score is 0.0-1.0 where 1.0 is highest confidence
 
         """
-        candidates = self._score_all_candidates(column_name, description, sample_values, data_type)
+        candidates = self._score_all_candidates(
+            column_name, description, sample_values, data_type
+        )
 
         if not candidates:
             return None, 0.0
@@ -345,7 +349,9 @@ class DomainTypeInference:
             InferenceResult with domain type, confidence, explanation, and runner-up.
 
         """
-        candidates = self._score_all_candidates(column_name, description, sample_values, data_type)
+        candidates = self._score_all_candidates(
+            column_name, description, sample_values, data_type
+        )
 
         if not candidates:
             return InferenceResult(

@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import io
 from datetime import datetime, timezone
 from pathlib import Path
 
 import openpyxl
-import pytest
 
 from profiler.catalog import VolumeRef
 from profiler.compare import compare_tables

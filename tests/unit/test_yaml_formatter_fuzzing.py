@@ -42,7 +42,9 @@ def approx_equal(a, b, rel_tol=1e-12, abs_tol=1e-10):
     if isinstance(a, list):
         if len(a) != len(b):
             return False
-        return all(approx_equal(x, y, rel_tol, abs_tol) for x, y in zip(a, b, strict=False))
+        return all(
+            approx_equal(x, y, rel_tol, abs_tol) for x, y in zip(a, b, strict=False)
+        )
 
     # Exact comparison for everything else
     return a == b
@@ -85,7 +87,21 @@ def has_yamlfix_literal_block_bug(data):
         # Bug 2: Internal newlines followed by YAML special characters
         # Can cause parser errors or data corruption
         # These characters have special meaning in YAML syntax
-        yaml_special_chars = [":", "-", "#", "[", "]", "{", "}", "|", ">", ";", "!", "&", "*"]
+        yaml_special_chars = [
+            ":",
+            "-",
+            "#",
+            "[",
+            "]",
+            "{",
+            "}",
+            "|",
+            ">",
+            ";",
+            "!",
+            "&",
+            "*",
+        ]
         for char in yaml_special_chars:
             if f"\n{char}" in data:
                 return True
@@ -193,14 +209,18 @@ def umf_like_structure(draw):
         "column": {
             "name": draw(
                 st.text(
-                    alphabet=st.characters(whitelist_categories=("L",)), min_size=1, max_size=30
+                    alphabet=st.characters(whitelist_categories=("L",)),
+                    min_size=1,
+                    max_size=30,
                 )
             ),
             "canonical_name": draw(
                 st.text(alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ_", min_size=1, max_size=30)
             ),
             "data_type": draw(
-                st.sampled_from(["StringType", "IntegerType", "DateType", "BooleanType"])
+                st.sampled_from(
+                    ["StringType", "IntegerType", "DateType", "BooleanType"]
+                )
             ),
             "description": draw(st.text(min_size=10, max_size=200)),
             "nullable": draw(
@@ -211,7 +231,9 @@ def umf_like_structure(draw):
                     max_size=3,
                 )
             ),
-            "length": draw(st.one_of(st.none(), st.integers(min_value=1, max_value=1000))),
+            "length": draw(
+                st.one_of(st.none(), st.integers(min_value=1, max_value=1000))
+            ),
         },
         "validations": draw(
             st.lists(
@@ -219,16 +241,22 @@ def umf_like_structure(draw):
                     {
                         "kwargs": st.dictionaries(
                             st.text(
-                                alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=20
+                                alphabet="abcdefghijklmnopqrstuvwxyz_",
+                                min_size=1,
+                                max_size=20,
                             ),
-                            st.one_of(st.text(max_size=50), st.integers(), st.booleans()),
+                            st.one_of(
+                                st.text(max_size=50), st.integers(), st.booleans()
+                            ),
                             min_size=1,
                             max_size=5,
                         ),
                         "meta": st.fixed_dictionaries(
                             {
                                 "description": st.text(min_size=10, max_size=150),
-                                "severity": st.sampled_from(["critical", "warning", "info"]),
+                                "severity": st.sampled_from(
+                                    ["critical", "warning", "info"]
+                                ),
                                 "rule_id": st.text(
                                     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_",
                                     min_size=5,
@@ -237,7 +265,9 @@ def umf_like_structure(draw):
                             }
                         ),
                         "type": st.text(
-                            alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=5, max_size=40
+                            alphabet="abcdefghijklmnopqrstuvwxyz_",
+                            min_size=5,
+                            max_size=40,
                         ),
                     }
                 ),
@@ -265,7 +295,9 @@ class TestYAMLFormatterFuzzing:
         """
         # First convert to YAML string
         try:
-            yaml_str = yaml.safe_dump(data, default_flow_style=False, allow_unicode=True)
+            yaml_str = yaml.safe_dump(
+                data, default_flow_style=False, allow_unicode=True
+            )
         except Exception:
             # If we can't serialize it, skip this example
             return
@@ -315,7 +347,9 @@ class TestYAMLFormatterFuzzing:
         try:
             parsed = yaml.safe_load(formatted_twice)
         except Exception as e:
-            msg = f"Formatter produced invalid YAML: {e}\nOutput: {formatted_twice[:300]}"
+            msg = (
+                f"Formatter produced invalid YAML: {e}\nOutput: {formatted_twice[:300]}"
+            )
             raise AssertionError(msg)
 
         # Verify data integrity - Python structure must be identical (or approximately equal for floats)
@@ -440,7 +474,9 @@ class TestYAMLFormatterFuzzing:
     @given(
         st.lists(
             st.dictionaries(
-                st.text(alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=20),
+                st.text(
+                    alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=20
+                ),
                 st.one_of(
                     st.text(
                         alphabet=st.characters(
@@ -494,7 +530,9 @@ class TestYAMLFormatterFuzzing:
             max_size=50,  # More keys
         )
     )
-    @settings(max_examples=100, deadline=None)  # Increased for thorough key ordering tests
+    @settings(
+        max_examples=100, deadline=None
+    )  # Increased for thorough key ordering tests
     def test_dictionary_key_ordering(self, dict_data):
         """Test that dictionary keys are consistently sorted alphabetically."""
         # Skip if dict contains YAML boolean word keys (yes, no, on, off, etc.)
@@ -530,7 +568,9 @@ class TestYAMLFormatterFuzzing:
             max_size=1000,
         )
     )  # Longer strings
-    @settings(max_examples=500, deadline=None)  # Massively increased for edge case discovery
+    @settings(
+        max_examples=500, deadline=None
+    )  # Massively increased for edge case discovery
     def test_arbitrary_string_descriptions(self, text):
         """Test that arbitrary strings in description fields don't break formatting."""
         # Create a simple structure with the text as a description

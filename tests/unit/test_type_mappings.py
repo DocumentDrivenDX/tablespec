@@ -296,9 +296,17 @@ class TestValidPysparkTypes:
     def test_contains_expected_types(self):
         """Test all expected PySpark types are present."""
         expected = {
-            "StringType", "IntegerType", "LongType", "ShortType", "ByteType",
-            "DecimalType", "FloatType", "DoubleType", "BooleanType",
-            "DateType", "TimestampType",
+            "StringType",
+            "IntegerType",
+            "LongType",
+            "ShortType",
+            "ByteType",
+            "DecimalType",
+            "FloatType",
+            "DoubleType",
+            "BooleanType",
+            "DateType",
+            "TimestampType",
         }
         assert VALID_PYSPARK_TYPES == expected
 

@@ -217,7 +217,9 @@ class DependencyResolver:
 
         return resolved
 
-    def detect_cycles(self, pipeline: str, visited: set[str] | None = None) -> list[list[str]]:
+    def detect_cycles(
+        self, pipeline: str, visited: set[str] | None = None
+    ) -> list[list[str]]:
         """Detect circular dependencies starting from a pipeline.
 
         Args:
@@ -296,14 +298,24 @@ class DependencyResolver:
             visited = set()
 
         if pipeline in visited:
-            return {"name": pipeline, "version": None, "dependencies": {}, "circular": True}
+            return {
+                "name": pipeline,
+                "version": None,
+                "dependencies": {},
+                "circular": True,
+            }
 
         visited = visited | {pipeline}
 
         try:
             metadata = self.load_pipeline_metadata(pipeline)
         except FileNotFoundError:
-            return {"name": pipeline, "version": None, "dependencies": {}, "missing": True}
+            return {
+                "name": pipeline,
+                "version": None,
+                "dependencies": {},
+                "missing": True,
+            }
 
         graph: DependencyGraph = {
             "name": metadata.name,
@@ -312,7 +324,9 @@ class DependencyResolver:
         }
 
         for dep_name in metadata.dependencies:
-            graph["dependencies"][dep_name] = self.get_dependency_graph(dep_name, visited)
+            graph["dependencies"][dep_name] = self.get_dependency_graph(
+                dep_name, visited
+            )
 
         return graph
 

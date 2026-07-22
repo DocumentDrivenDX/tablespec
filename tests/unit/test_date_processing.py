@@ -7,7 +7,6 @@ import pytest
 pytestmark = pytest.mark.fast
 
 from tablespec.sample_data.date_processing import (
-
     convert_umf_format_to_strftime,
     extract_date_constraints,
 )
@@ -387,7 +386,9 @@ class TestExtractDateConstraints:
                     {
                         "type": "expect_validation_rule_pending_implementation",
                         "kwargs": {"column": "test_date"},
-                        "meta": {"sanitization_note": "Some other text without date pattern"},
+                        "meta": {
+                            "sanitization_note": "Some other text without date pattern"
+                        },
                     }
                 ]
             }

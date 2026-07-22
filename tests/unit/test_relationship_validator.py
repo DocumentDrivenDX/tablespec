@@ -47,7 +47,9 @@ class TestValidateForeignKeys:
 
     def test_valid_foreign_key(self):
         """Valid FK referencing existing table and column should pass."""
-        fk = ForeignKey(column="customer_id", references_table="customers", references_column="id")
+        fk = ForeignKey(
+            column="customer_id", references_table="customers", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"])
 
@@ -57,7 +59,9 @@ class TestValidateForeignKeys:
 
     def test_missing_source_column(self):
         """FK referencing a column that doesn't exist in source table."""
-        fk = ForeignKey(column="nonexistent", references_table="customers", references_column="id")
+        fk = ForeignKey(
+            column="nonexistent", references_table="customers", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"])
 
@@ -69,7 +73,9 @@ class TestValidateForeignKeys:
 
     def test_missing_referenced_table(self):
         """FK referencing a table that doesn't exist."""
-        fk = ForeignKey(column="customer_id", references_table="nonexistent", references_column="id")
+        fk = ForeignKey(
+            column="customer_id", references_table="nonexistent", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
 
         validator = RelationshipValidator()
@@ -80,7 +86,11 @@ class TestValidateForeignKeys:
 
     def test_missing_referenced_column(self):
         """FK referencing a column that doesn't exist in the referenced table."""
-        fk = ForeignKey(column="customer_id", references_table="customers", references_column="nonexistent")
+        fk = ForeignKey(
+            column="customer_id",
+            references_table="customers",
+            references_column="nonexistent",
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"])
 
@@ -92,7 +102,9 @@ class TestValidateForeignKeys:
 
     def test_referenced_table_found_via_alias(self):
         """FK should resolve tables by alias when direct name lookup fails."""
-        fk = ForeignKey(column="customer_id", references_table="cust", references_column="id")
+        fk = ForeignKey(
+            column="customer_id", references_table="cust", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"], aliases=["cust"])
 
@@ -102,7 +114,9 @@ class TestValidateForeignKeys:
 
     def test_case_insensitive_column_match(self):
         """FK column matching should be case-insensitive."""
-        fk = ForeignKey(column="Customer_ID", references_table="customers", references_column="ID")
+        fk = ForeignKey(
+            column="Customer_ID", references_table="customers", references_column="ID"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"])
 
@@ -112,9 +126,15 @@ class TestValidateForeignKeys:
 
     def test_multiple_foreign_keys(self):
         """Multiple FKs should each be validated independently."""
-        fk1 = ForeignKey(column="customer_id", references_table="customers", references_column="id")
-        fk2 = ForeignKey(column="product_id", references_table="products", references_column="id")
-        orders = _make_umf("orders", ["id", "customer_id", "product_id"], foreign_keys=[fk1, fk2])
+        fk1 = ForeignKey(
+            column="customer_id", references_table="customers", references_column="id"
+        )
+        fk2 = ForeignKey(
+            column="product_id", references_table="products", references_column="id"
+        )
+        orders = _make_umf(
+            "orders", ["id", "customer_id", "product_id"], foreign_keys=[fk1, fk2]
+        )
         customers = _make_umf("customers", ["id", "name"])
         # products table missing
 
@@ -126,17 +146,25 @@ class TestValidateForeignKeys:
 
     def test_errors_reset_between_calls(self):
         """Errors list should reset on each call to validate_foreign_keys."""
-        fk = ForeignKey(column="bad_col", references_table="customers", references_column="id")
+        fk = ForeignKey(
+            column="bad_col", references_table="customers", references_column="id"
+        )
         orders = _make_umf("orders", ["id"], foreign_keys=[fk])
 
         validator = RelationshipValidator()
-        errors1 = validator.validate_foreign_keys(orders, {"customers": _make_umf("customers", ["id"])})
+        errors1 = validator.validate_foreign_keys(
+            orders, {"customers": _make_umf("customers", ["id"])}
+        )
         assert len(errors1) == 1
 
         # Second call with valid data
-        fk2 = ForeignKey(column="id", references_table="customers", references_column="id")
+        fk2 = ForeignKey(
+            column="id", references_table="customers", references_column="id"
+        )
         orders2 = _make_umf("orders", ["id"], foreign_keys=[fk2])
-        errors2 = validator.validate_foreign_keys(orders2, {"customers": _make_umf("customers", ["id"])})
+        errors2 = validator.validate_foreign_keys(
+            orders2, {"customers": _make_umf("customers", ["id"])}
+        )
         assert errors2 == []
 
 
@@ -163,7 +191,9 @@ class TestValidateIncomingRelationships:
         orders = _make_umf("orders", ["id", "customer_id"])
 
         validator = RelationshipValidator()
-        errors = validator.validate_incoming_relationships(customers, {"orders": orders})
+        errors = validator.validate_incoming_relationships(
+            customers, {"orders": orders}
+        )
         assert errors == []
 
     def test_missing_source_table(self):
@@ -196,7 +226,9 @@ class TestValidateIncomingRelationships:
         orders = _make_umf("orders", ["id", "product_id"])
 
         validator = RelationshipValidator()
-        errors = validator.validate_incoming_relationships(customers, {"orders": orders})
+        errors = validator.validate_incoming_relationships(
+            customers, {"orders": orders}
+        )
         assert len(errors) == 1
         assert errors[0][0] == "missing_source_column_for_incoming"
         assert "nonexistent" in errors[0][1]
@@ -214,7 +246,9 @@ class TestValidateIncomingRelationships:
         orders = _make_umf("orders", ["id", "customer_id"], aliases=["ord"])
 
         validator = RelationshipValidator()
-        errors = validator.validate_incoming_relationships(customers, {"orders": orders})
+        errors = validator.validate_incoming_relationships(
+            customers, {"orders": orders}
+        )
         assert errors == []
 
 
@@ -238,7 +272,9 @@ class TestValidateAllRelationships:
 
     def test_valid_cross_table_relationships(self):
         """Valid FK between two tables should return empty results."""
-        fk = ForeignKey(column="customer_id", references_table="customers", references_column="id")
+        fk = ForeignKey(
+            column="customer_id", references_table="customers", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"])
 
@@ -248,7 +284,9 @@ class TestValidateAllRelationships:
 
     def test_invalid_fk_detected_in_batch(self):
         """Invalid FK in batch validation should report errors for that table."""
-        fk = ForeignKey(column="customer_id", references_table="nonexistent", references_column="id")
+        fk = ForeignKey(
+            column="customer_id", references_table="nonexistent", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"])
 
@@ -259,7 +297,9 @@ class TestValidateAllRelationships:
 
     def test_alias_lookup_in_batch(self):
         """Batch validation should resolve table aliases."""
-        fk = ForeignKey(column="customer_id", references_table="cust", references_column="id")
+        fk = ForeignKey(
+            column="customer_id", references_table="cust", references_column="id"
+        )
         orders = _make_umf("orders", ["id", "customer_id"], foreign_keys=[fk])
         customers = _make_umf("customers", ["id", "name"], aliases=["cust"])
 
@@ -269,7 +309,9 @@ class TestValidateAllRelationships:
 
     def test_both_fk_and_incoming_validated(self):
         """Both foreign keys and incoming relationships should be validated."""
-        fk = ForeignKey(column="bad_col", references_table="customers", references_column="id")
+        fk = ForeignKey(
+            column="bad_col", references_table="customers", references_column="id"
+        )
         inc = IncomingRelationship(
             source_table="nonexistent",
             source_column="x",

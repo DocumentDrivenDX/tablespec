@@ -73,7 +73,9 @@ def test_apply_response_dry_run_does_not_persist(tmp_path: Path) -> None:
     umf_file = _write_umf(tmp_path)
     response_file = _write_response(tmp_path)
 
-    result = runner.invoke(app, ["apply-response", str(umf_file), str(response_file), "--dry-run"])
+    result = runner.invoke(
+        app, ["apply-response", str(umf_file), str(response_file), "--dry-run"]
+    )
 
     assert result.exit_code == 0
     assert "Dry run" in result.output

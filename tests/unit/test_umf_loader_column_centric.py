@@ -13,7 +13,9 @@ class TestColumnCentricFormatDetection:
     def test_detect_column_centric_format(self, tmp_path):
         """Test that split format (table.yaml + columns/) is detected correctly."""
         # Create split structure (table.yaml + columns/)
-        (tmp_path / "table.yaml").write_text("table_name: test_table\ncanonical_name: TestTable")
+        (tmp_path / "table.yaml").write_text(
+            "table_name: test_table\ncanonical_name: TestTable"
+        )
         (tmp_path / "columns").mkdir()
         (tmp_path / "columns" / "col1.yaml").write_text("column: {name: col1}")
 
@@ -184,8 +186,12 @@ class TestColumnCentricLoader:
         )
 
         (tmp_path / "columns").mkdir()
-        (tmp_path / "columns" / "id.yaml").write_text("column: {name: id, data_type: VARCHAR}")
-        (tmp_path / "columns" / "date.yaml").write_text("column: {name: date, data_type: DATE}")
+        (tmp_path / "columns" / "id.yaml").write_text(
+            "column: {name: id, data_type: VARCHAR}"
+        )
+        (tmp_path / "columns" / "date.yaml").write_text(
+            "column: {name: date, data_type: DATE}"
+        )
 
         loader = UMFLoader()
         umf = loader.load(tmp_path)

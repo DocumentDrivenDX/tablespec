@@ -1,7 +1,6 @@
 """Unit tests for UMFValidator: file validation, business rules, defaults, duplicate fixing."""
 
 import json
-from pathlib import Path
 
 import pytest
 import yaml
@@ -97,7 +96,9 @@ class TestValidateData:
             validator.validate_data({"version": "1.0"})
 
     def test_missing_required_no_raise(self, validator):
-        assert validator.validate_data({"version": "1.0"}, raise_on_error=False) is False
+        assert (
+            validator.validate_data({"version": "1.0"}, raise_on_error=False) is False
+        )
 
     def test_invalid_version_format(self, validator):
         data = {

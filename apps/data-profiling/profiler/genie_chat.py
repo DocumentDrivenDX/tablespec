@@ -16,7 +16,6 @@ API reference:
 
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Optional
@@ -154,11 +153,11 @@ def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> Geni
         .text.content       — natural-language answer
         .query.query        — generated SQL
         .query.description  — fallback text if no .text attachment
-        .query.statement_id — use to fetch rows via query-result endpoint
+        .query.statement_id — present on some responses; query-result is
+                              addressed by conversation/message id, not this field
     """
     text_parts: list[str] = []
     sql: Optional[str] = None
-    statement_id: Optional[str] = None
     col_names: list[str] = []
     rows: list[list] = []
 
@@ -174,8 +173,6 @@ def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> Geni
             sql = qry["query"]
         if qry.get("description") and not text_parts:
             text_parts.append(qry["description"])
-        if qry.get("statement_id"):
-            statement_id = qry["statement_id"]
 
     # Fallback: some versions surface text at the message top-level
     if not text_parts:
@@ -187,7 +184,7 @@ def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> Geni
 
     text = "\n\n".join(text_parts).strip()
 
-    # Fetch query result rows if we have a statement_id
+    # Fetch query result rows via conversation/message path
     try:
         qr_path = (
             f"/api/2.0/genie/spaces/{space_id}/conversations/{conv_id}"
