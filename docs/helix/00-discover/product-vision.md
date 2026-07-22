@@ -23,9 +23,13 @@ tablespec also gives teams a concrete definition of done for source-preserving b
 
 **North Star**: One UMF compiles, deterministically and losslessly, into every committed runtime artifact a healthcare platform needs — with zero drift between the UMF and what runs.
 
+An optional operational companion — the first-party Databricks App for guidebook browsing, profiling, comparison, and load results — helps platform operators inspect and work with governed schemas in a workspace. It does not replace the library, CLI, or committed-artifact runtime contract; portability of that app across environments is a first-class product requirement (FR-23).
+
 ## User Experience
 
 A data engineer onboards a new claims table by editing (or inferring) its UMF. They run the compile step once. tablespec writes a pinned artifact layout: `ingest/<t>.ingest.sql`, `schemas/<t>.ddl.sql` / `.schema.py` / `.schema.json`, `validation/<t>.suite.json`, a single-table dbt ingest project, the multi-table gold dbt DAG, an LDP project, and the single-target gold SQL plan. The engineer reviews the generated transforms as ordinary diffs in code review. The runtime backbone then executes those committed artifacts — on classic Spark in CI, on Sail (local Spark Connect) in the test lane, and on Databricks serverless in production — without importing tablespec at run time. When a column type changes, they edit the UMF, recompile, and the change surfaces as a precise diff across the ingest SQL, the GX suite, and the dbt contract simultaneously.
+
+An operator can also browse the same UMF set as a static HTML guidebook (FEAT-033) and, when the Databricks App is deployed, profile and compare tables against the declared metadata home without editing application source between environments (FEAT-034).
 
 ## Target Market
 

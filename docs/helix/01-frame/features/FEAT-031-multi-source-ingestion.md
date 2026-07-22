@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (seam + JDBC vertical implemented 2026-06-10/11 incl. the typed-raw SUITE slice; dump-dialect and parquet phases planned)
+**Status**: Specified (DUMP/PARQ/JDBC cores shipped; JSON compile/backbone residual + US-040/042/043/050 story backfill remain)
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -15,20 +15,25 @@ ddx:
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
-> **Phase status.** The ingestion seam + `source:` model (SRC-01..05,
-> DUMP-05) shipped 2026-06-10 (bead `tablespec-4bea5c6c`, commit 3a881cc).
-> The JDBC vertical (JDBC-01..05, DISC-01..03) and the typed-raw suite
-> slice of SUITE-01..03 shipped 2026-06-11 (beads `tablespec-4b65c810`
-> commit 08e7de5, `tablespec-8980c812` commit 224a8af) — US-039 is green
-> on the Docker lane. Dump dialect options (DUMP-01..04) and the parquet
-> typed-raw cast mode (PARQ-01..03) remain planned.
+> **Phase status (honest 2026-07-22; queue surgery same day).** Specs describe
+> the desired end state. Implementation progress by family:
+>
+> | Family | Status | Evidence / residual |
+> |--------|--------|---------------------|
+> | SRC (source model + seam) | **Shipped** | `DelimitedSource` / `ParquetSource` / `JsonSource` / `JdbcSource` in `models/umf.py`; `ingestion/` readers |
+> | JDBC + DISC | **Shipped** | `ingestion/jdbc.py`; US-039 ACs all checked; `@covers` in `tests/integration/test_northwind_e2e.py` |
+> | SUITE typed-raw slice | **Shipped** | Typed raw suite path for parquet/jdbc/json kinds |
+> | DUMP-01..04 | **Shipped** | Model options + dump reader + `tests/unit/test_ingestion_package.py` (skip/footer/null_escape/line_terminator) |
+> | PARQ identity/safe-narrowing | **Shipped** | Typed-raw cast path in `casting_utils` + `test_casting_utils.py` typed_raw DATE/TIMESTAMP; ingest generator parquet native typed |
+> | JSON-01 (FR-21.7) | **Partial** | Model + `JsonReader` shipped; **backbone still delimited/parquet only** — residual bead `tablespec-9f98cf03` |
+> | Story floor | **Partial** | US-039/044 on disk; US-040/042/043/050 story backfill beads remain (US-041 cancelled as duplicate of US-039) |
 
 ## Overview
 
-This feature implements PRD FR-21.1–FR-21.6: extend UMF with a
-discriminated `source:` block (`kind: delimited | parquet | jdbc`), make
+This feature implements PRD FR-21.1–FR-21.7: extend UMF with a
+discriminated `source:` block (`kind: delimited | parquet | jdbc | json`), make
 the raw-landing contract kind-dependent (all-STRING raw for text-landed
-sources, native-typed raw for parquet/JDBC), extend the single cast truth
+sources, native-typed raw for parquet/JDBC/json), extend the single cast truth
 with an identity/safe-narrowing mode for typed raw, type the raw-stage
 expectation suites accordingly, compile JDBC sources as read-spec
 artifacts with secret-referenced credentials, and discover UMF specs from
@@ -248,11 +253,18 @@ expectation-stage classification (`umf.py:94-112`,
   database, discover UMF specs, export a schema xlsx, validate, generate
   sample data, and produce a validation report.
 
-Per-phase stories will be authored at execution start, in sequencing order:
-US-040 (ingestion seam + `source:` model — implemented; story to backfill
-ACs), US-041 (JDBC reader + discovery slices under US-039's goal), US-042
-(dump-dialect text landing), US-043 (typed-raw parquet), plus a json-kind
-story at its execution start (FR-21.7). Demo story:
+Per-phase story work remaining on the alignment epic (`tablespec-263a0248`):
+
+- US-040 — seam + `source:` model AC backfill (bead `tablespec-20513f4f`;
+  implementation shipped — story floor only)
+- US-042 — dump-dialect AC backfill citing existing dump tests (bead
+  `tablespec-e322b612`; DUMP implement closed as shipped)
+- US-043 — parquet typed-raw AC backfill citing existing cast tests (bead
+  `tablespec-e9c21567`; PARQ implement closed as shipped)
+- US-050 — JSON residual story for compile/backbone (bead `tablespec-557f8a24`)
+
+JDBC vertical is covered by [US-039](../user-stories/US-039-northwind-end-to-end.md)
+(no separate US-041). Demo stories already on disk:
 [US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
 (delimited kind, shipped code, notebook pair).
 

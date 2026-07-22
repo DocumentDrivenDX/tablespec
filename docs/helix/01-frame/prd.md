@@ -6,13 +6,13 @@ ddx:
 
 # Product Requirements Document: tablespec
 
-**Version**: 3.0
-**Status**: Evolved to govern committed-artifact compilation and Connect-safe multi-engine execution
-**Last Updated**: 2026-06-15
+**Version**: 3.1
+**Status**: Evolved to govern committed-artifact compilation, Connect-safe multi-engine execution, and the first-party operational app
+**Last Updated**: 2026-07-22
 
 ## Summary
 
-tablespec is a Python library that makes Universal Metadata Format (UMF) the single source of truth for table schemas on healthcare data platforms, and acts as the compiler that turns one UMF into the full set of committed, reviewable runtime artifacts — direct SQL (raw→ingest + gold plans), dbt projects (ingest + gold DAG), Lakeflow Declarative Pipelines (LDP), and Great Expectations suites. Downstream runtimes consume only those committed artifacts (never re-deriving from UMF at run time), and the same UMF runs first-class on both classic Spark and Databricks serverless / Spark Connect. The compiled ingested contract defines source-preserving bronze completion: raw records remain available for audit and replay, while ingested artifacts capture source semantics as typed, validated, keyed, relationship-aware Delta/Unity Catalog-compatible tables. Top success metrics: zero drift between UMF and committed artifacts, multi-engine result parity on the conformance harness, and reduced manual transform/validation authoring per onboarded table.
+tablespec is a Python library that makes Universal Metadata Format (UMF) the single source of truth for table schemas on healthcare data platforms, and acts as the compiler that turns one UMF into the full set of committed, reviewable runtime artifacts — direct SQL (raw→ingest + gold plans), dbt projects (ingest + gold DAG), Lakeflow Declarative Pipelines (LDP), and Great Expectations suites. Downstream runtimes consume only those committed artifacts (never re-deriving from UMF at run time), and the same UMF runs first-class on both classic Spark and Databricks serverless / Spark Connect. The compiled ingested contract defines source-preserving bronze completion: raw records remain available for audit and replay, while ingested artifacts capture source semantics as typed, validated, keyed, relationship-aware Delta/Unity Catalog-compatible tables. A first-party Databricks App (`apps/data-profiling/`) is an optional operational companion for guidebook browsing, profiling, comparison, and load results; it is not the primary API — the library, CLI, and committed artifacts remain the product core. Top success metrics: zero drift between UMF and committed artifacts, multi-engine result parity on the conformance harness, and reduced manual transform/validation authoring per onboarded table.
 
 ## Problem and Goals
 
@@ -43,7 +43,7 @@ The common medallion shorthand "bronze" is too loose to be actionable by itself.
 ### Non-Goals
 
 - Database connectivity or interactive query execution as a product surface (the runtime executes committed artifacts; tablespec does not become an ETL engine). Compiled artifacts may *describe* a JDBC read with secret-referenced credentials (FR-21.4); all connectivity is Spark's JDBC connector executed by the runtime — tablespec itself never opens a database connection, even for discovery (FR-21.6).
-- Application GUI or operational web interface. Product documentation and a public microsite are documentation surfaces, not a runtime product UI.
+- General-purpose product SaaS UI, multi-tenant web application, or interactive query IDE. The first-party Databricks App for guidebook + profiling (`apps/data-profiling/`, FR-23) is in scope as an operational companion; product documentation and the public microsite remain documentation surfaces, not a substitute for the library/CLI API.
 - Real-time schema synchronization (compile is an explicit step, not a live watcher).
 - Shipping dbt or pysail as user-facing runtime dependencies (they are dev-group / test-only tooling).
 - General-purpose ETL: data-processing capabilities (merge, sample data, quality baselines, profiling, validation) are available via the `[spark]` extra but are scoped to UMF-driven, committed-artifact workflows.
@@ -103,7 +103,7 @@ edits; do not renumber on edit.
 **FR-1** requirement family.
 
 - **FR-1.1** — Pydantic models for UMF format with runtime validation
-- **FR-1.2** — Support 10 scalar data types: VARCHAR, CHAR, TEXT, INTEGER, DECIMAL, FLOAT, DATE, DATETIME, TIMESTAMP, BOOLEAN (plus the planned dimensioned EMBEDDING type, FR-1.11)
+- **FR-1.2** — Support 11 scalar data types: VARCHAR, CHAR, TEXT, INTEGER, DECIMAL, FLOAT, DATE, DATETIME, TIMESTAMP, BOOLEAN, and EMBEDDING (FR-1.11)
 - **FR-1.3** — Per-LOB nullable configuration (MD, MP, ME)
 - **FR-1.4** — Validation rules at table and column level
 - **FR-1.5** — Foreign key relationships with confidence scoring
@@ -112,7 +112,7 @@ edits; do not renumber on edit.
 - **FR-1.8** — Column name validation (alphanumeric + underscore, max 128 chars)
 - **FR-1.9** — Unique column name enforcement
 - **FR-1.10** — UMF metadata with pipeline phase tracking (1-7)
-- **FR-1.11** — **Dimensioned EMBEDDING type (planned).** A logical `EMBEDDING` data type with a required per-column `dimension`, compiling to `ARRAY<FLOAT>` (Spark SQL/Delta), `ArrayType(FloatType())` (PySpark), and array-of-number (JSON Schema); validation gains a dimensionality expectation and a divisible-by-16 Vector-Search advisory; embeddings are excluded from string-shape checks. tablespec never parses documents or calls embedding models — it governs the landed corpus table. *Governed by FEAT-032; decision recorded in ADR-016.*
+- **FR-1.11** — **Dimensioned EMBEDDING type.** A logical `EMBEDDING` data type with a required per-column `dimension`, compiling to `ARRAY<FLOAT>` (Spark SQL/Delta), `ArrayType(FloatType())` (PySpark), and array-of-number (JSON Schema); validation gains a dimensionality expectation and a divisible-by-16 Vector-Search advisory; embeddings are excluded from string-shape checks. tablespec never parses documents or calls embedding models — it governs the landed corpus table. Type alphabet, mappings, baseline expectations, sample-data generation, compatibility rules, and the document-corpus pattern example (`examples/sec10k_corpus.yaml`) are shipped; SEC 10-K demo acceptance (US-045) remains desired completion (bead `tablespec-abd68023`). *Governed by FEAT-032; decision recorded in ADR-016.*
 
 ### Subsystem: Schema Generation
 
@@ -209,15 +209,15 @@ edits; do not renumber on edit.
 
 ### Subsystem: Source Acquisition
 
-**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. The seam + model phase shipped 2026-06-10; JDBC, dump-dialect, and parquet phases are planned.*
+**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Phase honesty (2026-07-22, queue surgery): delimited/parquet/jdbc cores + DUMP options + PARQ typed-raw cast + JDBC discovery (US-039) are shipped; remaining implementation residual is primarily JSON compile/backbone (FR-21.7) plus story-floor backfill for US-040/042/043/050.*
 
-- **FR-21.1** — **Declared source shape.** UMF carries a discriminated `source:` block (`kind: delimited | parquet | jdbc`); today's `file_format` is the body of the `delimited` variant and remains a back-compat alias resolved via a non-persisting accessor. Raw landing typing follows the kind: all-STRING for text-landed sources, native-typed for typed sources.
-- **FR-21.2** — **Dump-dialect text landing.** The `delimited` variant covers database dump files: multi-character line terminators, `\N`-style null escapes, footer handling, and `skip_rows` honored end-to-end — every declared option actually consumed by the compiled readers.
-- **FR-21.3** — **Parquet typed-raw landing.** Parquet sources land native-typed raw; the raw→ingest transform runs in identity/safe-narrowing mode (never string-parsing typed columns — a typed DATE through a string format parse silently NULLs values).
+- **FR-21.1** — **Declared source shape.** UMF carries a discriminated `source:` block (`kind: delimited | parquet | jdbc | json`); today's `file_format` is the body of the `delimited` variant and remains a back-compat alias resolved via a non-persisting accessor. Raw landing typing follows the kind: all-STRING for text-landed sources, native-typed for typed sources.
+- **FR-21.2** — **Dump-dialect text landing.** The `delimited` variant covers database dump files: multi-character line terminators, `\N`-style null escapes, footer handling, and `skip_rows` honored end-to-end — every declared option actually consumed by the compiled readers. *(Shipped — model + dump reader + unit tests.)*
+- **FR-21.3** — **Parquet typed-raw landing.** Parquet sources land native-typed raw; the raw→ingest transform runs in identity/safe-narrowing mode (never string-parsing typed columns — a typed DATE through a string format parse silently NULLs values). *(Shipped — typed_raw cast path + ingest generator + unit tests.)*
 - **FR-21.4** — **JDBC compiled read spec.** JDBC sources compile to a committed read spec carrying connection parameters (url, dbtable/query, driver, fetch/partitioning) with credentials *only* as named secret references (Databricks secret scope or env-var name); a literal credential fails validation. tablespec never opens a connection — all connectivity is Spark's JDBC connector, executed by the runtime.
 - **FR-21.5** — **Raw-suite typing.** Raw-stage expectation suites vary by raw typing: string checks (length/regex/strftime/castability) apply only to all-STRING raw; typed raw receives schema-type expectations instead.
 - **FR-21.6** — **Database discovery.** Discover UMF specs from a live database: enumerate tables and read `INFORMATION_SCHEMA` metadata (columns, types, nullability, PKs, FKs) through Spark's JDBC connector, reusing the existing Spark schema→UMF mapping; emit one validated UMF per table so database onboarding is spec-driven rather than a blind bulk copy.
-- **FR-21.7** — **JSON/JSONL source kind (planned).** A `json` variant of the `source:` block: JSON/JSONL files land typed through Spark's reader (like parquet); the spec declares a FLAT projection — each UMF column maps to a top-level field or an explicit dot-path; un-projected nesting is out of the bronze contract (no recursive flattening). *Extends FEAT-031.*
+- **FR-21.7** — **JSON/JSONL source kind.** A `json` variant of the `source:` block: JSON/JSONL files land typed through Spark's reader (like parquet); the spec declares a FLAT projection — each UMF column maps to a top-level field or an explicit dot-path; un-projected nesting is out of the bronze contract (no recursive flattening). *Model and reader shipped; compile/backbone/demo residual gaps remain desired completion. Extends FEAT-031.*
 
 ### Subsystem: CLI Interface
 
@@ -324,7 +324,7 @@ edits; do not renumber on edit.
 
 ### Subsystem: App Deployment & Configuration
 
-**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. The metadata substrate is already location-parameterized (`delta_repo.ensure_tables(catalog, schema)`, `VolumeRef`); this family closes the gap by removing environment literals from the application and making provisioning an explicit deployment step. Feature decomposition and the configuration-precedence decision record are downstream of this family.*
+**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. The metadata substrate is already location-parameterized (`delta_repo.ensure_tables(catalog, schema)`, `VolumeRef`); this family is the desired deployability contract. Feature decomposition is FEAT-034; configuration precedence is ADR-019. Implementation gaps (portable config, provisioning, startup diagnostics, app e2e) are tracked in the alignment bead epic, not by shrinking these requirements.*
 
 - **FR-23.1** — **Resolved runtime configuration.** The app resolves every environment-specific setting through one configuration object with a fixed precedence: deployment-supplied environment variables → `connections.yaml` → built-in defaults. No catalog, schema, volume, warehouse id, or workspace URL appears as a literal in application code.
 - **FR-23.2** — **Declared governance location.** The metadata home is a declared `(catalog, schema)` pair plus an output volume. Every governance table and every volume path derives from that declaration, so relocating the metadata is a configuration change, not a code change.
@@ -338,7 +338,7 @@ edits; do not renumber on edit.
 | Requirement | Scenario | Input | Expected Output |
 |-------------|----------|-------|-----------------|
 | FR-1.1/1.2 (FEAT-001, US-001) | Lossless UMF round-trip | A UMF YAML with full column metadata | Load → save round-trips losslessly with idempotent formatting; invalid YAML is rejected with a clear validation error naming the offending field |
-| FR-21.4/21.6 (FEAT-031, US-039, ADR-015 — planned) | Northwind end-to-end on Databricks | The Northwind database reachable via Spark JDBC | One validated UMF per table discovered; schema xlsx exported; sample data generated; validation report produced — no credentials in any UMF or artifact |
+| FR-21.4/21.6 (FEAT-031, US-039, ADR-015) | Northwind end-to-end on Databricks | The Northwind database reachable via Spark JDBC | One validated UMF per table discovered; schema xlsx exported; sample data generated; validation report produced — no credentials in any UMF or artifact |
 | FR-18.1/18.3 (FEAT-026, US-023/US-024, ADR-012) | Compile then run from artifacts | A list of UMF models | Full committed artifact set persisted under the pinned layout; backbone executes them with no tablespec import |
 | FR-5.1 | Native profiling on Connect | A Spark Connect DataFrame | Profile computed via Spark-SQL aggregations only; no JVM/Deequ; succeeds on serverless |
 | FR-7.7 | Connect-safe validation | A compiled suite + a Connect DataFrame | Data-scanning expectations route to the native executor and return real results (not silent `success=False`) |
