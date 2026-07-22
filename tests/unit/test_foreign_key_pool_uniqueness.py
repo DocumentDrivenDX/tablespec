@@ -72,7 +72,9 @@ def test_pool_size_respects_unique_constraints():
 
     # Generate pool with custom size (simulating unique constraint sizing)
     custom_size = 1000
-    pool_manager.generate_pool("test_group", {"ClientMbrID"}, generator_func, custom_size)
+    pool_manager.generate_pool(
+        "test_group", {"ClientMbrID"}, generator_func, custom_size
+    )
 
     # Verify pool uses custom size, not config default
     pool = pool_manager.pools["test_group"]
@@ -120,7 +122,9 @@ def test_pool_warns_when_unable_to_generate_enough_unique_values():
     # Pool should have only 1 unique value
     pool = pool_manager.pools["test_group"]
     assert len(set(pool)) == 1, "Pool should contain only 1 unique value"
-    assert len(pool) < pool_size, f"Pool should be smaller than requested size {pool_size}"
+    assert len(pool) < pool_size, (
+        f"Pool should be smaller than requested size {pool_size}"
+    )
 
 
 if __name__ == "__main__":

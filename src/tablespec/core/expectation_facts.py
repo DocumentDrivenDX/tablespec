@@ -26,4 +26,3 @@ def expectation_dicts_from_umf_data(umf_data: dict[str, Any]) -> list[dict[str, 
 
     legacy = (umf_data.get("validation_rules") or {}).get("expectations") or []
     return [expectation for expectation in legacy if isinstance(expectation, dict)]
-

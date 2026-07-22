@@ -111,9 +111,26 @@ class TestPrepareForYaml:
         assert not isinstance(result, LiteralScalarString)
 
     def test_boolean_string_quoted(self):
-        for val in ["true", "True", "TRUE", "false", "False", "FALSE",
-                     "yes", "Yes", "YES", "no", "No", "NO",
-                     "on", "On", "ON", "off", "Off", "OFF"]:
+        for val in [
+            "true",
+            "True",
+            "TRUE",
+            "false",
+            "False",
+            "FALSE",
+            "yes",
+            "Yes",
+            "YES",
+            "no",
+            "No",
+            "NO",
+            "on",
+            "On",
+            "ON",
+            "off",
+            "Off",
+            "OFF",
+        ]:
             result = prepare_for_yaml(val)
             assert isinstance(result, SingleQuotedScalarString), f"{val} not quoted"
 

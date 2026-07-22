@@ -108,7 +108,9 @@ def apply_output_formats(df: DataFrame, umf: UMF) -> DataFrame:
                 f"Formatting column {col_name} ({data_type}) with format: "
                 + f"{umf_format} -> {spark_format}"
             )
-            df_result = df_result.withColumn(col_name, F.date_format(F.col(col_name), spark_format))  # type: ignore[possibly-unbound]
+            df_result = df_result.withColumn(
+                col_name, F.date_format(F.col(col_name), spark_format)
+            )  # type: ignore[possibly-unbound]
             formatted_count += 1
         else:
             # For other types, format field might contain patterns not applicable
@@ -176,13 +178,17 @@ def apply_null_replacements(df: DataFrame, umf: UMF) -> DataFrame:
 
     for col_name, null_value in null_value_map.items():
         if col_name not in df.columns:
-            logger.debug(f"Column {col_name} not found in DataFrame, skipping NULL replacement")
+            logger.debug(
+                f"Column {col_name} not found in DataFrame, skipping NULL replacement"
+            )
             continue
 
         logger.debug(f"Replacing NULL values in column {col_name} with '{null_value}'")
         df_result = df_result.withColumn(
             col_name,
-            F.when(F.col(col_name).isNull(), F.lit(null_value)).otherwise(F.col(col_name)),  # type: ignore[possibly-unbound]
+            F.when(F.col(col_name).isNull(), F.lit(null_value)).otherwise(
+                F.col(col_name)
+            ),  # type: ignore[possibly-unbound]
         )
         replacement_count += 1
 

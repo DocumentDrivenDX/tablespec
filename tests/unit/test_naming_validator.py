@@ -16,10 +16,7 @@ pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
 def _make_umf(table_name: str, column_names: list[str]) -> UMF:
     """Helper to create a minimal UMF for testing."""
-    columns = [
-        UMFColumn(name=name, data_type="VARCHAR")
-        for name in column_names
-    ]
+    columns = [UMFColumn(name=name, data_type="VARCHAR") for name in column_names]
     return UMF(version="1.0", table_name=table_name, columns=columns)
 
 

@@ -127,6 +127,55 @@ filterwarnings = [
 ]
 addopts = "--strict-markers"
 
+[tool.ruff]
+# Keep in sync with .pre-commit-config.yaml ruff excludes.
+# notebooks: Databricks cell layout and injected globals (spark, dbutils).
+# tests/golden: expected generator output compared byte-for-byte.
+# .ddx: vendored plugin/bench tooling, not product source.
+exclude = [
+    ".bzr",
+    ".ddx",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "notebooks",
+    "tests/golden",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Demo script intentionally imports after narrative setup blocks.
+"examples/demo.py" = ["E402"]
+# Optional deps / spark probed before importing the module under test.
+"tests/unit/test_classify_validation.py" = ["E402"]
+"tests/unit/test_date_processing.py" = ["E402"]
+"tests/unit/test_tui.py" = ["E402"]
+# Streamlit page modules are imported after set_page_config / path setup.
+"apps/data-profiling/streamlit_app.py" = ["E402"]
+# Heavy SDK import deferred until after --help parse.
+"apps/data-profiling/scripts/verify_schema_match.py" = ["E402"]
+
 [tool.coverage.run]
 source = ["src/tablespec"]
 branch = true

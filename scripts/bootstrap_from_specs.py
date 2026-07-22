@@ -164,12 +164,20 @@ def _print_stages(result) -> None:  # noqa: ANN001
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     """Parse ``--spec`` (repeatable), ``--batch``, ``--out`` flags."""
-    parser = argparse.ArgumentParser(description="Bootstrap runtime artifacts from UMF specs.")
-    parser.add_argument("--spec", action="append", required=True, help="UMF spec YAML (repeatable).")
+    parser = argparse.ArgumentParser(
+        description="Bootstrap runtime artifacts from UMF specs."
+    )
+    parser.add_argument(
+        "--spec", action="append", required=True, help="UMF spec YAML (repeatable)."
+    )
     parser.add_argument("--out", required=True, help="Compile output directory.")
     parser.add_argument("--table", help="Table name the --batch CSVs belong to.")
-    parser.add_argument("--batch", action="append", default=[], help="Raw CSV batch (repeatable).")
-    parser.add_argument("--dialect", default="duckdb", help="Cast dialect for the dbt projects.")
+    parser.add_argument(
+        "--batch", action="append", default=[], help="Raw CSV batch (repeatable)."
+    )
+    parser.add_argument(
+        "--dialect", default="duckdb", help="Cast dialect for the dbt projects."
+    )
     parser.add_argument(
         "--backend",
         default="spark",

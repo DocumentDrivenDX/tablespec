@@ -129,8 +129,6 @@ class ValidationReport:
             details = ""
             if not r.success and r.unexpected_count and r.unexpected_count > 0:
                 details = f"{r.unexpected_count} unexpected values"
-            table.add_row(
-                status, r.expectation_type, r.column_name or "-", details
-            )
+            table.add_row(status, r.expectation_type, r.column_name or "-", details)
 
         return table

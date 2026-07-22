@@ -68,7 +68,9 @@ class RelationshipGraph:
         self.logger.info(f"Generation order: {' → '.join(result)}")
         return result
 
-    def _analyze_cycle(self, in_degree: dict[str, int], completed_sort: list[str]) -> str:
+    def _analyze_cycle(
+        self, in_degree: dict[str, int], completed_sort: list[str]
+    ) -> str:
         """Analyze and format details about detected cycles.
 
         Args:
@@ -118,7 +120,11 @@ class RelationshipGraph:
             name_lower = table_name.lower()
             if "outreach" in name_lower or "member" in name_lower:
                 domain_priority = 0
-            elif "medical" in name_lower or "pharmacy" in name_lower or "claims" in name_lower:
+            elif (
+                "medical" in name_lower
+                or "pharmacy" in name_lower
+                or "claims" in name_lower
+            ):
                 domain_priority = 1
             elif "supplemental" in name_lower or "contact" in name_lower:
                 domain_priority = 2

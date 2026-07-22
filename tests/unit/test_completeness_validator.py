@@ -68,7 +68,9 @@ class TestValidateProvenanceColumns:
 class TestValidateDomainTypes:
     """Tests for validate_domain_types function."""
 
-    def _create_umf_with_domain_types(self, columns: list[tuple[str, str | None]]) -> UMF:
+    def _create_umf_with_domain_types(
+        self, columns: list[tuple[str, str | None]]
+    ) -> UMF:
         """Helper to create UMF with columns and domain types.
 
         Args:
@@ -153,7 +155,9 @@ class TestValidateBaselineExpectations:
     """Tests for validate_baseline_expectations function."""
 
     def _create_umf_with_validations(
-        self, columns: list[str], column_level: dict[str, list[ValidationRule]] | None = None
+        self,
+        columns: list[str],
+        column_level: dict[str, list[ValidationRule]] | None = None,
     ) -> UMF:
         """Helper to create UMF with columns and validations."""
         umf_columns = [UMFColumn(name=name, data_type="VARCHAR") for name in columns]
@@ -173,7 +177,9 @@ class TestValidateBaselineExpectations:
 
     def _rule(self, rule_type: str) -> ValidationRule:
         """Create a ValidationRule with given type."""
-        return ValidationRule(rule_type=rule_type, description=f"{rule_type} check", severity="error")
+        return ValidationRule(
+            rule_type=rule_type, description=f"{rule_type} check", severity="error"
+        )
 
     def test_all_baseline_validations_present(self):
         """Test validation passes when baseline validations exist.

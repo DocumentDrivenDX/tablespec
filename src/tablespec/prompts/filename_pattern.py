@@ -18,7 +18,9 @@ class SummarizedConfigurations(TypedDict):
     notes: list[str]
 
 
-def _convert_phase0_json_to_umf_structure(raw_data: dict, file_path: Path) -> dict | None:
+def _convert_phase0_json_to_umf_structure(
+    raw_data: dict, file_path: Path
+) -> dict | None:
     """Convert Phase 0 raw JSON extraction to UMF-like structure for prompt generation.
 
     Phase 0 JSON structure:
@@ -81,7 +83,9 @@ def _convert_phase0_json_to_umf_structure(raw_data: dict, file_path: Path) -> di
             # Header row - skip
             continue
 
-        normalized_row = tuple("" if cell is None else str(cell).strip() for cell in row)
+        normalized_row = tuple(
+            "" if cell is None else str(cell).strip() for cell in row
+        )
 
         if not any(normalized_row):
             # Skip fully blank rows
@@ -107,7 +111,9 @@ def _convert_phase0_json_to_umf_structure(raw_data: dict, file_path: Path) -> di
                 # Put the naming pattern as "details" so it gets recognized as a pattern
                 pattern_value = normalized_row[pattern_col_idx]
                 # Prefix with "File Name Format: " to trigger pattern detection
-                config["details"] = f"File Name Format: {pattern_value}" if pattern_value else ""
+                config["details"] = (
+                    f"File Name Format: {pattern_value}" if pattern_value else ""
+                )
 
             # Collect additional context (details column and any other columns)
             additional = []
@@ -125,7 +131,9 @@ def _convert_phase0_json_to_umf_structure(raw_data: dict, file_path: Path) -> di
             if len(normalized_row) >= 2:
                 config["details"] = normalized_row[1]
             if len(normalized_row) >= 3:
-                additional = [value for value in normalized_row[2:] if value and value.strip()]
+                additional = [
+                    value for value in normalized_row[2:] if value and value.strip()
+                ]
                 if additional:
                     config["additional"] = additional
 
@@ -189,20 +197,27 @@ def _summarize_configurations(configs: list[dict]) -> SummarizedConfigurations:
 
         details_lower = details.lower()
 
-        if any(keyword in spec_lower or keyword in details_lower for keyword in pattern_keywords):
+        if any(
+            keyword in spec_lower or keyword in details_lower
+            for keyword in pattern_keywords
+        ):
             for text in combined_texts or [spec]:
                 if text and text not in summary["patterns"]:
                     summary["patterns"].append(text)
             continue
 
-        if any(keyword in spec_lower or keyword in details_lower for keyword in example_keywords):
+        if any(
+            keyword in spec_lower or keyword in details_lower
+            for keyword in example_keywords
+        ):
             for value in _flatten_values(combined_texts or [details]):
                 if value not in summary["examples"]:
                     summary["examples"].append(value)
             continue
 
         if any(
-            keyword in spec_lower or keyword in details_lower for keyword in enumeration_keywords
+            keyword in spec_lower or keyword in details_lower
+            for keyword in enumeration_keywords
         ):
             values = _flatten_values(combined_texts or [details])
             if values:
@@ -221,7 +236,9 @@ def _summarize_configurations(configs: list[dict]) -> SummarizedConfigurations:
     return summary
 
 
-def _collect_sheet_aliases(extraction_dir: Path, limit: int = 40) -> tuple[list[str], bool]:
+def _collect_sheet_aliases(
+    extraction_dir: Path, limit: int = 40
+) -> tuple[list[str], bool]:
     """Collect distinct sheet names from Phase 0 extraction for alias references."""
     if not extraction_dir or not extraction_dir.exists():
         return ([], False)
@@ -286,7 +303,9 @@ def generate_filename_pattern_prompt(
             with open(file_path, encoding="utf-8") as f:
                 raw_data = json.load(f)
                 # Convert Phase 0 JSON to UMF-like structure for prompt generation
-                converted_data = _convert_phase0_json_to_umf_structure(raw_data, file_path)
+                converted_data = _convert_phase0_json_to_umf_structure(
+                    raw_data, file_path
+                )
                 if converted_data:
                     naming_data.append(converted_data)
 

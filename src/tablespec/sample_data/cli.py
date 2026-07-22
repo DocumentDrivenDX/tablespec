@@ -64,7 +64,9 @@ class GenerateSampleDataScript:
         )
 
         # Initialize generator
-        generator = SampleDataGenerator(input_dir=args.input, output_dir=args.output, config=config)
+        generator = SampleDataGenerator(
+            input_dir=args.input, output_dir=args.output, config=config
+        )
 
         # Run generation
         return generator.run_generation()

@@ -231,7 +231,6 @@ class TestFlattenDatasetRows:
 class TestFlattenColumnRows:
     def test_numeric_stats_flattened(self):
         cols = [_col("price", numeric=_numeric(mean=42.0, p50=40.0))]
-        rows = flatten(_run(side_a=_dataset(cols=cols), side_b=_dataset(cols=cols)))
         cp = flatten(
             _run(
                 side_a=_dataset(cols=cols),

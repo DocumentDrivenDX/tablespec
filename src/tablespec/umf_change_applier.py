@@ -88,7 +88,9 @@ def apply_validation_change(umf: UMF, change: UMFValidationChange) -> UMF:
 
     # Get current expectations list (handle both attribute and dict styles)
     if hasattr(result.validation_rules, "expectations"):
-        current_expectations = list(getattr(result.validation_rules, "expectations", None) or [])
+        current_expectations = list(
+            getattr(result.validation_rules, "expectations", None) or []
+        )
     elif isinstance(result.validation_rules, dict):
         current_expectations = list(result.validation_rules.get("expectations", []))
     else:
@@ -150,7 +152,11 @@ def _rule_matches_key(exp: dict, column: str, rule_type: str, rule_index: int) -
     exp_rule_type = exp.get("type", "").removeprefix("expect_")
     exp_rule_index = exp.get("meta", {}).get("rule_index", 0)
 
-    return exp_column == column and exp_rule_type == rule_type and exp_rule_index == rule_index
+    return (
+        exp_column == column
+        and exp_rule_type == rule_type
+        and exp_rule_index == rule_index
+    )
 
 
 def apply_metadata_change(umf: UMF, change: UMFMetadataChange) -> UMF:

@@ -35,9 +35,7 @@ CANONICAL_GOLDEN_DIR = FIXTURES / "canonical"
 def compile_fixture_set(out_dir: Path) -> CompiledArtifacts:
     """Compile the shared member/claims/claim_enriched fixture set under *out_dir*."""
     umfs = umfs_from_specs(SPECS)
-    return compile_umfs(
-        umfs, out_dir, source="specs", gold_targets=GOLD_TARGETS
-    )
+    return compile_umfs(umfs, out_dir, source="specs", gold_targets=GOLD_TARGETS)
 
 
 def assert_artifacts_runtime_loadable(artifacts: CompiledArtifacts) -> None:
@@ -112,7 +110,9 @@ def run_full_backbone(
 
     # The clean fixture data MUST validate: every ``validate:*`` stage scanned the
     # compiled suite over the raw/ingested rows and passed.
-    validate_stages = [s for s in result.stages if s.name.startswith(f"[{backend}] validate:")]
+    validate_stages = [
+        s for s in result.stages if s.name.startswith(f"[{backend}] validate:")
+    ]
     assert validate_stages, f"[{backend}] no validation stage ran"
     assert all(s.ok for s in validate_stages)
 

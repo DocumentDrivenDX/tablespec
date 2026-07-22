@@ -29,7 +29,9 @@ def _source_inventory() -> set[str]:
 def _documented_inventory(text: str) -> set[str]:
     appendix = text.split("## Appendix: Library Module Map (existing surface)\n", 1)[1]
     appendix = appendix.split("\n## ", 1)[0]
-    table_rows = "\n".join(line for line in appendix.splitlines() if line.startswith("| "))
+    table_rows = "\n".join(
+        line for line in appendix.splitlines() if line.startswith("| ")
+    )
     return set(re.findall(r"`([^`]+)`", table_rows))
 
 

@@ -425,7 +425,8 @@ class TestUmfToGxMapper:
         """Test no profiling expectations when no profiling data exists."""
         suite = mapper.generate_expectations(umf_file)
         profiling_exps = [
-            e for e in suite["expectations"]
+            e
+            for e in suite["expectations"]
             if e.get("meta", {}).get("generated_from") == "profiling"
         ]
         assert profiling_exps == []
@@ -436,7 +437,8 @@ class TestUmfToGxMapper:
         """Test profiling expectations are generated via BaselineExpectationGenerator."""
         suite = mapper.generate_expectations(umf_with_profiling)
         profiling_exps = [
-            e for e in suite["expectations"]
+            e
+            for e in suite["expectations"]
             if e.get("meta", {}).get("generated_from") == "profiling"
         ]
         # Profiling data should produce expectations via BaselineExpectationGenerator
@@ -809,9 +811,7 @@ class TestProfilingExpectations:
             generator.generate_baseline_column_expectations(column)
         )
 
-        set_exps = [
-            e for e in exps if e["type"] == "expect_column_values_to_be_in_set"
-        ]
+        set_exps = [e for e in exps if e["type"] == "expect_column_values_to_be_in_set"]
         assert len(set_exps) == 1
         assert set_exps[0]["kwargs"]["value_set"] == ["A", "B", "C"]
         assert set_exps[0]["kwargs"]["column"] == "status"
@@ -912,7 +912,9 @@ class TestProfilingExpectations:
             generator.generate_baseline_column_expectations(column)
         )
 
-        assert len(exps) >= 5  # uniqueness, range, not-null, value-set, regex (length skipped? no, no baseline length)
+        assert (
+            len(exps) >= 5
+        )  # uniqueness, range, not-null, value-set, regex (length skipped? no, no baseline length)
 
         for exp in exps:
             assert exp["meta"]["generated_from"] == "profiling"

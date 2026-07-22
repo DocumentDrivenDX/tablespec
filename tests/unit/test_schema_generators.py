@@ -150,7 +150,9 @@ class TestGenerateSQLDDL:
         """Test suggested indexes are generated."""
         ddl = generate_sql_ddl(full_umf)
         assert "-- Suggested Indexes" in ddl
-        assert "CREATE INDEX idx_customer_name ON customer_table (customer_name);" in ddl
+        assert (
+            "CREATE INDEX idx_customer_name ON customer_table (customer_name);" in ddl
+        )
         assert "CREATE INDEX idx_created_at ON customer_table (created_at);" in ddl
 
     def test_no_indexes_when_not_present(self, minimal_umf):
@@ -188,7 +190,12 @@ class TestGenerateSQLDDL:
                 {"name": "date_col", "data_type": "DATE", "nullable": True},
                 {"name": "bool_col", "data_type": "BOOLEAN", "nullable": True},
                 {"name": "float_col", "data_type": "FLOAT", "nullable": True},
-                {"name": "decimal_col", "data_type": "DECIMAL", "precision": 10, "scale": 2},
+                {
+                    "name": "decimal_col",
+                    "data_type": "DECIMAL",
+                    "precision": 10,
+                    "scale": 2,
+                },
             ],
         }
         ddl = generate_sql_ddl(umf)
@@ -214,7 +221,12 @@ class TestGenerateSQLDDL:
                 {"name": "date_col", "data_type": "DATE", "nullable": True},
                 {"name": "bool_col", "data_type": "BOOLEAN", "nullable": True},
                 {"name": "float_col", "data_type": "FLOAT", "nullable": True},
-                {"name": "decimal_col", "data_type": "DECIMAL", "precision": 10, "scale": 2},
+                {
+                    "name": "decimal_col",
+                    "data_type": "DECIMAL",
+                    "precision": 10,
+                    "scale": 2,
+                },
             ],
         }
         ddl = generate_sql_ddl(umf)
@@ -276,7 +288,8 @@ class TestGeneratePySparkSchema:
         """Test all PySpark type imports are included."""
         schema = generate_pyspark_schema(minimal_umf)
         assert (
-            "from pyspark.sql.types import StringType, IntegerType, LongType, DecimalType" in schema
+            "from pyspark.sql.types import StringType, IntegerType, LongType, DecimalType"
+            in schema
         )
         assert (
             "from pyspark.sql.types import FloatType, DoubleType, BooleanType, DateType, TimestampType"
@@ -315,7 +328,11 @@ class TestGeneratePySparkSchema:
 
         # Should have 9 StructField definitions in fields + 1 in import = 10
         # Just check that we have the right number of field definitions (9)
-        lines = [line for line in schema.split("\n") if line.strip().startswith('StructField("')]
+        lines = [
+            line
+            for line in schema.split("\n")
+            if line.strip().startswith('StructField("')
+        ]
         assert len(lines) == 9
 
     def test_proper_formatting(self, minimal_umf):
@@ -428,7 +445,9 @@ class TestGenerateJSONSchema:
         """Test column descriptions are included."""
         schema = generate_json_schema(full_umf)
 
-        assert schema["properties"]["customer_id"]["description"] == "Unique customer ID"
+        assert (
+            schema["properties"]["customer_id"]["description"] == "Unique customer ID"
+        )
         assert schema["properties"]["email"]["description"] == "Customer email address"
 
     def test_required_fields(self, full_umf):
@@ -559,6 +578,8 @@ class TestPropertyBasedGeneratorsEmbedding:
         json_str = json.dumps(result)
         parsed = json.loads(json_str)
         assert parsed == result
+
+
 class TestPropertyBasedGenerators:
     """Property-based tests for schema generators using Hypothesis."""
 

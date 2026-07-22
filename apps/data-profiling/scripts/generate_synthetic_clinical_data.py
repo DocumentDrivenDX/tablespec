@@ -29,7 +29,7 @@ from __future__ import annotations
 import argparse
 import csv
 import os
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -685,7 +685,9 @@ def make_observations(enc_df: pd.DataFrame) -> pd.DataFrame:
         n_obs = int(obs_per_enc[i])
         vital_codes = rng.choice(LOINC_VITAL_CODES, size=n_obs, replace=True)
         enc_date = date.fromisoformat(enc["encounter_start_date"])
-        obs_dt = datetime(
+        # Consumes a seeded RNG draw so --seed output stays stable even though
+        # observation_date is currently date-only (no time component stored).
+        _obs_dt = datetime(  # noqa: F841
             enc_date.year, enc_date.month, enc_date.day, int(rng.integers(7, 17)), 0
         )
         panel_id = f"PANEL-{enc['encounter_id']}"

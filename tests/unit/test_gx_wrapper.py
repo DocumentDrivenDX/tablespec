@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from tablespec.gx_wrapper import GXWrapper, get_gx_wrapper, _gx_wrapper
+from tablespec.gx_wrapper import GXWrapper, get_gx_wrapper
 
 
 class TestGXWrapperInit:
@@ -42,9 +41,17 @@ class TestGXWrapperInit:
         wrapper = object.__new__(GXWrapper)
         wrapper.logger = MagicMock()
 
-        with patch.dict("sys.modules", {"great_expectations": MagicMock(), "great_expectations.expectations": MagicMock()}):
+        with patch.dict(
+            "sys.modules",
+            {
+                "great_expectations": MagicMock(),
+                "great_expectations.expectations": MagicMock(),
+            },
+        ):
             mock_registry = MagicMock()
-            mock_registry.register_expectation.side_effect = RuntimeError("registration failed")
+            mock_registry.register_expectation.side_effect = RuntimeError(
+                "registration failed"
+            )
             with patch.dict(
                 "sys.modules",
                 {"great_expectations.expectations.registry": mock_registry},
@@ -70,18 +77,22 @@ class TestGXWrapperCreateExpectationSuite:
             "tablespec.gx_wrapper.ExpectationSuite",
             return_value=mock_suite,
             create=True,
-        ) as mock_cls:
+        ):
             # Patch the import inside the method
             import types
 
-            mock_gx_module = types.ModuleType("great_expectations.core.expectation_suite")
+            mock_gx_module = types.ModuleType(
+                "great_expectations.core.expectation_suite"
+            )
             mock_gx_module.ExpectationSuite = MagicMock(return_value=mock_suite)
 
             with patch.dict(
                 "sys.modules",
                 {"great_expectations.core.expectation_suite": mock_gx_module},
             ):
-                result = wrapper.create_expectation_suite("test_suite", {"key": "value"})
+                result = wrapper.create_expectation_suite(
+                    "test_suite", {"key": "value"}
+                )
 
             assert result == mock_suite
             mock_gx_module.ExpectationSuite.assert_called_once_with(
@@ -105,6 +116,7 @@ class TestGXWrapperCreateExpectationSuite:
         ):
             result = wrapper.create_expectation_suite("test_suite")
 
+        assert result == mock_suite
         mock_gx_module.ExpectationSuite.assert_called_once_with(
             name="test_suite", meta={}
         )
@@ -199,13 +211,13 @@ class TestGXWrapperValidateExpectation:
             wrapper = GXWrapper()
 
         mock_suite = MagicMock()
-        mock_suite.add_expectation_configuration.side_effect = ValueError("bad expectation")
+        mock_suite.add_expectation_configuration.side_effect = ValueError(
+            "bad expectation"
+        )
         wrapper.create_expectation_suite = MagicMock(return_value=mock_suite)
         wrapper.create_expectation_config = MagicMock(return_value=MagicMock())
 
-        is_valid, error = wrapper.validate_expectation(
-            "bad_type", {"column": "test"}
-        )
+        is_valid, error = wrapper.validate_expectation("bad_type", {"column": "test"})
 
         assert is_valid is False
         assert "bad expectation" in error
@@ -228,7 +240,11 @@ class TestGXWrapperValidateSuite:
             "name": "test_suite",
             "meta": {},
             "expectations": [
-                {"type": "expect_column_to_exist", "kwargs": {"column": "id"}, "meta": {}},
+                {
+                    "type": "expect_column_to_exist",
+                    "kwargs": {"column": "id"},
+                    "meta": {},
+                },
             ],
         }
 
@@ -292,15 +308,25 @@ class TestGXWrapperValidateSuite:
             wrapper = GXWrapper()
 
         mock_suite = MagicMock()
-        mock_suite.add_expectation_configuration.side_effect = ValueError("not registered")
+        mock_suite.add_expectation_configuration.side_effect = ValueError(
+            "not registered"
+        )
         wrapper.create_expectation_suite = MagicMock(return_value=mock_suite)
         wrapper.create_expectation_config = MagicMock(return_value=MagicMock())
 
         suite_dict = {
             "name": "test_suite",
             "expectations": [
-                {"type": "expect_column_values_to_cast_to_type", "kwargs": {}, "meta": {}},
-                {"type": "expect_column_date_to_be_in_current_year", "kwargs": {}, "meta": {}},
+                {
+                    "type": "expect_column_values_to_cast_to_type",
+                    "kwargs": {},
+                    "meta": {},
+                },
+                {
+                    "type": "expect_column_date_to_be_in_current_year",
+                    "kwargs": {},
+                    "meta": {},
+                },
             ],
         }
 

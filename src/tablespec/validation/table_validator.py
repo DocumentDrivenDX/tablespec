@@ -153,9 +153,13 @@ class TableValidator:
         }
 
         try:
-            expectations = self._gen.generate_baseline_expectations(umf, include_structural=False)
+            expectations = self._gen.generate_baseline_expectations(
+                umf, include_structural=False
+            )
             # Filter to only GX-specific expectations
-            gx_expectations = [e for e in expectations if e.get("type") not in sql_covered_types]
+            gx_expectations = [
+                e for e in expectations if e.get("type") not in sql_covered_types
+            ]
 
             if not gx_expectations:
                 return
@@ -176,7 +180,9 @@ class TableValidator:
                         else None,
                         error_message=f"GX expectation {er.expectation_type} failed"
                         + (f" for column {er.column}" if er.column else ""),
-                        error_count=er.unexpected_count if er.unexpected_count else None,
+                        error_count=er.unexpected_count
+                        if er.unexpected_count
+                        else None,
                     )
         except Exception as e:
             self.logger.warning(f"GX-based validation failed (non-fatal): {e}")

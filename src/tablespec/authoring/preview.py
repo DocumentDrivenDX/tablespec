@@ -32,7 +32,9 @@ class PreviewResult:
 
     @property
     def total(self) -> int:
-        return len(self.raw) + len(self.ingested) + len(self.redundant) + len(self.unknown)
+        return (
+            len(self.raw) + len(self.ingested) + len(self.redundant) + len(self.unknown)
+        )
 
 
 def generate_preview(umf_data: dict[str, Any]) -> PreviewResult:

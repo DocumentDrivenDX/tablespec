@@ -314,7 +314,9 @@ class TestColumnValueGeneratorInstantiation:
         col_type = "STRING"
         sample_values = []
         umf_data = {"validation_rules": {"expectations": []}}
-        column_equality_constraints = {"col_a": [{"column_B": "col_b", "ignore_row_if": "never"}]}
+        column_equality_constraints = {
+            "col_a": [{"column_B": "col_b", "ignore_row_if": "never"}]
+        }
 
         value = generator.generate_column_value(
             table_name="test_table",
@@ -430,7 +432,12 @@ class TestColumnValueGeneratorInstantiation:
             "domain_type_registry"
         ].get_sample_generator_method.return_value = "generate_email"
 
-        col = {"name": "email", "key_type": None, "source": "data", "domain_type": "email"}
+        col = {
+            "name": "email",
+            "key_type": None,
+            "source": "data",
+            "domain_type": "email",
+        }
         col_type = "STRING"
         sample_values = []
         umf_data = {"validation_rules": {"expectations": []}}
@@ -690,7 +697,14 @@ class TestGenerateByType:
         """Columns ending in 'status' get status-like values."""
         col = {"name": "claim_status", "key_type": None, "source": "data"}
         value = self._generate(mock_deps, col, "STRING")
-        assert value in ["ACTIVE", "INACTIVE", "PENDING", "COMPLETED", "CANCELLED", "SUSPENDED"]
+        assert value in [
+            "ACTIVE",
+            "INACTIVE",
+            "PENDING",
+            "COMPLETED",
+            "CANCELLED",
+            "SUSPENDED",
+        ]
 
     def test_generate_type_column_name(self, mock_deps):
         """Columns ending in 'type' get type-like values."""
@@ -715,17 +729,38 @@ class TestGenerateByType:
         """Columns with 'reason' get reason-like values."""
         col = {"name": "denial_reason", "key_type": None, "source": "data"}
         value = self._generate(mock_deps, col, "STRING")
-        assert value in ["MEDICAL", "ADMINISTRATIVE", "CLINICAL", "OPERATIONAL", "OTHER", "NOT_SPECIFIED"]
+        assert value in [
+            "MEDICAL",
+            "ADMINISTRATIVE",
+            "CLINICAL",
+            "OPERATIONAL",
+            "OTHER",
+            "NOT_SPECIFIED",
+        ]
 
     def test_generate_category_column_name(self, mock_deps):
         col = {"name": "claim_category", "key_type": None, "source": "data"}
         value = self._generate(mock_deps, col, "STRING")
-        assert value in ["CATEGORY_1", "CATEGORY_2", "CATEGORY_3", "PRIMARY", "SECONDARY", "TERTIARY"]
+        assert value in [
+            "CATEGORY_1",
+            "CATEGORY_2",
+            "CATEGORY_3",
+            "PRIMARY",
+            "SECONDARY",
+            "TERTIARY",
+        ]
 
     def test_generate_result_column_name(self, mock_deps):
         col = {"name": "test_result", "key_type": None, "source": "data"}
         value = self._generate(mock_deps, col, "STRING")
-        assert value in ["POSITIVE", "NEGATIVE", "NORMAL", "ABNORMAL", "PENDING", "INCONCLUSIVE"]
+        assert value in [
+            "POSITIVE",
+            "NEGATIVE",
+            "NORMAL",
+            "ABNORMAL",
+            "PENDING",
+            "INCONCLUSIVE",
+        ]
 
     def test_generate_description_column_name(self, mock_deps):
         col = {"name": "description", "key_type": None, "source": "data"}
@@ -846,10 +881,19 @@ class TestFilenameSourcedColumnFallbacks:
         assert self._generate(mock_deps, "file_time") == "1234"
 
     def test_filename_project(self, mock_deps):
-        assert self._generate(mock_deps, "project_id") in ["1001", "1002", "2024", "2025"]
+        assert self._generate(mock_deps, "project_id") in [
+            "1001",
+            "1002",
+            "2024",
+            "2025",
+        ]
 
     def test_filename_claim(self, mock_deps):
-        assert self._generate(mock_deps, "claim_file") in ["Claims_File", "Data_File", "Source_File"]
+        assert self._generate(mock_deps, "claim_file") in [
+            "Claims_File",
+            "Data_File",
+            "Source_File",
+        ]
 
     def test_filename_generic_fallback(self, mock_deps):
         assert self._generate(mock_deps, "unknown_xyz_col") == "GENERIC_FILE"
@@ -1449,7 +1493,9 @@ class TestDomainTypeWithDateFormat:
         gx_extractor.get_regex_for_column.return_value = None
 
         domain_type_registry = mocker.Mock(spec=DomainTypeRegistry)
-        domain_type_registry.get_sample_generator_method.return_value = "generate_date_in_range"
+        domain_type_registry.get_sample_generator_method.return_value = (
+            "generate_date_in_range"
+        )
 
         config = GenerationConfig()
         key_registry = KeyRegistry(config=config)

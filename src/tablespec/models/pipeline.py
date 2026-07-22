@@ -27,7 +27,9 @@ class PipelineMetadata(BaseModel):
     """
 
     name: str = Field(description="Pipeline name (must match directory name)")
-    version: str = Field(description="Pipeline version in SemVer format (e.g., '1.0.0')")
+    version: str = Field(
+        description="Pipeline version in SemVer format (e.g., '1.0.0')"
+    )
     dependencies: dict[str, PipelineDependency] = Field(
         default_factory=dict,
         description="Dependencies on other pipelines, keyed by pipeline name",

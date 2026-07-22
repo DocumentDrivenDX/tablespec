@@ -97,7 +97,9 @@ for col in claims.columns:
         nullable_lobs = [lob for lob, v in nullable_dict.items() if v]
     else:
         nullable_lobs = []
-    print(f"  - {col.name:20s}  {col.data_type:10s}  nullable in: {nullable_lobs or '(none)'}")
+    print(
+        f"  - {col.name:20s}  {col.data_type:10s}  nullable in: {nullable_lobs or '(none)'}"
+    )
 
 print()
 print(f"Table : {providers.table_name}")
@@ -188,7 +190,9 @@ for col_name, desc, samples in test_columns:
 
 npi_specs = registry.get_validation_specs("npi")
 if npi_specs:
-    print(f"\nValidation specs for 'npi': {json.dumps(npi_specs[0], indent=2)[:200]}...")
+    print(
+        f"\nValidation specs for 'npi': {json.dumps(npi_specs[0], indent=2)[:200]}..."
+    )
 
 check(len(all_types) > 20, f"should have >20 domain types, got {len(all_types)}")
 npi_type, npi_conf = inference.infer_domain_type("provider_npi", "NPI", ["1234567890"])
@@ -216,7 +220,9 @@ for exp in expectations:
     if col:
         print(f"             column: {col}")
 
-check(len(expectations) >= 7, f"should generate >=7 expectations, got {len(expectations)}")
+check(
+    len(expectations) >= 7, f"should generate >=7 expectations, got {len(expectations)}"
+)
 exp_types = {e["type"] for e in expectations}
 check(
     "expect_table_columns_to_match_ordered_list" in exp_types,
@@ -340,7 +346,9 @@ else:
     print(f"Inferred table: {inferred_umf['table_name']}")
     print("Inferred columns:")
     for col in inferred_umf["columns"]:
-        print(f"  - {col['name']:20s}  type={col['data_type']:10s}  nullable={col['nullable']}")
+        print(
+            f"  - {col['name']:20s}  type={col['data_type']:10s}  nullable={col['nullable']}"
+        )
 
     check(inferred_umf["table_name"] == "InferredClaims", "inferred table name")
     check(len(inferred_umf["columns"]) == 3, "should infer 3 columns")
@@ -357,7 +365,9 @@ else:
         umf_path = Path(f.name)
 
     validator = TableValidator(spark)
-    error_df = validator.validate_table(claims_df, umf_path, table_name="Medical_Claims")
+    error_df = validator.validate_table(
+        claims_df, umf_path, table_name="Medical_Claims"
+    )
 
     error_count = error_df.count()
     if error_count > 0:
@@ -367,11 +377,15 @@ else:
         )
         # Expected: claim_amount is double in Spark but DECIMAL in UMF spec.
         # The validator correctly catches this type mismatch.
-        print("  (Expected: Spark infers double for claim_amount, UMF spec says DECIMAL)")
+        print(
+            "  (Expected: Spark infers double for claim_amount, UMF spec says DECIMAL)"
+        )
     else:
         print("All validations passed!")
 
-    check(error_count >= 1, "validator should catch the double vs DECIMAL type mismatch")
+    check(
+        error_count >= 1, "validator should catch the double vs DECIMAL type mismatch"
+    )
 
     umf_path.unlink(missing_ok=True)
 
@@ -431,7 +445,10 @@ else:
 
         check(success, "sample data generation should succeed")
         data_files = [f for f in generated_files if f.suffix in (".csv", ".txt")]
-        check(len(data_files) >= 2, f"should generate >=2 data files, got {len(data_files)}")
+        check(
+            len(data_files) >= 2,
+            f"should generate >=2 data files, got {len(data_files)}",
+        )
 
     spark.stop()
 

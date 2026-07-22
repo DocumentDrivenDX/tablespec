@@ -114,7 +114,9 @@ class ChangelogGenerator:
 
                 # Extract review note from commit message
                 commit_msg = (
-                    commit.message if isinstance(commit.message, str) else commit.message.decode()
+                    commit.message
+                    if isinstance(commit.message, str)
+                    else commit.message.decode()
                 )
                 review_note = self._extract_review_note(commit_msg)
 
@@ -240,8 +242,12 @@ class ChangelogGenerator:
                             change_type=ChangeType.COLUMN_MODIFIED,
                             description=cc.format_description(),
                             affected_item=cc.column_name,
-                            old_value=str(cc.old_value) if cc.old_value is not None else None,
-                            new_value=str(cc.new_value) if cc.new_value is not None else None,
+                            old_value=str(cc.old_value)
+                            if cc.old_value is not None
+                            else None,
+                            new_value=str(cc.new_value)
+                            if cc.new_value is not None
+                            else None,
                             file_path=file_str,
                         )
                     )
@@ -266,8 +272,12 @@ class ChangelogGenerator:
                             change_type=change_type,
                             description=rc.format_description(),
                             affected_item=rc.fk_column,
-                            old_value=str(rc.old_value) if rc.old_value is not None else None,
-                            new_value=str(rc.new_value) if rc.new_value is not None else None,
+                            old_value=str(rc.old_value)
+                            if rc.old_value is not None
+                            else None,
+                            new_value=str(rc.new_value)
+                            if rc.new_value is not None
+                            else None,
                             file_path=file_str,
                         )
                     )
@@ -283,8 +293,12 @@ class ChangelogGenerator:
                             change_type=ChangeType.METADATA_CHANGED,
                             description=mc.format_description(),
                             affected_item=mc.change_field,
-                            old_value=str(mc.old_value) if mc.old_value is not None else None,
-                            new_value=str(mc.new_value) if mc.new_value is not None else None,
+                            old_value=str(mc.old_value)
+                            if mc.old_value is not None
+                            else None,
+                            new_value=str(mc.new_value)
+                            if mc.new_value is not None
+                            else None,
                             file_path=file_str,
                         )
                     )
@@ -301,8 +315,12 @@ class ChangelogGenerator:
                             change_type=ChangeType.OTHER,
                             description=dc.format_description(),
                             affected_item=dc.target_column,
-                            old_value=str(dc.old_value) if dc.old_value is not None else None,
-                            new_value=str(dc.new_value) if dc.new_value is not None else None,
+                            old_value=str(dc.old_value)
+                            if dc.old_value is not None
+                            else None,
+                            new_value=str(dc.new_value)
+                            if dc.new_value is not None
+                            else None,
                             file_path=file_str,
                         )
                     )
@@ -406,7 +424,9 @@ class ChangelogGenerator:
                     # Collect lines until we hit another field or empty line
                     note_lines = []
                     for next_line in lines[i + 1 :]:
-                        if next_line.startswith(("Rule ID:", "Column:", "Type:", "Severity:")):
+                        if next_line.startswith(
+                            ("Rule ID:", "Column:", "Type:", "Severity:")
+                        ):
                             break
                         if next_line.strip():
                             note_lines.append(next_line.strip())

@@ -167,7 +167,8 @@ class ExcelImportCommitter:
                     str(Path(path)).startswith(str(f))
                     for d in diff_index
                     for f in files
-                    if (path := d.a_path or d.b_path) is not None  # Filter out None values
+                    if (path := d.a_path or d.b_path)
+                    is not None  # Filter out None values
                 )
 
                 if not has_changes:

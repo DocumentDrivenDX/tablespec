@@ -61,7 +61,9 @@ def scene_load():
         print(f"    {col.name:20s} {col.data_type:10s}{req_str}")
 
     print(f"\nTable: {providers.table_name}")
-    print(f"  {len(providers.columns)} columns: {', '.join(c.name for c in providers.columns)}")
+    print(
+        f"  {len(providers.columns)} columns: {', '.join(c.name for c in providers.columns)}"
+    )
 
 
 def scene_generate():
@@ -201,13 +203,19 @@ def scene_context():
         "table_name": "Enrollments",
         "context_column": "LOB",
         "columns": [
-            {"name": "member_id", "data_type": "VARCHAR", "nullable": {"MD": False, "MP": True, "ME": False}},
+            {
+                "name": "member_id",
+                "data_type": "VARCHAR",
+                "nullable": {"MD": False, "MP": True, "ME": False},
+            },
             {"name": "LOB", "data_type": "VARCHAR"},
         ],
     }
 
     gen = BaselineExpectationGenerator()
-    exps = gen.generate_baseline_expectations(umf_with_context, include_structural=False)
+    exps = gen.generate_baseline_expectations(
+        umf_with_context, include_structural=False
+    )
     row_cond = [e for e in exps if "row_condition" in e.get("kwargs", {})]
 
     print(f"{len(exps)} expectations generated ({len(row_cond)} context-aware):\n")
@@ -217,7 +225,7 @@ def scene_context():
         print(f"  {exp['type']}")
         print(f"    column={col}  row_condition={cond}")
 
-    print(f"\nDifferent LOBs get different nullable rules — from one YAML.")
+    print("\nDifferent LOBs get different nullable rules — from one YAML.")
 
 
 def scene_compat():
@@ -262,7 +270,7 @@ def scene_excel():
         print(f"Nullable columns in Excel: {nullable_headers}")
 
         # Show a few rows from the Columns sheet
-        print(f"\nColumns sheet preview:")
+        print("\nColumns sheet preview:")
         for row in cols_sheet.iter_rows(min_row=1, max_row=4, values_only=True):
             vals = [str(v) if v is not None else "" for v in row[:5]]
             print(f"  {' | '.join(vals)}")
@@ -299,13 +307,15 @@ def scene_spark():
 
     from pyspark.sql import Row
 
-    claims_df = spark.createDataFrame([
-        Row(claim_id="CLM-001", claim_amount=1500.00, provider_id="PRV001"),
-        Row(claim_id="CLM-002", claim_amount=2300.50, provider_id="PRV002"),
-        Row(claim_id="CLM-003", claim_amount=None, provider_id="PRV001"),
-        Row(claim_id="CLM-004", claim_amount=750.25, provider_id="PRV003"),
-        Row(claim_id="CLM-005", claim_amount=4100.00, provider_id="PRV002"),
-    ])
+    claims_df = spark.createDataFrame(
+        [
+            Row(claim_id="CLM-001", claim_amount=1500.00, provider_id="PRV001"),
+            Row(claim_id="CLM-002", claim_amount=2300.50, provider_id="PRV002"),
+            Row(claim_id="CLM-003", claim_amount=None, provider_id="PRV001"),
+            Row(claim_id="CLM-004", claim_amount=750.25, provider_id="PRV003"),
+            Row(claim_id="CLM-005", claim_amount=4100.00, provider_id="PRV002"),
+        ]
+    )
     claims_df.show()
     print("###MARK:spark_profile###", flush=True)
 
@@ -317,7 +327,9 @@ def scene_spark():
     mapper = SparkToUmfMapper()
     inferred = mapper.map_dataframe_to_umf(claims_df, table_name="InferredClaims")
     for col in inferred["columns"]:
-        print(f"  {col['name']:20s} -> {col['data_type']:10s} nullable={col['nullable']}")
+        print(
+            f"  {col['name']:20s} -> {col['data_type']:10s} nullable={col['nullable']}"
+        )
     print("###MARK:spark_validate###", flush=True)
 
     # --- Section 10: Validate ---
@@ -331,7 +343,9 @@ def scene_spark():
         umf_path = Path(f.name)
 
     validator = TableValidator(spark)
-    error_df = validator.validate_table(claims_df, umf_path, table_name="Medical_Claims")
+    error_df = validator.validate_table(
+        claims_df, umf_path, table_name="Medical_Claims"
+    )
     error_count = error_df.count()
     if error_count > 0:
         print(f"Validator caught {error_count} issue(s):")
@@ -523,15 +537,45 @@ def scene_cli():
         print()
 
     print("--- Column Mutations ---\n")
-    run_cmd(["column-add", umf_path, "--name", "service_date", "--type", "DATE", "--description", "Date of service"])
+    run_cmd(
+        [
+            "column-add",
+            umf_path,
+            "--name",
+            "service_date",
+            "--type",
+            "DATE",
+            "--description",
+            "Date of service",
+        ]
+    )
     run_cmd(["column-modify", umf_path, "--name", "service_date", "--type", "DATETIME"])
-    run_cmd(["column-rename", umf_path, "--from", "service_date", "--to", "svc_dt", "--keep-alias"])
+    run_cmd(
+        [
+            "column-rename",
+            umf_path,
+            "--from",
+            "service_date",
+            "--to",
+            "svc_dt",
+            "--keep-alias",
+        ]
+    )
 
     print("--- Domain Assignment ---\n")
     run_cmd(["domains-set", umf_path, "--column", "provider_id", "--type", "npi"])
 
     print("--- Validation Management ---\n")
-    run_cmd(["validation-remove", umf_path, "--type", "expect_column_values_to_not_be_null", "--column", "claim_id"])
+    run_cmd(
+        [
+            "validation-remove",
+            umf_path,
+            "--type",
+            "expect_column_values_to_not_be_null",
+            "--column",
+            "claim_id",
+        ]
+    )
 
     # Show final state
     d = json.loads(Path(umf_path).read_text())

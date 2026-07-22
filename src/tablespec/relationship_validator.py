@@ -23,7 +23,9 @@ class RelationshipValidator:
         self.logger = logger or logging.getLogger(self.__class__.__name__)
         self.errors: list[tuple[str, str]] = []
 
-    def validate_foreign_keys(self, umf: UMF, all_tables: dict[str, UMF]) -> list[tuple[str, str]]:
+    def validate_foreign_keys(
+        self, umf: UMF, all_tables: dict[str, UMF]
+    ) -> list[tuple[str, str]]:
         """Validate foreign key relationships.
 
         Checks that:
@@ -70,7 +72,8 @@ class RelationshipValidator:
                     (
                         t
                         for t in all_tables.values()
-                        if fk.references_table.lower() in [a.lower() for a in (t.aliases or [])]
+                        if fk.references_table.lower()
+                        in [a.lower() for a in (t.aliases or [])]
                     ),
                     None,
                 )
@@ -133,7 +136,8 @@ class RelationshipValidator:
                     (
                         t
                         for t in all_tables.values()
-                        if incoming.source_table.lower() in [a.lower() for a in (t.aliases or [])]
+                        if incoming.source_table.lower()
+                        in [a.lower() for a in (t.aliases or [])]
                     ),
                     None,
                 )
@@ -165,7 +169,9 @@ class RelationshipValidator:
 
         return errors
 
-    def validate_all_relationships(self, tables: list[UMF]) -> dict[str, list[tuple[str, str]]]:
+    def validate_all_relationships(
+        self, tables: list[UMF]
+    ) -> dict[str, list[tuple[str, str]]]:
         """Validate all relationships in a set of tables.
 
         Args:

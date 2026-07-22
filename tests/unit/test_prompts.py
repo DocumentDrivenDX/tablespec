@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import copy
 import json
-import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -708,9 +706,7 @@ class TestExpectationGuide:
         from tablespec.prompts.expectation_guide import get_parameter_requirements
 
         # This should exist in the parameters file
-        result = get_parameter_requirements(
-            "expect_column_values_to_be_in_set"
-        )
+        result = get_parameter_requirements("expect_column_values_to_be_in_set")
         # May or may not exist depending on the JSON file contents
         # Just check it returns dict or None
         assert result is None or isinstance(result, dict)
@@ -1276,7 +1272,10 @@ class TestSummarizeConfigurations:
         from tablespec.prompts.filename_pattern import _summarize_configurations
 
         configs = [
-            {"specification": "File Name Format", "details": "Vendor_State_YYYYMMDD.txt"}
+            {
+                "specification": "File Name Format",
+                "details": "Vendor_State_YYYYMMDD.txt",
+            }
         ]
         result = _summarize_configurations(configs)
         assert len(result["patterns"]) > 0
@@ -1284,27 +1283,21 @@ class TestSummarizeConfigurations:
     def test_detects_examples(self):
         from tablespec.prompts.filename_pattern import _summarize_configurations
 
-        configs = [
-            {"specification": "Example", "details": "HCMG_TX_20240101.txt"}
-        ]
+        configs = [{"specification": "Example", "details": "HCMG_TX_20240101.txt"}]
         result = _summarize_configurations(configs)
         assert len(result["examples"]) > 0
 
     def test_detects_enumerations(self):
         from tablespec.prompts.filename_pattern import _summarize_configurations
 
-        configs = [
-            {"specification": "Vendor", "details": "HCMG, SIGNIFY, INOVALON"}
-        ]
+        configs = [{"specification": "Vendor", "details": "HCMG, SIGNIFY, INOVALON"}]
         result = _summarize_configurations(configs)
         assert len(result["enumerations"]) > 0
 
     def test_collects_notes(self):
         from tablespec.prompts.filename_pattern import _summarize_configurations
 
-        configs = [
-            {"specification": "Some info", "details": "Random extra context"}
-        ]
+        configs = [{"specification": "Some info", "details": "Random extra context"}]
         result = _summarize_configurations(configs)
         assert len(result["notes"]) > 0
 
@@ -1365,7 +1358,12 @@ class TestConvertPhase0JsonToUmfStructure:
                 "columns": [0, 1, 2, 3],
                 "data": [
                     ["S. No.", "File Name", "Naming Convention", "Details"],
-                    ["1", "OutreachList", "Vendor_State_OutreachList_Date.txt", "Daily"],
+                    [
+                        "1",
+                        "OutreachList",
+                        "Vendor_State_OutreachList_Date.txt",
+                        "Daily",
+                    ],
                     ["2", "Claims", "Vendor_Claims_Date.txt", "Monthly"],
                 ],
             }
@@ -1495,7 +1493,9 @@ class TestGenerateFilenamePatternPrompt:
         (extraction_dir / "OutreachList.json").write_text("{}")
         (extraction_dir / "Claims.json").write_text("{}")
 
-        result = generate_filename_pattern_prompt(tmp_path, extraction_dir=extraction_dir)
+        result = generate_filename_pattern_prompt(
+            tmp_path, extraction_dir=extraction_dir
+        )
         assert result is not None
         assert "OutreachList" in result
         assert "Claims" in result

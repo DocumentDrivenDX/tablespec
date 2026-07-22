@@ -33,14 +33,13 @@ from profiler.catalog import (
     load_env_labels,
 )
 from profiler.compare import compare_tables, schema_change_counts
-from profiler.row_diff import RowDiffResult, compute_row_diff, diff_pct, summarise
+from profiler.row_diff import RowDiffResult, compute_row_diff
 from profiler.excel import write_workbook
 from profiler.manifest import ComparisonParams, SideSpec, new_manifest
-from profiler.metamodel import DatasetProfile, Lineage, ProfilerRun, new_run_id
+from profiler.metamodel import Lineage, ProfilerRun, new_run_id
 from profiler.profile import profile_table
 from profiler.storage import (
     ensure_run_folder,
-    list_runs,
     make_run_folder,
     read_text,
     write_json,
@@ -752,7 +751,8 @@ document.addEventListener('DOMContentLoaded',async function(){{
 
 def _exec_suggestion_sql(statement: str) -> any:
     """Run a SQL statement for suggestions via Statement Execution API."""
-    import os as _os, time as _time
+    import os as _os
+    import time as _time
     from profiler.catalog import _workspace_client
 
     w = _workspace_client()
@@ -1757,7 +1757,7 @@ with tab_genie:
             "**AI/BI → Genie Spaces → your space → URL contains the ID.**"
         )
     else:
-        from profiler.genie_chat import ask, GenieResult
+        from profiler.genie_chat import ask
 
         # Initialise conversation state
         if "genie_conv_id" not in st.session_state:

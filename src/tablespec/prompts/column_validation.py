@@ -64,7 +64,9 @@ def should_generate_column_prompt(col: dict[str, Any]) -> bool:
         "if",
         "when",
     ]
-    return bool(any(indicator in description for indicator in complex_validation_indicators))
+    return bool(
+        any(indicator in description for indicator in complex_validation_indicators)
+    )
 
 
 def _get_relevant_columns_for_context(
@@ -182,7 +184,8 @@ def generate_column_validation_prompt(
 
     # Check if domain type expectations were generated
     has_domain_type_expectations = any(
-        exp.get("meta", {}).get("generated_from") == "domain_type" for exp in baseline_expectations
+        exp.get("meta", {}).get("generated_from") == "domain_type"
+        for exp in baseline_expectations
     )
 
     # Required contexts (e.g. LOBs like MD/ME/MP, or any configurable keys)
@@ -227,7 +230,9 @@ Consider using: `{first_spec.get("type", "N/A")}` (severity: {first_spec.get("se
 Only diverge if business requirements differ from standard {domain_type} validation.
 """
         except Exception:
-            logger.debug("Failed to load domain type info for column %s.%s", table_name, col_name)
+            logger.debug(
+                "Failed to load domain type info for column %s.%s", table_name, col_name
+            )
 
     prompt = f"""# Column Validation: {table_name}.{col_name}
 
@@ -318,7 +323,9 @@ Use these for: column-to-filename metadata matching, cross-column validation wit
     if baseline_types:
         prompt += f"- Baseline validations: {', '.join(f'`{t}`' for t in baseline_types[:3])}{'...' if len(baseline_types) > 3 else ''}\n"
     if domain_types:
-        prompt += f"- Domain type validations: {', '.join(f'`{t}`' for t in domain_types)}\n"
+        prompt += (
+            f"- Domain type validations: {', '.join(f'`{t}`' for t in domain_types)}\n"
+        )
 
     prompt += """
 **DO NOT recreate these validations.** Focus on business-specific rules not covered above.

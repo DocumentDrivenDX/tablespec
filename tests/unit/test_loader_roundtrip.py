@@ -52,7 +52,9 @@ def umf_object(draw):
     version = draw(_VERSION)
     # Generate 1-5 columns with unique names
     columns = draw(
-        st.lists(umf_column(), min_size=1, max_size=5, unique_by=lambda c: c.name.lower())
+        st.lists(
+            umf_column(), min_size=1, max_size=5, unique_by=lambda c: c.name.lower()
+        )
     )
     return UMF(version=version, table_name=table_name, columns=columns)
 

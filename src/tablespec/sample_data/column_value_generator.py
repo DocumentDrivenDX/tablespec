@@ -115,7 +115,9 @@ class ColumnValueGenerator:
         """
         col_name = col["name"]
         col_name_lower = col_name.lower()
-        key_type = col.get("key_type")  # primary, unique, foreign_one_to_one, foreign_one_to_many
+        key_type = col.get(
+            "key_type"
+        )  # primary, unique, foreign_one_to_one, foreign_one_to_many
         source = col.get("source", "data")  # data, filename, metadata
 
         # Check if column is part of any unique constraints
@@ -175,7 +177,8 @@ class ColumnValueGenerator:
 
         # Initialize unique value tracker for this column if needed
         needs_uniqueness_tracking = (
-            key_type in ["primary", "unique", "foreign_one_to_one"] or is_in_unique_constraint
+            key_type in ["primary", "unique", "foreign_one_to_one"]
+            or is_in_unique_constraint
         )
         if needs_uniqueness_tracking and col_name not in unique_value_trackers:
             unique_value_trackers[col_name] = set()
@@ -194,7 +197,8 @@ class ColumnValueGenerator:
         }
         debug_key = (table_name, col_name)
         enable_debug = (
-            col_name_lower in debug_columns and debug_key not in self.debug_logged_columns
+            col_name_lower in debug_columns
+            and debug_key not in self.debug_logged_columns
         )
         if enable_debug:
             self.debug_logged_columns.add(debug_key)
@@ -225,20 +229,28 @@ class ColumnValueGenerator:
         gx_expectations = gx_expectations_cache.get(table_name)
         is_not_null = False
         if gx_expectations:
-            is_not_null = self.gx_extractor.is_column_not_null(gx_expectations, col_name)
+            is_not_null = self.gx_extractor.is_column_not_null(
+                gx_expectations, col_name
+            )
 
         # Also check UMF nullable specification - if all LOBs are non-nullable, enforce not-null
         nullable = col.get("nullable", {})
         if not is_not_null and nullable:
-            is_not_null = not any(nullable.values())  # True if all LOBs are non-nullable
+            is_not_null = not any(
+                nullable.values()
+            )  # True if all LOBs are non-nullable
 
         if enable_debug and is_not_null:
-            self.logger.info(f"DEBUG: {table_name}.{col_name} - Column has NOT NULL constraint")
+            self.logger.info(
+                f"DEBUG: {table_name}.{col_name} - Column has NOT NULL constraint"
+            )
 
         # Also check for max_length constraint
         max_length = None
         if gx_expectations:
-            max_length = self.gx_extractor.get_max_length_for_column(gx_expectations, col_name)
+            max_length = self.gx_extractor.get_max_length_for_column(
+                gx_expectations, col_name
+            )
             if enable_debug and max_length:
                 self.logger.info(
                     f"DEBUG: {table_name}.{col_name} - Column has max_length={max_length} constraint"
@@ -252,15 +264,19 @@ class ColumnValueGenerator:
             if strftime_format:
                 # Check if this is a birth date column
                 if "birth" in col_name_lower or "dob" in col_name_lower:
-                    date_value = self.generators.generate_birth_date(date_format=strftime_format)
+                    date_value = self.generators.generate_birth_date(
+                        date_format=strftime_format
+                    )
                 else:
                     # Try to extract date constraints from validation rules
                     date_constraints = extract_date_constraints(col_name, umf_data)
                     if date_constraints:
-                        date_value = self.generators.generate_date_in_range_with_constraints(
-                            min_date_str=date_constraints.get("min_value"),
-                            max_date_str=date_constraints.get("max_value"),
-                            date_format=strftime_format,
+                        date_value = (
+                            self.generators.generate_date_in_range_with_constraints(
+                                min_date_str=date_constraints.get("min_value"),
+                                max_date_str=date_constraints.get("max_value"),
+                                date_format=strftime_format,
+                            )
                         )
                     else:
                         date_value = self.generators.generate_date_in_range(
@@ -274,7 +290,9 @@ class ColumnValueGenerator:
 
         # PRIORITY 2: Check for GX value set constraints
         if gx_expectations:
-            gx_constraints = self.gx_extractor.get_constraints_for_column(gx_expectations, col_name)
+            gx_constraints = self.gx_extractor.get_constraints_for_column(
+                gx_expectations, col_name
+            )
             if gx_constraints:
                 gx_value = random.choice(gx_constraints)
                 if enable_debug:
@@ -304,7 +322,9 @@ class ColumnValueGenerator:
                     )
         # Also check FK pool for columns in equivalence groups (without explicit key_type)
         if generated_value is None:
-            fk_value = self.key_registry.foreign_key_manager.get_value_for_column(col_name)
+            fk_value = self.key_registry.foreign_key_manager.get_value_for_column(
+                col_name
+            )
             if fk_value is not None:
                 generated_value = fk_value
                 if enable_debug:
@@ -317,11 +337,15 @@ class ColumnValueGenerator:
         # Domain types should take precedence over generic regex patterns
         # Skip if we already have a value from FK pool
         domain_type = col.get("domain_type")
-        if domain_type and generated_value is None and self.domain_type_registry is not None:
+        if (
+            domain_type
+            and generated_value is None
+            and self.domain_type_registry is not None
+        ):
             try:
                 # Get generator method name from domain type registry
-                generator_method = self.domain_type_registry.get_sample_generator_method(
-                    domain_type
+                generator_method = (
+                    self.domain_type_registry.get_sample_generator_method(domain_type)
                 )
                 if generator_method and hasattr(self.generators, generator_method):
                     # Check if UMF specifies a format (for date/time columns)
@@ -397,12 +421,17 @@ class ColumnValueGenerator:
         # This is now a fallback when no domain type is specified
         # Only use GX patterns if we don't already have a value from domain type or sample_values
         if generated_value is None and gx_expectations:
-            regex_pattern = self.gx_extractor.get_regex_for_column(gx_expectations, col_name)
+            regex_pattern = self.gx_extractor.get_regex_for_column(
+                gx_expectations, col_name
+            )
             if regex_pattern:
                 # Special handling for datetime/timestamp patterns - use date generator
                 # Common patterns: YYYY-MM-DD HH:MM:SS, MM/DD/YYYY, YYYY-MM-DD, YYYYMMDD
                 datetime_patterns = [
-                    (r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", "%Y-%m-%d %H:%M:%S"),  # Timestamp
+                    (
+                        r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$",
+                        "%Y-%m-%d %H:%M:%S",
+                    ),  # Timestamp
                     (r"^\d{4}-\d{2}-\d{2}$", "%Y-%m-%d"),  # Date ISO format
                     (
                         r"^\(0\[1-9\]\|1\[0-2\]\)/\(0\[1-9\]\|\[12\]\[0-9\]\|3\[01\]\)/\\d{4}$",
@@ -426,14 +455,14 @@ class ColumnValueGenerator:
                             )
                         else:
                             # Try to extract date constraints from validation rules
-                            date_constraints = extract_date_constraints(col_name, umf_data)
+                            date_constraints = extract_date_constraints(
+                                col_name, umf_data
+                            )
                             if date_constraints:
-                                date_value = (
-                                    self.generators.generate_date_in_range_with_constraints(
-                                        min_date_str=date_constraints.get("min_value"),
-                                        max_date_str=date_constraints.get("max_value"),
-                                        date_format=date_format,
-                                    )
+                                date_value = self.generators.generate_date_in_range_with_constraints(
+                                    min_date_str=date_constraints.get("min_value"),
+                                    max_date_str=date_constraints.get("max_value"),
+                                    date_format=date_format,
                                 )
                             else:
                                 date_value = self.generators.generate_date_in_range(
@@ -557,7 +586,10 @@ class ColumnValueGenerator:
                 return self.generators.generate_govt_id(lob)
 
             # Service and status patterns
-            if "servicetype" in col_name_lower.replace("_", "") or "service_type" in col_name_lower:
+            if (
+                "servicetype" in col_name_lower.replace("_", "")
+                or "service_type" in col_name_lower
+            ):
                 return self.generators.generate_service_type()
             if "disposition" in col_name_lower and "status" in col_name_lower:
                 return self.generators.generate_disposition_status()
@@ -574,7 +606,10 @@ class ColumnValueGenerator:
                 return self.generators.generate_vendor_name()
 
             # Plan code patterns
-            if "plancode" in col_name_lower.replace("_", "") or "plan_code" in col_name_lower:
+            if (
+                "plancode" in col_name_lower.replace("_", "")
+                or "plan_code" in col_name_lower
+            ):
                 return self.generators.generate_plan_code()
 
             # Procedure and diagnosis codes
@@ -594,7 +629,8 @@ class ColumnValueGenerator:
             # Date patterns - ONLY apply if the column is actually a date/datetime type
             # Check col_type to avoid treating string columns with "_date" in name as dates
             is_date_type = col_type and any(
-                date_keyword in col_type.upper() for date_keyword in ["DATE", "TIME", "TIMESTAMP"]
+                date_keyword in col_type.upper()
+                for date_keyword in ["DATE", "TIME", "TIMESTAMP"]
             )
 
             if is_date_type:
@@ -606,7 +642,9 @@ class ColumnValueGenerator:
                 if "birth" in col_name_lower or "dob" in col_name_lower:
                     return self.generators.generate_birth_date(date_format=date_format)
 
-                if col_name_lower.endswith("_date") or col_name_lower.startswith("date"):
+                if col_name_lower.endswith("_date") or col_name_lower.startswith(
+                    "date"
+                ):
                     # For other dates, try to extract min/max from validation rules
                     date_constraints = extract_date_constraints(col_name, umf_data)
                     if date_constraints:
@@ -615,7 +653,9 @@ class ColumnValueGenerator:
                             max_date_str=date_constraints.get("max_value"),
                             date_format=date_format,
                         )
-                    return self.generators.generate_date_in_range(date_format=date_format)
+                    return self.generators.generate_date_in_range(
+                        date_format=date_format
+                    )
 
             # Name patterns - include PCP name variants (pcp_fname, pcp_lname)
             if (
@@ -693,7 +733,8 @@ class ColumnValueGenerator:
                         and single_value[2:].isdigit()
                     ):
                         letters = "".join(
-                            random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(2)
+                            random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                            for _ in range(2)
                         )
                         digits = "".join(str(random.randint(0, 9)) for _ in range(11))
                         generated_value = f"{letters}{digits}"
@@ -704,13 +745,19 @@ class ColumnValueGenerator:
                         and any(c.isdigit() for c in single_value)
                     ):
                         # Extract pattern - letters followed by digits or mixed
-                        alpha_positions = [i for i, c in enumerate(single_value) if c.isalpha()]
-                        digit_positions = [i for i, c in enumerate(single_value) if c.isdigit()]
+                        alpha_positions = [
+                            i for i, c in enumerate(single_value) if c.isalpha()
+                        ]
+                        digit_positions = [
+                            i for i, c in enumerate(single_value) if c.isdigit()
+                        ]
                         if alpha_positions and digit_positions:
                             # Generate similar pattern
                             result = [""] * len(single_value)
                             for pos in alpha_positions:
-                                result[pos] = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                                result[pos] = random.choice(
+                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                )
                             for pos in digit_positions:
                                 result[pos] = str(random.randint(0, 9))
                             # Handle any special characters
@@ -724,7 +771,9 @@ class ColumnValueGenerator:
                     # Pattern: Date-like strings (2023-11-14, 09/18/2024)
                     elif any(sep in single_value for sep in ["-", "/"]):
                         # Check if this is a birth date column
-                        is_birth_date = "birth" in col_name_lower or "dob" in col_name_lower
+                        is_birth_date = (
+                            "birth" in col_name_lower or "dob" in col_name_lower
+                        )
 
                         if "/" in single_value and len(single_value.split("/")) == 3:
                             # MM/DD/YYYY format
@@ -733,57 +782,69 @@ class ColumnValueGenerator:
                                     date_format="%m/%d/%Y"
                                 )
                             else:
-                                date_constraints = extract_date_constraints(col_name, umf_data)
+                                date_constraints = extract_date_constraints(
+                                    col_name, umf_data
+                                )
                                 if date_constraints:
-                                    generated_value = (
-                                        self.generators.generate_date_in_range_with_constraints(
-                                            min_date_str=date_constraints.get("min_value"),
-                                            max_date_str=date_constraints.get("max_value"),
-                                            date_format="%m/%d/%Y",
-                                        )
+                                    generated_value = self.generators.generate_date_in_range_with_constraints(
+                                        min_date_str=date_constraints.get("min_value"),
+                                        max_date_str=date_constraints.get("max_value"),
+                                        date_format="%m/%d/%Y",
                                     )
                                 else:
-                                    generated_value = self.generators.generate_date_in_range(
-                                        date_format="%m/%d/%Y"
+                                    generated_value = (
+                                        self.generators.generate_date_in_range(
+                                            date_format="%m/%d/%Y"
+                                        )
                                     )
                         elif "-" in single_value and len(single_value.split("-")) == 3:
                             parts = single_value.split("-")
                             if len(parts[0]) == 4:  # YYYY-MM-DD
                                 if is_birth_date:
-                                    generated_value = self.generators.generate_birth_date(
-                                        date_format="%Y-%m-%d"
+                                    generated_value = (
+                                        self.generators.generate_birth_date(
+                                            date_format="%Y-%m-%d"
+                                        )
                                     )
                                 else:
-                                    date_constraints = extract_date_constraints(col_name, umf_data)
+                                    date_constraints = extract_date_constraints(
+                                        col_name, umf_data
+                                    )
                                     if date_constraints:
-                                        generated_value = (
-                                            self.generators.generate_date_in_range_with_constraints(
-                                                min_date_str=date_constraints.get("min_value"),
-                                                max_date_str=date_constraints.get("max_value"),
-                                                date_format="%Y-%m-%d",
-                                            )
+                                        generated_value = self.generators.generate_date_in_range_with_constraints(
+                                            min_date_str=date_constraints.get(
+                                                "min_value"
+                                            ),
+                                            max_date_str=date_constraints.get(
+                                                "max_value"
+                                            ),
+                                            date_format="%Y-%m-%d",
                                         )
                                     else:
-                                        generated_value = self.generators.generate_date_in_range(
-                                            date_format="%Y-%m-%d"
+                                        generated_value = (
+                                            self.generators.generate_date_in_range(
+                                                date_format="%Y-%m-%d"
+                                            )
                                         )
                             elif is_birth_date:
                                 generated_value = self.generators.generate_birth_date(
                                     date_format="%m-%d-%Y"
                                 )
                             else:
-                                date_constraints = extract_date_constraints(col_name, umf_data)
+                                date_constraints = extract_date_constraints(
+                                    col_name, umf_data
+                                )
                                 if date_constraints:
-                                    generated_value = (
-                                        self.generators.generate_date_in_range_with_constraints(
-                                            min_date_str=date_constraints.get("min_value"),
-                                            max_date_str=date_constraints.get("max_value"),
-                                            date_format="%m-%d-%Y",
-                                        )
+                                    generated_value = self.generators.generate_date_in_range_with_constraints(
+                                        min_date_str=date_constraints.get("min_value"),
+                                        max_date_str=date_constraints.get("max_value"),
+                                        date_format="%m-%d-%Y",
                                     )
                                 else:
-                                    generated_value = self.generators.generate_date_in_range(
-                                        date_format="%m-%d-%Y"
+                                    generated_value = (
+                                        self.generators.generate_date_in_range(
+                                            date_format="%m-%d-%Y"
+                                        )
                                     )
                         else:
                             generated_value = single_value
@@ -800,7 +861,9 @@ class ColumnValueGenerator:
             if col_type_upper in ("INTEGER", "INTEGERTYPE", "INT", "LONGTYPE", "LONG"):
                 generated_value = random.randint(1, 1000)
             # Handle both "DECIMAL" and "DecimalType" formats (also DECIMAL(p,s))
-            elif col_type_upper.startswith("DECIMAL") or col_type_upper == "DECIMALTYPE":
+            elif (
+                col_type_upper.startswith("DECIMAL") or col_type_upper == "DECIMALTYPE"
+            ):
                 generated_value = round(random.uniform(0, 100), 2)
             # Handle DOUBLE and FLOAT types
             elif col_type_upper in ("DOUBLE", "DOUBLETYPE", "FLOAT", "FLOATTYPE"):
@@ -812,15 +875,19 @@ class ColumnValueGenerator:
 
                 # Check for birth dates first
                 if "birth" in col_name_lower:
-                    generated_value = self.generators.generate_birth_date(date_format=date_format)
+                    generated_value = self.generators.generate_birth_date(
+                        date_format=date_format
+                    )
                 else:
                     # Try to extract date constraints from validation rules
                     date_constraints = extract_date_constraints(col_name, umf_data)
                     if date_constraints:
-                        generated_value = self.generators.generate_date_in_range_with_constraints(
-                            min_date_str=date_constraints.get("min_value"),
-                            max_date_str=date_constraints.get("max_value"),
-                            date_format=date_format,
+                        generated_value = (
+                            self.generators.generate_date_in_range_with_constraints(
+                                min_date_str=date_constraints.get("min_value"),
+                                max_date_str=date_constraints.get("max_value"),
+                                date_format=date_format,
+                            )
                         )
                     else:
                         generated_value = self.generators.generate_date_in_range(
@@ -829,19 +896,25 @@ class ColumnValueGenerator:
             elif col_type_upper in ("TIMESTAMP", "TIMESTAMPTYPE"):
                 # Get timestamp format from UMF column definition, default to ISO format with time
                 umf_format = col.get("format")
-                date_format = convert_umf_format_to_strftime(umf_format) or "%Y-%m-%d %H:%M:%S"
+                date_format = (
+                    convert_umf_format_to_strftime(umf_format) or "%Y-%m-%d %H:%M:%S"
+                )
 
                 # Check for birth dates first
                 if "birth" in col_name_lower:
-                    generated_value = self.generators.generate_birth_date(date_format=date_format)
+                    generated_value = self.generators.generate_birth_date(
+                        date_format=date_format
+                    )
                 else:
                     # Try to extract date constraints from validation rules
                     date_constraints = extract_date_constraints(col_name, umf_data)
                     if date_constraints:
-                        generated_value = self.generators.generate_date_in_range_with_constraints(
-                            min_date_str=date_constraints.get("min_value"),
-                            max_date_str=date_constraints.get("max_value"),
-                            date_format=date_format,
+                        generated_value = (
+                            self.generators.generate_date_in_range_with_constraints(
+                                min_date_str=date_constraints.get("min_value"),
+                                max_date_str=date_constraints.get("max_value"),
+                                date_format=date_format,
+                            )
                         )
                     else:
                         generated_value = self.generators.generate_date_in_range(
@@ -866,7 +939,14 @@ class ColumnValueGenerator:
             elif "_status" in col_name_lower or col_name_lower.endswith("status"):
                 # Generate status-like values
                 generated_value = random.choice(
-                    ["ACTIVE", "INACTIVE", "PENDING", "COMPLETED", "CANCELLED", "SUSPENDED"]
+                    [
+                        "ACTIVE",
+                        "INACTIVE",
+                        "PENDING",
+                        "COMPLETED",
+                        "CANCELLED",
+                        "SUSPENDED",
+                    ]
                 )
             elif "_code" in col_name_lower or col_name_lower.endswith("code"):
                 # Generate code-like values
@@ -878,7 +958,9 @@ class ColumnValueGenerator:
                 or "_ind" in col_name_lower
             ):
                 # Generate flag/indicator values
-                generated_value = random.choice(["Y", "N", "YES", "NO", "1", "0", "TRUE", "FALSE"])
+                generated_value = random.choice(
+                    ["Y", "N", "YES", "NO", "1", "0", "TRUE", "FALSE"]
+                )
             elif "_reason" in col_name_lower or col_name_lower.endswith("reason"):
                 # Generate reason-like values
                 generated_value = random.choice(
@@ -894,12 +976,26 @@ class ColumnValueGenerator:
             elif "_category" in col_name_lower or col_name_lower.endswith("category"):
                 # Generate category-like values
                 generated_value = random.choice(
-                    ["CATEGORY_1", "CATEGORY_2", "CATEGORY_3", "PRIMARY", "SECONDARY", "TERTIARY"]
+                    [
+                        "CATEGORY_1",
+                        "CATEGORY_2",
+                        "CATEGORY_3",
+                        "PRIMARY",
+                        "SECONDARY",
+                        "TERTIARY",
+                    ]
                 )
             elif "_result" in col_name_lower or col_name_lower.endswith("result"):
                 # Generate result-like values
                 generated_value = random.choice(
-                    ["POSITIVE", "NEGATIVE", "NORMAL", "ABNORMAL", "PENDING", "INCONCLUSIVE"]
+                    [
+                        "POSITIVE",
+                        "NEGATIVE",
+                        "NORMAL",
+                        "ABNORMAL",
+                        "PENDING",
+                        "INCONCLUSIVE",
+                    ]
                 )
             elif "description" in col_name_lower or "desc" in col_name_lower:
                 # Generate description-like values
@@ -927,7 +1023,9 @@ class ColumnValueGenerator:
             if col_type_upper in ("INTEGER", "INTEGERTYPE", "INT", "LONGTYPE", "LONG"):
                 generated_value = random.randint(1, 1000)
             # Handle both "DECIMAL" and "DecimalType" formats (also DECIMAL(p,s))
-            elif col_type_upper.startswith("DECIMAL") or col_type_upper == "DECIMALTYPE":
+            elif (
+                col_type_upper.startswith("DECIMAL") or col_type_upper == "DECIMALTYPE"
+            ):
                 generated_value = round(random.uniform(0, 100), 2)
             # Handle DOUBLE and FLOAT types
             elif col_type_upper in ("DOUBLE", "DOUBLETYPE", "FLOAT", "FLOATTYPE"):
@@ -938,7 +1036,9 @@ class ColumnValueGenerator:
                 date_format = convert_umf_format_to_strftime(umf_format) or "%Y-%m-%d"
                 # Check for birth dates
                 if "birth" in col_name_lower:
-                    generated_value = self.generators.generate_birth_date(date_format=date_format)
+                    generated_value = self.generators.generate_birth_date(
+                        date_format=date_format
+                    )
                 else:
                     generated_value = self.generators.generate_date_in_range(
                         date_format=date_format
@@ -946,10 +1046,14 @@ class ColumnValueGenerator:
             elif col_type_upper in ("TIMESTAMP", "TIMESTAMPTYPE"):
                 # Get timestamp format from UMF column definition
                 umf_format = col.get("format")
-                date_format = convert_umf_format_to_strftime(umf_format) or "%Y-%m-%d %H:%M:%S"
+                date_format = (
+                    convert_umf_format_to_strftime(umf_format) or "%Y-%m-%d %H:%M:%S"
+                )
                 # Check for birth dates
                 if "birth" in col_name_lower:
-                    generated_value = self.generators.generate_birth_date(date_format=date_format)
+                    generated_value = self.generators.generate_birth_date(
+                        date_format=date_format
+                    )
                 else:
                     generated_value = self.generators.generate_date_in_range(
                         date_format=date_format
@@ -966,7 +1070,11 @@ class ColumnValueGenerator:
                 )
 
         # Post-generation validation: Trim to max_length if needed
-        if isinstance(generated_value, str) and max_length and len(generated_value) > max_length:
+        if (
+            isinstance(generated_value, str)
+            and max_length
+            and len(generated_value) > max_length
+        ):
             original_value = generated_value
             generated_value = generated_value[:max_length]
             if enable_debug:
@@ -989,7 +1097,11 @@ class ColumnValueGenerator:
                 if should_apply:
                     # Ensure generated value differs from other columns in this group
                     generated_value = ensure_distinct_from_columns_fn(
-                        generated_value, record, constraint_columns, col_name, enable_debug
+                        generated_value,
+                        record,
+                        constraint_columns,
+                        col_name,
+                        enable_debug,
                     )
 
                     if enable_debug and generated_value is not None:
@@ -1000,7 +1112,8 @@ class ColumnValueGenerator:
         # Post-generation validation: Enforce uniqueness for primary/unique/one-to-one keys
         # Also enforce uniqueness for columns that are part of unique constraints
         needs_uniqueness = (
-            key_type in ["primary", "unique", "foreign_one_to_one"] or is_in_unique_constraint
+            key_type in ["primary", "unique", "foreign_one_to_one"]
+            or is_in_unique_constraint
         )
         if needs_uniqueness and generated_value is not None:
             tracker = unique_value_trackers[col_name]

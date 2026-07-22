@@ -17,7 +17,8 @@ from tablespec.validation.gx_executor import (
     SuiteExecutionResult,
 )
 
-pytestmark = [pytest.mark.fast, 
+pytestmark = [
+    pytest.mark.fast,
     pytest.mark.no_spark,
 ]
 
@@ -364,19 +365,25 @@ class TestCleanupRobustness:
         ds.delete_asset.side_effect = RuntimeError("boom")
 
         # Should not raise
-        GXSuiteExecutor._cleanup(context, MagicMock(name="suite"), ds, "ds", "asset", "vd")
+        GXSuiteExecutor._cleanup(
+            context, MagicMock(name="suite"), ds, "ds", "asset", "vd"
+        )
 
     def test_cleanup_without_vd(self):
         """_cleanup works when vd_name is None."""
         context = MagicMock()
         ds = MagicMock()
-        GXSuiteExecutor._cleanup(context, MagicMock(name="suite"), ds, "ds", "asset", None)
+        GXSuiteExecutor._cleanup(
+            context, MagicMock(name="suite"), ds, "ds", "asset", None
+        )
         context.validation_definitions.delete.assert_not_called()
 
     def test_cleanup_without_ds(self):
         """_cleanup works when ds is None."""
         context = MagicMock()
-        GXSuiteExecutor._cleanup(context, MagicMock(name="suite"), None, "ds", "asset", "vd")
+        GXSuiteExecutor._cleanup(
+            context, MagicMock(name="suite"), None, "ds", "asset", "vd"
+        )
 
 
 # ── StagedExecutionResult ─────────────────────────────────────────────

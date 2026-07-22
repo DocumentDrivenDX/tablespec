@@ -193,7 +193,8 @@ class TestMetadataColumnDefinitions:
 
     def test_each_definition_has_required_fields(self):
         expected_types = {
-            name: definition["data_type"] for name, definition in PROVENANCE_COLUMNS.items()
+            name: definition["data_type"]
+            for name, definition in PROVENANCE_COLUMNS.items()
         }
         for name, defn in METADATA_COLUMN_DEFINITIONS.items():
             assert defn["name"] == name
@@ -242,8 +243,9 @@ class TestBaselineSyncerSplitRoundTrip:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
         ):
             return BaselineSyncer()
 
@@ -268,7 +270,9 @@ class TestBaselineSyncerSplitRoundTrip:
         loader.save(umf, tmp_path, UMFFormat.SPLIT)
         return umf
 
-    def test_validation_sync_round_trips_split_spec_loadably(self, tmp_path: Path, loader: UMFLoader, syncer) -> None:
+    def test_validation_sync_round_trips_split_spec_loadably(
+        self, tmp_path: Path, loader: UMFLoader, syncer
+    ) -> None:
         self._write_split_spec(tmp_path, loader)
 
         result = syncer.sync_table(tmp_path)
@@ -276,7 +280,9 @@ class TestBaselineSyncerSplitRoundTrip:
         assert result.columns_updated == len(PROVENANCE_COLUMNS)
 
         loaded = loader.load(tmp_path)
-        meta_columns = {col.name: col for col in loaded.columns if col.name.startswith("meta_")}
+        meta_columns = {
+            col.name: col for col in loaded.columns if col.name.startswith("meta_")
+        }
 
         assert set(meta_columns) == set(PROVENANCE_COLUMNS)
         for name, definition in PROVENANCE_COLUMNS.items():
@@ -332,10 +338,11 @@ class TestBaselineSyncerNormalizeExpectation:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
@@ -360,7 +367,9 @@ class TestBaselineSyncerNormalizeExpectation:
             "kwargs": {"column": "col1"},
             "meta": {"severity": "warning", "extra": "data"},
         }
-        assert syncer._normalize_expectation(exp1) == syncer._normalize_expectation(exp2)
+        assert syncer._normalize_expectation(exp1) == syncer._normalize_expectation(
+            exp2
+        )
 
     def test_normalize_handles_list_kwargs(self, syncer):
         exp = {
@@ -389,10 +398,11 @@ class TestBaselineSyncerCompareExpectations:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
@@ -458,10 +468,11 @@ class TestBaselineSyncerFindStructuralMatch:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
@@ -502,10 +513,11 @@ class TestBaselineSyncerColumnsMatch:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
@@ -550,10 +562,11 @@ class TestBaselineSyncerSyncColumnValidations:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
@@ -769,10 +782,11 @@ class TestBaselineSyncerSortRecursive:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
@@ -810,10 +824,11 @@ class TestBaselineSyncerStripTrailingWhitespace:
 
     @pytest.fixture
     def syncer(self):
-        with patch("tablespec.sync_baseline._ruamel_available", True), patch(
-            "tablespec.sync_baseline._umf_loader_available", True
-        ), patch("tablespec.sync_baseline.UMFLoader"), patch(
-            "tablespec.sync_baseline.YAML"
+        with (
+            patch("tablespec.sync_baseline._ruamel_available", True),
+            patch("tablespec.sync_baseline._umf_loader_available", True),
+            patch("tablespec.sync_baseline.UMFLoader"),
+            patch("tablespec.sync_baseline.YAML"),
         ):
             return BaselineSyncer()
 
