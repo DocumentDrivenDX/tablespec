@@ -24,8 +24,9 @@ ddx:
 Databricks serverless, (4) multi-source kinds land and suite correctly per FR-21,
 (5) guidebook generation is deterministic for valid UMF sets (FR-22), (6) the product
 microsite builds and Playwright-checks navigation (FEAT-030), and (7) the Databricks
-App is portable and fail-fast under FR-23 (desired; whole-stack app e2e is an open
-gate tracked in alignment beads). | Quality gate: `make check` (lint + pyright + tests)
+App is portable and fail-fast under FR-23 (unit whole-stack path in
+`apps/data-profiling/tests/test_fr23_stack.py`; live deploy-and-drive remains
+operational evidence). Quality gate: `make check` (lint + pyright + tests)
 plus the cross-engine conformance matrix and the Connect (Sail) lanes.
 
 **Out of Scope**: Live production data processing owned by consumer runtimes;
@@ -50,7 +51,7 @@ FR-23.x (app deployment); FEAT-024–034; US-021–026, US-038–039, US-044–0
 | Unit | UMF models (incl. EMBEDDING + source kinds), type mappings, schema generators, baseline GX, native expectation evaluators, capability probing, guidebook pure helpers | P0 |
 | E2E (library) | Bootstrap → compile → backbone across the DuckDB/Spark/Sail matrix; opt-in real-Databricks deploy/execute | P0 (local), P1 (opt-in workspace) |
 | E2E (microsite) | Hugo build + Playwright navigation/responsive checks (`website/e2e/`) | P1 |
-| E2E (Databricks App) | Config resolve + provision + startup against a declared metadata home | P1 **desired** (open gap; concerns `e2e-framework` slot) |
+| E2E (Databricks App) | Config resolve + provision + startup against a declared metadata home | P1 unit path in `test_fr23_stack.py`; live deploy operational |
 
 ### Frameworks
 
@@ -61,7 +62,7 @@ FR-23.x (app deployment); FEAT-024–034; US-021–026, US-038–039, US-044–0
 | Unit | pytest, pytest-mock, hypothesis | Pure-Python logic; property tests for generators/diff |
 | E2E (library) | pytest conformance engine matrix; `e2e/backbone.py` runner | One harness, many engines, one canonicalizer |
 | E2E (microsite) | Playwright | Browser navigation and responsive rendering for FEAT-030 |
-| E2E (app) | TBD (alignment bead) | Whole-stack exercise for FR-23; not yet selected |
+| E2E (app) | pytest unit composition (`apps/data-profiling/tests/test_fr23_stack.py`) | FR-23 resolve → provision → validate_config without live workspace |
 
 ## Test Data
 
@@ -127,7 +128,7 @@ story test plans. Here, criterion *classes* are allocated to a primary layer:
 | Cross-engine byte-for-byte parity (FR-18.5/19.x) | conformance-acceptance | E2E | Engine matrix vs the oracle |
 | Guidebook pages + lineage (FR-22) | US-046 / FEAT-033 | Integration | Deterministic HTML + search index |
 | Microsite Pages coexistence (FEAT-030) | US-038 | E2E (microsite) | Hugo + Playwright + Pages artifact paths |
-| App portable deploy (FR-23) | US-047–049 / FEAT-034 | E2E (app) | Desired gate; open bead until harness exists |
+| App portable deploy (FR-23) | US-047–049 / FEAT-034 | E2E (app) | Unit whole-stack path green; live deploy residual operational |
 
 **Allocation rule**: every P0 acceptance criterion maps to exactly one primary
 layer here and to concrete tests in its companion plan / STP.

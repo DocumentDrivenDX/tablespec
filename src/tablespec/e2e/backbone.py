@@ -62,15 +62,44 @@ from tablespec.ingestion import (
     create_string_dataframe,
     delimited_source_has_text_quirks,
     delimited_source_records,
+    get_reader,
     spark_csv_options,
 )
-from tablespec.models.umf import DelimitedSource, ParquetSource
+from tablespec.models.umf import DelimitedSource, JsonSource, ParquetSource
 
 if TYPE_CHECKING:
     from tablespec.e2e.manifest import CompiledArtifacts
 
+_SourceShape = DelimitedSource | JsonSource | ParquetSource
 
-def _declared_source(umf_snapshot: Path) -> DelimitedSource | ParquetSource | None:
+
+def _source_suffix(
+    source: _SourceShape | None, batch: Path | None = None
+) -> str:
+    """File suffix used when synthesizing ``_source_file`` metadata."""
+    if isinstance(source, ParquetSource):
+        return ".parquet"
+    if isinstance(source, JsonSource):
+        if batch is not None and batch.suffix:
+            return batch.suffix
+        return ".jsonl"
+    return ".csv"
+
+
+def _duckdb_identifier(name: str) -> str:
+    return f'"{name.replace(chr(34), chr(34) * 2)}"'
+
+
+def _duckdb_json_projection_expr(path: str) -> str:
+    """Project a flat or dotted JSON path for DuckDB ``read_json_auto``."""
+    parts = path.split(".")
+    expr = _duckdb_identifier(parts[0])
+    for part in parts[1:]:
+        expr = f"struct_extract({expr}, '{part.replace(chr(39), chr(39) * 2)}')"
+    return expr
+
+
+def _declared_source(umf_snapshot: Path) -> _SourceShape | None:
     """The raw source the UMF snapshot DECLARES for loading, or None.
 
     None means the snapshot declares neither ``source:`` nor ``file_format``;
@@ -93,8 +122,10 @@ def _declared_source(umf_snapshot: Path) -> DelimitedSource | ParquetSource | No
             return DelimitedSource.model_validate(declared)
         if kind == "parquet":
             return ParquetSource.model_validate(declared)
+        if kind == "json":
+            return JsonSource.model_validate(declared)
         raise NotImplementedError(
-            f"backbone raw loading supports only delimited/parquet sources; "
+            f"backbone raw loading supports only delimited/parquet/json sources; "
             f"{umf_snapshot.name} declares kind={kind!r}"
         )
     file_format = data.get("file_format")
@@ -253,7 +284,7 @@ class _SparkEngine(_BackboneEngine):
         schema: CompiledSchema,
         csv_path: Path,
         raw_table: str,
-        fmt: DelimitedSource | ParquetSource | None = None,
+        fmt: _SourceShape | None = None,
     ) -> None:
         """Build the all-STRING raw landing relation (engines.py:527 schema).
 
@@ -266,10 +297,10 @@ class _SparkEngine(_BackboneEngine):
         DuckDB engine and conformance gold loader do. Without this, Sail's strict CSV
         reader rejects a 2-field row against a 4-field schema.
 
-        ``fmt`` is the UMF-DECLARED delimited source (``source:`` /
-        ``file_format``); when None (legacy corpus UMFs declare neither) the
-        historical comma-CSV read is preserved EXACTLY. Either way every
-        business column lands as STRING (ADR-007).
+        ``fmt`` is the UMF-DECLARED source (``source:`` / ``file_format``); when
+        None (legacy corpus UMFs declare neither) the historical comma-CSV read
+        is preserved EXACTLY. Delimited sources land all-STRING (ADR-007);
+        parquet/json sources land typed-raw (SRC-04).
         """
         # ``pyspark.sql.functions`` resolves to the CLASSIC builtins, whose ``lit`` /
         # ``to_timestamp`` call ``_to_java_column`` and so need a live JVM
@@ -288,8 +319,12 @@ class _SparkEngine(_BackboneEngine):
         source_name = (
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
         )
-        source_suffix = ".parquet" if isinstance(fmt, ParquetSource) else ".csv"
-        if isinstance(fmt, ParquetSource):
+        source_suffix = _source_suffix(fmt, csv_path)
+        if isinstance(fmt, JsonSource):
+            json_source = fmt.model_copy(update={"path": str(csv_path)})
+            df = get_reader(json_source).read(json_source, self._spark)
+            has_meta = "_source_file" in df.columns
+        elif isinstance(fmt, ParquetSource):
             df = self._spark.read.parquet(str(csv_path))
             has_meta = "_source_file" in df.columns
         else:
@@ -471,24 +506,48 @@ class _DuckDBEngine(_BackboneEngine):
         db_path: Path,
         schema: CompiledSchema,
         csv_path: Path,
-        fmt: DelimitedSource | ParquetSource | None = None,
+        fmt: _SourceShape | None = None,
     ) -> None:
         # The raw table name + business-column set come from the COMPILED ingest SQL
         # (parsed into ``schema``), NOT the UMF snapshot. ``fmt`` is the UMF-DECLARED
-        # delimited source; None preserves the historical comma-CSV read EXACTLY
-        # (the conformance corpus declares no file_format). Rows stay all-VARCHAR
-        # either way (ADR-007).
+        # source; None preserves the historical comma-CSV read EXACTLY
+        # (the conformance corpus declares no file_format). Delimited rows stay
+        # all-VARCHAR (ADR-007); parquet/json land typed-raw (SRC-04).
         raw_table = schema.raw_table
         source_name = (
             raw_table[len("raw_") :] if raw_table.startswith("raw_") else raw_table
         )
         cols = schema.columns
-        source_suffix = ".parquet" if isinstance(fmt, ParquetSource) else ".csv"
+        source_suffix = _source_suffix(fmt, csv_path)
         # The CSV may already carry the ingest metadata (conformance corpus) or be a
         # clean source extract without it (reflected source tables). Detect from the
         # header: if present, project it through; otherwise SYNTHESIZE it (literal
         # source file + load timestamp) exactly as the conformance gold loader does,
         # so the compiled dbt model always sees the all-STRING + metadata raw shape.
+        if isinstance(fmt, JsonSource):
+
+            def _sq(value: str) -> str:
+                return value.replace("'", "''")
+
+            projection = ", ".join(
+                f"{_duckdb_json_projection_expr(proj.path)} "
+                f"AS {_duckdb_identifier(proj.column)}"
+                for proj in fmt.projection
+            )
+            projection += (
+                f", '{source_name}{source_suffix}' AS \"_source_file\", "
+                "TIMESTAMP '2026-01-01 00:00:00' AS \"_load_ts\""
+            )
+            con = self._connect(db_path)
+            try:
+                con.execute(f"DROP TABLE IF EXISTS {raw_table}")
+                con.execute(
+                    f"CREATE TABLE {raw_table} AS "
+                    f"SELECT {projection} FROM read_json_auto('{_sq(str(csv_path))}')"
+                )
+            finally:
+                con.close()
+            return
         if isinstance(fmt, ParquetSource):
 
             def _sq(value: str) -> str:

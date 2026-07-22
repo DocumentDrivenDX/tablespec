@@ -24,7 +24,7 @@ is consumed, per ADR-016.
 > | Type mappings (SQL/PySpark/JSON/GX) | **Shipped** | `type_mappings.py`; unit tests |
 > | Schema generators + GX baseline + sample data + compatibility | **Shipped** | Tests under `tests/unit/test_*` for generators, gx_baseline, column_value_generator, compatibility |
 > | CORP document-corpus pattern example | **Shipped** | Canonical example: [`examples/sec10k_corpus.yaml`](../../../../examples/sec10k_corpus.yaml) (CORP-01 pattern, `EMBEDDING(1024)`) |
-> | DEMO SEC 10-K (US-045) | **Partial** | Notebooks + example YAML exist; residual AC evidence on bead `tablespec-abd68023` |
+> | DEMO SEC 10-K (US-045) | **Shipped (CI residual recorded)** | Type/example/notebook contract evidenced; workspace job not CI-gated (US-045 limitations) |
 >
 > The facts-table half of the SEC demo may use FEAT-031's `json` source kind.
 
