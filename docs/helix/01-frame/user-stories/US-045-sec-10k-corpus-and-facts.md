@@ -8,11 +8,9 @@ ddx:
 **Feature**: FEAT-032 — Embeddings and Document Corpus
 **Feature Requirements**: EMB-01–EMB-09, CORP-01–CORP-05, DEMO-01,
 DEMO-02
-**PRD Requirements**: FR-1.11 (EMBEDDING type — being added to the PRD
-in parallel)
+**PRD Requirements**: FR-1.11 (EMBEDDING type alphabet shipped; CORP/DEMO residual)
 **Priority**: P1
-**Status**: Draft (planned 2026-06-12; depends on unimplemented
-FEAT-032 EMB/CORP requirements and FEAT-031's `json` source kind)
+**Status**: Specified (type core shipped; demo ACs residual — bead `tablespec-abd68023`)
 
 ## Story
 

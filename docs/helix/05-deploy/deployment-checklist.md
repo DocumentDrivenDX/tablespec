@@ -5,13 +5,16 @@ ddx:
 
 # Deployment Checklist: tablespec
 
-**Version**: 2.0
-**Status**: Execution-ready template for the next release
-**Last Updated**: 2026-06-12
+**Version**: 2.1
+**Status**: Execution-ready template for package+Pages release; app deploy section is the desired FR-23 procedure
+**Last Updated**: 2026-07-22
 
 This checklist is the release-day operating template for the current tag-driven
-package workflow and the GitHub Pages package index. Keep it aligned with
-`.github/workflows/release.yml` and `.github/workflows/publish-microsite.yml`.
+package workflow and the GitHub Pages package index, plus the desired procedure
+for deploying the first-party Databricks App. Keep package/Pages steps aligned
+with `.github/workflows/release.yml` and `.github/workflows/publish-microsite.yml`.
+App steps implement FR-23 / FEAT-034 / ADR-019; residual automation is tracked
+in alignment beads (do not shrink the procedure to match incomplete tooling).
 
 ## release_scope
 
@@ -24,13 +27,16 @@ package workflow and the GitHub Pages package index. Keep it aligned with
   package index.
 - Post-deploy install verification from
   `https://documentdrivendx.github.io/tablespec/simple/`.
+- Desired: deploy the guidebook + profiling Databricks App into a target
+  workspace using only declared inputs (FR-23).
 
 ### Out of scope
 
-- Runtime behavior changes.
+- Runtime behavior changes unrelated to the release tag.
 - New packaging channels or a PyPI-primary rollout.
 - Docs-only deploys that do not preserve the package index.
 - Untracked hotfixes, release branches, or version bumps outside the tag.
+- General-purpose SaaS multi-tenant hosting (not a product surface).
 
 ### Release inputs
 
@@ -102,3 +108,49 @@ package workflow and the GitHub Pages package index. Keep it aligned with
 - Go when every owner row passes.
 - No-go when any row fails, when a required file is missing, or when the tagged
   version cannot be installed from the Pages index within the same release run.
+
+## app_deploy (FR-23 / FEAT-034)
+
+Desired operating procedure for standing up `apps/data-profiling/` in a target
+Databricks environment. Full automation of provision + startup fail-fast is the
+implementation target; until beads close, operators may execute steps manually
+but **must not** edit tracked application source for environment identity.
+
+### App deploy inputs
+
+- Metadata catalog, metadata schema, and output volume (declared triple).
+- Warehouse / compute identifier the app identity can use.
+- Optional: dashboard URL, Genie space, pre-generated UMF volume (absent-tolerant).
+- Deployment-supplied environment variables take precedence over
+  `connections.yaml`, which takes precedence over built-in defaults (ADR-019).
+
+### App rollout plan
+
+1. Declare the metadata home and compute for the target environment as
+   deployment inputs (never as literals in tracked app source).
+2. Run (or re-run) the idempotent provision step: create/verify schema, volume,
+   and governance tables; report what was created; second run is a no-op.
+3. Deploy the Databricks App artifact from `apps/data-profiling/` (or the
+   subdirectory package that satisfies the Apps file-count limit), installing
+   `tablespec` as a dependency rather than shipping the full monorepo.
+4. Start the app and confirm startup validation: missing warehouse, unreachable
+   location, or missing grant surfaces one actionable error naming the setting
+   and the grant required.
+5. Confirm the UI displays the resolved metadata location without opening source
+   files.
+6. Smoke: open guidebook/profile surfaces against the declared location.
+
+### App success thresholds
+
+- Provision re-run exits zero with no destructive changes.
+- App process starts only when required configuration is usable.
+- Optional integrations unset do not crash the process.
+- Grep/test gate: no environment-identifying literals in tracked app source
+  (fixtures may use synthetic names).
+
+### App rollback
+
+1. Stop the app deployment for the target environment.
+2. Leave the provisioned schema/volume in place unless a deliberate teardown
+   is approved (provisioning is additive; teardown is out of band).
+3. Do not hot-edit tracked source to retarget; fix inputs or grants instead.

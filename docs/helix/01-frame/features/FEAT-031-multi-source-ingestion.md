@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (seam + JDBC vertical implemented 2026-06-10/11 incl. the typed-raw SUITE slice; dump-dialect and parquet phases planned)
+**Status**: Specified (multi-kind source model + readers largely shipped; dump-dialect completeness, parquet cast residual, JSON compile/backbone residual, and US-040–043 remain desired)
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -15,20 +15,25 @@ ddx:
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
-> **Phase status.** The ingestion seam + `source:` model (SRC-01..05,
-> DUMP-05) shipped 2026-06-10 (bead `tablespec-4bea5c6c`, commit 3a881cc).
-> The JDBC vertical (JDBC-01..05, DISC-01..03) and the typed-raw suite
-> slice of SUITE-01..03 shipped 2026-06-11 (beads `tablespec-4b65c810`
-> commit 08e7de5, `tablespec-8980c812` commit 224a8af) — US-039 is green
-> on the Docker lane. Dump dialect options (DUMP-01..04) and the parquet
-> typed-raw cast mode (PARQ-01..03) remain planned.
+> **Phase status (honest 2026-07-22).** Specs describe the desired end state.
+> Implementation progress by family:
+>
+> | Family | Status | Evidence / residual |
+> |--------|--------|---------------------|
+> | SRC (source model + seam) | **Shipped** | `DelimitedSource` / `ParquetSource` / `JsonSource` / `JdbcSource` in `models/umf.py`; `ingestion/` readers |
+> | JDBC + DISC | **Shipped** (Docker Northwind green) | `ingestion/jdbc.py`; US-039; residual = full Databricks workspace ACs if any |
+> | SUITE typed-raw slice | **Shipped** | Typed raw suite path for parquet/jdbc/json kinds |
+> | DUMP-01..04 | **Desired residual** | End-to-end dump dialect option consumption |
+> | PARQ identity/safe-narrowing | **Partial** | Reader + backbone parquet path exist; cast-mode residual tracked |
+> | JSON-01 (FR-21.7) | **Partial** | Model + `JsonReader` shipped; compile/backbone/demo residual tracked |
+> | US-040..043 | **Desired residual** | Stories not yet authored; file as alignment beads |
 
 ## Overview
 
-This feature implements PRD FR-21.1–FR-21.6: extend UMF with a
-discriminated `source:` block (`kind: delimited | parquet | jdbc`), make
+This feature implements PRD FR-21.1–FR-21.7: extend UMF with a
+discriminated `source:` block (`kind: delimited | parquet | jdbc | json`), make
 the raw-landing contract kind-dependent (all-STRING raw for text-landed
-sources, native-typed raw for parquet/JDBC), extend the single cast truth
+sources, native-typed raw for parquet/JDBC/json), extend the single cast truth
 with an identity/safe-narrowing mode for typed raw, type the raw-stage
 expectation suites accordingly, compile JDBC sources as read-spec
 artifacts with secret-referenced credentials, and discover UMF specs from
@@ -248,11 +253,14 @@ expectation-stage classification (`umf.py:94-112`,
   database, discover UMF specs, export a schema xlsx, validate, generate
   sample data, and produce a validation report.
 
-Per-phase stories will be authored at execution start, in sequencing order:
-US-040 (ingestion seam + `source:` model — implemented; story to backfill
-ACs), US-041 (JDBC reader + discovery slices under US-039's goal), US-042
-(dump-dialect text landing), US-043 (typed-raw parquet), plus a json-kind
-story at its execution start (FR-21.7). Demo story:
+Per-phase stories are queued on the 2026-07-22 alignment epic
+(`tablespec-263a0248`), in sequencing order:
+US-040 (seam + `source:` model — backfill ACs; bead `tablespec-20513f4f`),
+US-041 (JDBC reader + discovery; bead `tablespec-1af0828a`),
+US-042 (dump-dialect; bead `tablespec-e322b612`),
+US-043 (typed-raw parquet residual; bead `tablespec-e9c21567`),
+plus US-050 for JSON residual (FR-21.7; bead `tablespec-557f8a24`).
+Demo stories already on disk:
 [US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
 (delimited kind, shipped code, notebook pair).
 

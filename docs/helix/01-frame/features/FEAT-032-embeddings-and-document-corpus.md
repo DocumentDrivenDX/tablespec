@@ -6,23 +6,27 @@ ddx:
 # Feature Specification: FEAT-032 — Embeddings and Document Corpus
 
 **Feature ID**: FEAT-032
-**Status**: Draft (planned 2026-06-12; nothing implemented)
+**Status**: Approved
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: UMF Model and I/O (+ validation touchpoints)
-**Covered PRD Requirements**: FR-1.11 (EMBEDDING type — being added to
-the PRD in parallel by the PRD owner; FR-1.10 is the last FR-1 entry at
-time of writing)
+**Covered PRD Requirements**: FR-1.11 (shipped type alphabet; CORP/DEMO residual on beads `tablespec-a3458685`, `tablespec-abd68023`)
 **Cross-Subsystem Rationale**: Primary subsystem is UMF Model and I/O
 (the type and its mappings); the GX baseline, profiling, sample-data,
 and compatibility touchpoints follow the type wherever the type alphabet
 is consumed, per ADR-016.
 
-> **Phase status.** Entirely planned. The governing decision (ADR-016,
-> Accepted 2026-06-12) is final; no EMB/CORP/DEMO requirement below has
-> shipped. The facts-table half of the SEC demo additionally depends on
-> FEAT-031's `json` source kind (operator-decided 2026-06-12; recorded
-> in FEAT-031, not here).
+> **Phase status (honest 2026-07-22).** Specs describe the desired end state.
+>
+> | Slice | Status | Evidence / residual |
+> |-------|--------|---------------------|
+> | EMB type alphabet + dimension validation | **Shipped** | `models/umf.py` EMBEDDING pattern + dimension validators |
+> | Type mappings (SQL/PySpark/JSON/GX) | **Shipped** | `type_mappings.py`; unit tests |
+> | Schema generators + GX baseline + sample data + compatibility | **Shipped** | Tests under `tests/unit/test_*` for generators, gx_baseline, column_value_generator, compatibility |
+> | CORP document-corpus pattern example | **Desired residual** | Pattern + example UMF still to document/ship |
+> | DEMO SEC 10-K (US-045) | **Desired residual** | Notebooks exist; full AC green remains acceptance goal |
+>
+> The facts-table half of the SEC demo may use FEAT-031's `json` source kind.
 
 ## Overview
 
@@ -65,12 +69,11 @@ the same bones.
 
 ## Problem Statement
 
-- **Current situation**: UMF's type alphabet is the closed 10-type set
-  in the `data_type` pattern (`src/tablespec/models/umf.py:511`). An
-  embedding column cannot be declared. Every type-driven consumer —
-  `type_mappings.py`, `schemas/generators.py`, `gx_baseline.py`,
-  `sample_data/`, `compatibility.py`/`type_lattice.py` — knows nothing
-  of vectors.
+- **Current situation**: The EMBEDDING type alphabet, mappings, baseline
+  expectations, sample-data generation, and compatibility rules are
+  shipped in the library. Remaining gaps are the documented document-
+  corpus pattern (example UMF) and full SEC 10-K demo acceptance (US-045),
+  not re-introduction of the type itself.
 - **Pain points**: Corpus tables either go unspecced (abandoning the
   single-source-of-truth contract for their defining column) or
   mis-specced as TEXT, attracting string-shape expectations and string
@@ -259,7 +262,7 @@ it.
   workbook), FEAT-007/FEAT-017 (staged validation + report), FEAT-024
   (native profiler — gains the EMB-07 passthrough), FEAT-029 (Databricks
   session acquisition).
-- **PRD requirements**: FR-1.11 (in flight, parallel PRD edit).
+- **PRD requirements**: FR-1.11 (type alphabet shipped; CORP/DEMO residual on alignment beads).
 - **Code touchpoints (planned)**: `src/tablespec/models/umf.py:511`,
   `src/tablespec/type_mappings.py`, `src/tablespec/schemas/generators.py`,
   `src/tablespec/gx_baseline.py`, `src/tablespec/sample_data/`,
@@ -298,7 +301,7 @@ it.
 - [x] Dependencies reference real artifact IDs
 - [x] Out of scope excludes things someone might reasonably assume are
   in scope
-- [x] Implementation status is honest: Draft, nothing implemented, no
+- [x] Implementation status is honest: Approved; type core shipped; CORP/DEMO residual explicit, no
   phantom completion claims
 - [x] Feature is consistent with governing ADR-016, FEAT-031's `json`
   kind decision, and the PRD Non-Goal on parsing/model calls

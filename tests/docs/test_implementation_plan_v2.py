@@ -79,13 +79,11 @@ def test_implementation_plan_v2_links_to_active_tracking() -> None:
 def test_implementation_plan_is_the_live_template() -> None:
     text = LIVE_PLAN.read_text(encoding="utf-8")
 
-    assert "**Version**: 3.0" in text
-    assert (
-        "**Status**: Updated for the committed-artifact compiler + Connect-safe multi-engine runtime"
-        in text
-    )
-    assert "**Last Updated**: 2026-06-12" in text
+    assert "**Version**: 3.1" in text
+    assert "apps/data-profiling/" in text
+    assert "**Last Updated**: 2026-07-22" in text
     assert "implementation-plan-v2.md" in text
+    assert "AR-2026-07-22-desired-state-realignment.md" in text
 
     required_sections = [
         "Scope",

@@ -5,15 +5,17 @@ ddx:
 
 # Architecture
 
-**Version**: 3.0
-**Status**: Updated for the committed-artifact compiler + Connect-safe multi-engine runtime
-**Last Updated**: 2026-06-06
+**Version**: 3.1
+**Status**: Updated for the committed-artifact compiler, Connect-safe multi-engine runtime, guidebook, and operational app
+**Last Updated**: 2026-07-22
 
 **Requirements**: [../01-frame/prd.md](../01-frame/prd.md)
 **Decisions**: [adr/ADR-010-spark-connect-serverless-runtime-model.md](adr/ADR-010-spark-connect-serverless-runtime-model.md),
 [adr/ADR-011-connect-safe-gx-native-executor-routing.md](adr/ADR-011-connect-safe-gx-native-executor-routing.md),
 [adr/ADR-012-compile-orchestrator-runtime-consumes-committed-artifacts.md](adr/ADR-012-compile-orchestrator-runtime-consumes-committed-artifacts.md),
-[adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md](adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md)
+[adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md](adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md),
+[adr/ADR-018-guidebook-lineage-semantics.md](adr/ADR-018-guidebook-lineage-semantics.md),
+[adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md](adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md)
 
 ## Scope
 
@@ -27,15 +29,22 @@ first-class on classic Spark and on Databricks serverless / Spark Connect.
 
 In scope: the UMF core, the multi-target emitters on a shared target-agnostic seam
 (FR-19.x), the compile orchestrator + bootstrap (FR-18.x), Connect-safe validation
-routing (FR-7.7/FR-7.8), the native profiler (FR-5.x), and the runtime-platform
-substrate (FR-20.x). Deliberately **outside** the architecture boundary: live data
-processing in production (runtimes own that), warehouse provisioning, and dbt/LDP
-as user-facing runtime dependencies (Non-Goal — they are test-only / emitted text).
+routing (FR-7.7/FR-7.8), the native profiler (FR-5.x), the runtime-platform
+substrate (FR-20.x), multi-source acquisition (FR-21.x), static guidebook generation
+(FR-22.x), and the first-party Databricks App deployability contract (FR-23.x) —
+configuration precedence, declared metadata home, and idempotent provisioning.
+The product microsite (`website/`, FEAT-030) is a documentation surface co-published
+with the package index, not a runtime container.
+
+Deliberately **outside** the architecture boundary: general-purpose SaaS product UI,
+live warehouse ETL orchestration as a product surface, and dbt/LDP as user-facing
+runtime dependencies (Non-Goal — they are test-only / emitted text).
 
 This is the post-merge codebase. The legacy module-radial view (UMF core with
 generators/validators/CLI radiating out) still describes the library surface; this
-revision adds the **compile → committed-artifact → backbone** spine and the
-**multi-engine, Connect-safe** execution model layered on top of it.
+revision adds the **compile → committed-artifact → backbone** spine, the
+**multi-engine, Connect-safe** execution model, and the **operator app + guidebook**
+companions layered beside it.
 
 ## Level 1: System Context
 
@@ -43,11 +52,12 @@ revision adds the **compile → committed-artifact → backbone** spine and the
 |---------|------|---------|----------|
 | Data Engineer | User | Authors/edits UMF; runs compile to produce committed artifacts | CLI / Python API |
 | Data Quality Engineer | User | Generates + runs validation suites on classic Spark and Connect | Python API |
-| Platform Team | User | Operates the bootstrap/compile pipeline; owns the engine matrix | CLI / CI |
+| Platform Team / Operator | User | Operates bootstrap/compile; deploys the Databricks App; owns engine matrix | CLI / CI / Databricks Apps |
 | UMF specs (YAML) | External input | Single source of truth for schema, types, validation, relationships | File / Git |
 | Sample tables | External input | Path-A inference source for bootstrap (schema + profile) | File / DataFrame |
 | Git repo (committed artifacts) | External store | Diffable home of compiled SQL/dbt/LDP/suites; the runtime contract surface | File / Git |
 | Execution engines | External system | Run the committed artifacts: DuckDB, classic Spark, Sail (Connect), Databricks serverless | SQL / Spark / Connect |
+| Unity Catalog metadata home | External store | Declared (catalog, schema, volume) for app governance tables and output | UC / Volumes |
 | LLM provider | External system | Enrichment prompts (docs, validation, relationships) — out of the runtime path | Prompt text |
 
 ```mermaid
@@ -86,6 +96,10 @@ graph TB
 | Native Profiler | `profiling/native_profiler.py` | JVM-free Spark-SQL profiling (no Deequ); engine-correct `functions` dispatch from the DataFrame; feeds GX expectations (FR-5.1/5.2, ADR-009) | Spark/Connect DataFrame API |
 | Runtime Platform substrate | `session.py`, `spark_factory.py`, `casting_utils.py` | Obtain a session, probe per-session capabilities, select the engine-correct `functions`/Column module from the DataFrame in hand — never a process-global `is_remote()` (FR-20.x, ADR-010) | PySpark / Spark Connect |
 | Bootstrap entry points | `scripts/bootstrap_from_tables.py` (Path A), `scripts/bootstrap_from_specs.py` (Path B) | Produce the UMF list the compiler consumes; compile is path-agnostic (FR-18.4) | CLI → UMF list |
+| Ingestion readers | `ingestion/` | Kind-dependent raw readers (delimited, parquet, json, jdbc) driven by UMF `source:` (FR-21.x, ADR-015) | Spark DataFrame API |
+| Guidebook generator | `guidebook/` | Static HTML guidebook from a UMF directory (FR-22.x, ADR-018); CLI `tablespec guidebook` | Filesystem → HTML |
+| Databricks App | `apps/data-profiling/` | Operator UI for guidebook, profiling, comparison, load results; desired deployability via declared config + provisioning (FR-23.x, ADR-019) | Streamlit / Databricks Apps |
+| Product microsite | `website/` | Hugo/Hextra docs site co-published with Pages package index (FEAT-030, ADR-014) | Hugo → GitHub Pages |
 | Library surface | `cli.py`, `excel_converter.py`, `umf_loader.py`, `umf_diff.py`, `sample_data/`, `quality/`, `inference/`, `prompts/` | The existing authoring/authoring-adjacent surface (CLI, Excel, change mgmt, sample data, baselines, inference, prompts) | CLI / Python API |
 
 ```mermaid
@@ -219,7 +233,9 @@ sequenceDiagram
 | ADR-012: compile orchestrator; runtime consumes only committed artifacts | Accepted | Zero drift, diffable transforms, runtime carries no tablespec dependency | FEAT-026, US-023/024 |
 | ADR-013: target-agnostic core seam with sibling emitters | Accepted | One cast/IR truth; emitters import-isolated; LDP is the proof obligation for the seam | FEAT-027, FEAT-028, US-025/026 |
 | ADR-007: raw→ingest as a committed SQL artifact | Accepted | Transform is reviewable text, generated not wrapped at run time | FR-19.4 |
-| ADR-015: discriminated source-shape contract with kind-dependent raw typing | Accepted (seam implemented; JDBC/dumps/parquet planned) | One `source:` declaration (delimited/parquet/jdbc) drives readers, casts, and suites; typed sources land native-typed raw — never string-parsed; JDBC is compiled read specs via Spark's connector, with secret-referenced credentials only | FEAT-031, US-039 (Northwind goal), epic tablespec-ef91646f |
+| ADR-015: discriminated source-shape contract with kind-dependent raw typing | Accepted (model + readers largely shipped; dump/parquet/json residuals tracked) | One `source:` declaration (delimited/parquet/jdbc/json) drives readers, casts, and suites; typed sources land native-typed raw — never string-parsed; JDBC is compiled read specs via Spark's connector, with secret-referenced credentials only | FEAT-031, US-039 (Northwind goal); alignment beads for US-040–043 and residual phases |
+| ADR-018: guidebook lineage semantics | Accepted | Static HTML guidebook surfaces FK + derivation lineage without runtime coupling | FEAT-033, US-046 |
+| ADR-019: app configuration precedence and provisioning authority | Accepted (desired deployability) | Env → connections.yaml → defaults; metadata home is a declared input; provisioning is idempotent | FEAT-034, US-047–049; implementation gaps in alignment beads |
 | ADR-003: optional PySpark via `[spark]` extra | Accepted (extended by ADR-010) | Keeps the pure-Python core importable; boundary now also forbids assuming a `SparkContext` | dbt/pysail moved to dev group |
 | dbt + pysail in the dev (test-only) group, not user extras | Accepted | Generating dbt/LDP is pure-Python text; the stacks are only needed to EXECUTE generated projects in tests | `pyproject.toml` dev group; `test_src_never_imports_dbt` |
 

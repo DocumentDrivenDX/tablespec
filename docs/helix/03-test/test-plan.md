@@ -5,9 +5,9 @@ ddx:
 
 # Test Plan
 
-**Version**: 3.0
-**Status**: Updated for the committed-artifact compiler + Connect-safe multi-engine runtime
-**Last Updated**: 2026-06-06
+**Version**: 3.1
+**Status**: Updated for compiler/runtime, multi-source, guidebook, microsite, and app deployability
+**Last Updated**: 2026-07-22
 
 **Requirements**: [../01-frame/prd.md](../01-frame/prd.md)
 **Architecture**: [../02-design/architecture.md](../02-design/architecture.md)
@@ -19,13 +19,17 @@ ddx:
 ## Testing Strategy
 
 **Goals**: Prove (1) every emitter is deterministic and on the shared core seam,
-(2) every execution engine reproduces the Spark-direct oracle byte-for-byte, and
+(2) every execution engine reproduces the Spark-direct oracle byte-for-byte,
 (3) profiling + validation are *correct* (not just non-crashing) on Spark Connect /
-Databricks serverless. | Quality gate: `make check` (lint + pyright + tests) plus
-the cross-engine conformance matrix and the Connect (Sail) lanes.
+Databricks serverless, (4) multi-source kinds land and suite correctly per FR-21,
+(5) guidebook generation is deterministic for valid UMF sets (FR-22), (6) the product
+microsite builds and Playwright-checks navigation (FEAT-030), and (7) the Databricks
+App is portable and fail-fast under FR-23 (desired; whole-stack app e2e is an open
+gate tracked in alignment beads). | Quality gate: `make check` (lint + pyright + tests)
+plus the cross-engine conformance matrix and the Connect (Sail) lanes.
 
-**Out of Scope**: Live production data processing (runtimes own that); warehouse
-provisioning; load/stress testing.
+**Out of Scope**: Live production data processing owned by consumer runtimes;
+load/stress testing of warehouse capacity.
 
 (GX *custom*-expectation parity on Connect is now **covered** — all four customs are
 verdict- and value-equal across classic and Connect, asserted by
@@ -34,16 +38,19 @@ verdict- and value-equal across classic and Connect, asserted by
 
 **Traceability Source**: PRD FR-5.x (profiling), FR-7.7/7.8 (Connect-safe
 validation), FR-18.x (compile/bootstrap), FR-19.x (multi-target emission),
-FR-20.x (runtime platform); FEAT-024/025/026/027/028; US-021–026.
+FR-20.x (runtime platform), FR-21.x (source acquisition), FR-22.x (guidebook),
+FR-23.x (app deployment); FEAT-024–034; US-021–026, US-038–039, US-044–049.
 
 ### Test Levels
 
 | Level | Coverage Target | Priority |
 |-------|-----------------|----------|
 | Contract | Emitter→artifact byte-for-byte goldens; `CompiledArtifacts` manifest layout; `src` never imports the test tree or dbt | P0 |
-| Integration | Per-emitter project builds (dbt parse/run, LDP structure), staged validation routing, profiler→GX expectations | P0 |
-| Unit | UMF models, type mappings, schema generators, baseline GX, native expectation evaluators, capability probing | P0 |
-| E2E | Bootstrap → compile → backbone across the DuckDB/Spark/Sail matrix; opt-in real-Databricks deploy/execute | P0 (local), P1 (opt-in workspace) |
+| Integration | Per-emitter project builds (dbt parse/run, LDP structure), staged validation routing, profiler→GX expectations, ingestion readers by kind | P0 |
+| Unit | UMF models (incl. EMBEDDING + source kinds), type mappings, schema generators, baseline GX, native expectation evaluators, capability probing, guidebook pure helpers | P0 |
+| E2E (library) | Bootstrap → compile → backbone across the DuckDB/Spark/Sail matrix; opt-in real-Databricks deploy/execute | P0 (local), P1 (opt-in workspace) |
+| E2E (microsite) | Hugo build + Playwright navigation/responsive checks (`website/e2e/`) | P1 |
+| E2E (Databricks App) | Config resolve + provision + startup against a declared metadata home | P1 **desired** (open gap; concerns `e2e-framework` slot) |
 
 ### Frameworks
 
@@ -52,7 +59,9 @@ FR-20.x (runtime platform); FEAT-024/025/026/027/028; US-021–026.
 | Contract | pytest + golden files (`tests/golden/`, `tests/conformance/corpus`) + `canonical.to_json` | Byte-for-byte, human-diffable artifact verification |
 | Integration | pytest; dbt-core (duckdb/spark-session/databricks adapters); pysail (Spark Connect server) | Execute generated projects + Connect lanes with no JVM |
 | Unit | pytest, pytest-mock, hypothesis | Pure-Python logic; property tests for generators/diff |
-| E2E | pytest conformance engine matrix; `e2e/backbone.py` runner | One harness, many engines, one canonicalizer |
+| E2E (library) | pytest conformance engine matrix; `e2e/backbone.py` runner | One harness, many engines, one canonicalizer |
+| E2E (microsite) | Playwright | Browser navigation and responsive rendering for FEAT-030 |
+| E2E (app) | TBD (alignment bead) | Whole-stack exercise for FR-23; not yet selected |
 
 ## Test Data
 
@@ -84,14 +93,19 @@ FR-20.x (runtime platform); FEAT-024/025/026/027/028; US-021–026.
    oracle byte-for-byte under one canonicalizer.
 6. **Native profiling** — `NativeSparkProfiler` runs JVM-free on Connect and feeds
    GX expectations.
+7. **EMBEDDING type** — dimension required; mappings and baseline expectations
+   exercise FR-1.11 on the type alphabet path.
+8. **Source-kind readers** — delimited/parquet/json/jdbc model + reader contracts
+   (FR-21); residual dump/parquet cast paths tracked as open gaps.
 
 ### Secondary Paths (P1-P2)
 
 - P1: dbt `state:modified` CI selection from UMF diff; LDP structure golden;
-  opt-in real-Databricks deploy/execute leg.
+  opt-in real-Databricks deploy/execute leg; guidebook generation (FR-22);
+  microsite Playwright; app config/provision/startup (FR-23, desired).
 - P2: GX custom-expectation Connect parity (**covered** — `test_custom_gx_parity.py`,
   all four customs verdict+value equal classic vs Connect); CLI mutation commands;
-  property-based generator fuzzing.
+  property-based generator fuzzing; SEC 10-K demo residual (US-045).
 
 ## Acceptance Criteria Layer Allocation
 
@@ -109,6 +123,9 @@ story test plans. Here, criterion *classes* are allocated to a primary layer:
 | dbt project emitted + builds green (FR-19.2) | US-025 / FEAT-027 | Integration | dbt parse/run on duckdb/spark |
 | LDP project emitted + conformance tier (FR-19.3) | US-026 / FEAT-028 | Integration | Structure golden + Databricks-execute (opt-in) |
 | Cross-engine byte-for-byte parity (FR-18.5/19.x) | conformance-acceptance | E2E | Engine matrix vs the oracle |
+| Guidebook pages + lineage (FR-22) | US-046 / FEAT-033 | Integration | Deterministic HTML + search index |
+| Microsite Pages coexistence (FEAT-030) | US-038 | E2E (microsite) | Hugo + Playwright + Pages artifact paths |
+| App portable deploy (FR-23) | US-047–049 / FEAT-034 | E2E (app) | Desired gate; open bead until harness exists |
 
 **Allocation rule**: every P0 acceptance criterion maps to exactly one primary
 layer here and to concrete tests in its companion plan / STP.
