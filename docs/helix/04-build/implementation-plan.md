@@ -56,6 +56,7 @@ The inventory below mirrors the top-level `src/tablespec` surface exactly. Packa
 | `dbt/` | dbt project emitters, routing, registry, renderer, contracts, and selection helpers. |
 | `e2e/` | Compile/bootstrap/manifest/runtime backbones for shipped artifacts. |
 | `formatting/` | YAML formatter support. |
+| `guidebook/` | Static HTML guidebook generation: UMF discovery, lineage, search index, and rendering. |
 | `inference/` | Domain-type inference surface. |
 | `ingestion/` | Raw/JDBC ingestion helpers and constants. |
 | `ldp/` | LDP sibling emitter surface. |
