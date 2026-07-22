@@ -322,6 +322,17 @@ edits; do not renumber on edit.
 - **FR-22.3** — Surface cross-table lineage: foreign keys as downstream consumers on the referenced table, and column derivations as upstream sources (with SQL expression and survivorship) on the derived column
 - **FR-22.4** — Expose generation through the `tablespec guidebook` CLI command and the `generate_guidebook` Python API
 
+### Subsystem: App Deployment & Configuration
+
+**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. The metadata substrate is already location-parameterized (`delta_repo.ensure_tables(catalog, schema)`, `VolumeRef`); this family closes the gap by removing environment literals from the application and making provisioning an explicit deployment step. Feature decomposition and the configuration-precedence decision record are downstream of this family.*
+
+- **FR-23.1** — **Resolved runtime configuration.** The app resolves every environment-specific setting through one configuration object with a fixed precedence: deployment-supplied environment variables → `connections.yaml` → built-in defaults. No catalog, schema, volume, warehouse id, or workspace URL appears as a literal in application code.
+- **FR-23.2** — **Declared governance location.** The metadata home is a declared `(catalog, schema)` pair plus an output volume. Every governance table and every volume path derives from that declaration, so relocating the metadata is a configuration change, not a code change.
+- **FR-23.3** — **Idempotent provisioning.** A deployment step creates or verifies the target schema and volume and ensures the governance tables exist (`CREATE TABLE IF NOT EXISTS` plus the grants the app identity needs), so a first deploy into an empty environment succeeds with no hand-run SQL and a redeploy is a no-op.
+- **FR-23.4** — **Parameterized deployment artifact.** The Databricks Apps manifest and the asset bundle expose catalog, schema, volume, warehouse, and optional links as declared inputs; targeting a different workspace changes inputs only, never tracked source.
+- **FR-23.5** — **Optional integrations degrade.** Optional configuration (dashboard link, Genie space, pre-generated UMF volume) is absent-tolerant: an unset value hides or disables the dependent surface rather than erroring.
+- **FR-23.6** — **Fail-fast configuration validation.** Missing or unusable configuration — no warehouse id, unreachable catalog/schema/volume, or an app identity lacking the required grant — surfaces one actionable startup error naming the setting and the grant required, rather than an incidental stack trace mid-session.
+
 ## Acceptance Test Sketches
 
 | Requirement | Scenario | Input | Expected Output |
@@ -333,6 +344,8 @@ edits; do not renumber on edit.
 | FR-7.7 | Connect-safe validation | A compiled suite + a Connect DataFrame | Data-scanning expectations route to the native executor and return real results (not silent `success=False`) |
 | FR-19.1/19.3 | Sibling emitter on core seam | One UMF | dbt and LDP projects both emitted; importing core does not require dbt/LDP packages |
 | FR-20.2 | Engine-correct dispatch | A process with both a classic and a Connect session | Column expressions resolve from the DataFrame's own engine and do not raise `'Column' object is not callable` |
+| FR-23.1/23.3 (planned) | Deploy the app into a fresh workspace | An empty target schema plus deployment inputs (catalog, schema, volume, warehouse) — no code edits | Provisioning creates the schema, volume, and governance tables; the app starts and reads/writes only the declared location; a redeploy is a no-op |
+| FR-23.6 (planned) | Under-privileged deployment | Deployment inputs naming a warehouse the app identity cannot use | One actionable startup error naming the warehouse and the required grant, rather than a mid-session failure on first query |
 
 ## Technical Context
 
