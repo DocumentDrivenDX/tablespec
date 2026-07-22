@@ -63,9 +63,10 @@ This repository's feature specifications record the **spec-lifecycle** status
 (**Approved** / **Specified** / **Draft** per the feature-specification template
 enum). **Delivery stage** is tracked only in this registry
 (Draft / Specified / Designed / In Test / In Build / Built / Deployed / …).
-Spec-lifecycle **Approved** does not imply delivery **Built**: a feature may be
-Approved while still Specified or In Build when residual work remains (e.g.
-FEAT-031, FEAT-032, FEAT-034). Legacy FEAT-001–029 are Built; FEAT-030 and
+Spec-lifecycle status does not imply delivery **Built**: a feature's spec may be
+final while delivery is still Specified or In Build when residual work remains
+(FEAT-032 is Approved / In Build; FEAT-031 and FEAT-034 are Specified on both
+axes). Legacy FEAT-001–029 are Built; FEAT-030 and
 FEAT-033 are Built; FEAT-032 type core is shipped with CORP/DEMO residual.
 
 ## Dependencies

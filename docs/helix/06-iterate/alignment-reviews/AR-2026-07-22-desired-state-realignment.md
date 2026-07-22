@@ -51,8 +51,8 @@
 | Registry “every Approved is Built” | DIVERGENT → fixed | feature-registry prose | FEAT-031/034 not Built | Dual-enum prose corrected |
 | US-040…043 missing | INCOMPLETE | FEAT-031 User Stories section | Stories not on disk | Beads to author stories |
 | FR-23 app portability | INCOMPLETE | FEAT-034, US-047–049, ADR-019 | POC `connections.yaml` catalogs | Beads for config/provision/e2e |
-| Dump-dialect / parquet cast residual | INCOMPLETE | FR-21.2/21.3, FEAT-031 | Partial readers | Beads after US-042/043 |
-| CORP pattern + US-045 residual | INCOMPLETE | FEAT-032 CORP/DEMO | Type core only | Beads for pattern + demo ACs |
+| Dump-dialect / parquet cast residual | INCOMPLETE → superseded (see Queue surgery) | FR-21.2/21.3, FEAT-031 | Partial readers *(initial read; surgery found DUMP/PARQ shipped)* | Implement beads closed as shipped; US-042/043 story backfill remains |
+| CORP pattern + US-045 residual | INCOMPLETE → partly superseded (see Queue surgery) | FEAT-032 CORP/DEMO | Type core only *(initial read; surgery found CORP example shipped)* | CORP example bead closed as shipped; US-045 demo-AC evidence bead remains |
 | App whole-stack e2e | UNDERSPECIFIED/INCOMPLETE | concerns e2e-framework slot | No app e2e harness | Bead for e2e gate |
 
 ## Spec Updates Applied (this PR)
@@ -61,7 +61,7 @@
 2. Product vision: companion app + guidebook UX
 3. FEAT-031 phase table + kinds include `json`
 4. FEAT-032 Approved + honest phase table
-5. FEAT-033 already Approved (registry Built)
+5. FEAT-033 status header moved to spec-lifecycle Approved (delivery Built stays in registry)
 6. Feature registry statuses + dual-enum prose
 7. Architecture v3.1: app, guidebook, ingestion, microsite, ADR-018/019
 8. Test plan v3.1: FR-21/22/23 levels and ACs

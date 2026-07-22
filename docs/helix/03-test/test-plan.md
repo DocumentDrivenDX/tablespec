@@ -96,7 +96,9 @@ FR-23.x (app deployment); FEAT-024–034; US-021–026, US-038–039, US-044–0
 7. **EMBEDDING type** — dimension required; mappings and baseline expectations
    exercise FR-1.11 on the type alphabet path.
 8. **Source-kind readers** — delimited/parquet/json/jdbc model + reader contracts
-   (FR-21); residual dump/parquet cast paths tracked as open gaps.
+   (FR-21); dump-dialect and parquet typed-raw cast paths are shipped and
+   unit-tested; the remaining FR-21 gap is the JSON compile/backbone path
+   (bead `tablespec-9f98cf03`).
 
 ### Secondary Paths (P1-P2)
 
