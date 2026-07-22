@@ -87,41 +87,56 @@
 
 ### B2 Multi-source residual (FEAT-031)
 
-| Bead | Title |
-|------|-------|
-| `tablespec-20513f4f` | Author US-040: source model + ingestion seam (backfill ACs) |
-| `tablespec-1af0828a` | Author US-041: JDBC reader + discovery slices |
-| `tablespec-e322b612` | Author US-042: dump-dialect text landing |
-| `tablespec-e9c21567` | Author US-043: typed-raw parquet cast mode residual |
-| `tablespec-557f8a24` | Author US-050: JSON/JSONL source kind residual (FR-21.7) |
-| `tablespec-7ec86390` | Implement dump-dialect end-to-end (DUMP-01..04) |
-| `tablespec-502c6126` | Implement parquet identity/safe-narrowing residual (PARQ) |
-| `tablespec-9f98cf03` | Implement JSON source residual compile/backbone path |
-| `tablespec-0aa41072` | Northwind Databricks acceptance residual (US-039) |
+| Bead | Title | Queue surgery |
+|------|-------|---------------|
+| `tablespec-20513f4f` | Author US-040: source model + ingestion seam (backfill ACs) | **Open** — re-scoped to story floor only |
+| `tablespec-1af0828a` | Author US-041: JDBC reader + discovery slices | **Closed** — duplicate of US-039 |
+| `tablespec-e322b612` | Author US-042: dump-dialect AC backfill | **Open** — re-scoped; no implement child |
+| `tablespec-e9c21567` | Author US-043: parquet typed-raw AC backfill | **Open** — re-scoped; no implement child |
+| `tablespec-557f8a24` | Author US-050: JSON residual (FR-21.7) | **Open** |
+| `tablespec-7ec86390` | Implement dump-dialect end-to-end | **Closed** — DUMP shipped (tests + reader) |
+| `tablespec-502c6126` | Implement parquet identity/safe-narrowing | **Closed** — PARQ typed_raw shipped |
+| `tablespec-9f98cf03` | Implement JSON compile/backbone residual | **Open** — real backbone gap |
+| `tablespec-0aa41072` | Northwind residual (US-039) | **Closed** — all ACs checked + @covers |
 
 ### B3 Embeddings residual (FEAT-032)
 
-| Bead | Title |
-|------|-------|
-| `tablespec-a3458685` | Ship document-corpus pattern example for FEAT-032 |
-| `tablespec-abd68023` | Close US-045 SEC 10-K demo residual ACs |
+| Bead | Title | Queue surgery |
+|------|-------|---------------|
+| `tablespec-a3458685` | Ship document-corpus pattern example | **Closed** — `examples/sec10k_corpus.yaml` linked from FEAT-032 |
+| `tablespec-abd68023` | Close US-045 SEC 10-K demo residual ACs | **Open** — re-scoped to residual AC evidence only |
 
 ### B4 / B5 Polish
 
-| Bead | Title |
-|------|-------|
-| `tablespec-9c79765e` | Link US-046 guidebook ACs to tests |
-| `tablespec-e1956759` | Close residual US-038 microsite ACs if any open |
-| `tablespec-a4d6dc58` | Feature registry Trace Links: fill high-traffic rows or document partial matrix |
+| Bead | Title | Queue surgery |
+|------|-------|---------------|
+| `tablespec-9c79765e` | Link US-046 guidebook ACs to tests | **Open** |
+| `tablespec-e1956759` | Close residual US-038 microsite ACs | **Closed** — Playwright covers ACs |
+| `tablespec-a4d6dc58` | Feature registry Trace Links matrix | **Closed** — partial-by-design already stated |
+
+## Queue surgery (2026-07-22 follow-up)
+
+Closed as satisfied or duplicate (do not re-open without new evidence):
+
+- `tablespec-0aa41072`, `tablespec-7ec86390`, `tablespec-502c6126`,
+  `tablespec-1af0828a`, `tablespec-a3458685`, `tablespec-e1956759`,
+  `tablespec-a4d6dc58`
+
+Re-scoped open children: US-040/042/043 story backfill only; US-045 residual
+evidence only. Primary remaining build: B1 app FR-23 path + JSON backbone
+(`tablespec-9f98cf03`).
+
+FEAT-031/PRD FR-21 honesty updated: DUMP + PARQ + US-039 marked shipped;
+JSON compile/backbone remains the multi-source implementation residual.
 
 ## Definition of Aligned (post-PR)
 
 | Check | Pass |
 |-------|------|
 | No higher-authority contradiction | PRD Non-Goals consistent with FR-23 |
-| No false “unimplemented” claims for shipped type/source cores | FEAT-032/031 banners honest |
-| Desired future still ambitious | FR-23, DUMP, residuals remain requirements |
-| Gaps queued | Alignment epic + child beads |
+| No false “unimplemented” claims for shipped type/source cores | FEAT-032/031 banners honest (DUMP/PARQ/CORP corrected) |
+| Desired future still ambitious | FR-23 + JSON backbone residual remain requirements |
+| Gaps queued | Alignment epic with pruned children |
 | Downstream docs govern app/guidebook | Architecture, TP, deploy |
 | Machine gates | `tests/docs/` green |
 

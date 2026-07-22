@@ -10,7 +10,7 @@ ddx:
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: UMF Model and I/O (+ validation touchpoints)
-**Covered PRD Requirements**: FR-1.11 (shipped type alphabet; CORP/DEMO residual on beads `tablespec-a3458685`, `tablespec-abd68023`)
+**Covered PRD Requirements**: FR-1.11 (shipped type alphabet + CORP example; DEMO residual on bead `tablespec-abd68023`)
 **Cross-Subsystem Rationale**: Primary subsystem is UMF Model and I/O
 (the type and its mappings); the GX baseline, profiling, sample-data,
 and compatibility touchpoints follow the type wherever the type alphabet
@@ -23,8 +23,8 @@ is consumed, per ADR-016.
 > | EMB type alphabet + dimension validation | **Shipped** | `models/umf.py` EMBEDDING pattern + dimension validators |
 > | Type mappings (SQL/PySpark/JSON/GX) | **Shipped** | `type_mappings.py`; unit tests |
 > | Schema generators + GX baseline + sample data + compatibility | **Shipped** | Tests under `tests/unit/test_*` for generators, gx_baseline, column_value_generator, compatibility |
-> | CORP document-corpus pattern example | **Desired residual** | Pattern + example UMF still to document/ship |
-> | DEMO SEC 10-K (US-045) | **Desired residual** | Notebooks exist; full AC green remains acceptance goal |
+> | CORP document-corpus pattern example | **Shipped** | Canonical example: [`examples/sec10k_corpus.yaml`](../../../../examples/sec10k_corpus.yaml) (CORP-01 pattern, `EMBEDDING(1024)`) |
+> | DEMO SEC 10-K (US-045) | **Partial** | Notebooks + example YAML exist; residual AC evidence on bead `tablespec-abd68023` |
 >
 > The facts-table half of the SEC demo may use FEAT-031's `json` source kind.
 
@@ -146,7 +146,9 @@ provenance columns (e.g. source system, acquisition timestamp, embedding
 model identifier *as data*) — expressed entirely with existing model
 fields plus the EMBEDDING type; no new UMF model fields.
 CORP-02. A shipped example corpus spec SHALL live under `examples/`,
-loadable and passing `tablespec validate` unmodified.
+loadable and passing `tablespec validate` unmodified. **Shipped
+example:** [`examples/sec10k_corpus.yaml`](../../../../examples/sec10k_corpus.yaml)
+(paired companyfacts: `examples/sec10k_companyfacts.yaml`).
 CORP-03. Staged validation of a landed corpus table SHALL include the
 EMB-04 dimensionality expectation and standard structural/nullability
 checks.

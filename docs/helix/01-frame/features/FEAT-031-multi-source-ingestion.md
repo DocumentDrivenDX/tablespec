@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (multi-kind source model + readers largely shipped; dump-dialect completeness, parquet cast residual, JSON compile/backbone residual, and US-040–043 remain desired)
+**Status**: Specified (DUMP/PARQ/JDBC cores shipped; JSON compile/backbone residual + US-040/042/043/050 story backfill remain)
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -15,18 +15,18 @@ ddx:
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
-> **Phase status (honest 2026-07-22).** Specs describe the desired end state.
-> Implementation progress by family:
+> **Phase status (honest 2026-07-22; queue surgery same day).** Specs describe
+> the desired end state. Implementation progress by family:
 >
 > | Family | Status | Evidence / residual |
 > |--------|--------|---------------------|
 > | SRC (source model + seam) | **Shipped** | `DelimitedSource` / `ParquetSource` / `JsonSource` / `JdbcSource` in `models/umf.py`; `ingestion/` readers |
-> | JDBC + DISC | **Shipped** (Docker Northwind green) | `ingestion/jdbc.py`; US-039; residual = full Databricks workspace ACs if any |
+> | JDBC + DISC | **Shipped** | `ingestion/jdbc.py`; US-039 ACs all checked; `@covers` in `tests/integration/test_northwind_e2e.py` |
 > | SUITE typed-raw slice | **Shipped** | Typed raw suite path for parquet/jdbc/json kinds |
-> | DUMP-01..04 | **Desired residual** | End-to-end dump dialect option consumption |
-> | PARQ identity/safe-narrowing | **Partial** | Reader + backbone parquet path exist; cast-mode residual tracked |
-> | JSON-01 (FR-21.7) | **Partial** | Model + `JsonReader` shipped; compile/backbone/demo residual tracked |
-> | US-040..043 | **Desired residual** | Stories not yet authored; file as alignment beads |
+> | DUMP-01..04 | **Shipped** | Model options + dump reader + `tests/unit/test_ingestion_package.py` (skip/footer/null_escape/line_terminator) |
+> | PARQ identity/safe-narrowing | **Shipped** | Typed-raw cast path in `casting_utils` + `test_casting_utils.py` typed_raw DATE/TIMESTAMP; ingest generator parquet native typed |
+> | JSON-01 (FR-21.7) | **Partial** | Model + `JsonReader` shipped; **backbone still delimited/parquet only** — residual bead `tablespec-9f98cf03` |
+> | Story floor | **Partial** | US-039/044 on disk; US-040/042/043/050 story backfill beads remain (US-041 cancelled as duplicate of US-039) |
 
 ## Overview
 
@@ -253,14 +253,18 @@ expectation-stage classification (`umf.py:94-112`,
   database, discover UMF specs, export a schema xlsx, validate, generate
   sample data, and produce a validation report.
 
-Per-phase stories are queued on the 2026-07-22 alignment epic
-(`tablespec-263a0248`), in sequencing order:
-US-040 (seam + `source:` model — backfill ACs; bead `tablespec-20513f4f`),
-US-041 (JDBC reader + discovery; bead `tablespec-1af0828a`),
-US-042 (dump-dialect; bead `tablespec-e322b612`),
-US-043 (typed-raw parquet residual; bead `tablespec-e9c21567`),
-plus US-050 for JSON residual (FR-21.7; bead `tablespec-557f8a24`).
-Demo stories already on disk:
+Per-phase story work remaining on the alignment epic (`tablespec-263a0248`):
+
+- US-040 — seam + `source:` model AC backfill (bead `tablespec-20513f4f`;
+  implementation shipped — story floor only)
+- US-042 — dump-dialect AC backfill citing existing dump tests (bead
+  `tablespec-e322b612`; DUMP implement closed as shipped)
+- US-043 — parquet typed-raw AC backfill citing existing cast tests (bead
+  `tablespec-e9c21567`; PARQ implement closed as shipped)
+- US-050 — JSON residual story for compile/backbone (bead `tablespec-557f8a24`)
+
+JDBC vertical is covered by [US-039](../user-stories/US-039-northwind-end-to-end.md)
+(no separate US-041). Demo stories already on disk:
 [US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
 (delimited kind, shipped code, notebook pair).
 
