@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -36,7 +35,10 @@ def _slug(s: str) -> str:
 
 
 def _runtime() -> str:
-    return os.environ.get("PROFILER_RUNTIME", "mock").lower()
+    """Runtime mode, from the single resolved configuration (CFG-01/CFG-03)."""
+    from .config import get_config
+
+    return get_config().runtime
 
 
 @lru_cache(maxsize=1)
