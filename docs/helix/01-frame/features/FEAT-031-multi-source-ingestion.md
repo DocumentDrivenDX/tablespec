@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (DUMP/PARQ/JDBC cores shipped; JSON compile/backbone residual + US-040/042/043/050 story backfill remain)
+**Status**: Specified (DUMP/PARQ/JDBC/JSON cores + story floor US-040/042/043/050 shipped; demo residual on US-044/045)
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -25,8 +25,8 @@ the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 > | SUITE typed-raw slice | **Shipped** | Typed raw suite path for parquet/jdbc/json kinds |
 > | DUMP-01..04 | **Shipped** | Model options + dump reader + `tests/unit/test_ingestion_package.py` (skip/footer/null_escape/line_terminator) |
 > | PARQ identity/safe-narrowing | **Shipped** | Typed-raw cast path in `casting_utils` + `test_casting_utils.py` typed_raw DATE/TIMESTAMP; ingest generator parquet native typed |
-> | JSON-01 (FR-21.7) | **Partial** | Model + `JsonReader` shipped; **backbone still delimited/parquet only** — residual bead `tablespec-9f98cf03` |
-> | Story floor | **Partial** | US-039/044 on disk; US-040/042/043/050 story backfill beads remain (US-041 cancelled as duplicate of US-039) |
+> | JSON-01 (FR-21.7) | **Shipped** | Model + `JsonReader` + backbone `_declared_source`/`_load_raw` (Spark + DuckDB) + conformance JSON tier |
+> | Story floor | **Shipped** | US-039/040/042/043/044/050 on disk; US-041 cancelled as duplicate of US-039 |
 
 ## Overview
 
@@ -186,7 +186,7 @@ underscores collapsed (the rules proven in the entropy-exchange
 `mssql_import` bundle), with bracket/backtick quoting handled at the read
 boundary and the original source identifier preserved in the spec.
 
-#### JSON/JSONL source kind (FR-21.7 — planned, operator-decided 2026-06-12)
+#### JSON/JSONL source kind (FR-21.7 — shipped; operator-decided 2026-06-12)
 
 JSON-01. The `source:` block SHALL gain a `json` kind: JSON/JSONL files
 land typed through Spark's reader, under the same native-typed raw regime
@@ -252,21 +252,22 @@ expectation-stage classification (`umf.py:94-112`,
   — the acceptance-goal story for the JDBC vertical: load the Northwind
   database, discover UMF specs, export a schema xlsx, validate, generate
   sample data, and produce a validation report.
-
-Per-phase story work remaining on the alignment epic (`tablespec-263a0248`):
-
-- US-040 — seam + `source:` model AC backfill (bead `tablespec-20513f4f`;
-  implementation shipped — story floor only)
-- US-042 — dump-dialect AC backfill citing existing dump tests (bead
-  `tablespec-e322b612`; DUMP implement closed as shipped)
-- US-043 — parquet typed-raw AC backfill citing existing cast tests (bead
-  `tablespec-e9c21567`; PARQ implement closed as shipped)
-- US-050 — JSON residual story for compile/backbone (bead `tablespec-557f8a24`)
+- [US-040 — Source model and ingestion seam](../user-stories/US-040-source-model-and-ingestion-seam.md)
+  — SRC-01..05 AC floor citing `test_source_spec` + `test_ingestion_package`.
+- [US-042 — Dump-dialect text landing](../user-stories/US-042-dump-dialect-text-landing.md)
+  — DUMP-01..04 AC floor citing dump reader tests.
+- [US-043 — Parquet typed-raw landing](../user-stories/US-043-parquet-typed-raw-landing.md)
+  — PARQ AC floor citing `test_casting_utils` typed_raw paths.
+- [US-050 — JSON/JSONL source kind](../user-stories/US-050-json-jsonl-source-kind.md)
+  — FR-21.7 model/reader/backbone path.
 
 JDBC vertical is covered by [US-039](../user-stories/US-039-northwind-end-to-end.md)
 (no separate US-041). Demo stories already on disk:
 [US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
-(delimited kind, shipped code, notebook pair).
+(delimited kind, shipped code, notebook pair);
+[US-045 — SEC 10-K corpus and facts](../user-stories/US-045-sec-10k-corpus-and-facts.md)
+(EMBEDDING type + CORP example shipped; residual demo evidence tracked
+separately).
 
 ## Edge Cases and Error Handling
 
@@ -360,16 +361,16 @@ JDBC vertical is covered by [US-039](../user-stories/US-039-northwind-end-to-end
 - [x] Ideal future state describes the desired user-visible outcome
 - [x] Problem statement describes what exists now and what is broken
 - [x] Every functional requirement is testable
-- [ ] Acceptance criteria are defined in user stories — US-039 authored;
-  US-040..043 planned per phase
+- [x] Acceptance criteria are defined in user stories — US-039/040/042/043/050
+  authored with stable ACs
 - [x] Non-functional requirements have specific targets
 - [x] Edge cases cover realistic failure scenarios
 - [x] Success metrics are specific to this feature
 - [x] Dependencies reference real artifact IDs
 - [x] Out of scope excludes things someone might reasonably assume are in
   scope
-- [x] Implementation status is honestly per-phase (seam done; JDBC, dumps,
-  parquet planned); no phantom completion claims
+- [x] Implementation status is honestly per-phase (seam, JDBC, dumps, parquet,
+  JSON shipped; demo residual called out); no phantom completion claims
 - [x] Feature is consistent with governing ADR-015 and the PRD Non-Goal on
   database connectivity
 - [x] No `[NEEDS CLARIFICATION]` markers remain

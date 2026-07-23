@@ -1,6 +1,6 @@
 """Schema Generators - SQL DDL, PySpark, and JSON Schema generation."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any, TypedDict
 
 from tablespec.type_mappings import map_to_json_type, map_to_pyspark_type
@@ -134,16 +134,10 @@ def generate_pyspark_schema(umf_data: dict[str, Any]) -> str:
     table_name = umf_data["table_name"]
     canonical_name = umf_data.get("canonical_name") or table_name
 
-    # Use source file modified time if available, otherwise use current time
+    # Use source file modified time if available. Otherwise omit the timestamp
+    # line so repeated renders of the same spec stay byte-identical (matches DDL).
     metadata = umf_data.get("metadata") or {}
     source_modified = metadata.get("source_file_modified") if metadata else None
-    if source_modified:
-        # Parse and format the ISO timestamp
-        from datetime import datetime as dt
-
-        timestamp = dt.fromisoformat(source_modified).strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
 
     needs_array_type = any(
         (col.get("data_type", "").upper().startswith("EMBEDDING"))
@@ -157,7 +151,6 @@ def generate_pyspark_schema(umf_data: dict[str, Any]) -> str:
     schema_lines = [
         f"# PySpark Schema for {canonical_name}",
         "# Generated from UMF specification",
-        f"# Source file modified: {timestamp}",
         "# NOTE: Includes data + filename-sourced columns; excludes meta_* provenance columns",
         "",
         "from pyspark.sql.types import StructType, StructField",
@@ -166,6 +159,11 @@ def generate_pyspark_schema(umf_data: dict[str, Any]) -> str:
         "",
         f"{table_name.lower()}_schema = StructType([",
     ]
+    if source_modified:
+        timestamp = datetime.fromisoformat(source_modified).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        schema_lines.insert(2, f"# Source file modified: {timestamp}")
 
     fields = []
     for col in umf_data["columns"]:

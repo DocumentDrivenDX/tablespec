@@ -284,6 +284,22 @@ class TestGeneratePySparkSchema:
         assert "# PySpark Schema for TestTable" in schema
         assert "# Generated from UMF specification" in schema
 
+    def test_without_source_file_modified_is_deterministic(self):
+        """Repeated renders stay byte-identical without source file metadata."""
+        umf = {
+            "table_name": "test_table",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {"name": "name", "data_type": "STRING", "nullable": True},
+            ],
+        }
+
+        schema1 = generate_pyspark_schema(umf)
+        schema2 = generate_pyspark_schema(umf)
+
+        assert schema1 == schema2
+        assert "# Source file modified:" not in schema1
+
     def test_imports_all_types(self, minimal_umf):
         """Test all PySpark type imports are included."""
         schema = generate_pyspark_schema(minimal_umf)

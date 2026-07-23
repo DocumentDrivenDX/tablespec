@@ -209,7 +209,7 @@ edits; do not renumber on edit.
 
 ### Subsystem: Source Acquisition
 
-**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Phase honesty (2026-07-22, queue surgery): delimited/parquet/jdbc cores + DUMP options + PARQ typed-raw cast + JDBC discovery (US-039) are shipped; remaining implementation residual is primarily JSON compile/backbone (FR-21.7) plus story-floor backfill for US-040/042/043/050.*
+**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Phase honesty (2026-07-22, alignment drain): delimited/parquet/jdbc/json cores + DUMP options + PARQ typed-raw cast + JDBC discovery (US-039) + story floor US-040/042/043/050 are shipped; remaining residual is primarily demo notebook evidence (US-044/045).*
 
 - **FR-21.1** — **Declared source shape.** UMF carries a discriminated `source:` block (`kind: delimited | parquet | jdbc | json`); today's `file_format` is the body of the `delimited` variant and remains a back-compat alias resolved via a non-persisting accessor. Raw landing typing follows the kind: all-STRING for text-landed sources, native-typed for typed sources.
 - **FR-21.2** — **Dump-dialect text landing.** The `delimited` variant covers database dump files: multi-character line terminators, `\N`-style null escapes, footer handling, and `skip_rows` honored end-to-end — every declared option actually consumed by the compiled readers. *(Shipped — model + dump reader + unit tests.)*
@@ -217,7 +217,7 @@ edits; do not renumber on edit.
 - **FR-21.4** — **JDBC compiled read spec.** JDBC sources compile to a committed read spec carrying connection parameters (url, dbtable/query, driver, fetch/partitioning) with credentials *only* as named secret references (Databricks secret scope or env-var name); a literal credential fails validation. tablespec never opens a connection — all connectivity is Spark's JDBC connector, executed by the runtime.
 - **FR-21.5** — **Raw-suite typing.** Raw-stage expectation suites vary by raw typing: string checks (length/regex/strftime/castability) apply only to all-STRING raw; typed raw receives schema-type expectations instead.
 - **FR-21.6** — **Database discovery.** Discover UMF specs from a live database: enumerate tables and read `INFORMATION_SCHEMA` metadata (columns, types, nullability, PKs, FKs) through Spark's JDBC connector, reusing the existing Spark schema→UMF mapping; emit one validated UMF per table so database onboarding is spec-driven rather than a blind bulk copy.
-- **FR-21.7** — **JSON/JSONL source kind.** A `json` variant of the `source:` block: JSON/JSONL files land typed through Spark's reader (like parquet); the spec declares a FLAT projection — each UMF column maps to a top-level field or an explicit dot-path; un-projected nesting is out of the bronze contract (no recursive flattening). *Model and reader shipped; compile/backbone/demo residual gaps remain desired completion. Extends FEAT-031.*
+- **FR-21.7** — **JSON/JSONL source kind.** A `json` variant of the `source:` block: JSON/JSONL files land typed through Spark's reader (like parquet); the spec declares a FLAT projection — each UMF column maps to a top-level field or an explicit dot-path; un-projected nesting is out of the bronze contract (no recursive flattening). *Model, reader, and backbone load path shipped (US-050). Extends FEAT-031.*
 
 ### Subsystem: CLI Interface
 

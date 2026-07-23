@@ -32,10 +32,14 @@ spec.
 
 ## Acceptance Criteria
 
-- [ ] **US-046-AC1** — Given a directory of UMFs (split dirs and/or `*.umf.json`), when the guidebook is generated, then one self-contained HTML page is written per table plus a top-level index and a `search_index.json`.
-- [ ] **US-046-AC2** — Given a referenced (hub) table, when the guidebook is generated, then its referenced column lists each foreign-key consumer as a downstream link (`via fk`).
-- [ ] **US-046-AC3** — Given a derived column with derivation candidates, when the guidebook is generated, then the column page shows its upstream sources and the SQL expression (priority + join filter for multi-candidate columns).
-- [ ] **US-046-AC4** — Given a directory containing a malformed UMF, when the guidebook is generated, then the malformed UMF is skipped with a warning and the remaining tables still render.
+- [x] **US-046-AC1** — Given a directory of UMFs (split dirs and/or `*.umf.json`), when the guidebook is generated, then one self-contained HTML page is written per table plus a top-level index and a `search_index.json`.
+  **Evidence**: `tests/unit/test_guidebook_generate.py::test_generate_writes_pages_index_and_search` (`@covers US-046-AC1`).
+- [x] **US-046-AC2** — Given a referenced (hub) table, when the guidebook is generated, then its referenced column lists each foreign-key consumer as a downstream link (`via fk`).
+  **Evidence**: `test_reverse_lineage_links_source_to_consumer`, `test_rendered_page_shows_downstream_link` (`@covers US-046-AC2`).
+- [x] **US-046-AC3** — Given a derived column with derivation candidates, when the guidebook is generated, then the column page shows its upstream sources and the SQL expression (priority + join filter for multi-candidate columns).
+  **Evidence**: `tests/unit/test_guidebook_renderer.py` (`@covers US-046-AC3`).
+- [x] **US-046-AC4** — Given a directory containing a malformed UMF, when the guidebook is generated, then the malformed UMF is skipped with a warning and the remaining tables still render.
+  **Evidence**: `test_malformed_umf_does_not_abort_run` (`@covers US-046-AC4`).
 
 ## Edge Cases
 
