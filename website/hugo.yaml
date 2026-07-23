@@ -44,6 +44,12 @@ menu:
 params:
   description: A UMF compiler that defines the source-semantic ingested bronze contract for data platform teams.
 
+  # Blueprint CSS is light-only (paper grid + ink). Do not follow system dark mode —
+  # Hextra's dark text classes make card titles near-white on the forced light paper.
+  theme:
+    default: light
+    displayToggle: false
+
   navbar:
     displayTitle: true
     displayLogo: false

@@ -1,4 +1,13 @@
 {{- $description := .Description | default site.Params.description -}}
+{{/* Blueprint CSS is light-only; pin theme so system/localStorage dark cannot
+     leave near-white card titles on the paper background. */}}
+<script>
+  (function () {
+    try { localStorage.setItem("color-theme", "light"); } catch (e) {}
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+  })();
+</script>
 <meta name="description" content="{{ $description }}">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="{{ .Permalink }}">
