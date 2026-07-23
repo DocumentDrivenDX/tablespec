@@ -1,5 +1,10 @@
 """Unit tests for Excel ↔ UMF bidirectional converter."""
 
+# @covers US-011-AC1
+# @covers US-011-AC2
+# @covers US-011-AC3
+# @covers US-011-AC4
+
 from __future__ import annotations
 
 import json

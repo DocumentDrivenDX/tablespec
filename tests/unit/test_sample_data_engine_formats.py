@@ -1,5 +1,10 @@
 """Unit tests for SampleDataGenerator format handling changes."""
 
+# @covers US-013-AC1
+# @covers US-013-AC2
+# @covers US-013-AC3
+# @covers US-013-AC4
+
 from pathlib import Path
 from unittest.mock import patch
 
