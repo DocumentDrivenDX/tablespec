@@ -113,10 +113,10 @@ Started pages are the human-facing walkthrough of the same procedure.
 
 Operating procedure for standing up `apps/data-profiling/` in a target
 Databricks environment. Config, provision, and startup fail-fast are
-implemented; **agent-side smoke** (no workspace) is the CI gate. Full
-operator steps for a real workspace are on the product microsite
-(`getting-started/deploy-the-app/`). Operators **must not** edit tracked
-application source for environment identity.
+implemented; **local mock smoke** (no workspace) is the automated gate
+(`make app-smoke`). Full workspace steps are on the product microsite
+(`getting-started/deploy-the-app/`). Do not edit tracked application
+source for environment identity.
 
 ### App deploy inputs
 
