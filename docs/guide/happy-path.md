@@ -64,16 +64,22 @@ If you do not need the intermediate `UMF` list, the convenience wrapper
 `bootstrap_from_tables(...)` reflects, profiles, compiles, and returns the
 manifest in one call.
 
-For authored specs, use the Path B loader instead:
+For authored specs, use the Path B loader or one-shot facade:
 
 ```python
 from tablespec.e2e import umfs_from_specs
+from tablespec import bootstrap_from_specs
 
 umfs = umfs_from_specs([
     "tables/member/table.yaml",
     "tables/claims/table.yaml",
 ])
+# or compile in one call (no Spark):
+# artifacts = bootstrap_from_specs([...], out_dir="...")
 ```
+
+JDBC databases use the same compile contract after discovery — see
+[jdbc-onboarding.md](jdbc-onboarding.md) and the Northwind demo/tests.
 
 ## 2. Generate sample data from the UMF or spec inputs
 
