@@ -133,6 +133,6 @@ PROFILER_RUNTIME=mock \
 ## Next
 
 {{< cards >}}
-  {{< card link="/getting-started/in-a-workspace/" title="In a workspace" subtitle="Notebook demos and opt-in serverless conformance." icon="server" >}}
-  {{< card link="/demos/" title="Demos" subtitle="Northwind, Kaggle, Synthea, and the local screencast." icon="play" >}}
+  {{< card link="../in-a-workspace/" title="In a workspace" subtitle="Notebook demos and opt-in serverless conformance." icon="server" >}}
+  {{< card link="../../demos/" title="Demos" subtitle="Northwind, Kaggle, Synthea, and the local screencast." icon="play" >}}
 {{< /cards >}}
