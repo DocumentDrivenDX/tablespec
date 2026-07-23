@@ -18,6 +18,7 @@ const SITE_PREFIX = '/tablespec'
 const SEED_PATHS = [
   `${SITE_PREFIX}/`,
   `${SITE_PREFIX}/getting-started/`,
+  `${SITE_PREFIX}/getting-started/first-15-minutes/`,
   `${SITE_PREFIX}/getting-started/in-a-workspace/`,
   `${SITE_PREFIX}/getting-started/deploy-the-app/`,
   `${SITE_PREFIX}/worked-example/`,
@@ -43,6 +44,16 @@ const CONTENT_CHECKS: ReadonlyArray<{ path: string; mustInclude: string[] }> = [
       'documentdrivendx.github.io/tablespec/simple/',
       'In a workspace',
       'Deploy the app',
+      'First 15 minutes',
+      'tablespec validate',
+    ],
+  },
+  {
+    path: `${SITE_PREFIX}/getting-started/first-15-minutes/`,
+    mustInclude: [
+      'tablespec bootstrap',
+      'without Spark',
+      'tablespec guidebook',
       'tablespec validate',
     ],
   },

@@ -21,7 +21,8 @@ from profiler.smoke import run_fr23_smoke  # noqa: E402
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    summary = (__doc__ or "FR-23 smoke").splitlines()[0]
+    p = argparse.ArgumentParser(description=summary)
     p.add_argument(
         "--registry",
         default="connections.yaml",

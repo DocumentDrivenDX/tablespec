@@ -257,6 +257,7 @@ test.describe('Build inventory', () => {
     const required = [
       '/',
       '/getting-started/',
+      '/getting-started/first-15-minutes/',
       '/getting-started/in-a-workspace/',
       '/getting-started/deploy-the-app/',
       '/worked-example/',

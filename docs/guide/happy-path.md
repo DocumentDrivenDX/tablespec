@@ -35,7 +35,8 @@ Current boundary notes:
   boundary.
 - One-shot facades: `bootstrap_from_tables` (Path A, Spark) and
   `bootstrap_from_specs` (Path B, no Spark) are public first-class entry
-  points — see [bootstrap.md](bootstrap.md).
+  points — see [bootstrap.md](bootstrap.md). Path B is also on the CLI:
+  `tablespec bootstrap <specs...> -o <dir> [--dialect duckdb|spark|databricks]`.
 
 ## 1. Generate UMF from existing Spark or Databricks tables
 

@@ -96,6 +96,15 @@ website-test-links: ## Microsite link crawl + content checks under /tablespec/ b
 website-test: ## Full microsite Playwright suite (content + link check)
 	cd website && npm run test:all
 
+app-smoke: ## FR-23 mock-runtime smoke for apps/data-profiling (no workspace)
+	cd apps/data-profiling && PROFILER_RUNTIME=mock \
+		PROFILER_METADATA_CATALOG=main \
+		PROFILER_METADATA_SCHEMA=tablespec_profiler \
+		uv run pytest tests/test_fr23_stack.py tests/test_config.py tests/test_provision.py tests/test_diagnostics.py -q
+
+app-typecheck: ## Scoped pyright on FR-23 app modules (config/provision/diagnostics/smoke)
+	cd apps/data-profiling && uv run pyright
+
 # Development
 clean: ## Remove build artifacts and cache files
 	rm -rf build/ dist/ *.egg-info .pytest_cache/ .coverage htmlcov/ .ruff_cache/

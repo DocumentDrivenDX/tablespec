@@ -34,9 +34,11 @@ class SqlExecutor(Protocol):
 
     def execute(self, statement: str) -> None:
         """Run a statement, raising on failure."""
+        ...
 
     def query(self, statement: str) -> list[list]:
         """Run a query, returning its rows."""
+        ...
 
 
 class DatabricksExecutor:

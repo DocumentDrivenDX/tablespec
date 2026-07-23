@@ -45,9 +45,12 @@ semantics (member, claims, claim_enriched) *without* tablespec compile:
    \(t_{tablespec}\).
 4. Reduction = \(1 - t_{tablespec}/(t_{manual}\times 60)\).
 
-The automated harness is the **reproducible numerator**. The denominator is
-operator-measured once per release and stored under
-`docs/helix/06-iterate/metrics/` if desired (optional).
+The automated harness is the **reproducible numerator**. A sample automated
+metrics file is committed at
+[`docs/helix/06-iterate/metrics/onboarding_benchmark.json`](../helix/06-iterate/metrics/onboarding_benchmark.json)
+(regenerate with the command above). The manual denominator is
+operator-measured once per release and may be stored alongside that file as
+`manual_baseline.json` if desired (optional; not agent-produced).
 
 ## Relation to the happy path
 

@@ -58,6 +58,12 @@ root-absolute hrefs that drop the project path fail the same way they do on
 GitHub Pages. CI runs both suites in `.github/workflows/microsite.yml` and as a
 pre-deploy gate in `publish-microsite.yml`.
 
+### App smoke (no workspace)
+
+```bash
+make app-smoke   # FR-23 mock config/provision/diagnostics stack
+```
+
 ### Link convention (do not work around baseURL)
 
 Site lives under `/tablespec/`. Prefer root-absolute site paths in content:

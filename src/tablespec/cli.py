@@ -1427,6 +1427,70 @@ def apply_response(
 
 
 @app.command()
+def bootstrap(
+    specs: list[Path] = typer.Argument(
+        ...,
+        help="One or more UMF paths (split table dirs, *.umf.yaml, or JSON)",
+    ),
+    out_dir: Path = typer.Option(
+        ...,
+        "--out",
+        "-o",
+        help="Output directory for the compiled artifact tree",
+    ),
+    dialect: str = typer.Option(
+        "duckdb",
+        "--dialect",
+        help=_EMIT_DIALECT_HELP,
+        click_type=click.Choice(CAST_DIALECTS),
+    ),
+) -> None:
+    """Path B one-shot: load authored UMF specs and compile committed artifacts.
+
+    No Spark required. Equivalent to :func:`tablespec.bootstrap_from_specs`.
+
+    Examples:
+      tablespec bootstrap tables/member tables/claims -o build/artifacts
+      tablespec bootstrap tables/ -o out/ --dialect databricks
+    """
+    from tablespec.bootstrap import bootstrap_from_specs
+
+    missing = [p for p in specs if not p.exists()]
+    if missing:
+        console.print(
+            "[red]Error:[/red] Spec path(s) not found: "
+            + ", ".join(str(p) for p in missing)
+        )
+        raise typer.Exit(1)
+    if not specs:
+        console.print(
+            "[red]Error:[/red] Provide at least one UMF path "
+            "(split table directory, *.umf.yaml, or JSON)."
+        )
+        raise typer.Exit(1)
+
+    try:
+        console.print(
+            f"[cyan]Bootstrapping[/cyan] {len(specs)} path(s) -> {out_dir} "
+            f"(dialect={dialect})"
+        )
+        artifacts = bootstrap_from_specs(specs, out_dir, dialect=dialect)
+        console.print(
+            f"[green]Compiled[/green] artifacts under {artifacts.root} "
+            f"({len(artifacts.tables)} table(s))"
+        )
+    except FileNotFoundError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+    except (ValidationError, ValueError) as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
 def guidebook(
     root: Path = typer.Argument(
         ...,
@@ -1449,13 +1513,26 @@ def guidebook(
     from tablespec.guidebook import generate as _generate
 
     if not root.exists():
-        console.print(f"[red]Error:[/red] Root path not found: {root}")
+        console.print(
+            f"[red]Error:[/red] Root path not found: {root}\n"
+            "Provide a directory of split UMF tables (table.yaml) and/or "
+            "*.umf.json / *.umf.yaml files."
+        )
+        raise typer.Exit(1)
+    if not root.is_dir():
+        console.print(
+            f"[red]Error:[/red] Guidebook root must be a directory, got file: {root}"
+        )
         raise typer.Exit(1)
 
     written = _generate(root=root, output_dir=output, group=group)
     if not written:
-        console.print("[yellow]Warning:[/yellow] No UMFs found to render.")
-        return
+        console.print(
+            f"[red]Error:[/red] No UMFs found under {root}.\n"
+            "Expected split directories with table.yaml and/or *.umf.json / "
+            "*.umf.yaml files. Empty directories produce no guidebook."
+        )
+        raise typer.Exit(1)
 
     console.print(f"[green]Wrote {len(written)} file(s) to {output}[/green]")
     for path in written[:10]:
