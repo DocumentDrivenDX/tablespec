@@ -30,11 +30,12 @@ Current boundary notes:
 - Databricks-facing compile UX accepts `dialect="databricks"` for the
   Spark-family SQL emitted by tablespec; internal emitters may normalize to
   `spark` when the rendered SQL is identical.
-  The active bead trail is `tablespec-ed74497c` and child beads
-  `tablespec-0b146671`, `tablespec-171e409c`, and `tablespec-0fb0d1c2`.
 - Production runs consume the committed artifact tree and installed packages,
   not source-time orchestration. See the deployment checklist for the release
   boundary.
+- One-shot facades: `bootstrap_from_tables` (Path A, Spark) and
+  `bootstrap_from_specs` (Path B, no Spark) are public first-class entry
+  points — see [bootstrap.md](bootstrap.md).
 
 ## 1. Generate UMF from existing Spark or Databricks tables
 
@@ -63,16 +64,22 @@ If you do not need the intermediate `UMF` list, the convenience wrapper
 `bootstrap_from_tables(...)` reflects, profiles, compiles, and returns the
 manifest in one call.
 
-For authored specs, use the Path B loader instead:
+For authored specs, use the Path B loader or one-shot facade:
 
 ```python
 from tablespec.e2e import umfs_from_specs
+from tablespec import bootstrap_from_specs
 
 umfs = umfs_from_specs([
     "tables/member/table.yaml",
     "tables/claims/table.yaml",
 ])
+# or compile in one call (no Spark):
+# artifacts = bootstrap_from_specs([...], out_dir="...")
 ```
+
+JDBC databases use the same compile contract after discovery — see
+[jdbc-onboarding.md](jdbc-onboarding.md) and the Northwind demo/tests.
 
 ## 2. Generate sample data from the UMF or spec inputs
 
