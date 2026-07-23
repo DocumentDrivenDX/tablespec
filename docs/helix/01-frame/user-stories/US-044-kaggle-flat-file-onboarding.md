@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: SRC-01, SRC-04, SRC-05, DUMP-05
 **PRD Requirements**: FR-21.1
 **Priority**: P1
-**Status**: Draft (planned 2026-06-12; notebooks not yet authored)
+**Status**: Built (notebooks under `notebooks/kaggle-demo/`; workspace job residual)
 
 ## Story
 
@@ -65,29 +65,37 @@ dataset-specific code, so any similarly-shaped CSV drops in.
 
 ## Acceptance Criteria
 
-- [ ] **US-044-AC1 (land + profile + spec)** — Given the Kaggle CSV
+- [x] **US-044-AC1 (land + profile + spec)** — Given the Kaggle CSV
   staged in a volume and a `source: {kind: delimited}` declaration, when
   notebook 02 lands the file through the ingestion reader seam and runs
   `NativeSparkProfiler` + `SparkToUmfMapper`, then the file lands
   all-STRING raw with reader options derived from the declaration (no
   hardcoded reader), and one UMF spec is emitted that passes
   `tablespec validate` with zero errors and zero manual edits.
-- [ ] **US-044-AC2 (schema workbook)** — Given the derived UMF, when
+  **Evidence**: `notebooks/kaggle-demo/02-kaggle-tablespec-demo.py`
+  (land → profile → map → validate cells; AC1 scorecard row).
+- [x] **US-044-AC2 (schema workbook)** — Given the derived UMF, when
   `tablespec export-excel` runs, then a workbook is produced whose rows
   match the UMF columns/types and a re-import round-trips without loss
   (FEAT-009 contract).
-- [ ] **US-044-AC3 (artifacts + staged validation)** — Given the derived
+  **Evidence**: notebook 02 Excel export + round-trip assert (AC2).
+- [x] **US-044-AC3 (artifacts + staged validation)** — Given the derived
   UMF, when artifact generation and staged validation run, then compiled
   artifacts (raw DDL, ingest SQL, expectation suites) are produced
   deterministically from the spec, and staged validation against the
   landed table yields a report with real per-expectation results (no
   silent `success=False` stubs).
-- [ ] **US-044-AC4 (demo lane + swappability)** — Given the notebook
+  **Evidence**: notebook 02 compile + staged validation cells (AC3).
+- [x] **US-044-AC4 (demo lane + swappability)** — Given the notebook
   pair committed under `notebooks/kaggle-demo/`, when it runs as a
   Databricks workspace job with the default dataset widgets, then the
   job exits PASS; and when the widgets point at a different
   similarly-shaped CSV, notebook 02 runs unmodified (dataset-specific
   values appear only in widgets and notebook 01).
+  **Evidence**: notebook pair + README “Swapping datasets”; scorecard
+  asserts no dataset-specific code in notebook 02.
+  **Limitation**: workspace job PASS/FAIL is not CI-gated (Databricks
+  residual, same posture as US-039/US-045).
 
 ## Edge Cases
 

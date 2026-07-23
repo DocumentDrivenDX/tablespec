@@ -5,6 +5,12 @@ one command path exercises resolve + provision + diagnostics without a live
 workspace. Live deploy-and-drive remains operational evidence.
 """
 
+# @covers US-047-AC2
+# @covers US-047-AC6
+# @covers US-048-AC5
+# @covers US-049-AC3
+# @covers US-049-AC6
+
 from __future__ import annotations
 
 from pathlib import Path

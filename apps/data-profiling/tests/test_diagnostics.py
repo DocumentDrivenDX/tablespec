@@ -12,6 +12,11 @@ Also covered: validation never raises, and it stops early rather than blocking
 on a warehouse that is not running (the two-second startup budget).
 """
 
+# @covers US-049-AC1
+# @covers US-049-AC2
+# @covers US-049-AC4
+# @covers US-049-AC5
+
 from __future__ import annotations
 
 import pytest

@@ -5,6 +5,14 @@ lookup/mapping utilities merge.py consumes, and the backbone's declared-source
 resolution (legacy UMFs without file_format keep comma-CSV behavior).
 """
 
+# @covers US-040-AC3
+# @covers US-042-AC1
+# @covers US-042-AC2
+# @covers US-042-AC3
+# @covers US-042-AC4
+# @covers US-050-AC2
+# @covers US-050-AC3
+
 from __future__ import annotations
 
 import pytest

@@ -10,7 +10,7 @@ ddx:
 
 # Feature Specification: FEAT-034 — App Deployment & Configuration
 
-**Status**: Specified
+**Status**: Built (unit whole-stack path green; live workspace deploy residual)
 **Priority**: P1
 **Feature ID**: FEAT-034
 **Owner**: Platform / Developer Experience
@@ -18,13 +18,24 @@ ddx:
 **Covered PRD Requirements**: FR-23.1, FR-23.2, FR-23.3, FR-23.4, FR-23.5, FR-23.6
 **Cross-Subsystem Rationale**: None — single subsystem.
 
+> **Phase status (honest 2026-07-22).** Specs describe the desired end state.
+>
+> | Slice | Status | Evidence / residual |
+> |-------|--------|---------------------|
+> | CFG-01..04 config precedence | **Shipped** | `profiler/config.py` + `tests/test_config.py` |
+> | PROV-01..04 idempotent provision | **Shipped** | `profiler/provision.py` + `tests/test_provision.py` |
+> | PKG-01..03 declared app.yaml inputs | **Shipped** | `apps/data-profiling/app.yaml` env inputs |
+> | DIAG-01..04 startup + optionals | **Shipped** | `profiler/diagnostics.py` + `tests/test_diagnostics.py` |
+> | Unit whole-stack FR-23 path | **Shipped** | `tests/test_fr23_stack.py` |
+> | Live deploy-and-drive on a workspace | **Residual** | Operational evidence; not CI-gated |
+
 ## Overview
 
 Make the guidebook + profiling application deployable into any Databricks
-environment as a configured step of the tablespec process. Today the
-application is bound to one workspace by environment literals embedded in its
-source; this feature makes the metadata location a declared input and adds an
-explicit provisioning step, satisfying FR-23.1–FR-23.6.
+environment as a configured step of the tablespec process. The metadata location
+is a declared input; an explicit provisioning step creates schema/volume/
+governance tables; startup validation fails fast with actionable messages —
+satisfying FR-23.1–FR-23.6.
 
 ## Ideal Future State
 
