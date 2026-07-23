@@ -15,6 +15,8 @@ and for free. The two prod-neutral profiler fixes this lane locks in are:
   not implement ``approx_distinct`` for Float64).
 """
 
+# @covers US-037-AC2
+
 from __future__ import annotations
 
 import warnings
