@@ -51,13 +51,30 @@ def test_fr23_resolve_provision_validate_compose(tmp_path: Path) -> None:
     assert cfg.metadata_catalog == "stack_cat"
     assert cfg.source_of("metadata_catalog") == "deployment"
 
-    report = provision(cfg, executor=_EmptyExecutor(), grant_to=None)
+    empty = _EmptyExecutor()
+    report = provision(cfg, executor=empty, grant_to=None)
     assert isinstance(report, ProvisionReport)
     assert report.changed is True
+    assert empty.statements  # DDL issued on empty environment
 
-    # Second provision against a fake that reports everything already present
-    # is covered in test_provision; here we only require composition succeeds.
+    # Smoke: mock runtime validation is list-shaped and non-raising.
     faults = validate_config(cfg)
-    # mock runtime without a live warehouse probe should not raise; faults may
-    # be empty or advisory depending on runtime probes — must be a list.
     assert isinstance(faults, list)
+    assert faults == []  # mock runtime skips warehouse probes
+
+
+def test_fr23_smoke_exit_zero_composition(tmp_path: Path) -> None:
+    """CLI-equivalent smoke: resolve + provision + validate returns success."""
+    from profiler.smoke import run_fr23_smoke
+
+    code = run_fr23_smoke(
+        env={
+            "PROFILER_METADATA_CATALOG": "smoke_cat",
+            "PROFILER_METADATA_SCHEMA": "smoke_schema",
+            "PROFILER_OUTPUT_VOLUME": "smoke_vol",
+            "PROFILER_RUNTIME": "mock",
+        },
+        registry_path=str(tmp_path / "missing.yaml"),
+        executor=_EmptyExecutor(),
+    )
+    assert code == 0

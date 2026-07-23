@@ -111,10 +111,11 @@ in alignment beads (do not shrink the procedure to match incomplete tooling).
 
 ## app_deploy (FR-23 / FEAT-034)
 
-Desired operating procedure for standing up `apps/data-profiling/` in a target
-Databricks environment. Full automation of provision + startup fail-fast is the
-implementation target; until beads close, operators may execute steps manually
-but **must not** edit tracked application source for environment identity.
+Operating procedure for standing up `apps/data-profiling/` in a target
+Databricks environment. Config, provision, and startup fail-fast are
+implemented; **agent-side smoke** (no workspace) is the CI gate. Live
+deploy-and-drive remains operational residual. Operators **must not** edit
+tracked application source for environment identity.
 
 ### App deploy inputs
 
@@ -128,17 +129,26 @@ but **must not** edit tracked application source for environment identity.
 
 1. Declare the metadata home and compute for the target environment as
    deployment inputs (never as literals in tracked app source).
-2. Run (or re-run) the idempotent provision step: create/verify schema, volume,
-   and governance tables; report what was created; second run is a no-op.
-3. Deploy the Databricks App artifact from `apps/data-profiling/` (or the
-   subdirectory package that satisfies the Apps file-count limit), installing
+2. **Agent smoke (no workspace)** — must exit 0 before claiming FR-23 unit path:
+   ```bash
+   cd apps/data-profiling
+   PROFILER_RUNTIME=mock \
+     PROFILER_METADATA_CATALOG=main \
+     PROFILER_METADATA_SCHEMA=tablespec_profiler \
+     uv run pytest tests/test_fr23_stack.py tests/test_config.py tests/test_provision.py tests/test_diagnostics.py -q
+   # or: PROFILER_RUNTIME=mock python scripts/fr23_smoke.py
+   ```
+3. Run (or re-run) the idempotent provision step against the target warehouse:
+   `python scripts/provision.py` (second run is a no-op).
+4. Deploy the Databricks App artifact from `apps/data-profiling/`, installing
    `tablespec` as a dependency rather than shipping the full monorepo.
-4. Start the app and confirm startup validation: missing warehouse, unreachable
+5. Start the app and confirm startup validation: missing warehouse, unreachable
    location, or missing grant surfaces one actionable error naming the setting
    and the grant required.
-5. Confirm the UI displays the resolved metadata location without opening source
+6. Confirm the UI displays the resolved metadata location without opening source
    files.
-6. Smoke: open guidebook/profile surfaces against the declared location.
+7. Live smoke: open guidebook/profile surfaces against the declared location
+   (operational residual — not default CI).
 
 ### App success thresholds
 
