@@ -8,6 +8,11 @@ plus the requirement that every setting reports which tier supplied it, so a
 default that silently filled in is visible rather than assumed.
 """
 
+# @covers US-047-AC1
+# @covers US-047-AC3
+# @covers US-047-AC4
+# @covers US-047-AC5
+
 from __future__ import annotations
 
 import pytest

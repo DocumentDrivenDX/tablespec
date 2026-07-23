@@ -209,7 +209,7 @@ edits; do not renumber on edit.
 
 ### Subsystem: Source Acquisition
 
-**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Phase honesty (2026-07-22, alignment drain): delimited/parquet/jdbc/json cores + DUMP options + PARQ typed-raw cast + JDBC discovery (US-039) + story floor US-040/042/043/050 are shipped; remaining residual is primarily demo notebook evidence (US-044/045).*
+**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Phase honesty (2026-07-22): delimited/parquet/jdbc/json cores + DUMP/PARQ + JDBC discovery (US-039) + story floor US-040/042/043/050 shipped; US-044 Kaggle notebook pair Built under `notebooks/kaggle-demo/`; US-045 workspace job residual remains operational.*
 
 - **FR-21.1** — **Declared source shape.** UMF carries a discriminated `source:` block (`kind: delimited | parquet | jdbc | json`); today's `file_format` is the body of the `delimited` variant and remains a back-compat alias resolved via a non-persisting accessor. Raw landing typing follows the kind: all-STRING for text-landed sources, native-typed for typed sources.
 - **FR-21.2** — **Dump-dialect text landing.** The `delimited` variant covers database dump files: multi-character line terminators, `\N`-style null escapes, footer handling, and `skip_rows` honored end-to-end — every declared option actually consumed by the compiled readers. *(Shipped — model + dump reader + unit tests.)*
@@ -324,7 +324,7 @@ edits; do not renumber on edit.
 
 ### Subsystem: App Deployment & Configuration
 
-**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. The metadata substrate is already location-parameterized (`delta_repo.ensure_tables(catalog, schema)`, `VolumeRef`); this family is the desired deployability contract. Feature decomposition is FEAT-034; configuration precedence is ADR-019. Implementation gaps (portable config, provisioning, startup diagnostics, app e2e) are tracked in the alignment bead epic, not by shrinking these requirements.*
+**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. Feature decomposition is FEAT-034; configuration precedence is ADR-019. Phase honesty (2026-07-22): config precedence, idempotent provision, declared app.yaml inputs, startup diagnostics, and the unit whole-stack path (`test_fr23_stack.py`) are shipped; live workspace deploy-and-drive remains operational residual.*
 
 - **FR-23.1** — **Resolved runtime configuration.** The app resolves every environment-specific setting through one configuration object with a fixed precedence: deployment-supplied environment variables → `connections.yaml` → built-in defaults. No catalog, schema, volume, warehouse id, or workspace URL appears as a literal in application code.
 - **FR-23.2** — **Declared governance location.** The metadata home is a declared `(catalog, schema)` pair plus an output volume. Every governance table and every volume path derives from that declaration, so relocating the metadata is a configuration change, not a code change.

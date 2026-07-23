@@ -45,7 +45,7 @@ ddx:
 | FEAT-031 | [Multi-Source Ingestion](features/FEAT-031-multi-source-ingestion.md) | Discriminated `source:` contract (delimited/parquet/jdbc/json) with kind-dependent raw typing, ingestion reader seam, JDBC compiled read specs, and database discovery; Northwind end-to-end is the acceptance goal. DUMP/PARQ/JDBC/JSON cores + story floor US-040/042/043/050 shipped. | Specified | P1 | Platform / Data Engineering | PRD: Source Acquisition (FR-21.1–FR-21.7); ADR-015 | 2026-07-22 |
 | FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract; SEC 10-K demo is the acceptance goal. Type core + CORP example + notebook contract shipped; workspace job not CI-gated. | Built | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-07-22 |
 | FEAT-033 | [Guidebook](features/FEAT-033-guidebook.md) | Render a directory of UMFs into a navigable, self-contained HTML guidebook — one page per table — with column metadata, FK + derivation lineage, group/flat indexes, and search; CLI + `generate_guidebook` API. | Built | P1 | Platform / Developer Experience | PRD: Guidebook (FR-22.1–FR-22.4); ADR-018 | 2026-07-22 |
-| FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. Desired state; implementation gaps tracked in alignment beads. | Specified | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-22 |
+| FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. Unit path shipped; live workspace deploy residual. | Built | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-22 |
 
 ## Status Definitions
 
@@ -65,9 +65,9 @@ enum). **Delivery stage** is tracked only in this registry
 (Draft / Specified / Designed / In Test / In Build / Built / Deployed / …).
 Spec-lifecycle status does not imply delivery **Built**: a feature's spec may be
 final while delivery is still Specified or In Build when residual work remains
-(FEAT-032 is Approved / In Build; FEAT-031 and FEAT-034 are Specified on both
-axes). Legacy FEAT-001–029 are Built; FEAT-030 and
-FEAT-033 are Built; FEAT-032 type core is shipped with CORP/DEMO residual.
+(FEAT-032 Approved with demo residual; FEAT-031 Specified with US-044/045 demo
+residual; FEAT-034 Built with live-deploy residual). Legacy FEAT-001–029,
+FEAT-030, and FEAT-033 are Built; FEAT-032 type core + CORP example shipped.
 
 ## Dependencies
 

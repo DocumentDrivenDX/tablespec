@@ -1,4 +1,8 @@
 # Databricks notebook source
+# @covers US-044-AC1
+# @covers US-044-AC2
+# @covers US-044-AC3
+# @covers US-044-AC4
 # MAGIC %md
 # MAGIC # 02 — tablespec Kaggle demo: flat-file CSV → specs → artifacts → validation
 # MAGIC

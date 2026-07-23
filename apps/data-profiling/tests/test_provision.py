@@ -14,6 +14,12 @@ A fake executor stands in for the warehouse so the whole flow is exercised
 without a workspace.
 """
 
+# @covers US-048-AC1
+# @covers US-048-AC2
+# @covers US-048-AC3
+# @covers US-048-AC4
+# @covers US-048-AC6
+
 from __future__ import annotations
 
 import pytest

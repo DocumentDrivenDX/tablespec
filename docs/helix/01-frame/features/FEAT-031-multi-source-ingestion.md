@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (DUMP/PARQ/JDBC/JSON cores + story floor US-040/042/043/050 shipped; demo residual on US-044/045)
+**Status**: Specified (DUMP/PARQ/JDBC/JSON cores + story floor US-040/042/043/050 shipped; US-044 Kaggle notebooks Built; US-045 workspace job residual)
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
