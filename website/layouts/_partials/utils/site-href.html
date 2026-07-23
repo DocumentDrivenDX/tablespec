@@ -1,0 +1,41 @@
+{{- /*
+  site-href — resolve a link against site.BaseURL for GitHub Pages project sites.
+
+  Hextra (and some Hugo helpers) pass root-absolute paths like "/demos/" through
+  `relURL` *without* stripping the leading slash. With baseURL
+  `https://example.com/tablespec/`, that emits `href="/demos/"` and 404s.
+  Markdown render hooks already trim the slash first; shortcodes must do the same.
+
+  Usage:
+    href="{{ partial "utils/site-href.html" $link }}"
+
+  Rules:
+    - empty / fragment / mailto / tel / javascript / data / absolute http(s) / //
+      → returned unchanged
+    - path starting with "/" → relURL after TrimPrefix "/" (baseURL-aware)
+    - other relative paths ("../x", "child/") → returned unchanged (browser-relative)
+*/ -}}
+{{- $link := . | default "" | string -}}
+{{- if not $link -}}
+{{- else if or
+  (hasPrefix $link "#")
+  (hasPrefix $link "mailto:")
+  (hasPrefix $link "tel:")
+  (hasPrefix $link "javascript:")
+  (hasPrefix $link "data:")
+  (hasPrefix $link "//")
+  (hasPrefix $link "http://")
+  (hasPrefix $link "https://")
+-}}
+  {{- $link -}}
+{{- else if hasPrefix $link "/" -}}
+  {{- /* Preserve query string and fragment if present. */ -}}
+  {{- $u := urls.Parse $link -}}
+  {{- $path := strings.TrimPrefix "/" $u.Path -}}
+  {{- $href := relURL $path -}}
+  {{- with $u.RawQuery -}}{{- $href = printf "%s?%s" $href . -}}{{- end -}}
+  {{- with $u.Fragment -}}{{- $href = printf "%s#%s" $href . -}}{{- end -}}
+  {{- $href -}}
+{{- else -}}
+  {{- $link -}}
+{{- end -}}

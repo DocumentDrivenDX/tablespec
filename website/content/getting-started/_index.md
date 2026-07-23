@@ -214,9 +214,9 @@ When you have a workspace, use the operator checklists:
 ## Next steps
 
 {{< cards >}}
-  {{< card link="in-a-workspace/" title="In a workspace" subtitle="Notebook demos and opt-in serverless steps for a real Databricks environment." icon="server" >}}
-  {{< card link="deploy-the-app/" title="Deploy the app" subtitle="Provision metadata home, declare inputs, grant, and deploy the profiling app." icon="cog" >}}
-  {{< card link="../concepts/" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
-  {{< card link="../cli-reference/" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
-  {{< card link="../demos/" title="Demos" subtitle="Northwind, Kaggle, Synthea, SEC 10-K, and the local screencast." icon="play" >}}
+  {{< card link="/getting-started/in-a-workspace/" title="In a workspace" subtitle="Notebook demos and opt-in serverless steps for a real Databricks environment." icon="server" >}}
+  {{< card link="/getting-started/deploy-the-app/" title="Deploy the app" subtitle="Provision metadata home, declare inputs, grant, and deploy the profiling app." icon="cog" >}}
+  {{< card link="/concepts/" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
+  {{< card link="/cli-reference/" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
+  {{< card link="/demos/" title="Demos" subtitle="Northwind, Kaggle, Synthea, SEC 10-K, and the local screencast." icon="play" >}}
 {{< /cards >}}

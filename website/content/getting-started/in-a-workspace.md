@@ -141,7 +141,7 @@ use; run them when you care about that environment.
 ## Next
 
 {{< cards >}}
-  {{< card link="../deploy-the-app/" title="Deploy the app" subtitle="FR-23 portability: provision, declare inputs, grant, deploy." icon="cog" >}}
-  {{< card link="../../demos/" title="Demos" subtitle="Narrative detail for Northwind, Synthea, and the local screencast." icon="play" >}}
-  {{< card link="../../concepts/artifacts/" title="Compiled artifacts" subtitle="What the commit tree contains after compile." icon="document-text" >}}
+  {{< card link="/getting-started/deploy-the-app/" title="Deploy the app" subtitle="FR-23 portability: provision, declare inputs, grant, deploy." icon="cog" >}}
+  {{< card link="/demos/" title="Demos" subtitle="Narrative detail for Northwind, Synthea, and the local screencast." icon="play" >}}
+  {{< card link="/concepts/artifacts/" title="Compiled artifacts" subtitle="What the commit tree contains after compile." icon="document-text" >}}
 {{< /cards >}}

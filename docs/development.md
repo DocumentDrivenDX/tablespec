@@ -54,9 +54,23 @@ npm run test:links
 ```
 
 The link suite serves Hugo with `--baseURL http://127.0.0.1:1314/tablespec/` so
-root-absolute hrefs like `/demos` fail the same way they do on GitHub Pages.
-CI runs both suites in `.github/workflows/microsite.yml` and as a pre-deploy
-gate in `publish-microsite.yml`.
+root-absolute hrefs that drop the project path fail the same way they do on
+GitHub Pages. CI runs both suites in `.github/workflows/microsite.yml` and as a
+pre-deploy gate in `publish-microsite.yml`.
+
+### Link convention (do not work around baseURL)
+
+Site lives under `/tablespec/`. Prefer root-absolute site paths in content:
+
+```markdown
+{{< card link="/demos/" title="Demos" >}}
+[Getting Started](/getting-started/)
+```
+
+Shortcodes resolve those through `website/layouts/_partials/utils/site-href.html`
+(Hextra overrides under `website/layouts/`). Do not use `../section/` relative
+card links to paper over missing baseURL handling — fix the shortcode via
+`site-href` instead. See `website/README.md`.
 
 ## Project Structure
 
