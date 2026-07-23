@@ -50,7 +50,7 @@ FR-23.x (app deployment); FEAT-024–034; US-021–026, US-038–039, US-044–0
 | Integration | Per-emitter project builds (dbt parse/run, LDP structure), staged validation routing, profiler→GX expectations, ingestion readers by kind | P0 |
 | Unit | UMF models (incl. EMBEDDING + source kinds), type mappings, schema generators, baseline GX, native expectation evaluators, capability probing, guidebook pure helpers | P0 |
 | E2E (library) | Bootstrap → compile → backbone across the DuckDB/Spark/Sail matrix; opt-in real-Databricks deploy/execute | P0 (local), P1 (opt-in workspace) |
-| E2E (microsite) | Hugo build + Playwright navigation/responsive checks (`website/e2e/`) | P1 |
+| E2E (microsite) | Hugo build + Playwright content suite + `/tablespec/` link crawl (`website/e2e/`, `make website-test`) | P1 |
 | E2E (Databricks App) | Config resolve + provision + startup against a declared metadata home | P1 unit path in `test_fr23_stack.py`; live deploy operational |
 
 ### Frameworks

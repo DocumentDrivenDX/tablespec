@@ -62,6 +62,22 @@ jobs:
           npm ci
           hugo --gc --minify
 
+      - name: Install Playwright Chromium
+        working-directory: website
+        run: npm run install:browsers:ci
+
+      - name: Playwright content suite
+        working-directory: website
+        run: npm run test:content
+        env:
+          CI: true
+
+      - name: Playwright link crawl (/tablespec/ base)
+        working-directory: website
+        run: npm run test:links
+        env:
+          CI: true
+
       - name: Generate combined Pages artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

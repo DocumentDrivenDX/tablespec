@@ -83,6 +83,19 @@ docs: ## Build API documentation
 docs-serve: ## Serve API documentation locally
 	uv run mkdocs serve
 
+# Product microsite (Hugo + Playwright)
+website-install: ## Install website npm deps and Chromium for Playwright
+	cd website && npm ci && npm run install:browsers
+
+website-test-content: ## Microsite content/nav/screenshot Playwright suite
+	cd website && npm run test:content
+
+website-test-links: ## Microsite link crawl + content checks under /tablespec/ base
+	cd website && npm run test:links
+
+website-test: ## Full microsite Playwright suite (content + link check)
+	cd website && npm run test:all
+
 # Development
 clean: ## Remove build artifacts and cache files
 	rm -rf build/ dist/ *.egg-info .pytest_cache/ .coverage htmlcov/ .ruff_cache/
