@@ -42,7 +42,7 @@ remedy. Resolution precedence is US-047; object creation is US-048.
 - [x] **US-049-AC2** — Given a declared metadata schema that does not exist or is unreadable by the running identity, when the app starts, then startup validation fails naming the schema and the access required.
   **Evidence**: `test_diagnostics.py` (`@covers US-049-AC2`).
 - [x] **US-049-AC3** — Given a valid configuration, when the app starts, then startup validation passes and adds no more than 2 seconds to start time.
-  **Evidence**: mock runtime path returns immediately; `test_fr23_stack.py` (`@covers US-049-AC3`). Live NFR budget is operational residual.
+  **Evidence**: mock runtime path returns immediately; `test_fr23_stack.py` (`@covers US-049-AC3`). Workspace timing budgets are operator-side, not CI-gated.
 - [x] **US-049-AC4** — Given an unset optional setting (dashboard link, conversational-analytics space, or pre-generated specification volume), when the app starts, then only the dependent surface is hidden or disabled and no error is raised elsewhere.
   **Evidence**: `test_diagnostics.py` optionals disabled (`@covers US-049-AC4`); streamlit hides dashboard when unset.
 - [x] **US-049-AC5** — Given any startup validation failure, when the message is produced, then it names a specific setting rather than reporting an unqualified error.

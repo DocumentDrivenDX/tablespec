@@ -22,7 +22,7 @@ This document covers the repo-level build surface for tablespec: packaging, form
 
 The prior March 2026 phase narrative is preserved in [implementation-plan-v2.md](implementation-plan-v2.md) as a tombstone. Keep this file focused on current build practice and current source-tree shape.
 
-`apps/data-profiling/` is a first-party **deployable** Databricks App surface (FR-23), not a library import path. Desired portability work is tracked in DDx beads from the 2026-07-22 alignment epic; do not shrink FR-23 to match incomplete config/provision tooling.
+`apps/data-profiling/` is a first-party **deployable** Databricks App surface (FR-23), not a library import path. Config, provision, diagnostics, and the unit whole-stack path are shipped. Operator deploy steps live on the product microsite (`getting-started/deploy-the-app/`).
 
 ## Implementation Slices
 
@@ -33,7 +33,7 @@ The prior March 2026 phase narrative is preserved in [implementation-plan-v2.md]
 5. Operator-facing utilities: CLI, TUI, formatting, naming, and change-management helpers that support repeatable maintenance work.
 6. Guidebook + multi-source ingestion: `guidebook/` (FR-22) and `ingestion/` (FR-21).
 7. Product microsite: `website/` Hugo/Hextra + Playwright (FEAT-030).
-8. Databricks App: `apps/data-profiling/` deployability (FR-23) — config precedence, provision, startup diagnostics (desired; beads).
+8. Databricks App: `apps/data-profiling/` deployability (FR-23) — config precedence, provision, startup diagnostics (shipped; operator walkthrough on microsite).
 
 ## Issue Decomposition
 

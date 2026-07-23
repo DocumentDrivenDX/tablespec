@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (DUMP/PARQ/JDBC/JSON cores + story floor US-040/042/043/050 shipped; US-044 Kaggle notebooks Built; US-045 workspace job residual)
+**Status**: Approved
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -15,17 +15,18 @@ ddx:
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
-> **Phase status (honest 2026-07-22; queue surgery same day).** Specs describe
-> the desired end state. Implementation progress by family:
+> **Delivery (2026-07-23).** All FR-21 families are shipped. Workspace walkthroughs
+> for JDBC/Northwind and flat-file demos live on the product microsite
+> (`getting-started/in-a-workspace/`), not as open implementation residuals.
 >
-> | Family | Status | Evidence / residual |
-> |--------|--------|---------------------|
+> | Family | Status | Evidence |
+> |--------|--------|----------|
 > | SRC (source model + seam) | **Shipped** | `DelimitedSource` / `ParquetSource` / `JsonSource` / `JdbcSource` in `models/umf.py`; `ingestion/` readers |
-> | JDBC + DISC | **Shipped** | `ingestion/jdbc.py`; US-039 ACs all checked; `@covers` in `tests/integration/test_northwind_e2e.py` |
+> | JDBC + DISC | **Shipped** | `ingestion/jdbc.py`; US-039 ACs + `@covers` in `tests/integration/test_northwind_e2e.py` |
 > | SUITE typed-raw slice | **Shipped** | Typed raw suite path for parquet/jdbc/json kinds |
-> | DUMP-01..04 | **Shipped** | Model options + dump reader + `tests/unit/test_ingestion_package.py` (skip/footer/null_escape/line_terminator) |
-> | PARQ identity/safe-narrowing | **Shipped** | Typed-raw cast path in `casting_utils` + `test_casting_utils.py` typed_raw DATE/TIMESTAMP; ingest generator parquet native typed |
-> | JSON-01 (FR-21.7) | **Shipped** | Model + `JsonReader` + backbone `_declared_source`/`_load_raw` (Spark + DuckDB) + conformance JSON tier |
+> | DUMP-01..04 | **Shipped** | Model options + dump reader + `tests/unit/test_ingestion_package.py` |
+> | PARQ identity/safe-narrowing | **Shipped** | Typed-raw cast path + ingest generator parquet native typed |
+> | JSON-01 (FR-21.7) | **Shipped** | Model + `JsonReader` + backbone load path + conformance JSON tier |
 > | Story floor | **Shipped** | US-039/040/042/043/044/050 on disk; US-041 cancelled as duplicate of US-039 |
 
 ## Overview

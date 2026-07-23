@@ -112,7 +112,7 @@ edits; do not renumber on edit.
 - **FR-1.8** — Column name validation (alphanumeric + underscore, max 128 chars)
 - **FR-1.9** — Unique column name enforcement
 - **FR-1.10** — UMF metadata with pipeline phase tracking (1-7)
-- **FR-1.11** — **Dimensioned EMBEDDING type.** A logical `EMBEDDING` data type with a required per-column `dimension`, compiling to `ARRAY<FLOAT>` (Spark SQL/Delta), `ArrayType(FloatType())` (PySpark), and array-of-number (JSON Schema); validation gains a dimensionality expectation and a divisible-by-16 Vector-Search advisory; embeddings are excluded from string-shape checks. tablespec never parses documents or calls embedding models — it governs the landed corpus table. Type alphabet, mappings, baseline expectations, sample-data generation, compatibility rules, and the document-corpus pattern example (`examples/sec10k_corpus.yaml`) are shipped; SEC 10-K demo acceptance (US-045) remains desired completion (bead `tablespec-abd68023`). *Governed by FEAT-032; decision recorded in ADR-016.*
+- **FR-1.11** — **Dimensioned EMBEDDING type.** A logical `EMBEDDING` data type with a required per-column `dimension`, compiling to `ARRAY<FLOAT>` (Spark SQL/Delta), `ArrayType(FloatType())` (PySpark), and array-of-number (JSON Schema); validation gains a dimensionality expectation and a divisible-by-16 Vector-Search advisory; embeddings are excluded from string-shape checks. tablespec never parses documents or calls embedding models — it governs the landed corpus table. Type alphabet, mappings, baseline expectations, sample-data generation, compatibility rules, the document-corpus pattern example (`examples/sec10k_corpus.yaml`), and the SEC 10-K notebook pair (`notebooks/sec-10k-demo/`) are shipped; workspace steps are on the product microsite. *Governed by FEAT-032; decision recorded in ADR-016.*
 
 ### Subsystem: Schema Generation
 
@@ -209,7 +209,7 @@ edits; do not renumber on edit.
 
 ### Subsystem: Source Acquisition
 
-**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Phase honesty (2026-07-22): delimited/parquet/jdbc/json cores + DUMP/PARQ + JDBC discovery (US-039) + story floor US-040/042/043/050 shipped; US-044 Kaggle notebook pair Built under `notebooks/kaggle-demo/`; US-045 workspace job residual remains operational.*
+**FR-21** requirement family. *Governed by FEAT-031; decision recorded in ADR-015. The raw landing contract generalizes from flat files to declared source shapes. Delivery (2026-07-23): delimited/parquet/jdbc/json cores + DUMP/PARQ + JDBC discovery (US-039) + story floor US-040/042/043/044/050 shipped. Operator workspace walkthroughs (Northwind, Kaggle, SEC 10-K) are on the product microsite under Getting Started.*
 
 - **FR-21.1** — **Declared source shape.** UMF carries a discriminated `source:` block (`kind: delimited | parquet | jdbc | json`); today's `file_format` is the body of the `delimited` variant and remains a back-compat alias resolved via a non-persisting accessor. Raw landing typing follows the kind: all-STRING for text-landed sources, native-typed for typed sources.
 - **FR-21.2** — **Dump-dialect text landing.** The `delimited` variant covers database dump files: multi-character line terminators, `\N`-style null escapes, footer handling, and `skip_rows` honored end-to-end — every declared option actually consumed by the compiled readers. *(Shipped — model + dump reader + unit tests.)*
@@ -324,7 +324,7 @@ edits; do not renumber on edit.
 
 ### Subsystem: App Deployment & Configuration
 
-**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. Feature decomposition is FEAT-034; configuration precedence is ADR-019. Phase honesty (2026-07-22): config precedence, idempotent provision, declared app.yaml inputs, startup diagnostics, and the unit whole-stack path (`test_fr23_stack.py`) are shipped; live workspace deploy-and-drive remains operational residual.*
+**FR-23** requirement family. *Governs deployment and configuration of the guidebook + profiling Databricks App (`apps/data-profiling/`) so one source tree deploys into any workspace. Feature decomposition is FEAT-034; configuration precedence is ADR-019. Delivery (2026-07-23): config precedence, idempotent provision, declared app.yaml inputs, startup diagnostics, and the unit whole-stack path (`test_fr23_stack.py`) are shipped and CI-gated; operator deploy steps are on the product microsite (`getting-started/deploy-the-app/`).*
 
 - **FR-23.1** — **Resolved runtime configuration.** The app resolves every environment-specific setting through one configuration object with a fixed precedence: deployment-supplied environment variables → `connections.yaml` → built-in defaults. No catalog, schema, volume, warehouse id, or workspace URL appears as a literal in application code.
 - **FR-23.2** — **Declared governance location.** The metadata home is a declared `(catalog, schema)` pair plus an output volume. Every governance table and every volume path derives from that declaration, so relocating the metadata is a configuration change, not a code change.
@@ -344,8 +344,8 @@ edits; do not renumber on edit.
 | FR-7.7 | Connect-safe validation | A compiled suite + a Connect DataFrame | Data-scanning expectations route to the native executor and return real results (not silent `success=False`) |
 | FR-19.1/19.3 | Sibling emitter on core seam | One UMF | dbt and LDP projects both emitted; importing core does not require dbt/LDP packages |
 | FR-20.2 | Engine-correct dispatch | A process with both a classic and a Connect session | Column expressions resolve from the DataFrame's own engine and do not raise `'Column' object is not callable` |
-| FR-23.1/23.3 (planned) | Deploy the app into a fresh workspace | An empty target schema plus deployment inputs (catalog, schema, volume, warehouse) — no code edits | Provisioning creates the schema, volume, and governance tables; the app starts and reads/writes only the declared location; a redeploy is a no-op |
-| FR-23.6 (planned) | Under-privileged deployment | Deployment inputs naming a warehouse the app identity cannot use | One actionable startup error naming the warehouse and the required grant, rather than a mid-session failure on first query |
+| FR-23.1/23.3 | Deploy the app into a fresh workspace | An empty target schema plus deployment inputs (catalog, schema, volume, warehouse) — no code edits | Provisioning creates the schema, volume, and governance tables; the app starts and reads/writes only the declared location; a redeploy is a no-op. Unit composition is CI-gated; full workspace steps are on the microsite Getting Started |
+| FR-23.6 | Under-privileged deployment | Deployment inputs naming a warehouse the app identity cannot use | One actionable startup error naming the warehouse and the required grant, rather than a mid-session failure on first query |
 
 ## Technical Context
 

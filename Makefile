@@ -1,6 +1,9 @@
 .PHONY: help install install-dev install-spark setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
-TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py')
+# Library + scripts + Databricks app Python. Notebooks under apps/ are
+# Databricks-runtime scripts (display, spark, widgets) and stay out of ruff —
+# same exclusion as .pre-commit-config.yaml's `(^|/)notebooks/` pattern.
+TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py' 'apps/**/*.py' ':(exclude)apps/**/notebooks/**')
 # Includes the Databricks app's suite (apps/data-profiling/tests), which pytest
 # also picks up via `testpaths` when invoked without explicit paths. That suite is
 # flat, and a `**/` pathspec matches no files there -- keep the single-star glob.

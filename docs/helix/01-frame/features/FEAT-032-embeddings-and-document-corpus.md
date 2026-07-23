@@ -10,23 +10,25 @@ ddx:
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: UMF Model and I/O (+ validation touchpoints)
-**Covered PRD Requirements**: FR-1.11 (shipped type alphabet + CORP example; DEMO residual on bead `tablespec-abd68023`)
+**Covered PRD Requirements**: FR-1.11
 **Cross-Subsystem Rationale**: Primary subsystem is UMF Model and I/O
 (the type and its mappings); the GX baseline, profiling, sample-data,
 and compatibility touchpoints follow the type wherever the type alphabet
 is consumed, per ADR-016.
 
-> **Phase status (honest 2026-07-22).** Specs describe the desired end state.
+> **Delivery (2026-07-23).** Type alphabet, CORP example, and demo notebooks are
+> shipped. Running the SEC 10-K notebooks on a workspace is a Getting Started
+> walkthrough on the product microsite (`getting-started/in-a-workspace/`).
 >
-> | Slice | Status | Evidence / residual |
-> |-------|--------|---------------------|
+> | Slice | Status | Evidence |
+> |-------|--------|----------|
 > | EMB type alphabet + dimension validation | **Shipped** | `models/umf.py` EMBEDDING pattern + dimension validators |
 > | Type mappings (SQL/PySpark/JSON/GX) | **Shipped** | `type_mappings.py`; unit tests |
-> | Schema generators + GX baseline + sample data + compatibility | **Shipped** | Tests under `tests/unit/test_*` for generators, gx_baseline, column_value_generator, compatibility |
-> | CORP document-corpus pattern example | **Shipped** | Canonical example: [`examples/sec10k_corpus.yaml`](../../../../examples/sec10k_corpus.yaml) (CORP-01 pattern, `EMBEDDING(1024)`) |
-> | DEMO SEC 10-K (US-045) | **Shipped (CI residual recorded)** | Type/example/notebook contract evidenced; workspace job not CI-gated (US-045 limitations) |
+> | Schema generators + GX baseline + sample data + compatibility | **Shipped** | Unit tests for generators, gx_baseline, sample data, compatibility |
+> | CORP document-corpus pattern example | **Shipped** | [`examples/sec10k_corpus.yaml`](../../../../examples/sec10k_corpus.yaml) |
+> | DEMO SEC 10-K (US-045) notebooks | **Shipped** | `notebooks/sec-10k-demo/` + microsite workspace walkthrough |
 >
-> The facts-table half of the SEC demo may use FEAT-031's `json` source kind.
+> The facts-table half of the SEC demo uses FEAT-031's `json` source kind.
 
 ## Overview
 
@@ -264,7 +266,7 @@ it.
   workbook), FEAT-007/FEAT-017 (staged validation + report), FEAT-024
   (native profiler — gains the EMB-07 passthrough), FEAT-029 (Databricks
   session acquisition).
-- **PRD requirements**: FR-1.11 (type alphabet shipped; CORP/DEMO residual on alignment beads).
+- **PRD requirements**: FR-1.11 (type alphabet, CORP example, and demo notebooks shipped).
 - **Code touchpoints (planned)**: `src/tablespec/models/umf.py:511`,
   `src/tablespec/type_mappings.py`, `src/tablespec/schemas/generators.py`,
   `src/tablespec/gx_baseline.py`, `src/tablespec/sample_data/`,
@@ -303,7 +305,7 @@ it.
 - [x] Dependencies reference real artifact IDs
 - [x] Out of scope excludes things someone might reasonably assume are
   in scope
-- [x] Implementation status is honest: Approved; type core shipped; CORP/DEMO residual explicit, no
+- [x] Implementation status is honest: Approved; type core, CORP example, and demo notebooks shipped; operator walkthrough on microsite, no
   phantom completion claims
 - [x] Feature is consistent with governing ADR-016, FEAT-031's `json`
   kind decision, and the PRD Non-Goal on parsing/model calls

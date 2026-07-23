@@ -9,7 +9,7 @@ ddx:
 **Feature Requirements**: SRC-01, SRC-04, SRC-05, DUMP-05
 **PRD Requirements**: FR-21.1
 **Priority**: P1
-**Status**: Built (notebooks under `notebooks/kaggle-demo/`; workspace job residual)
+**Status**: Built (notebooks under `notebooks/kaggle-demo/`; operator steps on microsite Getting Started)
 
 ## Story
 

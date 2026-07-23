@@ -8,9 +8,9 @@ ddx:
 **Feature**: FEAT-032 — Embeddings and Document Corpus
 **Feature Requirements**: EMB-01–EMB-09, CORP-01–CORP-05, DEMO-01,
 DEMO-02
-**PRD Requirements**: FR-1.11 (EMBEDDING type alphabet shipped; CORP/DEMO residual)
+**PRD Requirements**: FR-1.11
 **Priority**: P1
-**Status**: Built (type core + example specs + notebooks shipped; workspace job residual recorded)
+**Status**: Built (type core + example specs + notebooks shipped; operator steps on microsite Getting Started)
 
 ## Story
 

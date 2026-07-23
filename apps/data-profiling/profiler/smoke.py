@@ -1,7 +1,7 @@
 """FR-23 agent-side smoke: resolve → provision → validate_config.
 
 No live workspace required when ``PROFILER_RUNTIME=mock`` and a fake SQL
-executor is supplied. Live deploy remains operational residual.
+executor is supplied. Operator workspace steps: product microsite Getting Started.
 """
 
 from __future__ import annotations

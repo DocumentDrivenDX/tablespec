@@ -101,7 +101,8 @@ Behaviour worth knowing:
 
 One source tree serves any workspace. Everything environment-specific is a
 declared deployment input; moving to another environment is a manifest change
-and a provisioning run, never a source edit.
+and a provisioning run, never a source edit. The product microsite walkthrough
+is **Getting Started → Deploy the app** (same steps as below).
 
 ### 1. Choose the metadata home
 

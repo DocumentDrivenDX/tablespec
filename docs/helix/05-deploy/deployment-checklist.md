@@ -5,16 +5,16 @@ ddx:
 
 # Deployment Checklist: tablespec
 
-**Version**: 2.1
-**Status**: Execution-ready template for package+Pages release; app deploy section is the desired FR-23 procedure
-**Last Updated**: 2026-07-22
+**Version**: 2.2
+**Status**: Execution-ready template for package+Pages release; app deploy section is the FR-23 operator procedure
+**Last Updated**: 2026-07-23
 
 This checklist is the release-day operating template for the current tag-driven
-package workflow and the GitHub Pages package index, plus the desired procedure
-for deploying the first-party Databricks App. Keep package/Pages steps aligned
+package workflow and the GitHub Pages package index, plus the procedure for
+deploying the first-party Databricks App. Keep package/Pages steps aligned
 with `.github/workflows/release.yml` and `.github/workflows/publish-microsite.yml`.
-App steps implement FR-23 / FEAT-034 / ADR-019; residual automation is tracked
-in alignment beads (do not shrink the procedure to match incomplete tooling).
+App steps implement FR-23 / FEAT-034 / ADR-019; the product microsite Getting
+Started pages are the human-facing walkthrough of the same procedure.
 
 ## release_scope
 
@@ -27,8 +27,8 @@ in alignment beads (do not shrink the procedure to match incomplete tooling).
   package index.
 - Post-deploy install verification from
   `https://documentdrivendx.github.io/tablespec/simple/`.
-- Desired: deploy the guidebook + profiling Databricks App into a target
-  workspace using only declared inputs (FR-23).
+- Deploy the guidebook + profiling Databricks App into a target workspace using
+  only declared inputs (FR-23); see microsite Getting Started → Deploy the app.
 
 ### Out of scope
 
@@ -113,9 +113,10 @@ in alignment beads (do not shrink the procedure to match incomplete tooling).
 
 Operating procedure for standing up `apps/data-profiling/` in a target
 Databricks environment. Config, provision, and startup fail-fast are
-implemented; **agent-side smoke** (no workspace) is the CI gate. Live
-deploy-and-drive remains operational residual. Operators **must not** edit
-tracked application source for environment identity.
+implemented; **agent-side smoke** (no workspace) is the CI gate. Full
+operator steps for a real workspace are on the product microsite
+(`getting-started/deploy-the-app/`). Operators **must not** edit tracked
+application source for environment identity.
 
 ### App deploy inputs
 
@@ -147,8 +148,8 @@ tracked application source for environment identity.
    and the grant required.
 6. Confirm the UI displays the resolved metadata location without opening source
    files.
-7. Live smoke: open guidebook/profile surfaces against the declared location
-   (operational residual — not default CI).
+7. Open guidebook/profile surfaces against the declared location (see microsite
+   Getting Started → Deploy the app; not a default CI step).
 
 ### App success thresholds
 

@@ -46,7 +46,7 @@ passwords are rejected by the model.
 | Lane | What | Gate |
 |------|------|------|
 | Local | Docker SQL Server + Northwind fixture | `tests/integration/test_jdbc_discovery.py`, `test_northwind_e2e.py` (skip without Docker) |
-| Workspace | `notebooks/northwind-demo/` | Databricks job (operator residual) |
+| Workspace | `notebooks/northwind-demo/` | Product microsite: Getting Started → In a workspace |
 
 ## Backbone note
 

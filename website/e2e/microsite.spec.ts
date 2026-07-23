@@ -79,6 +79,12 @@ test.describe('Getting Started', () => {
       expect(body).toContain('documentdrivendx.github.io/tablespec/simple/')
     })
 
+    await test.step('links to workspace operator guides', async () => {
+      const body = await page.locator('body').textContent()
+      expect(body).toMatch(/In a workspace/i)
+      expect(body).toMatch(/Deploy the app/i)
+    })
+
     await test.step('documents uv and pip install paths', async () => {
       const body = await page.locator('body').textContent()
       expect(body).toContain('uv add tablespec')
@@ -92,6 +98,28 @@ test.describe('Getting Started', () => {
       expect(body).toContain('tablespec validate')
       expect(body).toContain('--backend dbt')
     })
+  })
+
+  test('workspace guide covers demos and opt-in serverless', async ({ page }) => {
+    await page.goto('/getting-started/in-a-workspace/')
+
+    await expect(page.getByRole('heading', { name: 'In a workspace' }).first()).toBeVisible()
+    const body = await page.locator('body').textContent()
+    expect(body).toContain('bootstrap_from_tables')
+    expect(body).toContain('northwind-demo')
+    expect(body).toContain('kaggle-demo')
+    expect(body).toContain('sec-10k-demo')
+    expect(body).toContain('databricks_e2e')
+  })
+
+  test('deploy-the-app guide covers provision and metadata home', async ({ page }) => {
+    await page.goto('/getting-started/deploy-the-app/')
+
+    await expect(page.getByRole('heading', { name: 'Deploy the app' }).first()).toBeVisible()
+    const body = await page.locator('body').textContent()
+    expect(body).toContain('provision.py')
+    expect(body).toContain('PROFILER_METADATA_CATALOG')
+    expect(body).toContain('DATABRICKS_WAREHOUSE_ID')
   })
 })
 
@@ -170,6 +198,8 @@ test.describe('Demos', () => {
 
     const body = await page.locator('body').textContent()
     expect(body).toContain('Northwind')
+    expect(body).toContain('Kaggle')
+    expect(body).toContain('SEC 10-K')
     expect(body).toContain('tablespec-demo')
   })
 })
@@ -224,6 +254,8 @@ test.describe('Build inventory', () => {
     const required = [
       '/',
       '/getting-started/',
+      '/getting-started/in-a-workspace/',
+      '/getting-started/deploy-the-app/',
       '/worked-example/',
       '/concepts/',
       '/concepts/raw-ingested-silver/',
