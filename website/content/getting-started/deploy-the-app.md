@@ -119,8 +119,6 @@ literals into application code.
 
 ## Local smoke (no workspace)
 
-Default CI and agent gates use the mock runtime:
-
 ```bash
 cd apps/data-profiling
 PROFILER_RUNTIME=mock \
@@ -129,6 +127,8 @@ PROFILER_RUNTIME=mock \
   uv run pytest tests/test_fr23_stack.py tests/test_config.py \
     tests/test_provision.py tests/test_diagnostics.py -q
 ```
+
+Or from the repo root: `make app-smoke`.
 
 ## Next
 

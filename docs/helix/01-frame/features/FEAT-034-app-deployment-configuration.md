@@ -18,9 +18,9 @@ ddx:
 **Covered PRD Requirements**: FR-23.1, FR-23.2, FR-23.3, FR-23.4, FR-23.5, FR-23.6
 **Cross-Subsystem Rationale**: None — single subsystem.
 
-> **Delivery (2026-07-23).** FR-23 library path is shipped and unit-gated in CI.
-> Operator deploy steps for a real workspace are documented on the product
-> microsite (`getting-started/deploy-the-app/`), not tracked as open residual work.
+> **Delivery (2026-07-23).** FR-23 library path is shipped and unit-tested.
+> Workspace deploy steps are on the product microsite
+> (`getting-started/deploy-the-app/`).
 >
 > | Slice | Status | Evidence |
 > |-------|--------|----------|

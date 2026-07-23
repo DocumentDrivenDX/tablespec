@@ -15,9 +15,9 @@ ddx:
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
-> **Delivery (2026-07-23).** All FR-21 families are shipped. Workspace walkthroughs
-> for JDBC/Northwind and flat-file demos live on the product microsite
-> (`getting-started/in-a-workspace/`), not as open implementation residuals.
+> **Delivery (2026-07-23).** All FR-21 families are shipped. Workspace
+> walkthroughs for JDBC/Northwind and flat-file demos are on the product
+> microsite (`getting-started/in-a-workspace/`).
 >
 > | Family | Status | Evidence |
 > |--------|--------|----------|
@@ -267,8 +267,7 @@ JDBC vertical is covered by [US-039](../user-stories/US-039-northwind-end-to-end
 [US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
 (delimited kind, shipped code, notebook pair);
 [US-045 — SEC 10-K corpus and facts](../user-stories/US-045-sec-10k-corpus-and-facts.md)
-(EMBEDDING type + CORP example shipped; residual demo evidence tracked
-separately).
+(EMBEDDING type + CORP example + notebooks; workspace walkthrough on microsite).
 
 ## Edge Cases and Error Handling
 
@@ -370,8 +369,8 @@ separately).
 - [x] Dependencies reference real artifact IDs
 - [x] Out of scope excludes things someone might reasonably assume are in
   scope
-- [x] Implementation status is honestly per-phase (seam, JDBC, dumps, parquet,
-  JSON shipped; demo residual called out); no phantom completion claims
+- [x] Implementation status is honest (seam, JDBC, dumps, parquet, JSON shipped;
+  workspace demos on microsite Getting Started)
 - [x] Feature is consistent with governing ADR-015 and the PRD Non-Goal on
   database connectivity
 - [x] No `[NEEDS CLARIFICATION]` markers remain

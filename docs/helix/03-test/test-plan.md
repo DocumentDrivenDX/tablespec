@@ -128,7 +128,7 @@ story test plans. Here, criterion *classes* are allocated to a primary layer:
 | Cross-engine byte-for-byte parity (FR-18.5/19.x) | conformance-acceptance | E2E | Engine matrix vs the oracle |
 | Guidebook pages + lineage (FR-22) | US-046 / FEAT-033 | Integration | Deterministic HTML + search index |
 | Microsite Pages coexistence (FEAT-030) | US-038 | E2E (microsite) | Hugo + Playwright + Pages artifact paths |
-| App portable deploy (FR-23) | US-047–049 / FEAT-034 | E2E (app) | Unit whole-stack path green; live deploy residual operational |
+| App portable deploy (FR-23) | US-047–049 / FEAT-034 | E2E (app) | Unit whole-stack path green; workspace deploy via microsite Getting Started |
 
 **Allocation rule**: every P0 acceptance criterion maps to exactly one primary
 layer here and to concrete tests in its companion plan / STP.

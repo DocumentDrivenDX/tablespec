@@ -20,7 +20,7 @@ flattening and without the backbone failing closed on `kind=json`.
 
 ## Context
 
-### Shipped before this residual
+### Shipped surface
 
 - **Model**: `JsonSource` + `JsonProjection` in `models/umf.py`
 - **Reader**: `JsonReader` in `tablespec.ingestion` (Spark `read.json` +
@@ -28,12 +28,8 @@ flattening and without the backbone failing closed on `kind=json`.
 - **Typed-raw casts**: `source_kind` includes `json` in
   `casting_utils` (same identity/safe-narrowing as parquet)
 - **Conformance**: `tests/conformance/test_json_tier.py` + engine JSON loaders
-
-### Residual closed by implement bead
-
 - **Backbone**: `tablespec.e2e.backbone._declared_source` and Spark/DuckDB
-  `_load_raw` accept `kind=json` (previously raised
-  `NotImplementedError` for non-delimited/parquet)
+  `_load_raw` accept `kind=json`
 
 ## Walkthrough
 
@@ -70,12 +66,10 @@ flattening and without the backbone failing closed on `kind=json`.
 
 - **Absent projection path in data**: reader/engine fails closed naming the
   path (JSON-03) — see projection path validation in `JsonReader`.
-- **Demo residual**: SEC 10-K facts table (US-045-AC3) may still depend on
-  workspace notebooks for end-to-end demo evidence.
+- **SEC 10-K facts demo**: end-to-end EDGAR-landed validation uses
+  `notebooks/sec-10k-demo/` (US-045).
 
 ## Dependencies
 
 - **Feature Spec**: FEAT-031
 - **PRD**: FR-21.7
-- **Work**: story bead `tablespec-557f8a24`; implement bead
-  `tablespec-9f98cf03`

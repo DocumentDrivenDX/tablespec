@@ -65,9 +65,8 @@ enum). **Delivery stage** is tracked only in this registry
 (Draft / Specified / Designed / In Test / In Build / Built / Deployed / …).
 Spec-lifecycle status does not imply delivery **Built**: a feature's spec may be
 final while delivery is still Specified or In Build. FEAT-001–034 delivery is
-**Built**. Workspace-side operator steps (app deploy, demo notebooks, serverless
-opt-in) are documented on the product microsite under Getting Started — they are
-not open library work and are not tracked as bead residuals.
+**Built**. Workspace operator steps (app deploy, demo notebooks, serverless
+opt-in) are on the product microsite under Getting Started.
 
 ## Dependencies
 

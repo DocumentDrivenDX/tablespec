@@ -94,19 +94,16 @@ coupling, so the demo runs on workspaces without FM API access.
   non-divisible-by-16 dimensions surface a non-blocking advisory.
   **Evidence**: `tests/unit/test_gx_baseline.py`
   (`test_embedding_generates_length_expectation`,
-  `test_embedding_dimension_*_advisory`).
-  **Limitation (workspace residual)**: live staged validation against
-  real + fake embedding widgets is exercised in
-  `notebooks/sec-10k-demo/02-sec10k-tablespec-demo.py` and is not yet a
-  CI-gated job (requires Databricks + optional Foundation Model API).
+  `test_embedding_dimension_*_advisory`). End-to-end staged validation
+  with real/fake embedding widgets: `notebooks/sec-10k-demo/` (optional
+  Foundation Model API for `embedding_mode=real`).
 - [x] **US-045-AC3 (facts table, JSON-landed)** — Given a facts spec
   declaring FEAT-031's `json` source kind with a FLAT projection, when
   validated/compiled, then the model and typed-raw path accept it.
   **Evidence**: `examples/sec10k_companyfacts.yaml`; US-050 + JSON
   conformance tier (`tests/conformance/test_json_tier.py`); backbone
-  now accepts `kind=json`.
-  **Limitation**: full EDGAR-landed companyfacts staged validation is
-  notebook-driven (01 plumbing → 02 validation), not CI-gated.
+  accepts `kind=json`. Full EDGAR-landed staged validation is in
+  `notebooks/sec-10k-demo/` (01 plumbing → 02 tablespec).
 - [x] **US-045-AC4 (no credential/model coupling)** — Given both specs
   under `examples/`, when inspected, then no endpoint URL, token, or
   model configuration appears — only provenance *data* fields such as
@@ -122,10 +119,8 @@ coupling, so the demo runs on workspaces without FM API access.
 - [x] **US-045-AC6 (scorecard + advisories)** — Given notebook 02's
   staged validation path, when run, then a per-table scorecard and
   Vector Search advisories are produced.
-  **Evidence**: notebook 02 scorecard cells (authoring-time contract).
-  **Limitation (waived for CI)**: workspace job PASS/FAIL exit is not
-  automated in GitHub Actions; residual is operational demo evidence,
-  not a type-alphabet gap.
+  **Evidence**: notebook 02 scorecard cells; run via
+  `notebooks/sec-10k-demo/` or microsite Getting Started → In a workspace.
 
 ## Edge Cases
 

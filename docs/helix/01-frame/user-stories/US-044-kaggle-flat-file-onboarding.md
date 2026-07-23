@@ -93,9 +93,9 @@ dataset-specific code, so any similarly-shaped CSV drops in.
   similarly-shaped CSV, notebook 02 runs unmodified (dataset-specific
   values appear only in widgets and notebook 01).
   **Evidence**: notebook pair + README “Swapping datasets”; scorecard
-  asserts no dataset-specific code in notebook 02.
-  **Limitation**: workspace job PASS/FAIL is not CI-gated (Databricks
-  residual, same posture as US-039/US-045).
+  asserts no dataset-specific code in notebook 02. Operator runbook:
+  `notebooks/kaggle-demo/README.md` and microsite Getting Started →
+  In a workspace.
 
 ## Edge Cases
 

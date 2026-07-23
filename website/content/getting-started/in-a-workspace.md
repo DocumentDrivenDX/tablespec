@@ -3,10 +3,8 @@ title: In a workspace
 weight: 4
 ---
 
-Use these steps when you have a Databricks workspace and want to exercise
-tablespec beyond local unit tests. Nothing here is required for default CI.
-The paths are the same demos and opt-in harnesses already in the repository —
-this page is the ordered operator checklist.
+Use these steps when you have a Databricks workspace. The paths are the same
+demos and opt-in harnesses already in the repository — ordered for operators.
 
 ## Shared setup
 
@@ -123,16 +121,16 @@ silently pass. The unit gate for the skip path is
 
 Separate checklist: [Deploy the app](/getting-started/deploy-the-app/).
 
-## What “done” looks like for you
+## Checkpoints
 
-| Path | You can stop when… |
+| Path | Success looks like |
 |------|--------------------|
-| Path A bootstrap | Artifact tree exists under `out_dir` and recompile is a no-diff for unchanged UMF |
-| Northwind | Scorecard notebook finishes; every discovered table has a validated UMF |
-| Kaggle | Staged validation report for the landed CSV-driven table |
-| SEC 10-K | Dimensionality expectation exercises on the corpus embedding column |
-| Serverless e2e | `pytest -m databricks_e2e` green with your secrets (or skip with a clear reason without them) |
-| App | Guidebook/profile tabs read and write only the declared metadata home |
+| Path A bootstrap | Artifact tree under `out_dir`; recompile is a no-diff for unchanged UMF |
+| Northwind | Scorecard finishes; every discovered table has a validated UMF |
+| Kaggle | Staged validation report for the landed table |
+| SEC 10-K | Dimensionality checks run on the corpus embedding column |
+| Serverless e2e | `pytest -m databricks_e2e` green with workspace credentials (skips cleanly without them) |
+| App | Guidebook/profile tabs use only the declared metadata home |
 
 ## Next
 
