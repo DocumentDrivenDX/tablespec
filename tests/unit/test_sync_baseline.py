@@ -1,5 +1,11 @@
 """Tests for sync_baseline module - sync logic, conflict detection, metadata columns."""
 
+# @covers US-019-AC1
+# @covers US-019-AC2
+# @covers US-019-AC3
+# @covers US-019-AC4
+# @covers US-019-AC5
+
 from __future__ import annotations
 
 from copy import deepcopy

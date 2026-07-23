@@ -1,5 +1,12 @@
 """Tests for the prompts module - prompt generators for LLM interactions."""
 
+# @covers US-008-AC1
+# @covers US-008-AC2
+# @covers US-008-AC3
+# @covers US-008-AC4
+# @covers US-008-AC5
+# @covers US-008-AC6
+
 from __future__ import annotations
 
 import copy

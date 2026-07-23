@@ -1,5 +1,6 @@
 """Tests for bounded composite key inference in the native profiler."""
 
+
 from __future__ import annotations
 
 import shutil

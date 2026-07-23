@@ -95,9 +95,11 @@ are gated by `databricks_e2e_availability`, which requires `DATABRICKS_HOST` (th
 opt-in switch) PLUS `DATABRICKS_HTTP_PATH` + `DATABRICKS_TOKEN` and the
 dbt-databricks adapter + databricks SQL connector/SDK importable.
 
-Public Databricks-facing compile UX accepts `dialect="databricks"` for the
-Spark-family SQL emitted by tablespec; internal emitters may normalize the public
-spelling back to `spark` when the rendered SQL is identical.
+**Accepted public cast dialects** are `spark`, `duckdb`, and `databricks`
+(not spark/duckdb-only). Public Databricks-facing compile UX accepts
+`dialect="databricks"` for the Spark-family SQL emitted by tablespec; internal
+emitters may normalize the public spelling back to `spark` when the rendered SQL
+is identical (cast SQL is byte-identical across the Spark-family spellings).
 That public `dialect="databricks"` spelling remains an accepted contract even when
 real Databricks workspace execution is available only through this opt-in tier.
 

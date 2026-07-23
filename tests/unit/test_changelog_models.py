@@ -1,5 +1,10 @@
 """Unit tests for changelog models: ChangeType, ChangeDetail, ChangeEntry."""
 
+# @covers US-014-AC1
+# @covers US-014-AC2
+# @covers US-014-AC3
+# @covers US-014-AC4
+
 from datetime import datetime
 
 import pytest

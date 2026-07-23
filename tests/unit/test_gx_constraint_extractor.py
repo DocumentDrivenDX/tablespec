@@ -1,5 +1,10 @@
 """Unit tests for GXConstraintExtractor regex generator fixes."""
 
+# @covers US-006-AC1
+# @covers US-006-AC2
+# @covers US-006-AC3
+# @covers US-006-AC4
+
 import re
 
 import pytest

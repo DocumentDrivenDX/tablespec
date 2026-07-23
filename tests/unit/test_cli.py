@@ -1,5 +1,11 @@
 """Tests for the tablespec CLI (typer app)."""
 
+# @covers US-010-AC1
+# @covers US-010-AC2
+# @covers US-010-AC3
+# @covers US-010-AC4
+# @covers US-010-AC5
+
 import json
 from pathlib import Path
 import re

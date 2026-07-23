@@ -1,5 +1,10 @@
 """Unit tests for UMFDiff: comparing two UMF objects."""
 
+# @covers US-015-AC1
+# @covers US-015-AC2
+# @covers US-015-AC3
+# @covers US-015-AC4
+
 import pytest
 
 from tablespec.models.umf import UMF, UMFColumn, ValidationRules

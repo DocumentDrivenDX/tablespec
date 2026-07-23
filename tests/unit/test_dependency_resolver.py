@@ -1,5 +1,10 @@
 """Tests for pipeline dependency resolution."""
 
+# @covers US-020-AC1
+# @covers US-020-AC2
+# @covers US-020-AC3
+# @covers US-020-AC4
+
 import pytest
 import yaml
 
