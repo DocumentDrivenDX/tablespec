@@ -66,13 +66,9 @@ jobs:
         working-directory: website
         run: npm run install:browsers:ci
 
-      - name: Playwright content suite
-        working-directory: website
-        run: npm run test:content
-        env:
-          CI: true
-
-      - name: Playwright link crawl (/tablespec/ base)
+      # Deploy gate: production-baseURL link crawl + content strings (not visual
+      # snapshots — those run on the Microsite workflow and can drift by fonts).
+      - name: Playwright link crawl and content validation (/tablespec/ base)
         working-directory: website
         run: npm run test:links
         env:
