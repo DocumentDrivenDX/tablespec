@@ -134,10 +134,6 @@ Separate checklist: [Deploy the app](/getting-started/deploy-the-app/).
 | Serverless e2e | `pytest -m databricks_e2e` green with your secrets (or skip with a clear reason without them) |
 | App | Guidebook/profile tabs read and write only the declared metadata home |
 
-There is no requirement to file “PASS” tickets or attach screenshots to the
-tracker. These steps are the product’s getting-started surface for workspace
-use; run them when you care about that environment.
-
 ## Next
 
 {{< cards >}}
