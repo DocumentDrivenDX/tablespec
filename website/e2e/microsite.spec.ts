@@ -1,3 +1,8 @@
+// @covers US-038-AC1
+// @covers US-038-AC2
+// @covers US-038-AC3
+// @covers US-038-AC4
+// @covers US-038-AC5
 import { test, expect } from '@playwright/test'
 
 const article = (page: any) => page.locator('article')
