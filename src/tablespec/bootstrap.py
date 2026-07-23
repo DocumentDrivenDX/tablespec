@@ -85,4 +85,3 @@ def bootstrap_from_specs(
         dialect=dialect,
         gold_targets=list(gold_targets) if gold_targets is not None else None,
     )
-

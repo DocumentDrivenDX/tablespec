@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-import os
 
-from tablespec.e2e.gating import DATABRICKS_E2E_REQUIRED_ENV, databricks_e2e_availability
+from tablespec.e2e.gating import (
+    DATABRICKS_E2E_REQUIRED_ENV,
+    databricks_e2e_availability,
+)
 
 
 def test_databricks_e2e_gate_skips_without_host(monkeypatch) -> None:
