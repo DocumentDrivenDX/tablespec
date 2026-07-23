@@ -94,8 +94,10 @@ def compile_umfs(
         profile_enriched: recorded on the manifest; True iff *suites* carry
             profile-derived expectations (Path A enrichment). Does not itself run
             profiling -- the caller (Path A) supplies enriched *suites*.
-        dialect: cast dialect threaded into the dbt projects (``"duckdb"`` default;
-            ``"spark"`` / ``"databricks"`` for the warehouse legs).
+        dialect: public cast dialect (``"duckdb"`` default; ``"spark"`` /
+            ``"databricks"`` for warehouse legs). ``databricks`` is an accepted
+            public spelling; Spark-family emitters may normalize it to ``spark``
+            internally because cast SQL is identical.
         gold_targets: table names to additionally compile a SINGLE-target gold SQL
             plan for via ``generate_sql_plan``. ``None`` = no per-table gold plans.
         suites: optional precompiled expectation lists keyed by table name. When a

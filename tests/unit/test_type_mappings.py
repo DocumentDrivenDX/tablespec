@@ -1,5 +1,12 @@
 """Test type mapping utilities."""
 
+# @covers US-004-AC1
+# @covers US-004-AC2
+# @covers US-004-AC3
+# @covers US-004-AC4
+# @covers US-004-AC5
+# @covers US-004-AC6
+
 from __future__ import annotations
 
 import importlib.util

@@ -1,5 +1,10 @@
 """Unit tests for schema generators."""
 
+# @covers US-003-AC1
+# @covers US-003-AC2
+# @covers US-003-AC3
+# @covers US-003-AC4
+
 from __future__ import annotations
 
 import json
