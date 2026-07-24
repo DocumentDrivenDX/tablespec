@@ -872,6 +872,25 @@ class TestExcelRoundTrip:
         assert nullable["MP"] is False
         assert nullable["ME"] is True
 
+    def test_round_trip_report_sheet_preserved(self, tmp_path):
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(name="col_id", data_type="INTEGER", report_sheet="Summary"),
+                UMFColumn(name="col_name", data_type="VARCHAR", length=100),
+            ]
+        )
+        exporter = UMFToExcelConverter()
+        wb = exporter.convert(umf)
+        out = tmp_path / "rt_report_sheet.xlsx"
+        wb.save(out)
+
+        importer = ExcelToUMFConverter()
+        columns = importer._extract_columns(openpyxl.load_workbook(out))
+        col_id_data = next(c for c in columns if c["name"] == "col_id")
+        assert col_id_data["report_sheet"] == "Summary"
+        col_name_data = next(c for c in columns if c["name"] == "col_name")
+        assert "report_sheet" not in col_name_data
+
 
 # ---------------------------------------------------------------------------
 # Edge cases

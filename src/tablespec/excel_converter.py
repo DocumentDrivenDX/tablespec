@@ -669,6 +669,7 @@ class UMFToExcelConverter:
             "Format",
             "Notes",
             "_Validation",
+            "Report Sheet",
         ]
         headers.extend(post_nullable_headers)
 
@@ -688,6 +689,7 @@ class UMFToExcelConverter:
         reporting_idx = desc_idx + 5
         format_idx = desc_idx + 6
         notes_idx = desc_idx + 7
+        report_sheet_idx = desc_idx + 9  # desc_idx + 8 is the _Validation column
 
         # Data
         row = 2
@@ -770,12 +772,18 @@ class UMFToExcelConverter:
                 ws[f"{col_letter(notes_idx)}{row}"] = ""
             self._apply_font_to_cell(ws[f"{col_letter(notes_idx)}{row}"], default_font)
 
+            # Report Sheet (workbook tab assignment for multi-sheet reports)
+            ws[f"{col_letter(report_sheet_idx)}{row}"] = col.report_sheet or ""
+            self._apply_font_to_cell(
+                ws[f"{col_letter(report_sheet_idx)}{row}"], default_font
+            )
+
             row += 1
 
         # Adjust column widths
         pre_nullable_widths = [15, 18, 20, 12, 10, 11, 8]
         nullable_widths = [12] * num_contexts
-        post_nullable_widths = [20, 20, 12, 18, 15, 12, 15, 30, 15]
+        post_nullable_widths = [20, 20, 12, 18, 15, 12, 15, 30, 15, 15]
         all_widths = pre_nullable_widths + nullable_widths + post_nullable_widths
         for i, width in enumerate(all_widths, 1):
             ws.column_dimensions[get_column_letter(i)].width = width
@@ -1938,6 +1946,7 @@ class ExcelToUMFConverter:
         derivation_expression_idx = header_map.get("derivation expression")
         format_idx = header_map.get("format")
         notes_idx = header_map.get("notes")
+        report_sheet_idx = header_map.get("report sheet")
 
         columns = []
         for row in ws.iter_rows(min_row=2, values_only=False):
@@ -2065,6 +2074,11 @@ class ExcelToUMFConverter:
                     col_dict["notes"] = [
                         line.strip() for line in notes_val.split("\n") if line.strip()
                     ]
+
+            # Report Sheet (workbook tab assignment for multi-sheet reports)
+            report_sheet_val = _get(row, report_sheet_idx)
+            if report_sheet_val:
+                col_dict["report_sheet"] = str(report_sheet_val).strip()
 
             columns.append(col_dict)
 

@@ -718,6 +718,15 @@ class UMFColumn(BaseModel):
         description="Reporting requirement classification: 'R' (Required), 'O' (Optional), 'S' (Suggested)",
         pattern=r"^(R|O|S)$",
     )
+    report_sheet: str | None = Field(
+        default=None,
+        description="Excel worksheet tab this column is assigned to in a multi-sheet "
+        "workbook report. Authoring-time provenance from the source spec workbook; "
+        "consumed by report-configuration tooling, not by runtime output generation. "
+        "Length is bounded by Excel's 31-character tab-name limit.",
+        min_length=1,
+        max_length=31,
+    )
     derived_from: str | None = Field(
         default=None,
         description="DEPRECATED: Use 'derivation' field instead. "

@@ -1130,3 +1130,21 @@ class TestValidationRulesMisclassificationWarning:
         with _warnings.catch_warnings():
             _warnings.simplefilter("error", UserWarning)
             ValidationRules(table_level=None, column_level=None)
+
+
+class TestReportSheet:
+    """Test UMFColumn.report_sheet workbook tab assignment."""
+
+    def test_report_sheet_defaults_to_none(self):
+        col = UMFColumn(name="test_col", data_type="VARCHAR")
+        assert col.report_sheet is None
+
+    def test_report_sheet_accepts_valid_name(self):
+        col = UMFColumn(name="test_col", data_type="VARCHAR", report_sheet="Summary")
+        assert col.report_sheet == "Summary"
+
+    def test_report_sheet_rejects_out_of_range_lengths(self):
+        with pytest.raises(ValidationError):
+            UMFColumn(name="test_col", data_type="VARCHAR", report_sheet="")
+        with pytest.raises(ValidationError):
+            UMFColumn(name="test_col", data_type="VARCHAR", report_sheet="x" * 32)
