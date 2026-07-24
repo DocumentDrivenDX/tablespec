@@ -490,8 +490,13 @@ class UMFToExcelConverter:
         self._create_readme_sheet(umf)
         self._create_schema_sheet(umf)
         self._create_columns_sheet(umf)
-        self._create_survivorship_sheet(umf)
-        self._create_derivations_sheet(umf)
+
+        # Derivation-related sheets only apply to generated/derived tables;
+        # source-layer specs without survivorship metadata get a lean workbook.
+        if any(col.derivation or col.provenance_policy for col in umf.columns):
+            self._create_survivorship_sheet(umf)
+        if any(col.derivation for col in umf.columns):
+            self._create_derivations_sheet(umf)
 
         if self._get_expectation_dicts_for_export(umf):
             self._create_validation_sheet(umf)

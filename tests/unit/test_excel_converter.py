@@ -872,6 +872,40 @@ class TestExcelRoundTrip:
         assert nullable["MP"] is False
         assert nullable["ME"] is True
 
+    def test_source_spec_omits_derivation_sheets(self, tmp_path):
+        """Tables without derivation/survivorship metadata get a lean workbook."""
+        umf = _make_minimal_umf()
+        wb = UMFToExcelConverter().convert(umf)
+        assert "Survivorship" not in wb.sheetnames
+        assert "Derivations" not in wb.sheetnames
+
+        # And the lean workbook still imports cleanly
+        out = tmp_path / "lean.xlsx"
+        wb.save(out)
+        columns = ExcelToUMFConverter()._extract_columns(openpyxl.load_workbook(out))
+        assert {c["name"] for c in columns} == {"col_id", "col_name"}
+
+    def test_generated_spec_includes_derivation_sheets(self):
+        """Tables with column derivations keep Survivorship + Derivations tabs."""
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(
+                    name="col_id",
+                    data_type="INTEGER",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="source_table", column="id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ]
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        assert "Survivorship" in wb.sheetnames
+        assert "Derivations" in wb.sheetnames
+
     def test_round_trip_report_sheet_preserved(self, tmp_path):
         umf = _make_minimal_umf(
             columns=[
