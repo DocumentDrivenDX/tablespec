@@ -68,6 +68,8 @@ def generate_sql_ddl(umf_data: dict[str, Any]) -> str:
 
     columns = []
     for col in umf_data["columns"]:
+        if col.get("internal", False):
+            continue  # internal helper columns are not part of the output table
         col_name = col["name"]
         data_type = col.get("data_type", "VARCHAR")
         is_nullable = _resolve_nullable(col.get("nullable"))
@@ -169,6 +171,8 @@ def generate_pyspark_schema(umf_data: dict[str, Any]) -> str:
 
     fields = []
     for col in umf_data["columns"]:
+        if col.get("internal", False):
+            continue  # internal helper columns are not part of the output schema
         col_name = col["name"]
         data_type = col.get("data_type", "VARCHAR")
         nullable = _resolve_nullable(col.get("nullable"))
@@ -202,6 +206,8 @@ def generate_json_schema(umf_data: dict[str, Any]) -> dict[str, Any]:
     }
 
     for col in umf_data["columns"]:
+        if col.get("internal", False):
+            continue  # internal helper columns are not part of the output schema
         col_name = col["name"]
         col_desc = col.get("description", "")
         nullable = _resolve_nullable(col.get("nullable"))

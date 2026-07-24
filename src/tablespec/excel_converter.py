@@ -729,9 +729,12 @@ class UMFToExcelConverter:
             self._apply_font_to_cell(ws[f"G{row}"], default_font)
 
             # Nullable - write dynamic context columns
-            if col.nullable:
+            if col.nullable is not None:
                 nullable_data: dict[str, bool] = {}
-                if isinstance(col.nullable, Nullable):
+                if isinstance(col.nullable, bool):
+                    # Simple boolean applies to every context
+                    nullable_data = dict.fromkeys(context_keys, col.nullable)
+                elif isinstance(col.nullable, Nullable):
                     nullable_data = col.nullable.model_dump(exclude_none=True)
                 elif isinstance(col.nullable, dict):
                     nullable_data = col.nullable
