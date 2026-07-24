@@ -1,0 +1,83 @@
+name: Microsite
+
+# Playwright content suite + production-baseURL link crawl.
+# Local: `make website-test` or `cd website && npm run test:all`
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "website/**"
+      - ".github/workflows/microsite.yml"
+      - "scripts/build_pages_artifact.py"
+  push:
+    branches:
+      - main
+    paths:
+      - "website/**"
+      - ".github/workflows/microsite.yml"
+      - "scripts/build_pages_artifact.py"
+
+concurrency:
+  group: microsite-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: Playwright content + link check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          cache-dependency-path: website/go.sum
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Set up Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.160.0"
+          extended: true
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npm run install:browsers:ci
+
+      - name: Content, navigation, and screenshots
+        run: npm run test:content
+        env:
+          CI: true
+
+      - name: Link crawl and content validation (/tablespec/ base)
+        run: npm run test:links
+        env:
+          CI: true
+
+      - name: Upload Playwright reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-reports
+          path: |
+            website/playwright-report/
+            website/playwright-report-links/
+            website/test-results/
+          if-no-files-found: ignore

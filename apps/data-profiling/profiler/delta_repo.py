@@ -271,12 +271,13 @@ def flatten(run: "ProfilerRun") -> dict[str, list[dict[str, Any]]]:
 
 def _exec_sql(statement: str) -> None:
     """Execute one SQL statement via Statement Execution API (no JDBC)."""
-    import os as _os
     import time as _time
+
     from .catalog import _workspace_client
+    from .config import get_config
 
     w = _workspace_client()
-    wid = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+    wid = get_config().warehouse_id or ""
     result = w.statement_execution.execute_statement(
         warehouse_id=wid,
         statement=statement,

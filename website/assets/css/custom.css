@@ -18,6 +18,15 @@ html {
   color-scheme: light;
 }
 
+/* Blueprint surface is always light paper + dark ink, even if a leftover
+   localStorage "dark" preference flips Hextra's .dark class. */
+html.dark,
+html.dark body {
+  color-scheme: light;
+  background-color: var(--ts-paper);
+  color: var(--ts-ink);
+}
+
 body {
   background:
     linear-gradient(rgba(200, 210, 216, 0.28) 1px, transparent 1px),
@@ -26,6 +35,39 @@ body {
   background-size: 32px 32px;
   color: var(--ts-ink);
   letter-spacing: 0;
+}
+
+/* Card titles/icons must stay ink on white — Hextra's hx:dark:text-neutral-200
+   is unreadable when .dark is on with a light paper background. */
+.hextra-card {
+  background: var(--ts-panel) !important;
+  border-color: var(--ts-rule) !important;
+  color: var(--ts-ink) !important;
+  box-shadow: 0 1px 0 rgba(23, 25, 28, 0.06);
+}
+
+.hextra-card:hover {
+  border-color: var(--ts-cyan) !important;
+  background: #ffffff !important;
+}
+
+.hextra-card .hextra-card-icon,
+.hextra-card .hextra-card-icon span,
+html.dark .hextra-card .hextra-card-icon,
+html.dark .hextra-card .hextra-card-icon span {
+  color: var(--ts-ink) !important;
+}
+
+.hextra-card .hextra-card-icon svg {
+  color: var(--ts-cyan);
+  flex-shrink: 0;
+}
+
+.hextra-card .hextra-card-subtitle,
+.hextra-card .hextra-card-subtitle p,
+html.dark .hextra-card .hextra-card-subtitle,
+html.dark .hextra-card .hextra-card-subtitle p {
+  color: var(--ts-graphite) !important;
 }
 
 main {

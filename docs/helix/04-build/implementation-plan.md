@@ -5,21 +5,24 @@ ddx:
 
 # Implementation Plan: tablespec
 
-**Version**: 3.0
-**Status**: Updated for the committed-artifact compiler + Connect-safe multi-engine runtime
-**Last Updated**: 2026-06-12
+**Version**: 3.1
+**Status**: Updated for compiler/runtime plus guidebook, ingestion, microsite, and app surfaces
+**Last Updated**: 2026-07-22
 
 This is the live build plan. `implementation-plan-v2.md` is the retired replacement note and points back here.
 
 **Requirements**: [../01-frame/prd.md](../01-frame/prd.md)
 **Architecture**: [../02-design/architecture.md](../02-design/architecture.md)
 **Test Plan**: [../03-test/test-plan.md](../03-test/test-plan.md)
+**Alignment review**: [../06-iterate/alignment-reviews/AR-2026-07-22-desired-state-realignment.md](../06-iterate/alignment-reviews/AR-2026-07-22-desired-state-realignment.md)
 
 ## Scope
 
 This document covers the repo-level build surface for tablespec: packaging, formatter/linter/type-check gates, test execution, artifact handoff validation, and the source-module ordering that supports those workflows. It is a maintenance and sequencing guide for the shipped codebase, not a replacement for the PRD, feature specs, ADRs, or deployment checklist.
 
 The prior March 2026 phase narrative is preserved in [implementation-plan-v2.md](implementation-plan-v2.md) as a tombstone. Keep this file focused on current build practice and current source-tree shape.
+
+`apps/data-profiling/` is a first-party **deployable** Databricks App surface (FR-23), not a library import path. Config, provision, diagnostics, and the unit whole-stack path are shipped. Operator deploy steps live on the product microsite (`getting-started/deploy-the-app/`).
 
 ## Implementation Slices
 
@@ -28,6 +31,9 @@ The prior March 2026 phase narrative is preserved in [implementation-plan-v2.md]
 3. Emission and interoperability: dbt, LDP, Excel, changelog, bootstrap, merge, and compatibility surfaces that translate UMF into committed artifacts or external representations.
 4. Analysis and synthesis: profiling, sample data, inference, expectation helpers, and prompt generation that feed the governed runtime.
 5. Operator-facing utilities: CLI, TUI, formatting, naming, and change-management helpers that support repeatable maintenance work.
+6. Guidebook + multi-source ingestion: `guidebook/` (FR-22) and `ingestion/` (FR-21).
+7. Product microsite: `website/` Hugo/Hextra + Playwright (FEAT-030).
+8. Databricks App: `apps/data-profiling/` deployability (FR-23) — config precedence, provision, startup diagnostics (shipped; operator walkthrough on microsite).
 
 ## Issue Decomposition
 

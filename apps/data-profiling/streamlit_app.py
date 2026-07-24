@@ -11,7 +11,6 @@ displayed inline after a successful run.
 
 from __future__ import annotations
 
-import os
 import time
 import traceback
 from datetime import datetime, timezone
@@ -33,6 +32,7 @@ from profiler.catalog import (
     load_env_labels,
 )
 from profiler.compare import compare_tables, schema_change_counts
+from profiler.config import get_config
 from profiler.row_diff import RowDiffResult, compute_row_diff
 from profiler.excel import write_workbook
 from profiler.manifest import ComparisonParams, SideSpec, new_manifest
@@ -751,12 +751,12 @@ document.addEventListener('DOMContentLoaded',async function(){{
 
 def _exec_suggestion_sql(statement: str) -> any:
     """Run a SQL statement for suggestions via Statement Execution API."""
-    import os as _os
     import time as _time
+
     from profiler.catalog import _workspace_client
 
     w = _workspace_client()
-    wid = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+    wid = get_config().warehouse_id or ""
     result = w.statement_execution.execute_statement(
         warehouse_id=wid, statement=statement, wait_timeout="50s"
     )
@@ -808,14 +808,18 @@ def _submit_suggestion(name: str, suggestion: str) -> str:
     name_e = (name or "Anonymous").replace("'", "''")
     sugg_e = suggestion.replace("'", "''")
     try:
-        _exec_suggestion_sql("""
-            CREATE TABLE IF NOT EXISTS `dev`.`test_main_profiler`.`user_suggestions` (
+        _cfg = get_config()
+        _sugg_tbl = (
+            f"`{_cfg.metadata_catalog}`.`{_cfg.metadata_schema}`.`user_suggestions`"
+        )
+        _exec_suggestion_sql(f"""
+            CREATE TABLE IF NOT EXISTS {_sugg_tbl} (
                 suggestion_id STRING NOT NULL, submitted_by STRING,
                 suggestion STRING NOT NULL, submitted_at TIMESTAMP NOT NULL
             ) USING DELTA TBLPROPERTIES ('delta.autoOptimize.optimizeWrite' = 'true')
         """)
         _exec_suggestion_sql(
-            f"INSERT INTO `dev`.`test_main_profiler`.`user_suggestions` "
+            f"INSERT INTO {_sugg_tbl} "
             f"(suggestion_id, submitted_by, suggestion, submitted_at) "
             f"VALUES ('{sid}', '{name_e}', '{sugg_e}', TIMESTAMP '{now}')"
         )
@@ -831,9 +835,10 @@ def _load_suggestions() -> list:
     if _runtime() != "databricks":
         return []
     try:
-        result = _exec_suggestion_sql("""
+        _cfg = get_config()
+        result = _exec_suggestion_sql(f"""
             SELECT submitted_by, suggestion, submitted_at
-            FROM `dev`.`test_main_profiler`.`user_suggestions`
+            FROM `{_cfg.metadata_catalog}`.`{_cfg.metadata_schema}`.`user_suggestions`
             ORDER BY submitted_at DESC LIMIT 20
         """)
         if result.result and result.result.data_array:
@@ -853,6 +858,7 @@ def _load_run_history(limit: int = 20) -> list[dict]:
 
     if _runtime() != "databricks":
         return []
+    _gov = get_config().metadata_fqn
     try:
         result = _exec_suggestion_sql(f"""
             SELECT
@@ -868,23 +874,23 @@ def _load_run_history(limit: int = 20) -> list[dict]:
                 COALESCE(cc.schema_chg, 0)    AS schema_changes,
                 COALESCE(al.alerts_a, 0)      AS alerts_a,
                 COALESCE(al.alerts_b, 0)      AS alerts_b
-            FROM dev.test_main_profiler.profiler_runs pr
-            LEFT JOIN dev.test_main_profiler.dataset_profiles da
+            FROM {_gov}.profiler_runs pr
+            LEFT JOIN {_gov}.dataset_profiles da
                 ON pr.run_id = da.run_id AND da.side = 'A'
-            LEFT JOIN dev.test_main_profiler.dataset_profiles db
+            LEFT JOIN {_gov}.dataset_profiles db
                 ON pr.run_id = db.run_id AND db.side = 'B'
             LEFT JOIN (
                 SELECT run_id,
                     COUNT(CASE WHEN verdict IN ('moderate','significant') THEN 1 END) AS drifted,
                     COUNT(CASE WHEN schema_change != 'unchanged' THEN 1 END)          AS schema_chg
-                FROM dev.test_main_profiler.column_comparisons
+                FROM {_gov}.column_comparisons
                 GROUP BY run_id
             ) cc ON pr.run_id = cc.run_id
             LEFT JOIN (
                 SELECT run_id,
                     COUNT(CASE WHEN side = 'A' THEN 1 END) AS alerts_a,
                     COUNT(CASE WHEN side = 'B' THEN 1 END) AS alerts_b
-                FROM dev.test_main_profiler.column_alerts
+                FROM {_gov}.column_alerts
                 GROUP BY run_id
             ) al ON pr.run_id = al.run_id
             ORDER BY pr.created_utc DESC
@@ -937,7 +943,7 @@ def _render_run_card(run: dict) -> None:
 
 def _render_sidebar_compute():
     """Initialize-compute control in the sidebar (databricks runtime only)."""
-    if os.environ.get("PROFILER_RUNTIME", "mock").lower() != "databricks":
+    if not get_config().is_databricks:
         return
     with st.sidebar:
         st.markdown(
@@ -952,9 +958,12 @@ def _render_sidebar_compute():
             use_container_width=True,
         )
         if warm_clicked:
-            wid = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+            wid = get_config().warehouse_id or ""
             if not wid:
-                st.error("DATABRICKS_WAREHOUSE_ID not set.")
+                st.error(
+                    "No SQL warehouse configured. Set DATABRICKS_WAREHOUSE_ID in "
+                    "the deployment manifest."
+                )
             else:
                 with st.spinner("Starting warehouse …"):
                     import time as _time
@@ -996,10 +1005,17 @@ def _render_sidebar_compute():
 
 
 def _render_sidebar_dashboard():
-    """Go-To-Dashboard button pinned at the bottom of the sidebar."""
+    """Go-To-Dashboard button pinned at the bottom of the sidebar.
+
+    The dashboard link is optional (DIAG-03): with no PROFILER_DASHBOARD_URL
+    configured the button is hidden and every other surface keeps working.
+    """
+    dashboard_url = get_config().dashboard_url
+    if not dashboard_url:
+        return
     st.sidebar.markdown(
-        """<div style='text-align:center;padding:10px 0 6px 0;'>
-        <a href="https://adb-7405619521761591.11.azuredatabricks.net/dashboardsv3/01f15f7d18171dac85cdc247e47d48a5/published?o=7405619521761591"
+        f"""<div style='text-align:center;padding:10px 0 6px 0;'>
+        <a href="{dashboard_url}"
            target="_blank" style="text-decoration:none;">
           <button style="background:#C8956A;color:white;border:none;border-radius:6px;
                          padding:9px 18px;font-weight:600;font-size:0.85rem;
@@ -1009,6 +1025,79 @@ def _render_sidebar_dashboard():
         </a></div>""",
         unsafe_allow_html=True,
     )
+
+
+def _startup_faults() -> list:
+    """Validated configuration faults, computed once per session (DIAG-01).
+
+    Streamlit re-runs the whole script on every interaction, so this is cached
+    in session state: the checks make workspace round trips and re-running them
+    per keystroke would both be slow and pointless. "Re-check" clears it.
+    """
+    if "config_faults" not in st.session_state:
+        from profiler.diagnostics import validate_config
+
+        try:
+            st.session_state["config_faults"] = validate_config(get_config())
+        except Exception as exc:  # noqa: BLE001
+            # A diagnostic that throws is worse than the fault it checks for.
+            from profiler.diagnostics import ConfigFault
+
+            st.session_state["config_faults"] = [
+                ConfigFault(
+                    setting="(diagnostics)",
+                    resource="startup validation",
+                    problem=f"Configuration checks could not run ({exc}).",
+                    remedy="The app still works; verify settings manually.",
+                    severity="warning",
+                )
+            ]
+    return st.session_state["config_faults"]
+
+
+def _render_startup_banner():
+    """Surface configuration faults with the setting and the fix (DIAG-02)."""
+    from profiler.diagnostics import ERROR
+
+    faults = _startup_faults()
+    if not faults:
+        return
+
+    errors = [f for f in faults if f.severity == ERROR]
+    warnings = [f for f in faults if f.severity != ERROR]
+
+    if errors:
+        st.error(
+            "**Configuration problem — the app may not work correctly.**\n\n"
+            + "\n\n".join(f"- {f.message()}" for f in errors)
+        )
+    if warnings:
+        st.warning("\n\n".join(f"- {f.message()}" for f in warnings))
+
+
+def _render_sidebar_environment():
+    """Show where this deployment points, so an operator need not read source.
+
+    DIAG-04: the resolved metadata location and the tier each value came from,
+    which is what distinguishes a declared address from a default that quietly
+    filled in.
+    """
+    from profiler.diagnostics import describe_environment
+
+    faults = _startup_faults()
+    label = "Environment" if not faults else "Environment ⚠"
+    with st.sidebar.expander(label, expanded=False):
+        st.caption(f"Metadata home: **{get_config().metadata_fqn}**")
+        for name, value, source in describe_environment(get_config()):
+            st.markdown(
+                f"<div style='font-size:0.74rem;line-height:1.5;'>"
+                f"<b>{name}</b>: <code>{value}</code> "
+                f"<span style='opacity:0.6;'>({source})</span></div>",
+                unsafe_allow_html=True,
+            )
+        if st.button("Re-check configuration", key="recheck_config_btn"):
+            st.session_state.pop("config_faults", None)
+            st.rerun()
 
 
 def _sidebar():
@@ -1027,6 +1116,7 @@ def _sidebar():
 
     _render_sidebar_compute()
     _render_sidebar_dashboard()
+    _render_sidebar_environment()
     st.sidebar.divider()
 
     with st.sidebar.expander("Run history", expanded=False):
@@ -1141,7 +1231,13 @@ with _sub_logo_col:
         st.image(_logo_path, width=150)
 
 st.divider()
-_GENIE_SPACE_ID = os.environ.get("GENIE_SPACE_ID", "")
+
+# Configuration faults surface here, above the tabs, so a misconfigured
+# deployment is read as a message rather than discovered as a stack trace on
+# the first user action (DIAG-02).
+_render_startup_banner()
+
+_GENIE_SPACE_ID = get_config().genie_space_id or ""
 
 tab_guidebook, tab_compare, tab_profile, tab_load, tab_genie = st.tabs(
     [
@@ -1496,30 +1592,32 @@ with tab_compare:
                     manifest.add_artifact(art)
                 write_json(folder, "manifest.json", manifest.to_dict())
 
-                if os.environ.get("PROFILER_RUNTIME", "mock").lower() == "databricks":
+                _cfg = get_config()
+                if _cfg.is_databricks:
                     try:
                         from profiler import delta_repo
 
-                        delta_repo.ensure_tables(cmp_out_cat, cmp_out_sch)
-                        delta_repo.ingest(profiler_run, cmp_out_cat, cmp_out_sch)
-                        st.caption(
-                            f"✅ Governance tables updated in `{cmp_out_cat}.{cmp_out_sch}`"
+                        # Governance rows go to the declared metadata home, not
+                        # the per-run output location (CFG-03): reads and writes
+                        # must not disagree about the environment. Creation is a
+                        # provisioning step, not a side effect of a write
+                        # (ADR-019 decision 3).
+                        delta_repo.ingest(
+                            profiler_run, _cfg.metadata_catalog, _cfg.metadata_schema
                         )
-                    except RuntimeError as exc:
-                        # Grant errors surface here — ingest may have succeeded
-                        msg = str(exc)
-                        if "GRANT" in msg.upper() or "grant" in msg:
-                            st.warning(
-                                f"⚠️ Tables written but grants need admin help:\n{msg}"
-                            )
-                        else:
-                            st.warning(f"Delta repo issue — {exc}")
+                        st.caption(
+                            f"✅ Governance tables updated in `{_cfg.metadata_fqn}`"
+                        )
                     except Exception as exc:  # noqa: BLE001
-                        st.warning(f"Delta repo ingest skipped — {exc}")
+                        st.warning(
+                            f"Governance ingest skipped — {exc}\n\n"
+                            f"If `{_cfg.metadata_fqn}` has not been provisioned yet, "
+                            f"run `python scripts/provision.py`."
+                        )
                 else:
                     st.caption(
-                        f"⚠️ PROFILER_RUNTIME={os.environ.get('PROFILER_RUNTIME', 'NOT SET')} "
-                        f"— Delta tables skipped (expected 'databricks')"
+                        f"⚠️ Runtime is '{_cfg.runtime}' — Delta tables skipped "
+                        f"(expected 'databricks')"
                     )
 
                 st.success(
@@ -1709,17 +1807,24 @@ with tab_profile:
                         schema_mmd = render_side_schema(dataset)
                         write_text(folder, "schema_a.mmd", schema_mmd)
 
-                    if (
-                        os.environ.get("PROFILER_RUNTIME", "mock").lower()
-                        == "databricks"
-                    ):
+                    _cfg = get_config()
+                    if _cfg.is_databricks:
                         try:
                             from profiler import delta_repo
 
-                            delta_repo.ensure_tables(prf_out_cat, prf_out_sch)
-                            delta_repo.ingest(profiler_run, prf_out_cat, prf_out_sch)
+                            # Declared metadata home, not the per-run output
+                            # location — see the compare path for the rationale.
+                            delta_repo.ingest(
+                                profiler_run,
+                                _cfg.metadata_catalog,
+                                _cfg.metadata_schema,
+                            )
                         except Exception as exc:  # noqa: BLE001
-                            st.warning(f"Delta repo ingest skipped: {exc}")
+                            st.warning(
+                                f"Governance ingest skipped: {exc}\n\n"
+                                f"If `{_cfg.metadata_fqn}` has not been provisioned "
+                                f"yet, run `python scripts/provision.py`."
+                            )
 
                     st.success(
                         f"Table {i + 1} profiled — "
@@ -1909,10 +2014,11 @@ with tab_genie:
 # TAB 4 — LOAD RESULTS
 # ===========================================================================
 # Nightly incremental load + GX validation results, persisted to Delta by the
-# tablespec pipeline (db_load_persist.py). Governance tables live in the same
-# schema as the profiler tables.
+# tablespec pipeline (db_load_persist.py). These live in the declared metadata
+# home alongside the profiler tables, so the tab reads from the same address the
+# profiler writes to (CFG-03).
 
-_LOAD_GOV = "dev.test_main_profiler"
+_LOAD_GOV = get_config().metadata_fqn
 
 
 def _num(v, default=0):
@@ -2325,11 +2431,16 @@ with tab_guidebook:
                             st.error(f"Guidebook generation failed: {exc}")
 
         else:
+            # PROFILER_SPEC_VOLUME when declared, otherwise a path under the
+            # resolved output volume. Either way the default is derived, never
+            # a literal address (CFG-02).
+            _cfg_gb = get_config()
+            _default_spec_dir = (
+                _cfg_gb.spec_volume or f"{_cfg_gb.output_volume_path}/umf"
+            )
             _vol = st.text_input(
                 "Volume directory",
-                value=st.session_state.get(
-                    "guidebook_volume", "/Volumes/dev/test_main_profiler/ab_runs/umf"
-                ),
+                value=st.session_state.get("guidebook_volume", _default_spec_dir),
                 key="guidebook_volume",
                 help="Directory holding *.umf.yaml or *.umf.json artifacts.",
             )

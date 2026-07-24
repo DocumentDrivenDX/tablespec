@@ -1,5 +1,10 @@
 """End-to-end tests for guidebook generation and reverse lineage."""
 
+# @covers US-046-AC1
+# @covers US-046-AC2
+# @covers US-046-AC3
+# @covers US-046-AC4
+
 from __future__ import annotations
 
 import json
@@ -63,7 +68,7 @@ def _build_corpus(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_generate_writes_pages_index_and_search(tmp_path: Path) -> None:
+def test_generate_writes_pages_index_and_search(tmp_path: Path) -> None:  # US-046-AC1
     root = _build_corpus(tmp_path / "umfs")
     out = tmp_path / "guidebook"
 
@@ -94,7 +99,7 @@ def test_search_index_has_table_and_column_entries(tmp_path: Path) -> None:
     assert any(e["column"] == "customer_name" for e in entries)
 
 
-def test_reverse_lineage_links_source_to_consumer(tmp_path: Path) -> None:
+def test_reverse_lineage_links_source_to_consumer(tmp_path: Path) -> None:  # US-046-AC2
     root = _build_corpus(tmp_path / "umfs")
 
     index = build_reverse_lineage_index(root)
@@ -113,7 +118,7 @@ def test_reverse_lineage_links_source_to_consumer(tmp_path: Path) -> None:
     )
 
 
-def test_rendered_page_shows_downstream_link(tmp_path: Path) -> None:
+def test_rendered_page_shows_downstream_link(tmp_path: Path) -> None:  # US-046-AC2
     root = _build_corpus(tmp_path / "umfs")
     out = tmp_path / "guidebook"
     generate(root=root, output_dir=out)
@@ -146,7 +151,7 @@ def test_grouped_layout_nests_output(tmp_path: Path) -> None:
     assert "sales/index.html" in top
 
 
-def test_malformed_umf_does_not_abort_run(tmp_path: Path) -> None:
+def test_malformed_umf_does_not_abort_run(tmp_path: Path) -> None:  # US-046-AC4
     root = _build_corpus(tmp_path / "umfs")
     bad = root / "broken"
     bad.mkdir()

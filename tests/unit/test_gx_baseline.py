@@ -1,5 +1,11 @@
 """Test Great Expectations baseline expectation generation from UMF."""
 
+# @covers US-005-AC1
+# @covers US-005-AC2
+# @covers US-005-AC3
+# @covers US-005-AC4
+# @covers US-005-AC5
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

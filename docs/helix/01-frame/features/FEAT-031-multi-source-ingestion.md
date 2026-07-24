@@ -6,7 +6,7 @@ ddx:
 # Feature Specification: FEAT-031 — Multi-Source Ingestion (Source-Shape Contract)
 
 **Feature ID**: FEAT-031
-**Status**: Specified (seam + JDBC vertical implemented 2026-06-10/11 incl. the typed-raw SUITE slice; dump-dialect and parquet phases planned)
+**Status**: Approved
 **Priority**: P1
 **Owner**: Platform / Data Engineering
 **Covered PRD Subsystem(s)**: Source Acquisition
@@ -15,20 +15,26 @@ ddx:
 This feature owns the discriminated `source:` contract that ADR-015 records;
 the emitters (FEAT-026/027/028) and the raw-suite generator consume it.
 
-> **Phase status.** The ingestion seam + `source:` model (SRC-01..05,
-> DUMP-05) shipped 2026-06-10 (bead `tablespec-4bea5c6c`, commit 3a881cc).
-> The JDBC vertical (JDBC-01..05, DISC-01..03) and the typed-raw suite
-> slice of SUITE-01..03 shipped 2026-06-11 (beads `tablespec-4b65c810`
-> commit 08e7de5, `tablespec-8980c812` commit 224a8af) — US-039 is green
-> on the Docker lane. Dump dialect options (DUMP-01..04) and the parquet
-> typed-raw cast mode (PARQ-01..03) remain planned.
+> **Delivery (2026-07-23).** All FR-21 families are shipped. Workspace
+> walkthroughs for JDBC/Northwind and flat-file demos are on the product
+> microsite (`getting-started/in-a-workspace/`).
+>
+> | Family | Status | Evidence |
+> |--------|--------|----------|
+> | SRC (source model + seam) | **Shipped** | `DelimitedSource` / `ParquetSource` / `JsonSource` / `JdbcSource` in `models/umf.py`; `ingestion/` readers |
+> | JDBC + DISC | **Shipped** | `ingestion/jdbc.py`; US-039 ACs + `@covers` in `tests/integration/test_northwind_e2e.py` |
+> | SUITE typed-raw slice | **Shipped** | Typed raw suite path for parquet/jdbc/json kinds |
+> | DUMP-01..04 | **Shipped** | Model options + dump reader + `tests/unit/test_ingestion_package.py` |
+> | PARQ identity/safe-narrowing | **Shipped** | Typed-raw cast path + ingest generator parquet native typed |
+> | JSON-01 (FR-21.7) | **Shipped** | Model + `JsonReader` + backbone load path + conformance JSON tier |
+> | Story floor | **Shipped** | US-039/040/042/043/044/050 on disk; US-041 cancelled as duplicate of US-039 |
 
 ## Overview
 
-This feature implements PRD FR-21.1–FR-21.6: extend UMF with a
-discriminated `source:` block (`kind: delimited | parquet | jdbc`), make
+This feature implements PRD FR-21.1–FR-21.7: extend UMF with a
+discriminated `source:` block (`kind: delimited | parquet | jdbc | json`), make
 the raw-landing contract kind-dependent (all-STRING raw for text-landed
-sources, native-typed raw for parquet/JDBC), extend the single cast truth
+sources, native-typed raw for parquet/JDBC/json), extend the single cast truth
 with an identity/safe-narrowing mode for typed raw, type the raw-stage
 expectation suites accordingly, compile JDBC sources as read-spec
 artifacts with secret-referenced credentials, and discover UMF specs from
@@ -181,7 +187,7 @@ underscores collapsed (the rules proven in the entropy-exchange
 `mssql_import` bundle), with bracket/backtick quoting handled at the read
 boundary and the original source identifier preserved in the spec.
 
-#### JSON/JSONL source kind (FR-21.7 — planned, operator-decided 2026-06-12)
+#### JSON/JSONL source kind (FR-21.7 — shipped; operator-decided 2026-06-12)
 
 JSON-01. The `source:` block SHALL gain a `json` kind: JSON/JSONL files
 land typed through Spark's reader, under the same native-typed raw regime
@@ -247,14 +253,21 @@ expectation-stage classification (`umf.py:94-112`,
   — the acceptance-goal story for the JDBC vertical: load the Northwind
   database, discover UMF specs, export a schema xlsx, validate, generate
   sample data, and produce a validation report.
+- [US-040 — Source model and ingestion seam](../user-stories/US-040-source-model-and-ingestion-seam.md)
+  — SRC-01..05 AC floor citing `test_source_spec` + `test_ingestion_package`.
+- [US-042 — Dump-dialect text landing](../user-stories/US-042-dump-dialect-text-landing.md)
+  — DUMP-01..04 AC floor citing dump reader tests.
+- [US-043 — Parquet typed-raw landing](../user-stories/US-043-parquet-typed-raw-landing.md)
+  — PARQ AC floor citing `test_casting_utils` typed_raw paths.
+- [US-050 — JSON/JSONL source kind](../user-stories/US-050-json-jsonl-source-kind.md)
+  — FR-21.7 model/reader/backbone path.
 
-Per-phase stories will be authored at execution start, in sequencing order:
-US-040 (ingestion seam + `source:` model — implemented; story to backfill
-ACs), US-041 (JDBC reader + discovery slices under US-039's goal), US-042
-(dump-dialect text landing), US-043 (typed-raw parquet), plus a json-kind
-story at its execution start (FR-21.7). Demo story:
+JDBC vertical is covered by [US-039](../user-stories/US-039-northwind-end-to-end.md)
+(no separate US-041). Demo stories already on disk:
 [US-044 — Kaggle flat-file onboarding](../user-stories/US-044-kaggle-flat-file-onboarding.md)
-(delimited kind, shipped code, notebook pair).
+(delimited kind, shipped code, notebook pair);
+[US-045 — SEC 10-K corpus and facts](../user-stories/US-045-sec-10k-corpus-and-facts.md)
+(EMBEDDING type + CORP example + notebooks; workspace walkthrough on microsite).
 
 ## Edge Cases and Error Handling
 
@@ -348,16 +361,16 @@ story at its execution start (FR-21.7). Demo story:
 - [x] Ideal future state describes the desired user-visible outcome
 - [x] Problem statement describes what exists now and what is broken
 - [x] Every functional requirement is testable
-- [ ] Acceptance criteria are defined in user stories — US-039 authored;
-  US-040..043 planned per phase
+- [x] Acceptance criteria are defined in user stories — US-039/040/042/043/050
+  authored with stable ACs
 - [x] Non-functional requirements have specific targets
 - [x] Edge cases cover realistic failure scenarios
 - [x] Success metrics are specific to this feature
 - [x] Dependencies reference real artifact IDs
 - [x] Out of scope excludes things someone might reasonably assume are in
   scope
-- [x] Implementation status is honestly per-phase (seam done; JDBC, dumps,
-  parquet planned); no phantom completion claims
+- [x] Implementation status is honest (seam, JDBC, dumps, parquet, JSON shipped;
+  workspace demos on microsite Getting Started)
 - [x] Feature is consistent with governing ADR-015 and the PRD Non-Goal on
   database connectivity
 - [x] No `[NEEDS CLARIFICATION]` markers remain

@@ -1,6 +1,9 @@
 .PHONY: help install install-dev install-spark setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
-TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py')
+# Library + scripts + Databricks app Python. Notebooks under apps/ are
+# Databricks-runtime scripts (display, spark, widgets) and stay out of ruff —
+# same exclusion as .pre-commit-config.yaml's `(^|/)notebooks/` pattern.
+TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py' 'apps/**/*.py' ':(exclude)apps/**/notebooks/**')
 # Includes the Databricks app's suite (apps/data-profiling/tests), which pytest
 # also picks up via `testpaths` when invoked without explicit paths. That suite is
 # flat, and a `**/` pathspec matches no files there -- keep the single-star glob.
@@ -79,6 +82,28 @@ docs: ## Build API documentation
 
 docs-serve: ## Serve API documentation locally
 	uv run mkdocs serve
+
+# Product microsite (Hugo + Playwright)
+website-install: ## Install website npm deps and Chromium for Playwright
+	cd website && npm ci && npm run install:browsers
+
+website-test-content: ## Microsite content/nav/screenshot Playwright suite
+	cd website && npm run test:content
+
+website-test-links: ## Microsite link crawl + content checks under /tablespec/ base
+	cd website && npm run test:links
+
+website-test: ## Full microsite Playwright suite (content + link check)
+	cd website && npm run test:all
+
+app-smoke: ## FR-23 mock-runtime smoke for apps/data-profiling (no workspace)
+	cd apps/data-profiling && PROFILER_RUNTIME=mock \
+		PROFILER_METADATA_CATALOG=main \
+		PROFILER_METADATA_SCHEMA=tablespec_profiler \
+		uv run pytest tests/test_fr23_stack.py tests/test_config.py tests/test_provision.py tests/test_diagnostics.py -q
+
+app-typecheck: ## Scoped pyright on FR-23 app modules (config/provision/diagnostics/smoke)
+	cd apps/data-profiling && uv run pyright
 
 # Development
 clean: ## Remove build artifacts and cache files

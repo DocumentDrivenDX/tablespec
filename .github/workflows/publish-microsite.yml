@@ -62,6 +62,18 @@ jobs:
           npm ci
           hugo --gc --minify
 
+      - name: Install Playwright Chromium
+        working-directory: website
+        run: npm run install:browsers:ci
+
+      # Deploy gate: production-baseURL link crawl + content strings (not visual
+      # snapshots — those run on the Microsite workflow and can drift by fonts).
+      - name: Playwright link crawl and content validation (/tablespec/ base)
+        working-directory: website
+        run: npm run test:links
+        env:
+          CI: true
+
       - name: Generate combined Pages artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

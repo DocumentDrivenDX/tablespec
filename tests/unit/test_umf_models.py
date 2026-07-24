@@ -1,5 +1,10 @@
 """Unit tests for UMF Pydantic models."""
 
+# @covers US-002-AC1
+# @covers US-002-AC2
+# @covers US-002-AC3
+# @covers US-002-AC4
+
 from __future__ import annotations
 
 from pydantic import ValidationError

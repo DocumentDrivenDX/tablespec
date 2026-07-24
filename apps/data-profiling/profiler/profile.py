@@ -19,7 +19,6 @@ in tests/test_profile.py.
 from __future__ import annotations
 
 import math
-import os
 from typing import Any, Optional
 
 import numpy as np
@@ -82,13 +81,17 @@ def _fetch_via_statement_api(fqn: str, limit: int, where: str = "") -> pd.DataFr
     wait_timeout is capped at 50s by the API; longer queries are polled.
     """
     from .catalog import _workspace_client
-    import os as _os
     import time as _time
 
+    from .config import get_config
+
     w = _workspace_client()
-    warehouse_id = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+    warehouse_id = get_config().warehouse_id or ""
     if not warehouse_id:
-        raise RuntimeError("DATABRICKS_WAREHOUSE_ID not set.")
+        raise RuntimeError(
+            "No SQL warehouse configured. Set DATABRICKS_WAREHOUSE_ID in the "
+            "deployment manifest."
+        )
 
     # Submit — wait up to 50s synchronously (API maximum).
     sql = f"SELECT * FROM {fqn}"
@@ -147,9 +150,9 @@ def _databricks_profile(
     # A non-RUNNING warehouse causes sql.connect() to hang indefinitely.
     try:
         from .catalog import _workspace_client
-        import os as _os
+        from .config import get_config
 
-        _wid = _os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+        _wid = get_config().warehouse_id or ""
         if _wid:
             _w = _workspace_client()
             _wh = _w.warehouses.get(id=_wid)
@@ -565,4 +568,7 @@ def _mock_profile(
 
 
 def _runtime() -> str:
-    return os.environ.get("PROFILER_RUNTIME", "mock").lower()
+    """Runtime mode, from the single resolved configuration (CFG-01/CFG-03)."""
+    from .config import get_config
+
+    return get_config().runtime

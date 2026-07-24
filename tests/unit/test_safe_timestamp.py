@@ -1,5 +1,11 @@
 """Tests for safe_to_timestamp / safe_to_date and the _format_to_prefilter_regex helper."""
 
+# @covers US-037-AC1
+# @covers US-037-AC2
+# @covers US-037-AC3
+# @covers US-037-AC4
+# @covers US-037-AC5
+
 from __future__ import annotations
 
 import re

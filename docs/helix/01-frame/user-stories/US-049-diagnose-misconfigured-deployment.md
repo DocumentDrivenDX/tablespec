@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-034 — App Deployment & Configuration
 **PRD Requirements**: FR-23.5, FR-23.6
 **Priority**: P1
-**Status**: Specified
+**Status**: Built
 
 ## Story
 
@@ -37,12 +37,18 @@ remedy. Resolution precedence is US-047; object creation is US-048.
 
 ## Acceptance Criteria
 
-- [ ] **US-049-AC1** — Given a resolved configuration whose compute is unreachable by the running identity, when the app starts, then it reports one message naming that compute and the grant required, and does not present surfaces that depend on it as usable.
-- [ ] **US-049-AC2** — Given a declared metadata schema that does not exist or is unreadable by the running identity, when the app starts, then startup validation fails naming the schema and the access required.
-- [ ] **US-049-AC3** — Given a valid configuration, when the app starts, then startup validation passes and adds no more than 2 seconds to start time.
-- [ ] **US-049-AC4** — Given an unset optional setting (dashboard link, conversational-analytics space, or pre-generated specification volume), when the app starts, then only the dependent surface is hidden or disabled and no error is raised elsewhere.
-- [ ] **US-049-AC5** — Given any startup validation failure, when the message is produced, then it names a specific setting rather than reporting an unqualified error.
-- [ ] **US-049-AC6** — Given a configuration fault, when a user interacts with the app, then the fault has already been reported at startup rather than first appearing as a runtime error during that interaction.
+- [x] **US-049-AC1** — Given a resolved configuration whose compute is unreachable by the running identity, when the app starts, then it reports one message naming that compute and the grant required, and does not present surfaces that depend on it as usable.
+  **Evidence**: `apps/data-profiling/tests/test_diagnostics.py` (`@covers US-049-AC1`).
+- [x] **US-049-AC2** — Given a declared metadata schema that does not exist or is unreadable by the running identity, when the app starts, then startup validation fails naming the schema and the access required.
+  **Evidence**: `test_diagnostics.py` (`@covers US-049-AC2`).
+- [x] **US-049-AC3** — Given a valid configuration, when the app starts, then startup validation passes and adds no more than 2 seconds to start time.
+  **Evidence**: mock runtime path returns immediately; `test_fr23_stack.py` (`@covers US-049-AC3`).
+- [x] **US-049-AC4** — Given an unset optional setting (dashboard link, conversational-analytics space, or pre-generated specification volume), when the app starts, then only the dependent surface is hidden or disabled and no error is raised elsewhere.
+  **Evidence**: `test_diagnostics.py` optionals disabled (`@covers US-049-AC4`); streamlit hides dashboard when unset.
+- [x] **US-049-AC5** — Given any startup validation failure, when the message is produced, then it names a specific setting rather than reporting an unqualified error.
+  **Evidence**: `ConfigFault.message` / diagnostics tests (`@covers US-049-AC5`).
+- [x] **US-049-AC6** — Given a configuration fault, when a user interacts with the app, then the fault has already been reported at startup rather than first appearing as a runtime error during that interaction.
+  **Evidence**: streamlit `_startup_faults` session cache; `test_fr23_stack.py` (`@covers US-049-AC6`).
 
 ## Edge Cases
 

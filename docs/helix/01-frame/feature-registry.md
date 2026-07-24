@@ -6,7 +6,7 @@ ddx:
 # Feature Registry
 
 **Status**: Active
-**Last Updated**: 2026-06-15
+**Last Updated**: 2026-07-23
 
 ## Active Features
 
@@ -41,11 +41,11 @@ ddx:
 | FEAT-027 | [dbt Project Emitter](features/FEAT-027-dbt-emitter.md) | Deterministically emit a complete dbt project (models, contracts, tests, scaffolding) from UMF on the shared emission core seam. | Built | P0 | Platform / Compile Team | PRD: Multi-Target Emission (FR-19.2, FR-19.1) | 2026-06-10 |
 | FEAT-028 | [LDP Sibling Emitter](features/FEAT-028-ldp-sibling-emitter.md) | Emit a Lakeflow Declarative Pipelines project from a UMF set as a sibling backend on the shared target-agnostic core. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.3, FR-19.1) | 2026-06-10 |
 | FEAT-029 | [Runtime Platform](features/FEAT-029-runtime-platform.md) | Connect-safe session capability probing and engine-correct `functions` dispatch. | Built | P0 | Data Platform | PRD: Runtime Platform (FR-20.1, FR-20.2, FR-20.3) | 2026-06-10 |
-| FEAT-030 | [Product Microsite](features/FEAT-030-product-microsite.md) | Hugo/Hextra product microsite with reader-mode IA, source-semantic bronze explanation, demos, and Pages deployment that preserves `/simple/`. | Specified | P1 | Platform / Developer Experience | Vision/Principles (meta-feature; governed by ADR-014) | 2026-06-10 |
-| FEAT-031 | [Multi-Source Ingestion](features/FEAT-031-multi-source-ingestion.md) | Discriminated `source:` contract (delimited/parquet/jdbc) with kind-dependent raw typing, ingestion reader seam, JDBC compiled read specs, and database discovery; Northwind end-to-end is the acceptance goal. | Specified | P1 | Platform / Data Engineering | PRD: Source Acquisition (FR-21.1–FR-21.6); ADR-015 | 2026-06-10 |
-| FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract; SEC 10-K demo is the acceptance goal. | Draft | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-06-12 |
-| FEAT-033 | [Guidebook](features/FEAT-033-guidebook.md) | Render a directory of UMFs into a navigable, self-contained HTML guidebook — one page per table — with column metadata, FK + derivation lineage, group/flat indexes, and search; CLI + `generate_guidebook` API. | Built | P1 | Platform / Developer Experience | PRD: Guidebook (FR-22.1–FR-22.4); ADR-018 | 2026-06-15 |
-| FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. | Specified | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-12 |
+| FEAT-030 | [Product Microsite](features/FEAT-030-product-microsite.md) | Hugo/Hextra product microsite with reader-mode IA, source-semantic bronze explanation, demos, and Pages deployment that preserves `/simple/`. | Built | P1 | Platform / Developer Experience | Vision/Principles (meta-feature; governed by ADR-014) | 2026-07-22 |
+| FEAT-031 | [Multi-Source Ingestion](features/FEAT-031-multi-source-ingestion.md) | Discriminated `source:` contract (delimited/parquet/jdbc/json) with kind-dependent raw typing, ingestion reader seam, JDBC compiled read specs, and database discovery. DUMP/PARQ/JDBC/JSON cores + story floor US-039–044/050 shipped; workspace walkthroughs live on the product microsite. | Built | P1 | Platform / Data Engineering | PRD: Source Acquisition (FR-21.1–FR-21.7); ADR-015 | 2026-07-23 |
+| FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract. Type core + CORP example + SEC 10-K notebooks shipped; workspace walkthrough on the product microsite. | Built | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-07-23 |
+| FEAT-033 | [Guidebook](features/FEAT-033-guidebook.md) | Render a directory of UMFs into a navigable, self-contained HTML guidebook — one page per table — with column metadata, FK + derivation lineage, group/flat indexes, and search; CLI + `generate_guidebook` API. | Built | P1 | Platform / Developer Experience | PRD: Guidebook (FR-22.1–FR-22.4); ADR-018 | 2026-07-22 |
+| FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. Unit path in CI; operator deploy steps on the product microsite. | Built | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-23 |
 
 ## Status Definitions
 
@@ -59,10 +59,14 @@ ddx:
 - **Deprecated**: Scheduled for removal
 - **Cancelled**: Will not be pursued
 
-This repository's feature specifications record the spec-lifecycle status
-**Approved** (per the feature-specification template enum); delivery stage is
-tracked here in the registry, where every approved feature is **Built**
-(decided 2026-06-10).
+This repository's feature specifications record the **spec-lifecycle** status
+(**Approved** / **Specified** / **Draft** per the feature-specification template
+enum). **Delivery stage** is tracked only in this registry
+(Draft / Specified / Designed / In Test / In Build / Built / Deployed / …).
+Spec-lifecycle status does not imply delivery **Built**: a feature's spec may be
+final while delivery is still Specified or In Build. FEAT-001–034 delivery is
+**Built**. Workspace operator steps (app deploy, demo notebooks, serverless
+opt-in) are on the product microsite under Getting Started.
 
 ## Dependencies
 

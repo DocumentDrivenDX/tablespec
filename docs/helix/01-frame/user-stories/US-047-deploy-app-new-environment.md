@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-034 — App Deployment & Configuration
 **PRD Requirements**: FR-23.1, FR-23.2, FR-23.4
 **Priority**: P1
-**Status**: Specified
+**Status**: Built
 
 ## Story
 
@@ -36,12 +36,18 @@ US-048; startup diagnostics are US-049.
 
 ## Acceptance Criteria
 
-- [ ] **US-047-AC1** — Given deployment inputs naming a catalog, schema, volume, and compute, when the app is deployed, then it reads and writes metadata only at the declared location.
-- [ ] **US-047-AC2** — Given two deployments targeting different environments, when both are deployed from the same commit, then the tracked application source is byte-identical between them and only declared inputs differ.
-- [ ] **US-047-AC3** — Given a setting supplied both as a deployment input and in the connection registry, when the app resolves configuration, then the deployment input wins.
-- [ ] **US-047-AC4** — Given a setting absent from both deployment inputs and the connection registry, when the app resolves configuration, then the built-in default is used and the resolved value is reported.
-- [ ] **US-047-AC5** — Given a search of tracked application source for environment-identifying literals (catalog, schema, volume, compute identifier, workspace URL), when the search runs, then it returns no matches.
-- [ ] **US-047-AC6** — Given a running deployment, when the operator views the app, then the resolved metadata location is displayed without opening source or configuration files.
+- [x] **US-047-AC1** — Given deployment inputs naming a catalog, schema, volume, and compute, when the app is deployed, then it reads and writes metadata only at the declared location.
+  **Evidence**: `apps/data-profiling/tests/test_config.py` (`@covers US-047-AC1`); `profiler/config.py` `resolve_config`.
+- [x] **US-047-AC2** — Given two deployments targeting different environments, when both are deployed from the same commit, then the tracked application source is byte-identical between them and only declared inputs differ.
+  **Evidence**: `app.yaml` declared env inputs; `test_fr23_stack.py` (`@covers US-047-AC2`); deployment-checklist `app_deploy`.
+- [x] **US-047-AC3** — Given a setting supplied both as a deployment input and in the connection registry, when the app resolves configuration, then the deployment input wins.
+  **Evidence**: `test_config.py` precedence tests (`@covers US-047-AC3`).
+- [x] **US-047-AC4** — Given a setting absent from both deployment inputs and the connection registry, when the app resolves configuration, then the built-in default is used and the resolved value is reported.
+  **Evidence**: `test_config.py` default-tier tests (`@covers US-047-AC4`).
+- [x] **US-047-AC5** — Given a search of tracked application source for environment-identifying literals (catalog, schema, volume, compute identifier, workspace URL), when the search runs, then it returns no matches.
+  **Evidence**: `TestNoEnvironmentLiterals` in `test_config.py` (`@covers US-047-AC5`); generic defaults.
+- [x] **US-047-AC6** — Given a running deployment, when the operator views the app, then the resolved metadata location is displayed without opening source or configuration files.
+  **Evidence**: `AppConfig.describe` / streamlit metadata caption; stack path `@covers US-047-AC6`.
 
 ## Edge Cases
 

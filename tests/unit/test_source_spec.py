@@ -5,6 +5,12 @@ back-compat alias resolved via ``UMF.effective_source()`` (never by mutating
 the document), plaintext-password rejection, and discriminator behavior.
 """
 
+# @covers US-050-AC1
+
+# @covers US-040-AC1
+# @covers US-040-AC2
+# @covers US-040-AC4
+
 from __future__ import annotations
 
 from pydantic import ValidationError

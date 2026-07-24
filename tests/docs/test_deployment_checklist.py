@@ -12,11 +12,12 @@ CHECKLIST = ROOT / "docs/helix/05-deploy/deployment-checklist.md"
 def test_deployment_checklist_uses_template_sections() -> None:
     text = CHECKLIST.read_text(encoding="utf-8")
 
-    assert "**Status**: Execution-ready template for the next release" in text
+    assert "**Status**: Execution-ready template" in text
     assert "## release_scope" in text
     assert "## rollout_plan" in text
     assert "## rollback_triggers" in text
     assert "## go_or_no_go_decision" in text
+    assert "## app_deploy (FR-23 / FEAT-034)" in text
     assert "## Release Process" not in text
     assert "## CI Pipelines" not in text
 

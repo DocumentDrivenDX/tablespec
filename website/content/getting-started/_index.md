@@ -204,15 +204,23 @@ Spark schema, primary and foreign keys, and the required provenance columns.
 Credentials are never inlined; the spec carries only a `password_secret_ref`
 naming a secret in the runtime's secret store.
 
-The [Northwind demo notebooks](/demos/) run this database-discovery path end
-to end on a Databricks cluster: provision SQL Server on the driver node,
-discover the whole database, validate every spec, and land typed tables with
-staged validation reports that work on classic clusters and serverless.
+**No Spark yet?** Follow [First 15 minutes](/getting-started/first-15-minutes/)
+for install → validate → `tablespec bootstrap` → guidebook.
+
+When you have a workspace, use the operator checklists:
+
+- [In a workspace](/getting-started/in-a-workspace/) — Path A bootstrap, Northwind,
+  Kaggle flat-file, SEC 10-K embeddings, and opt-in serverless conformance
+- [Deploy the app](/getting-started/deploy-the-app/) — guidebook + profiling
+  Databricks App with a declared metadata home
 
 ## Next steps
 
 {{< cards >}}
-  {{< card link="/concepts" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
-  {{< card link="/cli-reference" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
-  {{< card link="/demos" title="Demos" subtitle="Northwind on Databricks, the Synthea guidebook, and the local screencast demo." icon="play" >}}
+  {{< card link="/getting-started/first-15-minutes/" title="First 15 minutes" subtitle="No Spark: validate, bootstrap artifacts, and open a guidebook." icon="clock" >}}
+  {{< card link="/getting-started/in-a-workspace/" title="In a workspace" subtitle="Notebook demos and opt-in serverless steps for a real Databricks environment." icon="server" >}}
+  {{< card link="/getting-started/deploy-the-app/" title="Deploy the app" subtitle="Provision metadata home, declare inputs, grant, and deploy the profiling app." icon="cog" >}}
+  {{< card link="/concepts/" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
+  {{< card link="/cli-reference/" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
+  {{< card link="/demos/" title="Demos" subtitle="Northwind, Kaggle, Synthea, SEC 10-K, and the local screencast." icon="play" >}}
 {{< /cards >}}

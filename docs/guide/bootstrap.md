@@ -14,6 +14,8 @@ relationships, aliases, keys, raw-to-ingest SQL, validation suites, and manifest
 entries. Silver-layer work such as cross-source conformance, survivorship, entity
 resolution, enrichment, and dimensional modeling remains downstream.
 
+## Path A — from existing Spark tables
+
 ```python
 from tablespec import bootstrap_from_tables
 
@@ -29,7 +31,7 @@ print(artifacts.manifest_path)
 print(artifacts.table("member").suite_json)
 ```
 
-What the facade does:
+What Path A does:
 
 - reflects each table schema into UMF
 - when `profile=True`, profiles the table data natively and turns the profile
@@ -50,3 +52,33 @@ and friends), and the rest of the pinned tree that a production job installs and
 loads from disk.
 
 When you only want the schema-only baseline suite, pass `profile=False`.
+
+## Path B — from authored UMF specs (no Spark)
+
+```python
+from tablespec import bootstrap_from_specs
+
+artifacts = bootstrap_from_specs(
+    [
+        "tests/e2e/fixtures/member.umf.yaml",
+        "tests/e2e/fixtures/claims.umf.yaml",
+        "tests/e2e/fixtures/claim_enriched.umf.yaml",
+    ],
+    out_dir="/tmp/tablespec-bootstrap-specs",
+    dialect="duckdb",
+    gold_targets=["claim_enriched"],
+)
+
+print(artifacts.manifest_path)
+```
+
+Path B loads specs via `umfs_from_specs` and compiles the same artifact tree.
+Use it for CI, local DuckDB/Spark-less compile checks, and the onboarding
+benchmark (`docs/guide/onboarding-benchmark.md`).
+
+Demo scripts (also drive e2e tests):
+
+```bash
+uv run python scripts/bootstrap_from_specs.py --spec <a.yaml> --out <dir>
+uv run python scripts/bootstrap_from_tables.py ...   # requires Spark
+```

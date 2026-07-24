@@ -84,7 +84,8 @@ time.
 ## Verification
 
 - `hugo --gc --minify` from `website/`.
-- `npm test` or `npm run test:e2e` from `website/` for Playwright.
+- `npm run test:all` from `website/` (or `make website-test`) for Playwright
+  content + production-baseURL link crawl; CI: `.github/workflows/microsite.yml`.
 - Pages artifact inspection proving `/index.html`, `/simple/index.html`, and
   `/simple/tablespec/index.html` exist before deploy.
 - Release verification still installs tablespec from the Pages package index.

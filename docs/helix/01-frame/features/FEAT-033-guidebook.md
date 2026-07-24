@@ -8,7 +8,7 @@ ddx:
 
 # Feature Specification: FEAT-033 — Guidebook
 
-**Status**: Built
+**Status**: Approved
 **Priority**: P1
 **Feature ID**: FEAT-033
 **Owner**: Platform / Developer Experience

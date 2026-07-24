@@ -5,6 +5,14 @@ lookup/mapping utilities merge.py consumes, and the backbone's declared-source
 resolution (legacy UMFs without file_format keep comma-CSV behavior).
 """
 
+# @covers US-040-AC3
+# @covers US-042-AC1
+# @covers US-042-AC2
+# @covers US-042-AC3
+# @covers US-042-AC4
+# @covers US-050-AC2
+# @covers US-050-AC3
+
 from __future__ import annotations
 
 import pytest
@@ -379,3 +387,19 @@ class TestBackboneDeclaredDelimited:
         )
         with pytest.raises(NotImplementedError, match="jdbc"):
             _declared_delimited(snap)
+
+    def test_declared_json_source_is_accepted(self, tmp_path):
+        """FR-21.7 residual closed: backbone parses json kind (no fail-closed)."""
+        from tablespec.e2e.backbone import _declared_source
+        from tablespec.models.umf import JsonSource
+
+        snap = tmp_path / "t.umf.yaml"
+        snap.write_text(
+            "version: '1.0'\ntable_name: t\ncolumns:\n- name: id\n  data_type: INTEGER\n"
+            "source:\n  kind: json\n  path: /data/t.jsonl\n  projection:\n"
+            "  - column: id\n    path: id\n"
+        )
+        spec = _declared_source(snap)
+        assert isinstance(spec, JsonSource)
+        assert spec.kind == "json"
+        assert spec.projection[0].column == "id"
