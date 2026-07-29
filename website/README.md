@@ -2,6 +2,10 @@
 
 Hugo + Hextra site published at `https://documentdrivendx.github.io/tablespec/`.
 
+**Voice:** product language follows
+[`docs/helix/01-frame/brand-voice.md`](../docs/helix/01-frame/brand-voice.md)
+(repo root [`VOICE.md`](../VOICE.md) is a pointer only).
+
 ## Site-relative links (baseURL)
 
 `hugo.yaml` sets `baseURL` with a path prefix (`/tablespec/`). **Always use
