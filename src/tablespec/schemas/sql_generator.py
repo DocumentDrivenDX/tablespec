@@ -217,6 +217,10 @@ class SQLPlanGenerator:
         # this so a target column derived from a pivot source references the
         # pivoted output column rather than the raw source column.
         self._pivot_column_map: dict[tuple[str, str], str] = {}
+        # Target columns projected by the union_branches base view. The final
+        # assembly references these as bare ``base.<col>`` (the union view
+        # already applied each branch's candidate mapping).
+        self._union_branch_columns: set[str] = set()
 
     # ------------------------------------------------------------------
     # Public API
@@ -353,6 +357,7 @@ class SQLPlanGenerator:
         self._required_columns = self._build_required_columns_map(table_umf)
         self._accumulated_columns = {}
         self._pivot_column_map = {}
+        self._union_branch_columns = set()
 
         sections: list[str] = []
 
@@ -367,11 +372,36 @@ class SQLPlanGenerator:
 
         self._join_sequence = join_sequence
 
+        metadata = table_umf.metadata
+
+        # Warn on declarative fields that the selected strategy does not consume
+        if metadata:
+            if metadata.union_base_tables and base_table_strategy != "union_branches":
+                self.logger.warning(
+                    f"union_base_tables set on {table_name} but base_table_strategy "
+                    f"is {base_table_strategy!r} - ignored (set base_table_strategy: "
+                    "union_branches to enable UNION branch generation)"
+                )
+            if metadata.base_table_filter and base_table_strategy in (
+                "unpivot",
+                "union_sources",
+            ):
+                self.logger.warning(
+                    f"base_table_filter set on {table_name} but base_table_strategy "
+                    f"{base_table_strategy!r} does not consume it - ignored"
+                )
+
         # Header
         if base_table_strategy == "union_sources":
             header_base = f"{_UNION_UNIVERSE_VIEW} (UNION of source tables)"
         elif base_table_strategy == "unpivot":
             header_base = f"{base_table} (UNPIVOT)"
+        elif base_table_strategy == "union_branches" and base_table:
+            union_tables = self._get_union_branch_tables(table_umf)
+            union_op = (
+                "UNION" if metadata and metadata.union_type == "union" else "UNION ALL"
+            )
+            header_base = f"{base_table} ({union_op} with {', '.join(union_tables)})"
         else:
             header_base = base_table or ""
 
@@ -392,8 +422,26 @@ class SQLPlanGenerator:
                 table_umf, union_sources
             )
             sections.extend(agg_sections)
+        elif base_table_strategy == "union_branches":
+            if not base_table:
+                msg = (
+                    f"base_table_strategy 'union_branches' on {table_name} requires "
+                    "a resolvable base_table"
+                )
+                raise ValueError(msg)
+            sections.append(
+                self._generate_union_branch_base_view(
+                    table_umf, base_table, join_sequence
+                )
+            )
         elif base_table:
-            sections.append(self._generate_base_view(table_umf, base_table))
+            sections.append(
+                self._generate_base_view(
+                    table_umf,
+                    base_table,
+                    self._join_source_columns(join_sequence),
+                )
+            )
         else:
             self.logger.info(
                 f"No base table for {table_name} - generating synthetic table from derivations"
@@ -565,15 +613,25 @@ class SQLPlanGenerator:
     # Base view generation
     # ------------------------------------------------------------------
 
-    def _generate_base_view(self, table_umf: UMF, base_table: str) -> str:
+    def _generate_base_view(
+        self,
+        table_umf: UMF,
+        base_table: str,
+        join_source_columns: list[str] | None = None,
+    ) -> str:
         """Generate the base view selecting required columns from *base_table*."""
         resolved_table = self._resolve_table_name(base_table)
         base_columns = self._get_table_columns(base_table)
+        metadata = table_umf.metadata
 
-        # Filter to derivation-required columns + join key + meta columns
+        # Filter to derivation-required columns + join key + meta columns.
+        # base_join_column overrides the primary-key-derived join key so the
+        # overridden key survives the required-columns filter.
         required_cols = self._get_required_columns_for_table(base_table)
         if required_cols:
-            pk_col = table_umf.primary_key[0] if table_umf.primary_key else None
+            pk_col = (metadata.base_join_column if metadata else None) or (
+                table_umf.primary_key[0] if table_umf.primary_key else None
+            )
             selected_columns = [
                 col
                 for col in base_columns
@@ -582,10 +640,24 @@ class SQLPlanGenerator:
         else:
             selected_columns = base_columns
 
+        # Join source columns (incl. alternative/join_via keys) must survive the
+        # required-columns filter or the emitted joins reference columns the
+        # base view never projected
+        for col in join_source_columns or []:
+            if col in base_columns and col not in selected_columns:
+                selected_columns.append(col)
+
         for col in selected_columns:
             self._accumulated_columns[col] = "base"
 
         column_list = ",\n  ".join(selected_columns)
+
+        where_clause = ""
+        if metadata and metadata.base_table_filter:
+            base_filter = self._substitute_template_vars(
+                metadata.base_table_filter.strip()
+            )
+            where_clause = f"\nWHERE {base_filter}"
 
         return f"""-- ============================================================================
 -- STEP 0: Create base view from {base_table}
@@ -593,7 +665,453 @@ class SQLPlanGenerator:
 CREATE OR REPLACE TEMPORARY VIEW disposition_base AS
 SELECT
   {column_list}
-FROM {resolved_table};"""
+FROM {resolved_table}{where_clause};"""
+
+    @staticmethod
+    def _join_source_columns(join_sequence: list[dict[str, Any]]) -> list[str]:
+        """Base-side key columns every join in *join_sequence* references."""
+        cols: list[str] = []
+        for join_info in join_sequence:
+            candidates = [join_info.get("source_column")]
+            join_via = join_info.get("join_via")
+            if join_via:
+                candidates.append(join_via.get("source_key"))
+            for alt in join_info.get("alternative_joins") or []:
+                candidates.append(alt.get("source_column"))
+            for col in candidates:
+                if col and col not in cols:
+                    cols.append(col)
+        return cols
+
+    # ------------------------------------------------------------------
+    # union_branches base view
+    # ------------------------------------------------------------------
+
+    def _get_union_branch_tables(self, table_umf: UMF) -> list[str]:
+        """Union table list for the union_branches strategy.
+
+        ``union_base_tables`` wins; ``source_tables`` is the documented fallback.
+        """
+        metadata = table_umf.metadata
+        if not metadata:
+            return []
+        return list(metadata.union_base_tables or metadata.source_tables or [])
+
+    def _generate_union_branch_base_view(
+        self,
+        table_umf: UMF,
+        base_table: str,
+        join_sequence: list[dict[str, Any]],
+    ) -> str:
+        """Generate ``disposition_base`` as a UNION of per-source-table branches.
+
+        Unlike ``union_base_tables`` handling in the pulseflow fork (which
+        projects the base table's schema from every branch), each branch here
+        projects the TARGET column set through that source table's own
+        derivation candidates:
+
+        - a candidate with ``union_value`` emits ``CAST(<literal> AS <type>)``
+        - otherwise the branch table's lowest-priority candidate supplies the
+          expression or column
+        - a column with no candidate for the branch emits ``CAST(NULL AS <type>)``
+          so the UNION stays column-aligned
+        - the single distinct ``row_filter`` among a branch's candidates becomes
+          the branch WHERE clause (conflicting filters raise)
+        - with ``metadata.dedup_strategy == 'latest'`` and a candidate
+          ``order_by``, each branch is deduplicated with ``ROW_NUMBER() OVER
+          (PARTITION BY <target primary_key> ORDER BY <order_by>)`` keeping the
+          first row
+
+        The whole construct is ONE ``CREATE OR REPLACE TEMPORARY VIEW`` whose
+        body starts ``AS\\nWITH`` -- branch CTEs are nested-scope, so CTE-mode
+        conversion and name-collision safety are preserved.
+        """
+        metadata = table_umf.metadata
+        if metadata is None:  # pragma: no cover - strategy implies metadata
+            msg = "union_branches strategy requires table metadata"
+            raise ValueError(msg)
+
+        union_tables = self._get_union_branch_tables(table_umf)
+        if not union_tables:
+            msg = (
+                f"base_table_strategy 'union_branches' on {table_umf.table_name} "
+                "requires union_base_tables (or source_tables) in metadata"
+            )
+            raise ValueError(msg)
+
+        branch_tables = [base_table, *union_tables]
+        if len(set(branch_tables)) != len(branch_tables):
+            msg = (
+                f"union_branches on {table_umf.table_name}: duplicate table in "
+                f"base_table + union tables: {branch_tables}"
+            )
+            raise ValueError(msg)
+
+        # ---- Column set -------------------------------------------------
+        branch_table_set = set(branch_tables)
+        branch_cols: list[str] = []
+        col_types: dict[str, str] = {}
+        cands_by_table: dict[str, dict[str, list[Any]]] = {t: {} for t in branch_tables}
+        for col in sorted(table_umf.columns, key=lambda c: c.name.lower()):
+            cands = (
+                col.derivation.candidates
+                if col.derivation and col.derivation.candidates
+                else []
+            )
+            table_cands = [c for c in cands if c.table in branch_table_set]
+            if not table_cands:
+                continue
+            branch_cols.append(col.name)
+            col_types[col.name] = (col.data_type or "STRING").upper()
+            for cand in table_cands:
+                cands_by_table[cand.table].setdefault(col.name, []).append(cand)
+
+        if not branch_cols:
+            msg = (
+                f"union_branches on {table_umf.table_name}: no derivation "
+                f"candidates reference the branch tables {branch_tables}"
+            )
+            raise ValueError(msg)
+
+        branch_col_set = set(branch_cols)
+        table_columns = {t: self._get_table_columns(t) for t in branch_tables}
+        table_col_types = {t: self._get_table_column_types(t) for t in branch_tables}
+
+        # ---- meta_* passthrough (sorted union across branch tables) ------
+        meta_types: dict[str, str] = {}
+        for t in branch_tables:
+            for c in table_columns[t]:
+                if c.startswith("meta_") and c not in branch_col_set:
+                    meta_types.setdefault(c, table_col_types[t].get(c, "STRING"))
+        meta_cols = sorted(meta_types)
+
+        # ---- join-key guarantee (later disposition steps join on these) --
+        extra_types: dict[str, str] = {}
+        extra_keys: list[str] = []
+        for src in self._join_source_columns(join_sequence):
+            if src in branch_col_set or src in meta_types or src in extra_types:
+                continue
+            if src not in table_columns[base_table]:
+                self.logger.warning(
+                    f"union_branches on {table_umf.table_name}: join source column "
+                    f"'{src}' not found on base table {base_table}; projecting "
+                    "NULL where absent"
+                )
+            for t in branch_tables:
+                if src in table_col_types[t]:
+                    extra_types[src] = table_col_types[t][src]
+                    break
+            else:
+                extra_types[src] = "STRING"
+            extra_keys.append(src)
+
+        passthrough_cols = meta_cols + extra_keys
+        canonical_cols = branch_cols + passthrough_cols
+
+        # ---- per-branch filter / dedup specs ------------------------------
+        def _distinct_single(
+            table: str, values: set[str] | set[tuple[str, ...]], what: str
+        ) -> Any:
+            if len(values) > 1:
+                msg = (
+                    f"union_branches on {table_umf.table_name}: conflicting "
+                    f"{what} values among candidates for branch table {table}: "
+                    f"{sorted(values)!r}"
+                )
+                raise ValueError(msg)
+            return next(iter(values)) if values else None
+
+        branch_filters: dict[str, str | None] = {}
+        branch_order_by: dict[str, tuple[str, ...] | None] = {}
+        for t in branch_tables:
+            all_cands = [c for cl in cands_by_table[t].values() for c in cl]
+            filters = {c.row_filter.strip() for c in all_cands if c.row_filter}
+            branch_filters[t] = _distinct_single(t, filters, "row_filter")
+            orders = {tuple(c.order_by) for c in all_cands if c.order_by}
+            branch_order_by[t] = _distinct_single(t, orders, "order_by")
+
+        dedup_requested = metadata.dedup_strategy == "latest" and any(
+            branch_order_by[t] for t in branch_tables
+        )
+        pk_cols = list(table_umf.primary_key or [])
+        if dedup_requested:
+            missing_pk = [c for c in pk_cols if c not in branch_col_set]
+            if not pk_cols or missing_pk:
+                msg = (
+                    f"union_branches dedup on {table_umf.table_name} requires "
+                    "every primary_key column to be branch-projected; missing: "
+                    f"{missing_pk or 'primary_key itself'}"
+                )
+                raise ValueError(msg)
+
+        needs_pk_semantics = metadata.union_exclude_base or metadata.union_coalesce_base
+        if needs_pk_semantics:
+            missing_pk = [c for c in pk_cols if c not in branch_col_set]
+            if not pk_cols or missing_pk:
+                msg = (
+                    f"union_exclude_base/union_coalesce_base on "
+                    f"{table_umf.table_name} requires every primary_key column "
+                    f"to be branch-projected; missing: "
+                    f"{missing_pk or 'primary_key itself'}"
+                )
+                raise ValueError(msg)
+        if metadata.union_coalesce_base and len(union_tables) > 1:
+            msg = (
+                f"union_coalesce_base on {table_umf.table_name} supports exactly "
+                "one union table (base-vs-union overlap semantics are pairwise); "
+                f"got {union_tables}"
+            )
+            raise ValueError(msg)
+
+        # ---- branch CTEs ---------------------------------------------------
+        cte_blocks: list[str] = []
+        terminal_cte: dict[str, str] = {}
+        for t in branch_tables:
+            san = self._sanitize_alias(t)
+            resolved = self._resolve_table_name(t)
+            exprs: list[str] = []
+            for col in branch_cols:
+                exprs.append(
+                    f"    {self._union_branch_expr(t, col, cands_by_table, col_types)}"
+                )
+            for col in passthrough_cols:
+                dtype = meta_types.get(col) or extra_types.get(col, "STRING")
+                if col in table_col_types[t]:
+                    exprs.append(f"    {col}")
+                else:
+                    spark_type = self._get_spark_type(dtype)
+                    exprs.append(f"    CAST(NULL AS {spark_type}) AS {col}")
+
+            where_parts: list[str] = []
+            if t == base_table and metadata.base_table_filter:
+                where_parts.append(
+                    self._substitute_template_vars(metadata.base_table_filter.strip())
+                )
+            branch_filter = branch_filters[t]
+            if branch_filter:
+                where_parts.append(self._substitute_template_vars(branch_filter))
+            if len(where_parts) == 2:
+                where_clause = (
+                    f"\n  WHERE ({where_parts[0]})\n    AND ({where_parts[1]})"
+                )
+            elif where_parts:
+                where_clause = f"\n  WHERE {where_parts[0]}"
+            else:
+                where_clause = ""
+
+            order_by = branch_order_by[t]
+            use_dedup = dedup_requested and order_by is not None
+
+            scratch_cols: list[str] = []
+            if use_dedup and order_by is not None:
+                projected = set(canonical_cols)
+                for entry in order_by:
+                    bare = self._order_col_bare(entry)
+                    if bare in projected or bare in scratch_cols:
+                        continue
+                    if bare not in table_col_types[t]:
+                        msg = (
+                            f"union_branches dedup on {table_umf.table_name}: "
+                            f"order_by column '{bare}' is neither projected nor "
+                            f"present on branch table {t}"
+                        )
+                        raise ValueError(msg)
+                    scratch_cols.append(bare)
+                for col in scratch_cols:
+                    exprs.append(f"    {col}")
+
+            exprs_str = ",\n".join(exprs)
+            cte_blocks.append(
+                f"{san}__rows AS (\n  SELECT\n{exprs_str}\n  FROM {resolved}{where_clause}\n)"
+            )
+
+            if use_dedup and order_by is not None:
+                partition = ", ".join(pk_cols)
+                order_clause = ", ".join(
+                    self._order_col_with_direction(entry) for entry in order_by
+                )
+                final_projection = ",\n".join(f"    {c}" for c in canonical_cols)
+                cte_blocks.append(
+                    f"{san}__ranked AS (\n  SELECT\n    *,\n"
+                    f"    ROW_NUMBER() OVER (\n      PARTITION BY {partition}\n"
+                    f"      ORDER BY {order_clause}\n    ) AS __rn\n"
+                    f"  FROM {san}__rows\n)"
+                )
+                cte_blocks.append(
+                    f"{san}__dedup AS (\n  SELECT\n{final_projection}\n"
+                    f"  FROM {san}__ranked\n  WHERE __rn = 1\n)"
+                )
+                terminal_cte[t] = f"{san}__dedup"
+            else:
+                terminal_cte[t] = f"{san}__rows"
+
+        # ---- union assembly -------------------------------------------------
+        select_list = ",\n".join(f"  {c}" for c in canonical_cols)
+        base_terminal = terminal_cte[base_table]
+
+        if metadata.union_coalesce_base:
+            union_parts = self._union_branch_coalesce_parts(
+                table_umf,
+                canonical_cols,
+                pk_cols,
+                passthrough_cols,
+                base_terminal,
+                terminal_cte[union_tables[0]],
+                cands_by_table,
+                union_tables[0],
+            )
+            union_op = "UNION ALL"
+        else:
+            union_parts = [f"SELECT\n{select_list}\nFROM {base_terminal}"]
+            for t in union_tables:
+                if metadata.union_exclude_base:
+                    pk_match = "\n      AND ".join(f"b.{c} = t.{c}" for c in pk_cols)
+                    part = (
+                        f"SELECT\n{select_list}\nFROM {terminal_cte[t]} t"
+                        f"\nWHERE NOT EXISTS (\n  SELECT 1 FROM {base_terminal} b"
+                        f"\n  WHERE {pk_match}\n)"
+                    )
+                else:
+                    part = f"SELECT\n{select_list}\nFROM {terminal_cte[t]}"
+                union_parts.append(part)
+            union_op = "UNION" if metadata.union_type == "union" else "UNION ALL"
+
+        # ---- register + emit -------------------------------------------------
+        for name in canonical_cols:
+            self._accumulated_columns[name] = "base"
+        self._union_branch_columns = set(branch_cols)
+
+        ctes_str = ",\n".join(cte_blocks)
+        union_str = f"\n{union_op}\n".join(union_parts)
+        union_label = " + ".join(branch_tables)
+
+        return f"""-- ============================================================================
+-- STEP 0: Create base view from UNION branches: {union_label}
+-- ============================================================================
+CREATE OR REPLACE TEMPORARY VIEW disposition_base AS
+WITH {ctes_str}
+{union_str};"""
+
+    def _union_branch_expr(
+        self,
+        table: str,
+        col_name: str,
+        cands_by_table: dict[str, dict[str, list[Any]]],
+        col_types: dict[str, str],
+    ) -> str:
+        """Projection expression for one target column in one union branch."""
+        data_type = col_types[col_name]
+        spark_type = self._get_spark_type(data_type)
+        cands = cands_by_table[table].get(col_name)
+        if not cands:
+            return f"CAST(NULL AS {spark_type}) AS {col_name}"
+
+        uv_cands = [c for c in cands if c.union_value is not None]
+        if uv_cands:
+            literal = self._format_default_value_literal(
+                uv_cands[0].union_value, data_type
+            )
+            return f"CAST({literal} AS {spark_type}) AS {col_name}"
+
+        cand = min(cands, key=lambda c: c.priority)
+        if cand.expression:
+            expr = self._substitute_template_vars(cand.expression.strip())
+            return f"({expr}) AS {col_name}"
+        source_col = cand.column or col_name
+        if source_col == col_name:
+            return col_name
+        return f"{source_col} AS {col_name}"
+
+    def _union_branch_coalesce_parts(
+        self,
+        table_umf: UMF,
+        canonical_cols: list[str],
+        pk_cols: list[str],
+        passthrough_cols: list[str],
+        base_terminal: str,
+        union_terminal: str,
+        cands_by_table: dict[str, dict[str, list[Any]]],
+        union_table: str,
+    ) -> list[str]:
+        """Three-part COALESCE union: base-only, overlap (base wins), union-only.
+
+        Overlap rows keep the base value for primary-key columns, meta/join
+        passthroughs, ``union_value`` discriminators, and columns the union
+        table cannot supply (NULL-cast branches); every other column fills base
+        NULLs from the union branch via COALESCE.
+        """
+        passthrough = set(passthrough_cols)
+        pk_set = set(pk_cols)
+
+        def _base_wins(col: str) -> bool:
+            if col in pk_set or col in passthrough:
+                return True
+            cands = cands_by_table[union_table].get(col)
+            if not cands:  # NULL-cast on the union side
+                return True
+            return any(c.union_value is not None for c in cands)
+
+        pk_match_b = "\n      AND ".join(f"u.{c} = b.{c}" for c in pk_cols)
+        pk_match_u = "\n      AND ".join(f"b.{c} = u.{c}" for c in pk_cols)
+        on_clause = " AND ".join(f"b.{c} = u.{c}" for c in pk_cols)
+
+        base_only_list = ",\n".join(f"  b.{c}" for c in canonical_cols)
+        union_only_list = ",\n".join(f"  u.{c}" for c in canonical_cols)
+        overlap_list = ",\n".join(
+            f"  b.{c}" if _base_wins(c) else f"  COALESCE(b.{c}, u.{c}) AS {c}"
+            for c in canonical_cols
+        )
+
+        return [
+            (
+                f"SELECT\n{base_only_list}\nFROM {base_terminal} b"
+                f"\nWHERE NOT EXISTS (\n  SELECT 1 FROM {union_terminal} u"
+                f"\n  WHERE {pk_match_b}\n)"
+            ),
+            (
+                f"SELECT\n{overlap_list}\nFROM {base_terminal} b"
+                f"\nINNER JOIN {union_terminal} u\n  ON {on_clause}"
+            ),
+            (
+                f"SELECT\n{union_only_list}\nFROM {union_terminal} u"
+                f"\nWHERE NOT EXISTS (\n  SELECT 1 FROM {base_terminal} b"
+                f"\n  WHERE {pk_match_u}\n)"
+            ),
+        ]
+
+    def _get_table_column_types(self, table_name: str) -> dict[str, str]:
+        """Map column name -> UMF data type for *table_name* (upper-cased)."""
+        umf = self._related_umfs.get(table_name)
+        if umf is None:
+            _, bare = _parse_table_ref(table_name)
+            umf = self._related_umfs.get(bare)
+        if umf is None or not umf.columns:
+            return {}
+        return {c.name: (c.data_type or "STRING").upper() for c in umf.columns}
+
+    @staticmethod
+    def _order_col_with_direction(col: str) -> str:
+        """Append DESC when no explicit direction; always pin NULLS LAST.
+
+        DuckDB and Spark default NULL placement diverges by direction, so the
+        window pick stays deterministic across backends.
+        """
+        stripped = col.strip()
+        tokens = stripped.upper().split()
+        has_dir = "ASC" in tokens or "DESC" in tokens
+        has_nulls = "NULLS" in tokens
+        result = stripped if has_dir else f"{stripped} DESC"
+        if not has_nulls:
+            result = f"{result} NULLS LAST"
+        return result
+
+    @staticmethod
+    def _order_col_bare(col: str) -> str:
+        """Strip a trailing ASC/DESC direction from an order_by entry."""
+        parts = col.strip().rsplit(None, 1)
+        if len(parts) == 2 and parts[1].upper() in ("ASC", "DESC"):
+            return parts[0].strip()
+        return col.strip()
 
     def _generate_unpivot_base_view(self, table_umf: UMF, base_table: str) -> str:
         """Generate the base view with UNPIVOT transformation."""
@@ -1115,29 +1633,15 @@ GROUP BY {col_prefix}{join_col};"""
         # ``NULLS LAST`` so NULL ordering is identical across backends (DuckDB and
         # Spark default NULL placement diverges by direction), keeping the
         # "most recent non-null" window pick deterministic.
-        def _with_direction(col: str) -> str:
-            stripped = col.strip()
-            tokens = stripped.upper().split()
-            has_dir = "ASC" in tokens or "DESC" in tokens
-            has_nulls = "NULLS" in tokens
-            result = stripped if has_dir else f"{stripped} DESC"
-            if not has_nulls:
-                result = f"{result} NULLS LAST"
-            return result
-
-        order_by_clause = ", ".join(_with_direction(col) for col in order_by_cols)
+        order_by_clause = ", ".join(
+            self._order_col_with_direction(col) for col in order_by_cols
+        )
 
         # Bare order_by column names (direction stripped): these must be PROJECTED
         # into the ``filtered`` CTE so the ``ranked`` CTE's ORDER BY can resolve
         # them. They are then DROPPED from the view's final output (via an explicit
         # final projection) so only the declared output columns survive.
-        def _bare_col(col: str) -> str:
-            parts = col.strip().rsplit(None, 1)
-            if len(parts) == 2 and parts[1].upper() in ("ASC", "DESC"):
-                return parts[0].strip()
-            return col.strip()
-
-        order_by_bare = [_bare_col(c) for c in order_by_cols]
+        order_by_bare = [self._order_col_bare(c) for c in order_by_cols]
 
         output_columns: list[str] = []
         # Names the view ultimately exposes, in order, starting with the join key.
@@ -1265,6 +1769,12 @@ WHERE rn = 1;"""
     ) -> str:
         """Dispatch to the appropriate join strategy handler."""
         strategy = join_info.get("strategy", "direct")
+        if strategy != "direct" and join_info.get("alternative_joins"):
+            self.logger.warning(
+                f"alternative_joins on {join_info.get('target_table')} is only "
+                f"consumed by direct joins (strategy is {strategy!r}) - using "
+                "the primary join path only"
+            )
         if strategy == "direct":
             return self._generate_direct_join(step, join_info, prev_view)
         if strategy == "pivot":
@@ -1341,6 +1851,24 @@ WHERE rn = 1;"""
                 if col in required_cols or col.startswith("meta_")
             ]
 
+        alternative_joins = join_info.get("alternative_joins") or []
+        if alternative_joins:
+            return self._generate_direct_union_join(
+                step,
+                join_info,
+                prev_view,
+                target_table=target_table,
+                source_col=source_col,
+                target_col=target_col,
+                join_filter=join_filter,
+                resolved_table=resolved_table,
+                table_alias=table_alias,
+                sanitized_alias=sanitized_alias,
+                base_column_selections=base_column_selections,
+                target_columns=target_columns,
+                alternative_joins=alternative_joins,
+            )
+
         target_column_selections: list[str] = []
         for col in target_columns:
             alias = f"{sanitized_alias}__{col}"
@@ -1371,6 +1899,160 @@ SELECT
 FROM {prev_view} base
 {join_clause} {resolved_table} target
   ON {on_clause};"""
+
+    def _generate_direct_union_join(
+        self,
+        step: int,
+        join_info: dict[str, Any],
+        prev_view: str,
+        *,
+        target_table: str,
+        source_col: str,
+        target_col: str,
+        join_filter: str,
+        resolved_table: str,
+        table_alias: str,
+        sanitized_alias: str,
+        base_column_selections: list[str],
+        target_columns: list[str],
+        alternative_joins: list[dict[str, str]],
+    ) -> str:
+        """Direct join with ``alternative_joins`` as a UNION-of-joins.
+
+        One inner-join branch per join path (primary = priority 1, alternatives
+        2..n in declared order), combined with UNION and deduplicated per base
+        key by branch priority, then LEFT/INNER joined back null-safely. This
+        avoids emitting the OR-join form that Spark plans as a
+        BroadcastNestedLoopJoin.
+
+        ``base_keys`` scans ``disposition_base`` when every join key is
+        base-sourced: scanning the (lazy) previous step view would re-evaluate
+        the whole join chain per branch. Falls back to *prev_view* when a key
+        is not base-sourced.
+
+        Portability: the null-safe join-back is spelled with an explicit
+        ``(a = b OR (a IS NULL AND b IS NULL))`` expansion (no ``<=>``), the
+        dedup projection is an explicit column list (no ``* EXCEPT``), and no
+        engine hints are emitted -- Spark-side broadcast hinting belongs at a
+        renderer seam if ever needed.
+        """
+        cardinality = join_info["cardinality"].get("notation", "1:1")
+        table_instance = join_info.get("table_instance")
+
+        # Join branches: primary first, then alternatives in declared order
+        branch_conditions: list[tuple[str, str]] = [(source_col, target_col)]
+        for alt in alternative_joins:
+            branch_conditions.append((alt["source_column"], alt["target_column"]))
+
+        # Base-side keys, order-preserving dedupe
+        keys: list[str] = []
+        for src, _ in branch_conditions:
+            if src not in keys:
+                keys.append(src)
+
+        # Scan disposition_base only when every key is base-sourced
+        if all(self._accumulated_columns.get(k) == "base" for k in keys):
+            keys_view = "disposition_base"
+        else:
+            keys_view = prev_view
+            self.logger.warning(
+                f"alternative_joins for {target_table}: join keys {keys} are not "
+                f"all base-sourced; base_keys scans {prev_view} (may re-evaluate "
+                "the join chain)"
+            )
+
+        target_aliases: list[str] = []
+        for col in target_columns:
+            alias = f"{sanitized_alias}__{col}"
+            target_aliases.append(alias)
+            self._accumulated_columns[alias] = sanitized_alias
+
+        rewritten_filter = (
+            self._rewrite_join_filter(join_filter, target_table) if join_filter else ""
+        )
+
+        match_keys = [f"__match_key_{k}" for k in keys]
+        branch_selects: list[str] = []
+        for priority, (src, tgt) in enumerate(branch_conditions, 1):
+            key_selections = [
+                f"    b.{k} AS {mk}" for k, mk in zip(keys, match_keys, strict=True)
+            ]
+            col_selections = [
+                f"    target.{col} AS {alias}"
+                for col, alias in zip(target_columns, target_aliases, strict=True)
+            ]
+            on_clause = f"b.{src} = target.{tgt}"
+            if rewritten_filter:
+                on_clause += f" AND {rewritten_filter}"
+            select_body = ",\n".join(
+                [
+                    *key_selections,
+                    *col_selections,
+                    f"    {priority} AS __branch_priority",
+                ]
+            )
+            branch_selects.append(
+                f"  SELECT\n{select_body}\n  FROM base_keys b\n"
+                f"  JOIN {resolved_table} target\n    ON {on_clause}"
+            )
+
+        branches_str = "\n  UNION\n".join(branch_selects)
+
+        keys_list = ",\n    ".join(keys)
+        partition = ", ".join(match_keys)
+        order_tiebreak = "".join(
+            f",\n        {alias} ASC NULLS LAST" for alias in sorted(target_aliases)
+        )
+        dedup_projection = ",\n    ".join([*match_keys, *target_aliases])
+
+        joined_selections = [f"  m.{alias}" for alias in target_aliases]
+        all_selections = [f"  {s}" for s in base_column_selections] + joined_selections
+        column_list = ",\n".join(all_selections)
+
+        null_safe_conds = "\n    AND ".join(
+            f"(base.{k} = m.{mk} OR (base.{k} IS NULL AND m.{mk} IS NULL))"
+            for k, mk in zip(keys, match_keys, strict=True)
+        )
+
+        step_label = (
+            f"{target_table} as {table_alias}" if table_instance else target_table
+        )
+        join_type = join_info.get("join_type", "left").upper()
+        join_clause = f"{join_type} JOIN"
+        n_paths = len(branch_conditions)
+
+        return f"""-- ============================================================================
+-- STEP {step}: Join {step_label} (Direct Join - {cardinality}, {n_paths} alternative join paths)
+-- ============================================================================
+CREATE OR REPLACE TEMPORARY VIEW disposition_step_{step} AS
+WITH base_keys AS (
+  SELECT DISTINCT
+    {keys_list}
+  FROM {keys_view}
+),
+matches AS (
+{branches_str}
+),
+matches_ranked AS (
+  SELECT
+    *,
+    ROW_NUMBER() OVER (
+      PARTITION BY {partition}
+      ORDER BY __branch_priority{order_tiebreak}
+    ) AS __rn
+  FROM matches
+),
+matches_deduped AS (
+  SELECT
+    {dedup_projection}
+  FROM matches_ranked
+  WHERE __rn = 1
+)
+SELECT
+{column_list}
+FROM {prev_view} base
+{join_clause} matches_deduped m
+  ON {null_safe_conds};"""
 
     def _generate_pivot_join(
         self, step: int, join_info: dict[str, Any], prev_view: str
@@ -1760,21 +2442,49 @@ LEFT JOIN {agg_view_name} agg
 
         column_mappings_str = ",\n".join(column_mappings)
 
+        # Optional final-assembly filter/dedup (metadata.final_filter /
+        # metadata.final_dedup). The inner select is wrapped so the WHERE can
+        # reference derived column aliases (same-level WHERE cannot).
+        metadata = table_umf.metadata
+        final_filter = None
+        dedup_select = None
+        if metadata:
+            if metadata.final_filter:
+                final_filter = self._substitute_template_vars(
+                    metadata.final_filter.strip()
+                )
+            dedup_select = self._final_dedup_select_clause(metadata)
+
         if not base_table:
-            return f"""-- ============================================================================
+            inner = f"SELECT\n{column_mappings_str}"
+            header = f"""-- ============================================================================
 -- FINAL ASSEMBLY: {table_name} (Synthetic Table)
 -- ============================================================================
-CREATE OR REPLACE TEMPORARY VIEW {table_name} AS
-SELECT
-{column_mappings_str};"""
-
-        return f"""-- ============================================================================
+CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
+        else:
+            inner = f"SELECT\n{column_mappings_str}\nFROM {final_view} base"
+            header = f"""-- ============================================================================
 -- FINAL ASSEMBLY: {table_name} with Column Derivations
 -- ============================================================================
-CREATE OR REPLACE TEMPORARY VIEW {table_name} AS
-SELECT
-{column_mappings_str}
-FROM {final_view} base;"""
+CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
+
+        if final_filter is None and dedup_select is None:
+            return f"{header}\n{inner};"
+
+        outer_select = dedup_select or "SELECT *"
+        where_clause = f"\nWHERE {final_filter}" if final_filter else ""
+        return f"""{header}
+{outer_select}
+FROM (
+{inner}
+) _final{where_clause};"""
+
+    @staticmethod
+    def _final_dedup_select_clause(metadata: Any) -> str | None:
+        """Return the outer SELECT clause for ``metadata.final_dedup``."""
+        if metadata.final_dedup == "distinct":
+            return "SELECT DISTINCT *"
+        return None
 
     def _get_joined_provenance_columns(
         self, join_sequence: list[dict[str, Any]]
@@ -1813,6 +2523,13 @@ FROM {final_view} base;"""
         derivation_strategy = derivation.strategy if derivation else None
 
         if derivation_strategy in ("primary_key", "base_column"):
+            return f"base.{col_name}"
+
+        # Columns projected by the union_branches base view already carry their
+        # branch-specific candidate mapping under the TARGET name — reference
+        # them directly (must run before the base-table candidate path, which
+        # would emit the SOURCE column name).
+        if col_name in self._union_branch_columns:
             return f"base.{col_name}"
 
         if not candidates:

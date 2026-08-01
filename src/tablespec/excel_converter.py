@@ -1317,6 +1317,7 @@ class UMFToExcelConverter:
             "Order By",
             "Select Columns",
             "Join Via",
+            "Union Value",
             "Reason",
             "Derivation Strategy",
             "Survivorship Strategy",
@@ -1366,10 +1367,10 @@ class UMFToExcelConverter:
             def _write_row(candidate: Any, col_fields: dict[str, Any]) -> None:
                 nonlocal row
                 if candidate is None:
-                    # 11 candidate columns: Priority..Reason (must match the
+                    # 12 candidate columns: Priority..Reason (must match the
                     # populated branch below so column-level fields land in the
                     # right cells).
-                    cand_values = [""] * 11
+                    cand_values = [""] * 12
                 else:
                     cand_values = [
                         candidate.priority,
@@ -1386,6 +1387,9 @@ class UMFToExcelConverter:
                             if candidate.join_via
                             else None
                         ),
+                        # Native value (str/int/float/bool) so the SQL literal
+                        # survives the round-trip untouched
+                        "" if candidate.union_value is None else candidate.union_value,
                         candidate.reason or "",
                     ]
                 values = [
@@ -1595,7 +1599,13 @@ class UMFToExcelConverter:
         for key, value in metadata.items():
             ws[f"A{row}"] = key
             self._apply_font_to_cell(ws[f"A{row}"], self._get_default_font())
-            ws[f"B{row}"] = str(value)
+            # JSON-encode lists/dicts (e.g. union_base_tables, source_tables) so
+            # they survive the round-trip; str() would emit a Python repr the
+            # importer cannot parse back
+            if isinstance(value, (list, dict)):
+                ws[f"B{row}"] = json.dumps(value)
+            else:
+                ws[f"B{row}"] = str(value)
             self._apply_font_to_cell(ws[f"B{row}"], self._get_default_font())
             row += 1
 
@@ -2462,6 +2472,11 @@ class ExcelToUMFConverter:
                 candidate["select_columns"] = select_columns
             if join_via:
                 candidate["join_via"] = join_via
+            # union_value preserves its native type (str/int/float/bool) so the
+            # per-branch SQL literal round-trips unchanged (TRUE, 1, 'daily').
+            union_value = cell(row, "union value")
+            if union_value not in (None, ""):
+                candidate["union_value"] = union_value
             if reason:
                 candidate["reason"] = str(reason)
             entry["candidates"].append(candidate)
@@ -2576,6 +2591,12 @@ class ExcelToUMFConverter:
                     if value and isinstance(value, (int, float, str))
                     else None
                 )
+
+            # List/dict metadata fields (union_base_tables, source_tables,
+            # unpivot_columns, ...) are JSON-encoded on export
+            if isinstance(value, str) and value.startswith(("[", "{")):
+                with contextlib.suppress(json.JSONDecodeError):
+                    value = json.loads(value)
 
             metadata[field] = value
 

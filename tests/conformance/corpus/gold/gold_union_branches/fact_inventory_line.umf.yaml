@@ -1,0 +1,159 @@
+version: "1.0"
+table_name: fact_inventory_line
+description: >-
+  GOLD - union_branches generation cutover. The base table (inventory_legacy)
+  and one union table (inventory_daily) each become a UNION ALL branch that
+  projects the TARGET column set through its own derivation candidates: a
+  DATE-cutover row_filter per branch (legacy keeps file_date < 2026-07-20,
+  daily keeps >=), a union_value source discriminator (legacy_snapshot / daily),
+  NULL-casts for one-sided columns (fee_amount is legacy-only, licn is
+  daily-only), and per-branch dedup-latest (ROW_NUMBER over the target
+  primary_key ORDER BY meta_load_dt DESC) so only the newest load of each grain
+  key survives within a branch.
+primary_key:
+  - arbit_id
+  - cpt
+  - dos
+  - snapshot_date
+metadata:
+  base_table: inventory_legacy
+  base_table_strategy: union_branches
+  union_base_tables:
+    - inventory_daily
+  union_type: union_all
+  dedup_strategy: latest
+columns:
+  - name: arbit_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: arbit_id
+          priority: 1
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+        - table: inventory_daily
+          column: arbit_id
+          priority: 2
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: cpt
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: cpt
+          priority: 1
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+        - table: inventory_daily
+          column: cpt
+          priority: 2
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: dos
+    data_type: DATE
+    nullable:
+      default: false
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: dos
+          priority: 1
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+        - table: inventory_daily
+          column: dos
+          priority: 2
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: snapshot_date
+    data_type: DATE
+    nullable:
+      default: false
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: snapshot_date
+          priority: 1
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+        - table: inventory_daily
+          column: snapshot_date
+          priority: 2
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: charges
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: charges
+          priority: 1
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+        - table: inventory_daily
+          column: charges
+          priority: 2
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: fee_amount
+    data_type: INTEGER
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: fee_amount
+          priority: 1
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: licn
+    data_type: VARCHAR
+    nullable:
+      default: true
+    derivation:
+      candidates:
+        - table: inventory_daily
+          column: licn
+          priority: 1
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+  - name: source_generation
+    data_type: VARCHAR
+    nullable:
+      default: false
+    derivation:
+      candidates:
+        - table: inventory_legacy
+          column: source_generation
+          priority: 1
+          union_value: legacy_snapshot
+          row_filter: "file_date < DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt
+        - table: inventory_daily
+          column: source_generation
+          priority: 2
+          union_value: daily
+          row_filter: "file_date >= DATE '2026-07-20'"
+          order_by:
+            - meta_load_dt

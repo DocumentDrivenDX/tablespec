@@ -1368,10 +1368,15 @@ class UMFMetadata(BaseModel):
     source_file_modified: datetime | None = Field(
         default=None, description="Last modified timestamp of the source Excel file"
     )
-    base_table_strategy: str | None = Field(
+    base_table_strategy: (
+        Literal["union_sources", "unpivot", "union_branches"] | None
+    ) = Field(
         default=None,
-        description="Strategy for building base table. Use 'union_sources' to build "
-        "from UNION of source_tables.",
+        description="Strategy for building base table. 'union_sources': build a "
+        "key-only universe from UNION of source_tables. 'unpivot': UNPIVOT the base "
+        "table's unpivot_columns into rows. 'union_branches': UNION the base_table "
+        "with union_base_tables (falling back to source_tables), each branch "
+        "projecting the target column set through its own derivation candidates.",
     )
     base_table: str | None = Field(
         default=None,
