@@ -877,6 +877,156 @@ class TestSQLPlanGeneratorDerivations:
 
 
 # ---------------------------------------------------------------------------
+# TestOutputColumnOrder
+# ---------------------------------------------------------------------------
+
+
+class TestOutputColumnOrder:
+    """Output projections follow spec ``position`` order, not name order.
+
+    The final projection defines the physical column order of a
+    ``CREATE TABLE ... AS`` target — alphabetical output produces a
+    semantically different table schema than the spec declares.
+    """
+
+    def _source(self) -> UMF:
+        return _make_umf(
+            "ord_source",
+            [
+                UMFColumn(name="id", data_type="VARCHAR"),
+                UMFColumn(name="c1", data_type="VARCHAR"),
+                UMFColumn(name="c2", data_type="VARCHAR"),
+                UMFColumn(name="c3", data_type="VARCHAR"),
+            ],
+            primary_key=["id"],
+        )
+
+    @staticmethod
+    def _col(name: str, position: str | None, source_col: str) -> UMFColumn:
+        return UMFColumn(
+            name=name,
+            data_type="VARCHAR",
+            position=position,
+            derivation=UMFColumnDerivation(
+                candidates=[
+                    DerivationCandidate(
+                        table="ord_source", column=source_col, priority=1
+                    ),
+                ],
+            ),
+        )
+
+    def test_final_assembly_follows_spec_positions(self):
+        """Positioned columns project in position order even when it inverts
+        the alphabetical order."""
+        target = _make_umf(
+            "ord_target",
+            [
+                self._col("zulu", "1", "c1"),
+                self._col("alpha", "2", "c2"),
+                self._col("mike", "3", "c3"),
+            ],
+        )
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"ord_source": self._source()}
+        )
+        assert sql.index("AS zulu") < sql.index("AS alpha") < sql.index("AS mike")
+
+    def test_unpositioned_columns_sort_after_positioned_alphabetically(self):
+        """Legacy specs without positions keep a deterministic tail: after all
+        positioned columns, alphabetical among themselves."""
+        target = _make_umf(
+            "ord_target",
+            [
+                self._col("alpha_x", None, "c1"),
+                self._col("beta_two", "2", "c2"),
+                self._col("gamma_one", "1", "c3"),
+                self._col("aa_tail", None, "id"),
+            ],
+        )
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"ord_source": self._source()}
+        )
+        assert (
+            sql.index("AS gamma_one")
+            < sql.index("AS beta_two")
+            < sql.index("AS aa_tail")
+            < sql.index("AS alpha_x")
+        )
+
+    def test_union_branches_output_follows_spec_positions(self):
+        """The union strategy's shared column set (each branch's projection and
+        the final output) follows spec positions."""
+
+        def _source(name: str) -> UMF:
+            return UMF(
+                version="1.0",
+                table_name=name,
+                canonical_name=name,
+                table_type="ingested",
+                columns=[
+                    UMFColumn(name=n, data_type=t)
+                    for n, t in {
+                        "rid": "VARCHAR",
+                        "zz_col": "VARCHAR",
+                        "aa_col": "VARCHAR",
+                        "file_date": "DATE",
+                        "meta_load_dt": "DATE",
+                    }.items()
+                ],
+            )
+
+        def _cand(table: str, col: str, prio: int) -> DerivationCandidate:
+            cutover = (
+                "file_date < DATE '2026-01-01'"
+                if table == "u_one"
+                else "file_date >= DATE '2026-01-01'"
+            )
+            return DerivationCandidate(
+                table=table,
+                column=col,
+                priority=prio,
+                row_filter=cutover,
+                order_by=["meta_load_dt"],
+            )
+
+        def _ucol(name: str, position: str) -> UMFColumn:
+            return UMFColumn(
+                name=name,
+                data_type="VARCHAR",
+                position=position,
+                derivation=UMFColumnDerivation(
+                    candidates=[_cand("u_one", name, 1), _cand("u_two", name, 2)],
+                ),
+            )
+
+        target = UMF(
+            version="1.0",
+            table_name="ord_union",
+            canonical_name="ord_union",
+            table_type="generated",
+            primary_key=["rid"],
+            metadata={
+                "base_table": "u_one",
+                "base_table_strategy": "union_branches",
+                "union_base_tables": ["u_two"],
+                "union_type": "union_all",
+                "dedup_strategy": "latest",
+            },
+            columns=[
+                _ucol("rid", "1"),
+                _ucol("zz_col", "2"),
+                _ucol("aa_col", "3"),
+            ],
+        )
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"u_one": _source("u_one"), "u_two": _source("u_two")}
+        )
+        # position order (zz before aa) must survive; alphabetical would invert
+        assert sql.index("zz_col") < sql.index("aa_col")
+
+
+# ---------------------------------------------------------------------------
 # TestRelationshipResolver
 # ---------------------------------------------------------------------------
 

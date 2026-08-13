@@ -160,6 +160,27 @@ def _parse_table_ref(name: str) -> tuple[str | None, str]:
     return None, name
 
 
+def _output_ordered_columns(columns: list[Any]) -> list[Any]:
+    """Order columns for OUTPUT projections: spec ``position`` first, then
+    case-insensitive name.
+
+    The final projection defines the physical column order of a
+    ``CREATE TABLE ... AS`` target, so the emitted order must follow the
+    spec's declared positions — an alphabetical projection produces a
+    semantically different table schema. Columns without a parseable
+    position sort after all positioned columns, alphabetically among
+    themselves (deterministic for legacy specs that never set positions).
+    """
+
+    def _key(col: Any) -> tuple[int, int, str]:
+        try:
+            return (0, int(col.position), col.name.lower())
+        except (TypeError, ValueError):
+            return (1, 0, col.name.lower())
+
+    return sorted(columns, key=_key)
+
+
 class SQLPlanGenerator:
     """Generate SQL execution plans from UMF metadata and relationships.
 
@@ -752,7 +773,7 @@ FROM {resolved_table}{where_clause};"""
         branch_cols: list[str] = []
         col_types: dict[str, str] = {}
         cands_by_table: dict[str, dict[str, list[Any]]] = {t: {} for t in branch_tables}
-        for col in sorted(table_umf.columns, key=lambda c: c.name.lower()):
+        for col in _output_ordered_columns(table_umf.columns):
             cands = (
                 col.derivation.candidates
                 if col.derivation and col.derivation.candidates
@@ -2411,7 +2432,7 @@ LEFT JOIN {agg_view_name} agg
         """Generate the final SELECT with column derivations and survivorship."""
         column_mappings: list[str] = []
 
-        for col_def in sorted(table_umf.columns, key=lambda c: c.name.lower()):
+        for col_def in _output_ordered_columns(table_umf.columns):
             col_name = col_def.name
             derivation = col_def.derivation
             data_type = (col_def.data_type or "STRING").upper()
