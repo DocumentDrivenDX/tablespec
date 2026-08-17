@@ -1540,6 +1540,26 @@ class TestCompositeJoinKeysAndFullOuter:
         base_view = sql.split("STEP 0")[1].split("STEP 1")[0]
         assert "npi" in base_view
 
+    def test_intermediate_base_refs_project_in_sorted_order(self):
+        # intermediate-required base columns come out of a set — they must be
+        # appended sorted, or the emitted column order (and plan bytes) would
+        # follow the process hash seed and flip between runs
+        target, related = self._corpus()
+        target.columns = [c for c in target.columns if c.name != "payor"]
+        target.columns.append(
+            UMFColumn(
+                name="flagged", data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(candidates=[
+                    DerivationCandidate(
+                        table="intermediate", priority=1,
+                        expression="CASE WHEN base.npi IS NULL OR base.charge IS NULL THEN TRUE ELSE FALSE END",
+                    )]),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        base_view = sql.split("STEP 0")[1].split("STEP 1")[0]
+        assert base_view.index("charge") < base_view.index("npi")
+
     def test_underscore_canonical_name_emits_physical_column(self):
         target, related = self._corpus()
         target.columns.append(
