@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-spark setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
+.PHONY: help install install-dev install-spark setup-spark spark-env format format-check lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
 # Library + scripts + Databricks app Python. Notebooks under apps/ are
 # Databricks-runtime scripts (display, spark, widgets) and stay out of ruff —
@@ -47,6 +47,9 @@ pre-commit-run: ## Run all pre-commit hooks manually
 # Code Quality
 format: ## Format code with ruff
 	uv run ruff format .
+
+format-check: ## Fail on unformatted files (same scope as the pre-commit CI gate)
+	uv run ruff format --check .
 
 lint: ## Lint code with ruff
 	uv run ruff check $(TRACKED_LINT_FILES)
@@ -126,6 +129,6 @@ test-databricks-all: ## Run full test suite on Databricks (skips local-spark-onl
 		--ignore=tests/unit/test_baseline_service.py
 
 # Convenience targets
-check: lint type-check test ## Run all checks (lint, type-check, test)
+check: format-check lint type-check test ## Run all checks (format-check, lint, type-check, test)
 
 all: install-dev format check ## Install, format, and run all checks
