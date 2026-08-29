@@ -1,4 +1,4 @@
 interface:
   display_name: "tablespec"
-  short_description: "Canonical tablespec workflows for agents"
-  default_prompt: "Use the tablespec skill to work on tablespec code, specs, Databricks bootstrap, UMF formats, profiling, validation, sample data, pipeline packaging, and DDx-tracked implementation tasks."
+  short_description: "UMF table-spec workflows: bootstrap, profiling, validation, pipelines"
+  default_prompt: "Use the tablespec skill when working with Universal Metadata Format (UMF) table schemas: bootstrapping UMF from Spark/Databricks tables, profiling, validation expectations, sample data, Excel table specs, and Spark/LDP/dbt pipeline artifacts."
