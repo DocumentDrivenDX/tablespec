@@ -15,8 +15,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  version-guard:
+    name: Plugin manifest version guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Claude Code refreshes an installed plugin only when plugin.json's
+      # `version` changes. A tag pushed without bumping the manifests ships
+      # nothing to plugin users and fails silently — so fail the release here.
+      - name: Assert plugin manifests match the release tag
+        run: |
+          EXPECTED="${GITHUB_REF_NAME#v}"
+          echo "release tag: $GITHUB_REF_NAME -> expected plugin version: $EXPECTED"
+          python3 - "$EXPECTED" <<'PY'
+          import json
+          import sys
+
+          expected = sys.argv[1]
+          checks = {
+              ".claude-plugin/plugin.json": lambda m: m["version"],
+              ".codex-plugin/plugin.json": lambda m: m["version"],
+              ".claude-plugin/marketplace.json": lambda m: next(
+                  p["version"] for p in m["plugins"] if p["name"] == "tablespec"
+              ),
+          }
+          bad = []
+          for path, get in checks.items():
+              try:
+                  found = get(json.load(open(path)))
+              except (OSError, KeyError, StopIteration, json.JSONDecodeError) as exc:
+                  bad.append(f"{path}: could not read version ({exc})")
+                  continue
+              if found != expected:
+                  bad.append(f"{path}: {found!r} != tag {expected!r}")
+          if bad:
+              print("\n".join(bad), file=sys.stderr)
+              sys.exit(1)
+          print(f"all plugin manifests declare {expected}")
+          PY
+
   build:
     name: Build Distribution
+    needs: version-guard
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

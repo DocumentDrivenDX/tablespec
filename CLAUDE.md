@@ -17,6 +17,12 @@ Top-level layout:
   app. The source root must be the repo root so `pip install .` provides
   `tablespec` to the app; the command chdir's into `apps/data-profiling` because
   the app resolves `connections.yaml` relative to the working directory.
+- `skills/tablespec/` + `.claude-plugin/` + `.codex-plugin/` - the published **agent-skill plugin**
+  (`/plugin marketplace add https://github.com/DocumentDrivenDX/tablespec`). `skills/tablespec/SKILL.md`
+  is the source of truth; `.agents/skills/tablespec` and `.claude/skills/tablespec` are symlinks to it.
+  All three manifests carry a literal `version` that must equal the next release tag — bump them before
+  tagging (CI's `version-guard` job fails the release otherwise); `tests/docs/test_plugin_manifests.py`
+  keeps them mutually consistent.
 
 `src/tablespec/` is organized as a small public surface plus feature-focused subpackages:
 
