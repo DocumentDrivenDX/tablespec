@@ -7,7 +7,7 @@ ddx:
 
 **Version**: 2.3
 **Status**: Execution-ready template for package+Pages release; app deploy section is the FR-23 operator procedure
-**Last Updated**: 2026-07-23
+**Last Updated**: 2026-08-29
 
 This checklist is the release-day operating template for the current tag-driven
 package workflow and the GitHub Pages package index, plus the procedure for

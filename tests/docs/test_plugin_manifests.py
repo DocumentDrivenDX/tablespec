@@ -13,12 +13,15 @@ CLAUDE_PLUGIN_MANIFEST = ROOT / ".claude-plugin/plugin.json"
 MARKETPLACE_MANIFEST = ROOT / ".claude-plugin/marketplace.json"
 CODEX_PLUGIN_MANIFEST = ROOT / ".codex-plugin/plugin.json"
 SKILL_MD = ROOT / "skills/tablespec/SKILL.md"
+SKILL_OPENAI_YAML = ROOT / "skills/tablespec/agents/openai.yaml"
 SKILL_REFERENCES_DIR = ROOT / "skills/tablespec/references"
 AGENTS_SKILL_LINK = ROOT / ".agents/skills/tablespec"
 CLAUDE_SKILL_LINK = ROOT / ".claude/skills/tablespec"
 PUBLISHED_SKILL_DIR = ROOT / "skills/tablespec"
 
-VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
+# Matches release.yml's `v*.*.*` trigger, including pre-release tags such as
+# v1.2.3-rc1 (the release workflow marks rc/alpha/beta tags as pre-releases).
+VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$")
 
 
 def _load_json(path: Path) -> dict:
@@ -38,6 +41,7 @@ def test_manifests_parse_and_have_required_fields() -> None:
         assert manifest["license"] == "Apache-2.0"
         assert "hooks" not in manifest
 
+    assert codex_manifest["description"] == claude_manifest["description"]
     assert marketplace_manifest["name"] == "tablespec"
 
 
@@ -81,6 +85,7 @@ def test_skill_is_published_at_plugin_root() -> None:
     assert SKILL_MD.exists()
 
     text = SKILL_MD.read_text(encoding="utf-8")
+    assert text.startswith("---\n"), "SKILL.md must open with a YAML frontmatter block"
     parts = text.split("---")
     assert len(parts) >= 3, "SKILL.md must have a YAML frontmatter block"
     frontmatter = yaml.safe_load(parts[1])
@@ -95,6 +100,21 @@ def test_skill_is_published_at_plugin_root() -> None:
         assert fragment not in description, fragment
 
     assert not SKILL_REFERENCES_DIR.exists()
+
+
+def test_codex_skill_metadata_matches_codex_manifest() -> None:
+    codex_manifest = _load_json(CODEX_PLUGIN_MANIFEST)
+    interface = yaml.safe_load(SKILL_OPENAI_YAML.read_text(encoding="utf-8"))[
+        "interface"
+    ]
+
+    assert interface["display_name"] == codex_manifest["interface"]["displayName"]
+    assert (
+        interface["short_description"]
+        == codex_manifest["interface"]["shortDescription"]
+    )
+    assert interface["default_prompt"]
+    assert "ddx" not in interface["default_prompt"].lower()
 
 
 def test_install_targets_are_symlinks_to_published_skill() -> None:

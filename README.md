@@ -74,8 +74,24 @@ The `tablespec` agent skill ships as a plugin. In Claude Code:
 /plugin install tablespec@tablespec
 ```
 
-This makes the `tablespec` skill (and the `/tablespec` command) available in every session. The plugin
-version is pinned in `.claude-plugin/plugin.json`; each release bumps it so installed copies refresh.
+This makes the `tablespec` skill available in every session: Claude loads it automatically when a task
+involves UMF or tablespec, or you can invoke it directly with `/tablespec:tablespec`. For automation
+(scripts, Dockerfiles), use the CLI form:
+
+```bash
+claude plugin marketplace add https://github.com/DocumentDrivenDX/tablespec
+claude plugin install tablespec@tablespec --scope user -y
+```
+
+In Codex, the same plugin installs from the same marketplace:
+
+```bash
+codex plugin marketplace add DocumentDrivenDX/tablespec
+codex plugin add tablespec@tablespec
+```
+
+The plugin version is pinned in `.claude-plugin/plugin.json`; each release bumps it so installed copies
+refresh.
 
 ## Quick Start
 
