@@ -1,0 +1,40 @@
+{
+  "name": "tablespec",
+  "version": "0.0.3",
+  "description": "UMF table-schema workflows: bootstrap UMF from Spark/Databricks tables, profile, validate, generate sample data and Spark/LDP/dbt pipeline artifacts.",
+  "author": {
+    "name": "DocumentDrivenDX",
+    "url": "https://github.com/DocumentDrivenDX"
+  },
+  "homepage": "https://documentdrivendx.github.io/tablespec/",
+  "repository": "https://github.com/DocumentDrivenDX/tablespec",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "keywords": [
+    "tablespec",
+    "umf",
+    "databricks",
+    "data-quality",
+    "agent-skills",
+    "codex"
+  ],
+  "interface": {
+    "displayName": "tablespec",
+    "shortDescription": "UMF table-schema workflows for Codex.",
+    "longDescription": "tablespec packages UMF-based table-schema tooling for bootstrapping, profiling, validating, and generating pipeline artifacts in Codex.",
+    "developerName": "DocumentDrivenDX",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Review"
+    ],
+    "websiteURL": "https://documentdrivendx.github.io/tablespec/",
+    "defaultPrompt": [
+      "Use the tablespec skill to bootstrap UMF specs from Databricks tables.",
+      "Use the tablespec skill to generate sample data from a UMF spec.",
+      "Use the tablespec skill to compile Spark, LDP, and dbt pipeline artifacts."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

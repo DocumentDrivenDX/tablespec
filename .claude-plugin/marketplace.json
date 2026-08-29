@@ -1,0 +1,16 @@
+{
+  "name": "tablespec",
+  "description": "tablespec plugin marketplace",
+  "owner": {
+    "name": "DocumentDrivenDX",
+    "url": "https://github.com/DocumentDrivenDX"
+  },
+  "plugins": [
+    {
+      "name": "tablespec",
+      "description": "UMF table-schema workflows: bootstrap UMF from Spark/Databricks tables, profile, validate, generate sample data and Spark/LDP/dbt pipeline artifacts.",
+      "version": "0.0.3",
+      "source": "./"
+    }
+  ]
+}
