@@ -276,7 +276,8 @@ class RelationshipResolver:
             # full_outer preserves fan-out on both sides by definition — never
             # first_record-dedup it, whatever the cardinality notation says
             strat = (
-                "direct" if j.join_type == "full_outer"
+                "direct"
+                if j.join_type == "full_outer"
                 else self._infer_strategy(j, target_umf)
             )
             j.strategy = strat

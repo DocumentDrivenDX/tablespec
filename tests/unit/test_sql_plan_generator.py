@@ -1424,8 +1424,10 @@ class TestCompositeJoinKeysAndFullOuter:
             primary_key=["incident_id"],
             relationships=Relationships(
                 summary=RelationshipSummary(
-                    total_relationships=1, total_incoming=0,
-                    total_outgoing=1, hub_score=5.0,
+                    total_relationships=1,
+                    total_incoming=0,
+                    total_outgoing=1,
+                    hub_score=5.0,
                 ),
                 outgoing=[
                     OutgoingRelationship(
@@ -1435,8 +1437,10 @@ class TestCompositeJoinKeysAndFullOuter:
                         join_type=join_type,
                         join_conditions=[
                             {"source_column": "npi", "target_column": "npi"},
-                            {"source_expression": "LOWER(charge)",
-                             "target_expression": "LOWER(billed_amount)"},
+                            {
+                                "source_expression": "LOWER(charge)",
+                                "target_expression": "LOWER(billed_amount)",
+                            },
                         ],
                         cardinality=cardinality,
                         type="foreign_to_primary",
@@ -1459,14 +1463,26 @@ class TestCompositeJoinKeysAndFullOuter:
             "cj_lines",
             [
                 UMFColumn(
-                    name="incident_id", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="cj_detail", column="incident_id", priority=1)]),
+                    name="incident_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="cj_detail", column="incident_id", priority=1
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="payor", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="cj_header", column="payor", priority=1)]),
+                    name="payor",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="cj_header", column="payor", priority=1
+                            )
+                        ]
+                    ),
                 ),
             ],
         )
@@ -1490,8 +1506,11 @@ class TestCompositeJoinKeysAndFullOuter:
         target, related = self._corpus(
             join_type="full_outer",
             cardinality=Cardinality(
-                notation="1:N", type="one_to_many", mandatory=False,
-                source_multiplicity="1", target_multiplicity="*",
+                notation="1:N",
+                type="one_to_many",
+                mandatory=False,
+                source_multiplicity="1",
+                target_multiplicity="*",
             ),
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1509,12 +1528,18 @@ class TestCompositeJoinKeysAndFullOuter:
         target.columns = [c for c in target.columns if c.name != "payor"]
         target.columns.append(
             UMFColumn(
-                name="matched", data_type="BOOLEAN",
-                derivation=UMFColumnDerivation(candidates=[
-                    DerivationCandidate(
-                        table="intermediate", priority=1, column="charge",
-                        expression="CASE WHEN base.charge = base.cj_header__billed_amount THEN TRUE ELSE FALSE END",
-                    )]),
+                name="matched",
+                data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="intermediate",
+                            priority=1,
+                            column="charge",
+                            expression="CASE WHEN base.charge = base.cj_header__billed_amount THEN TRUE ELSE FALSE END",
+                        )
+                    ]
+                ),
             )
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1528,12 +1553,17 @@ class TestCompositeJoinKeysAndFullOuter:
         target.columns = [c for c in target.columns if c.name != "payor"]
         target.columns.append(
             UMFColumn(
-                name="flagged", data_type="BOOLEAN",
-                derivation=UMFColumnDerivation(candidates=[
-                    DerivationCandidate(
-                        table="intermediate", priority=1,
-                        expression="CASE WHEN base.npi IS NULL THEN TRUE ELSE FALSE END",
-                    )]),
+                name="flagged",
+                data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="intermediate",
+                            priority=1,
+                            expression="CASE WHEN base.npi IS NULL THEN TRUE ELSE FALSE END",
+                        )
+                    ]
+                ),
             )
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1548,12 +1578,17 @@ class TestCompositeJoinKeysAndFullOuter:
         target.columns = [c for c in target.columns if c.name != "payor"]
         target.columns.append(
             UMFColumn(
-                name="flagged", data_type="BOOLEAN",
-                derivation=UMFColumnDerivation(candidates=[
-                    DerivationCandidate(
-                        table="intermediate", priority=1,
-                        expression="CASE WHEN base.npi IS NULL OR base.charge IS NULL THEN TRUE ELSE FALSE END",
-                    )]),
+                name="flagged",
+                data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="intermediate",
+                            priority=1,
+                            expression="CASE WHEN base.npi IS NULL OR base.charge IS NULL THEN TRUE ELSE FALSE END",
+                        )
+                    ]
+                ),
             )
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1564,9 +1599,14 @@ class TestCompositeJoinKeysAndFullOuter:
         target, related = self._corpus()
         target.columns.append(
             UMFColumn(
-                name="u_debug", canonical_name="_debug", data_type="VARCHAR",
-                derivation=UMFColumnDerivation(candidates=[
-                    DerivationCandidate(table="cj_detail", column="npi", priority=1)]),
+                name="u_debug",
+                canonical_name="_debug",
+                data_type="VARCHAR",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(table="cj_detail", column="npi", priority=1)
+                    ]
+                ),
             )
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1582,9 +1622,16 @@ class TestCompositeJoinKeysAndFullOuter:
         )
         target.columns.append(
             UMFColumn(
-                name="u_raw", canonical_name="_raw", data_type="VARCHAR",
-                derivation=UMFColumnDerivation(candidates=[
-                    DerivationCandidate(table="cj_detail", column="_raw", priority=1)]),
+                name="u_raw",
+                canonical_name="_raw",
+                data_type="VARCHAR",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="cj_detail", column="_raw", priority=1
+                        )
+                    ]
+                ),
             )
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1594,8 +1641,11 @@ class TestCompositeJoinKeysAndFullOuter:
     def test_left_one_to_many_still_first_records(self):
         target, related = self._corpus(
             cardinality=Cardinality(
-                notation="1:N", type="one_to_many", mandatory=False,
-                source_multiplicity="1", target_multiplicity="*",
+                notation="1:N",
+                type="one_to_many",
+                mandatory=False,
+                source_multiplicity="1",
+                target_multiplicity="*",
             ),
         )
         sql = SQLPlanGenerator().generate_for_table(target, related)
@@ -1625,21 +1675,46 @@ class TestAggregateSourceBase:
             "agg_rollup",
             [
                 UMFColumn(
-                    name="service_line_id", data_type="VARCHAR", position="1",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="agg_payments", column="service_line_id", priority=1)]),
+                    name="service_line_id",
+                    data_type="VARCHAR",
+                    position="1",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="agg_payments",
+                                column="service_line_id",
+                                priority=1,
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="total_amount", data_type="DECIMAL", position="2",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="agg_payments", priority=1,
-                                            expression="SUM(amount)")]),
+                    name="total_amount",
+                    data_type="DECIMAL",
+                    position="2",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="agg_payments",
+                                priority=1,
+                                expression="SUM(amount)",
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="first_payment", data_type="DECIMAL", position="3",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="agg_payments", priority=1,
-                                            expression="MIN_BY(amount, STRUCT(entry_dt, gluid))")]),
+                    name="first_payment",
+                    data_type="DECIMAL",
+                    position="3",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="agg_payments",
+                                priority=1,
+                                expression="MIN_BY(amount, STRUCT(entry_dt, gluid))",
+                            )
+                        ]
+                    ),
                 ),
             ],
             primary_key=["service_line_id"],
@@ -1697,19 +1772,27 @@ class TestInstanceBoundRelationships:
             primary_key=["id"],
             relationships=Relationships(
                 summary=RelationshipSummary(
-                    total_relationships=2, total_incoming=0,
-                    total_outgoing=2, hub_score=5.0,
+                    total_relationships=2,
+                    total_incoming=0,
+                    total_outgoing=2,
+                    hub_score=5.0,
                 ),
                 outgoing=[
                     OutgoingRelationship(
-                        target_table="ib_rules", table_instance="by_det",
-                        source_column="determination", target_column="determination",
-                        type="foreign_to_primary", confidence=1.0,
+                        target_table="ib_rules",
+                        table_instance="by_det",
+                        source_column="determination",
+                        target_column="determination",
+                        type="foreign_to_primary",
+                        confidence=1.0,
                     ),
                     OutgoingRelationship(
-                        target_table="ib_rules", table_instance="by_stage",
-                        source_column="stage", target_column="stage",
-                        type="foreign_to_primary", confidence=1.0,
+                        target_table="ib_rules",
+                        table_instance="by_stage",
+                        source_column="stage",
+                        target_column="stage",
+                        type="foreign_to_primary",
+                        confidence=1.0,
                     ),
                 ],
             ),
@@ -1718,24 +1801,44 @@ class TestInstanceBoundRelationships:
             "ib_out",
             [
                 UMFColumn(
-                    name="id", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="ib_base", column="id", priority=1)]),
+                    name="id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="ib_base", column="id", priority=1
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="det_rank", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(
-                            table="ib_rules", table_instance="by_det",
-                            column="rank", priority=1,
-                            join_filter="stage = '(any)'")]),
+                    name="det_rank",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="ib_rules",
+                                table_instance="by_det",
+                                column="rank",
+                                priority=1,
+                                join_filter="stage = '(any)'",
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="stage_rank", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(
-                            table="ib_rules", table_instance="by_stage",
-                            column="rank", priority=1)]),
+                    name="stage_rank",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="ib_rules",
+                                table_instance="by_stage",
+                                column="rank",
+                                priority=1,
+                            )
+                        ]
+                    ),
                 ),
             ],
         )

@@ -563,12 +563,16 @@ class SQLPlanGenerator:
         # physical names: a leading-underscore canonical_name IS the physical
         # column (_invoice stored under the UMF-safe name u_invoice) — every
         # SQL surface (base view, joins, expression rewriting) speaks physical
-        return [
-            col.canonical_name
-            if (col.canonical_name or "").startswith("_")
-            else col.name
-            for col in umf.columns
-        ] if umf.columns else []
+        return (
+            [
+                col.canonical_name
+                if (col.canonical_name or "").startswith("_")
+                else col.name
+                for col in umf.columns
+            ]
+            if umf.columns
+            else []
+        )
 
     # ------------------------------------------------------------------
     # Template variable substitution
@@ -823,7 +827,7 @@ FROM {resolved_table}{where_clause};"""
         resolved_table = self._resolve_table_name(base_table)
         _, bare_base = _parse_table_ref(base_table)
 
-        group_keys: list[str] = []   # (source_col AS target_name) pairs
+        group_keys: list[str] = []  # (source_col AS target_name) pairs
         projections: list[str] = []
         for col_def in _output_ordered_columns(table_umf.columns):
             out_name = (
@@ -847,7 +851,8 @@ FROM {resolved_table}{where_clause};"""
                 projections.append(f"{expr} AS {out_name}")
             elif cand.column:
                 key_expr = (
-                    cand.column if cand.column == out_name
+                    cand.column
+                    if cand.column == out_name
                     else f"{cand.column} AS {out_name}"
                 )
                 group_keys.append(key_expr)
@@ -2134,7 +2139,9 @@ FROM {prev_view} base
             cond_src = cond.get("source_expression")
             cond_left = (
                 self._rewrite_join_filter(
-                    cond_src, target_table, alias="base",
+                    cond_src,
+                    target_table,
+                    alias="base",
                     columns=list(self._accumulated_columns),
                 )
                 if cond_src
