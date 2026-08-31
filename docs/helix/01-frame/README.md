@@ -6,7 +6,7 @@ Requirements and problem definition for tablespec.
 
 - [PRD](prd.md) - Product Requirements Document
 - [Principles](principles.md) - Design principles
-- [Brand Voice](brand-voice.md) - Product language rules for the microsite and public documentation
+- [Brand Voice](brand-voice.md) - Product language rules for the microsite and public documentation (single authority; repo root `VOICE.md` points here)
 - [Concerns](concerns.md) - Active project concerns
 - [Feature Registry](feature-registry.md) - Canonical feature index
 
