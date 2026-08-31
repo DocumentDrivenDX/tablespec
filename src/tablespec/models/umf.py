@@ -1308,6 +1308,31 @@ class OutgoingRelationship(BaseModel):
         "emits both joins. Consumed by direct joins only; mutually exclusive with "
         "source_expression/target_expression.",
     )
+    join_type: str | None = Field(
+        default=None,
+        description="Join keyword for this relationship: 'left' (default), "
+        "'inner', or 'full_outer'. full_outer forces the direct-join strategy "
+        "(fan-out preserved on both sides) regardless of cardinality notation. "
+        "Consumed by direct joins only.",
+    )
+    join_conditions: list[dict[str, str]] | None = Field(
+        default=None,
+        description="Additional AND-ed equality conditions appended to the "
+        "direct-join ON clause (composite keys). Each dict gives one side pair: "
+        "source_column or source_expression (base side; bare tokens qualified "
+        "against the accumulated base view) and target_column or "
+        "target_expression (target side; bare tokens qualified against the "
+        "joined table). Consumed by direct joins only.",
+    )
+    table_instance: str | None = Field(
+        default=None,
+        description="Bind this relationship to ONE named instance of the target "
+        "table (the alias derivation candidates reference via their own "
+        "table_instance). Lets the same table join twice with DIFFERENT keys — "
+        "each instance-bound relationship supplies its own "
+        "source/target/conditions. Unbound relationships apply to every "
+        "instance the candidates declare.",
+    )
 
     def parse_table_reference(self) -> "TableReference":
         """Parse target_table into TableReference with optional pipeline qualification.
@@ -1419,12 +1444,15 @@ class UMFMetadata(BaseModel):
         default=None, description="Last modified timestamp of the source Excel file"
     )
     base_table_strategy: (
-        Literal["union_sources", "unpivot", "union_branches"] | None
+        Literal["union_sources", "unpivot", "union_branches", "aggregate_source"] | None
     ) = Field(
         default=None,
         description="Strategy for building base table. 'union_sources': build a "
         "key-only universe from UNION of source_tables. 'unpivot': UNPIVOT the base "
-        "table's unpivot_columns into rows. 'union_branches': UNION the base_table "
+        "table's unpivot_columns into rows. 'aggregate_source': the base view IS a "
+        "GROUP BY over base_table — plain candidates become the group key(s), "
+        "expression candidates must be aggregates, projected under their target "
+        "names. 'union_branches': UNION the base_table "
         "with union_base_tables (falling back to source_tables), each branch "
         "projecting the target column set through its own derivation candidates.",
     )
@@ -1496,12 +1524,27 @@ class UMFMetadata(BaseModel):
         description="Deduplication strategy for generated tables. "
         "'latest': deduplicate on primary_key, keeping the row with the most recent load date.",
     )
-    final_dedup: Literal["distinct"] | None = Field(
+    final_dedup: Literal["distinct", "latest"] | None = Field(
         default=None,
         description="Final-assembly deduplication strategy (runs after all joins). "
         "'distinct': emit SELECT DISTINCT so exact-duplicate rows produced by join "
         "fan-out are collapsed. Use when a joined table has higher cardinality than "
-        "the base and you don't need every joined row.",
+        "the base and you don't need every joined row. "
+        "'latest': enforce the table's declared grain with QUALIFY ROW_NUMBER() "
+        "OVER (PARTITION BY final_dedup_keys ORDER BY final_dedup_order_by) = 1 — "
+        "rows with a NULL in any dedup key pass through undeduplicated (identity "
+        "cannot be asserted without a key).",
+    )
+    final_dedup_keys: list[str] | None = Field(
+        default=None,
+        description="Grain keys for final_dedup 'latest' (output column names). "
+        "Defaults to the table's primary_key.",
+    )
+    final_dedup_order_by: str | None = Field(
+        default=None,
+        description="ORDER BY expression list for final_dedup 'latest' — decides "
+        "which duplicate survives (e.g. 'ReceivedFromCustomer DESC'). Required "
+        "with final_dedup 'latest'.",
     )
     output_config: OutputConfig | None = Field(
         default=None, description="Output file configuration"

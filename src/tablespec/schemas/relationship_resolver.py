@@ -47,9 +47,11 @@ class JoinInfo:
     table_instance: str | None = None  # Unique alias for filtered joins
     join_filter: str | None = None  # SQL WHERE conditions for conditional joins
     join_via: JoinViaSpec | None = None  # Custom join keys
-    join_type: Literal["left", "inner"] = "left"
+    join_type: Literal["left", "inner", "full_outer"] = "left"
     # Alternative join paths (source_column/target_column dicts, priority order)
     alternative_joins: list[dict[str, str]] = field(default_factory=list)
+    # Extra AND-ed equality conditions for composite keys (direct joins only)
+    join_conditions: list[dict[str, str]] = field(default_factory=list)
     # Expression join keys (SQL over source/target columns; direct joins only)
     source_expression: str | None = None
     target_expression: str | None = None
@@ -217,8 +219,14 @@ class RelationshipResolver:
             if alternative_joins and base_table:
                 self._validate_alternative_joins(base_table, tgt, alternative_joins)
 
-            # Create JoinInfo for each instance of this table
-            instances = contributing_instances.get(tgt, {None})
+            # Create JoinInfo for each instance of this table. An
+            # instance-bound relationship applies ONLY to its own instance —
+            # the mechanism for joining one table twice with different keys.
+            rel_instance = rel.get("table_instance")
+            if rel_instance:
+                instances = {rel_instance}
+            else:
+                instances = contributing_instances.get(tgt, {None})
             for inst in sorted(instances, key=lambda x: (x is None, x or "")):
                 key = (tgt, inst)
                 candidate = JoinInfo(
@@ -234,6 +242,8 @@ class RelationshipResolver:
                     source_expression=rel.get("source_expression"),
                     target_expression=rel.get("target_expression"),
                     lookup_join=rel.get("lookup_join"),
+                    join_type=rel.get("join_type") or "left",
+                    join_conditions=rel.get("join_conditions") or [],
                 )
 
                 if key not in candidates_by_key:
@@ -263,7 +273,13 @@ class RelationshipResolver:
 
         # Infer strategy/pivot specs/first_record ordering
         for j in join_candidates:
-            strat = self._infer_strategy(j, target_umf)
+            # full_outer preserves fan-out on both sides by definition — never
+            # first_record-dedup it, whatever the cardinality notation says
+            strat = (
+                "direct"
+                if j.join_type == "full_outer"
+                else self._infer_strategy(j, target_umf)
+            )
             j.strategy = strat
             if strat == "pivot":
                 j.pivot = self._infer_pivot_spec(j, target_umf)
@@ -349,6 +365,12 @@ class RelationshipResolver:
                     d["target_expression"] = rel.target_expression
                 if rel.lookup_join:
                     d["lookup_join"] = rel.lookup_join
+                if rel.join_type:
+                    d["join_type"] = rel.join_type
+                if rel.join_conditions:
+                    d["join_conditions"] = [dict(c) for c in rel.join_conditions]
+                if rel.table_instance:
+                    d["table_instance"] = rel.table_instance
                 result.append(d)
             return result
         return []
@@ -493,6 +515,14 @@ class RelationshipResolver:
                         if tbl not in instances:
                             instances[tbl] = set()
                         instances[tbl].add(inst)
+                    # A verbatim expression naming alias__col contributes the
+                    # OWNER table too — without this, a table referenced ONLY
+                    # through prefixed refs loses its join entirely
+                    if cand.expression:
+                        for m in re.finditer(r"\b(\w+?)__\w+", cand.expression):
+                            owner = m.group(1)
+                            if owner in self.all_umfs and owner not in instances:
+                                instances[owner] = {None}
 
         return instances
 
@@ -1006,6 +1036,10 @@ class RelationshipResolver:
             d["source_expression"] = j.source_expression
         if j.target_expression:
             d["target_expression"] = j.target_expression
+        if j.join_type and j.join_type != "left":
+            d["join_type"] = j.join_type
+        if j.join_conditions:
+            d["join_conditions"] = [dict(c) for c in j.join_conditions]
         if j.lookup_join:
             d["lookup_join"] = j.lookup_join
         if j.join_via:

@@ -458,6 +458,16 @@ class SQLPlanGenerator:
                     table_umf, base_table, join_sequence
                 )
             )
+        elif base_table_strategy == "aggregate_source":
+            if not base_table:
+                msg = (
+                    f"base_table_strategy 'aggregate_source' on {table_name} "
+                    "requires metadata.base_table"
+                )
+                raise ValueError(msg)
+            sections.append(
+                self._generate_aggregate_source_base_view(table_umf, base_table)
+            )
         elif base_table:
             sections.append(
                 self._generate_base_view(
@@ -550,7 +560,17 @@ class SQLPlanGenerator:
         if umf is None:
             self.logger.warning(f"Table {table_name} not found in related_umfs")
             return []
-        return [col.name for col in umf.columns] if umf.columns else []
+        # physical names: a leading-underscore canonical_name IS the physical
+        # column (_invoice stored under the UMF-safe name u_invoice) — every
+        # SQL surface (base view, joins, expression rewriting) speaks physical
+        names: list[str] = []
+        for col in umf.columns or []:
+            canonical = col.canonical_name
+            if canonical is not None and canonical.startswith("_"):
+                names.append(canonical)
+            else:
+                names.append(col.name)
+        return names
 
     # ------------------------------------------------------------------
     # Template variable substitution
@@ -588,6 +608,16 @@ class SQLPlanGenerator:
                     col_names.extend(
                         self._extract_columns_from_expression(cand.expression)
                     )
+                # Prefixed refs (alias__col) in verbatim expressions attribute
+                # to their REAL table so the join projects them — regardless of
+                # whether the candidate also names a column (an intermediate-
+                # attributed expression naming silver_inventory__CPTCode
+                # requires silver_inventory.CPTCode)
+                if cand.expression:
+                    for owner, owned_col in self._extract_prefixed_expression_columns(
+                        cand.expression
+                    ):
+                        required.setdefault(owner, set()).add(owned_col)
 
                 for col_name in col_names:
                     _, bare_name = _parse_table_ref(cand.table)
@@ -596,6 +626,21 @@ class SQLPlanGenerator:
                         required.setdefault(cand.table, set()).add(col_name)
 
         return required
+
+    @staticmethod
+    def _extract_prefixed_expression_columns(expression: str) -> list[tuple[str, str]]:
+        """(table, column) pairs for every ``alias__col`` reference in *expression*."""
+        try:
+            parsed = sqlglot.parse_one(expression, read="spark")
+        except Exception:  # noqa: BLE001 - best-effort projection helper
+            return []
+        pairs: list[tuple[str, str]] = []
+        for col in parsed.find_all(exp.Column):
+            if "__" in col.name:
+                owner, _, owned = col.name.rpartition("__")
+                if owner and owned:
+                    pairs.append((owner, owned))
+        return pairs
 
     def _extract_columns_from_expression(self, expression: str) -> list[str]:
         """Extract column references from a SQL expression.
@@ -695,6 +740,16 @@ class SQLPlanGenerator:
             if col in base_columns and col not in selected_columns:
                 selected_columns.append(col)
 
+        # Verbatim (intermediate-attributed) expressions may reference base
+        # columns no plain candidate requires (a window tiebreak on base.ID) —
+        # any intermediate-required name that IS a base column gets projected
+        # sorted(): _required_columns holds sets — bare iteration leaks the
+        # process hash seed into emitted column order, flipping plan bytes
+        # between runs (breaks regenerate-and-diff commit gates downstream)
+        for col in sorted(self._get_required_columns_for_table("intermediate") or ()):
+            if col in base_columns and col not in selected_columns:
+                selected_columns.append(col)
+
         for col in selected_columns:
             self._accumulated_columns[col] = "base"
 
@@ -726,6 +781,17 @@ FROM {resolved_table}{where_clause};"""
                 candidates.append(join_via.get("source_key"))
             for alt in join_info.get("alternative_joins") or []:
                 candidates.append(alt.get("source_column"))
+            # composite-key conditions: plain base columns plus every column
+            # referenced by a base-side expression must reach the base view
+            for cond in join_info.get("join_conditions") or []:
+                candidates.append(cond.get("source_column"))
+                cond_expr = cond.get("source_expression")
+                if cond_expr:
+                    try:
+                        parsed = sqlglot.parse_one(cond_expr, read="spark")
+                        candidates.extend(c.name for c in parsed.find_all(exp.Column))
+                    except Exception:  # noqa: BLE001 - projection best-effort
+                        pass
             for col in candidates:
                 if col and col not in cols:
                     cols.append(col)
@@ -744,6 +810,71 @@ FROM {resolved_table}{where_clause};"""
         if not metadata:
             return []
         return list(metadata.union_base_tables or metadata.source_tables or [])
+
+    def _generate_aggregate_source_base_view(
+        self, table_umf: UMF, base_table: str
+    ) -> str:
+        """``disposition_base`` as a GROUP BY over *base_table*.
+
+        The aggregation IS the table (aggregation-native, e.g. a per-key
+        payments rollup): plain candidates over the base become the group
+        key(s); expression candidates must be aggregate expressions and are
+        projected under their target (physical) names. Every projected name is
+        registered as a passthrough so final assembly emits ``base.<name>``.
+        """
+        resolved_table = self._resolve_table_name(base_table)
+        _, bare_base = _parse_table_ref(base_table)
+
+        group_keys: list[str] = []  # (source_col AS target_name) pairs
+        projections: list[str] = []
+        for col_def in _output_ordered_columns(table_umf.columns):
+            out_name = (
+                col_def.canonical_name
+                if (col_def.canonical_name or "").startswith("_")
+                else col_def.name
+            )
+            if not col_def.derivation or not col_def.derivation.candidates:
+                continue
+            cand = col_def.derivation.candidates[0]
+            cand_bare = _parse_table_ref(cand.table)[1] if cand.table else None
+            if cand_bare != bare_base:
+                msg = (
+                    f"aggregate_source: column {out_name} derives from "
+                    f"{cand.table!r} — every column must derive from the base "
+                    f"table {base_table!r}"
+                )
+                raise ValueError(msg)
+            if cand.expression:
+                expr = self._substitute_template_vars(cand.expression.strip())
+                projections.append(f"{expr} AS {out_name}")
+            elif cand.column:
+                key_expr = (
+                    cand.column
+                    if cand.column == out_name
+                    else f"{cand.column} AS {out_name}"
+                )
+                group_keys.append(key_expr)
+                projections.append(key_expr)
+            self._union_branch_columns.add(out_name)
+
+        if not group_keys:
+            msg = (
+                f"aggregate_source on {table_umf.table_name}: at least one "
+                "plain (non-expression) candidate is required as the group key"
+            )
+            raise ValueError(msg)
+
+        group_by = ",\n  ".join(k.split(" AS ")[0] for k in group_keys)
+        column_list = ",\n  ".join(projections)
+        return f"""-- ============================================================================
+-- STEP 0: Aggregate base view over {base_table} (aggregation-native)
+-- ============================================================================
+CREATE OR REPLACE TEMPORARY VIEW disposition_base AS
+SELECT
+  {column_list}
+FROM {resolved_table}
+GROUP BY
+  {group_by};"""
 
     def _generate_union_branch_base_view(
         self,
@@ -1945,8 +2076,12 @@ WHERE rn = 1;"""
         all_selections = base_column_selections + target_column_selections
         column_list = ",\n  ".join(all_selections)
 
-        join_type = join_info.get("join_type", "left").upper()
-        join_clause = f"{join_type} JOIN"
+        join_type = join_info.get("join_type", "left").lower()
+        join_clause = {
+            "left": "LEFT JOIN",
+            "inner": "INNER JOIN",
+            "full_outer": "FULL OUTER JOIN",
+        }.get(join_type, f"{join_type.upper()} JOIN")
 
         step_label = (
             f"{target_table} as {table_alias}" if table_instance else target_table
@@ -1995,6 +2130,28 @@ FROM {prev_view} base
             else f"target.{target_col}"
         )
         on_clause = f"{left_key} = {right_key}"
+        # Composite keys: extra AND-ed equalities, each side rewritten like the
+        # primary key pair (base side against the accumulated view, target side
+        # against the joined table)
+        for cond in join_info.get("join_conditions") or []:
+            cond_src = cond.get("source_expression")
+            cond_left = (
+                self._rewrite_join_filter(
+                    cond_src,
+                    target_table,
+                    alias="base",
+                    columns=list(self._accumulated_columns),
+                )
+                if cond_src
+                else f"base.{cond['source_column']}"
+            )
+            cond_tgt = cond.get("target_expression")
+            cond_right = (
+                self._rewrite_join_filter(cond_tgt, target_table)
+                if cond_tgt
+                else f"target.{cond['target_column']}"
+            )
+            on_clause += f" AND {cond_left} = {cond_right}"
         if join_filter:
             rewritten_filter = self._rewrite_join_filter(join_filter, target_table)
             on_clause += f" AND {rewritten_filter}"
@@ -2581,7 +2738,15 @@ LEFT JOIN {agg_view_name} agg
         column_mappings: list[str] = []
 
         for col_def in _output_ordered_columns(table_umf.columns):
-            col_name = col_def.name
+            # UMF-safe name vs physical name: a canonical_name with a leading
+            # underscore is the PHYSICAL output column (`_invoice` stored under
+            # the safe name `u_invoice`) — emit the physical name, matching the
+            # DDL exporter's convention
+            col_name = (
+                col_def.canonical_name
+                if (col_def.canonical_name or "").startswith("_")
+                else col_def.name
+            )
             derivation = col_def.derivation
             data_type = (col_def.data_type or "STRING").upper()
             column_default = col_def.default
@@ -2617,12 +2782,32 @@ LEFT JOIN {agg_view_name} agg
         metadata = table_umf.metadata
         final_filter = None
         dedup_select = None
+        qualify_clause = ""
         if metadata:
             if metadata.final_filter:
                 final_filter = self._substitute_template_vars(
                     metadata.final_filter.strip()
                 )
-            dedup_select = self._final_dedup_select_clause(metadata)
+            if metadata.final_dedup == "latest":
+                keys = metadata.final_dedup_keys or list(table_umf.primary_key or [])
+                if not keys or not metadata.final_dedup_order_by:
+                    msg = (
+                        f"{table_name}: final_dedup 'latest' requires "
+                        "final_dedup_keys (or primary_key) and final_dedup_order_by"
+                    )
+                    raise ValueError(msg)
+                # NULL-keyed rows pass through: identity cannot be asserted
+                # without a key, and PARTITION BY would otherwise collapse
+                # ALL null-key rows into a single survivor
+                null_guard = " OR ".join(f"{k} IS NULL" for k in keys)
+                partition = ", ".join(keys)
+                qualify_clause = (
+                    f"\nQUALIFY ({null_guard} OR ROW_NUMBER() OVER "
+                    f"(PARTITION BY {partition} "
+                    f"ORDER BY {metadata.final_dedup_order_by}) = 1)"
+                )
+            else:
+                dedup_select = self._final_dedup_select_clause(metadata)
 
         if not base_table:
             inner = f"SELECT\n{column_mappings_str}"
@@ -2637,7 +2822,7 @@ CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
 -- ============================================================================
 CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
 
-        if final_filter is None and dedup_select is None:
+        if final_filter is None and dedup_select is None and not qualify_clause:
             return f"{header}\n{inner};"
 
         outer_select = dedup_select or "SELECT *"
@@ -2646,7 +2831,7 @@ CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
 {outer_select}
 FROM (
 {inner}
-) _final{where_clause};"""
+) _final{where_clause}{qualify_clause};"""
 
     @staticmethod
     def _final_dedup_select_clause(metadata: Any) -> str | None:
