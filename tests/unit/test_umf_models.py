@@ -1060,6 +1060,20 @@ class TestUMFMetadataSqlGenerationFields:
         with pytest.raises(ValidationError):
             UMFMetadata(union_type="cross_join")
 
+    def test_base_table_strategy_values_round_trip(self):
+        from tablespec.models.umf import UMFMetadata
+
+        for strategy in ("union_sources", "unpivot", "union_branches"):
+            meta = UMFMetadata(base_table_strategy=strategy)
+            assert meta.base_table_strategy == strategy
+        assert UMFMetadata().base_table_strategy is None
+
+    def test_invalid_base_table_strategy_rejected(self):
+        from tablespec.models.umf import UMFMetadata
+
+        with pytest.raises(ValidationError):
+            UMFMetadata(base_table_strategy="member_universe")
+
 
 class TestIngestionUpdateMode:
     """Test IngestionConfig.update_mode."""

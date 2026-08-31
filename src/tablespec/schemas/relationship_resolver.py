@@ -48,6 +48,13 @@ class JoinInfo:
     join_filter: str | None = None  # SQL WHERE conditions for conditional joins
     join_via: JoinViaSpec | None = None  # Custom join keys
     join_type: Literal["left", "inner"] = "left"
+    # Alternative join paths (source_column/target_column dicts, priority order)
+    alternative_joins: list[dict[str, str]] = field(default_factory=list)
+    # Expression join keys (SQL over source/target columns; direct joins only)
+    source_expression: str | None = None
+    target_expression: str | None = None
+    # Two-hop join through a bridge table (direct joins only)
+    lookup_join: object | None = None
 
 
 @dataclass
@@ -141,9 +148,11 @@ class RelationshipResolver:
         base_table_strategy = None
         union_sources = None
         explicit_base_table = None
+        base_join_column = None
         if target_umf.metadata:
             base_table_strategy = target_umf.metadata.base_table_strategy
             explicit_base_table = getattr(target_umf.metadata, "base_table", None)
+            base_join_column = target_umf.metadata.base_join_column
 
         # Determine which source tables and instances feed target columns
         contributing_instances = self._get_contributing_instances(target_umf)
@@ -168,7 +177,7 @@ class RelationshipResolver:
         # Load relationships from base table AND all contributing tables
         if base_table:
             all_relationships = self._load_all_relationships(
-                base_table, contributing_tables
+                base_table, contributing_tables, base_join_column
             )
         elif base_table_strategy == "union_sources" and union_sources:
             all_relationships = self._build_union_source_relationships(union_sources)
@@ -178,13 +187,35 @@ class RelationshipResolver:
         # Build join candidates with table_instance awareness
         candidates_by_key: dict[tuple[str, str | None], list[JoinInfo]] = {}
 
+        # Determine the default join key once (base_join_column overrides inference)
+        default_join_key = base_join_column or self._get_default_join_key(base_table)
+
+        # Under union_branches, tables that feed UNION branches are part of the
+        # base view — they must not also become join candidates
+        union_branch_tables: set[str] = set()
+        if base_table_strategy == "union_branches" and target_umf.metadata:
+            union_branch_tables = set(
+                target_umf.metadata.union_base_tables
+                or target_umf.metadata.source_tables
+                or []
+            )
+
+        # Fully-aggregated sources become GROUP-BY pre-aggregation views joined
+        # back on the base key — they must NOT also become a regular
+        # (first_record/direct) join. A source is aggregated when EVERY column
+        # it contributes is an aggregate expression (MAX/MIN/SUM/COUNT).
+        aggregated_sources = self._aggregated_source_tables(target_umf)
+
         for rel in all_relationships:
             tgt = rel.get("target_table")
             if not tgt or tgt not in contributing_tables:
                 continue
+            if tgt in union_branch_tables or tgt in aggregated_sources:
+                continue
 
-            # Determine the default join key from the base table's primary key
-            default_join_key = self._get_default_join_key(base_table)
+            alternative_joins = rel.get("alternative_joins") or []
+            if alternative_joins and base_table:
+                self._validate_alternative_joins(base_table, tgt, alternative_joins)
 
             # Create JoinInfo for each instance of this table
             instances = contributing_instances.get(tgt, {None})
@@ -199,6 +230,10 @@ class RelationshipResolver:
                     confidence=rel.get("confidence", 0.0),
                     table_instance=inst,
                     join_filter=None,
+                    alternative_joins=alternative_joins,
+                    source_expression=rel.get("source_expression"),
+                    target_expression=rel.get("target_expression"),
+                    lookup_join=rel.get("lookup_join"),
                 )
 
                 if key not in candidates_by_key:
@@ -217,6 +252,11 @@ class RelationshipResolver:
 
         # Extract and apply join_filter and join_via from derivation candidates
         self._populate_join_metadata(target_umf, join_candidates)
+
+        # Fill join_filter gaps from foreign_keys (candidate-level filters win:
+        # they are (table, table_instance)-keyed and can disambiguate multi-instance
+        # joins; FK-level filters apply table-wide)
+        self._populate_fk_join_filters(join_candidates, target_umf)
 
         # Apply join_type from foreign_keys if specified
         self._populate_join_types(join_candidates, target_umf)
@@ -301,23 +341,44 @@ class RelationshipResolver:
                     }
                 if rel.reasoning:
                     d["reasoning"] = rel.reasoning
+                if rel.alternative_joins:
+                    d["alternative_joins"] = [dict(a) for a in rel.alternative_joins]
+                if rel.source_expression:
+                    d["source_expression"] = rel.source_expression
+                if rel.target_expression:
+                    d["target_expression"] = rel.target_expression
+                if rel.lookup_join:
+                    d["lookup_join"] = rel.lookup_join
                 result.append(d)
             return result
         return []
 
     def _load_all_relationships(
-        self, base_table: str, contributing_tables: set[str]
+        self,
+        base_table: str,
+        contributing_tables: set[str],
+        base_join_column_override: str | None = None,
     ) -> list[dict[str, Any]]:
         """Load relationships from base table and synthesize joins for contributing tables.
 
         Creates synthetic relationships for any contributing table not covered
         by existing relationships, using primary key inference.
+
+        When ``base_join_column_override`` (metadata.base_join_column) is set it
+        replaces the inferred base join key AND overwrites ``source_column`` on
+        every relationship declared outgoing from the base table — the field
+        asserts "every join out of the base uses this key", because it exists
+        precisely when the auto-selected key is wrong and declared relationships
+        carry that same wrong key.
         """
         all_rels: list[dict[str, Any]] = []
         covered_targets: set[str] = set()
 
         # Start with base table relationships
         base_rels = self._load_outgoing_relationships(base_table)
+        if base_join_column_override:
+            for rel in base_rels:
+                rel["source_column"] = base_join_column_override
         all_rels.extend(base_rels)
 
         # Track which contributing tables are covered
@@ -326,9 +387,11 @@ class RelationshipResolver:
             if tgt:
                 covered_targets.add(tgt)
 
-        # Infer the join key from the base table
+        # Infer the join key from the base table (override wins)
         base_cols = self._get_table_columns(base_table)
-        base_join_key = self._infer_join_key(base_table, base_cols)
+        base_join_key = base_join_column_override or self._infer_join_key(
+            base_table, base_cols
+        )
 
         # For contributing tables not covered by relationships, synthesize direct joins
         for contrib_table in sorted(contributing_tables):
@@ -379,6 +442,37 @@ class RelationshipResolver:
             umf = self.all_umfs[table_name]
             return [col.name for col in umf.columns] if umf.columns else []
         return []
+
+    # Aggregate-function prefixes that mark a candidate expression as an
+    # aggregation (mirrors the generator's _generate_pre_aggregation_views).
+    _AGG_FUNCS = ("COUNT(", "MIN(", "MAX_BY(", "MAX(", "SUM(", "AVG(")
+
+    def _aggregated_source_tables(self, target_umf: UMF) -> set[str]:
+        """Source tables whose EVERY contributed column is an aggregate.
+
+        Such a source is materialized as a GROUP-BY pre-aggregation view and
+        joined back on the base key, so it must be excluded from the regular
+        join sequence (else it is joined twice — once fanned-out, once
+        aggregated). A source with a MIX of aggregate and plain columns stays a
+        normal join (the aggregate columns then resolve in final assembly).
+        """
+        per_table_all_agg: dict[str, bool] = {}
+        for col in target_umf.columns:
+            if not (col.derivation and col.derivation.candidates):
+                continue
+            for cand in col.derivation.candidates:
+                if not cand.table:
+                    continue
+                bare = cand.table.split(".", 1)[1] if "." in cand.table else cand.table
+                expr_upper = (cand.expression or "").upper()
+                is_agg = any(fn in expr_upper for fn in self._AGG_FUNCS)
+                # once any non-aggregate column is seen, the table is not
+                # fully-aggregated
+                if bare in per_table_all_agg:
+                    per_table_all_agg[bare] = per_table_all_agg[bare] and is_agg
+                else:
+                    per_table_all_agg[bare] = is_agg
+        return {t for t, all_agg in per_table_all_agg.items() if all_agg}
 
     def _get_contributing_instances(
         self, target_umf: UMF
@@ -453,6 +547,75 @@ class RelationshipResolver:
                     f"(instance={join_info.table_instance}): "
                     f"{jv_spec.source_key} -> {jv_spec.target_key}"
                 )
+
+    def _populate_fk_join_filters(
+        self, join_candidates: list[JoinInfo], target_umf: UMF
+    ) -> None:
+        """Fill join_filter gaps from ForeignKey.join_filter.
+
+        Candidate-level filters (populated by ``_populate_join_metadata``) take
+        precedence; FK-level filters apply only where no candidate filter was
+        found for the joined table.
+        """
+        if not target_umf.relationships or not target_umf.relationships.foreign_keys:
+            return
+
+        fk_join_filters: dict[str, str] = {}
+        for fk in target_umf.relationships.foreign_keys:
+            if fk.join_filter:
+                if fk.cross_pipeline and fk.references_pipeline:
+                    qualified = f"{fk.references_pipeline}.{fk.references_table}"
+                else:
+                    qualified = fk.references_table
+                if qualified not in fk_join_filters:
+                    fk_join_filters[qualified] = fk.join_filter
+
+        for join_info in join_candidates:
+            if join_info.join_filter is not None:
+                continue
+            filt = fk_join_filters.get(join_info.target_table)
+            if filt:
+                join_info.join_filter = filt
+                logger.info(
+                    f"Applied foreign-key join_filter to {join_info.target_table}"
+                )
+
+    def _validate_alternative_joins(
+        self,
+        base_table: str,
+        target_table: str,
+        alternative_joins: list[dict[str, str]],
+    ) -> None:
+        """Validate alternative join entries reference real columns.
+
+        Each entry must carry ``source_column`` (on the base table) and
+        ``target_column`` (on the joined table). Raises ``ValueError`` on the
+        first violation so misconfigured specs fail at plan time, not run time.
+        """
+        base_cols = set(self._get_table_columns(base_table))
+        target_cols = set(self._get_table_columns(target_table))
+
+        for idx, alt in enumerate(alternative_joins):
+            src = alt.get("source_column")
+            tgt = alt.get("target_column")
+            if not src or not tgt:
+                msg = (
+                    f"alternative_joins[{idx}] for {target_table} must specify "
+                    f"both source_column and target_column (got {alt!r})"
+                )
+                raise ValueError(msg)
+            if base_cols and src not in base_cols:
+                msg = (
+                    f"alternative_joins[{idx}] for {target_table}: source_column "
+                    f"'{src}' does not exist on base table {base_table}"
+                )
+                raise ValueError(msg)
+            if target_cols and tgt not in target_cols:
+                msg = (
+                    f"alternative_joins[{idx}] for {target_table}: target_column "
+                    f"'{tgt}' does not exist on {target_table}"
+                )
+                raise ValueError(msg)
 
     def _populate_join_types(
         self, join_candidates: list[JoinInfo], target_umf: UMF
@@ -839,6 +1002,12 @@ class RelationshipResolver:
             d["table_instance"] = j.table_instance
         if j.join_filter:
             d["join_filter"] = j.join_filter
+        if j.source_expression:
+            d["source_expression"] = j.source_expression
+        if j.target_expression:
+            d["target_expression"] = j.target_expression
+        if j.lookup_join:
+            d["lookup_join"] = j.lookup_join
         if j.join_via:
             d["join_via"] = {
                 "source_key": j.join_via.source_key,
@@ -848,4 +1017,6 @@ class RelationshipResolver:
             }
         if j.join_type != "left":
             d["join_type"] = j.join_type
+        if j.alternative_joins:
+            d["alternative_joins"] = j.alternative_joins
         return d

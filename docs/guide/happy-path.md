@@ -205,6 +205,11 @@ plan_sql = generate_sql_plan(
 The same UMF set also feeds the dbt DAG and LDP emitters, so the derived table
 stays aligned with the rest of the pipeline.
 
+Beyond simple joins, the plan generator supports base/final filters, UNION
+branch generation across source tables (with per-branch filters, literals, and
+window dedup), and alternative join paths — see
+[SQL Plan Generation](sql-plans.md).
+
 ## 6. Generate Spark, LDP, and dbt pipeline artifacts
 
 `compile_umfs(...)` is the current orchestration seam. It persists the ingest

@@ -1232,6 +1232,34 @@ class Cardinality(BaseModel):
     )
 
 
+class LookupJoin(BaseModel):
+    """Two-hop join specification: reach a target table through a bridge.
+
+    Used when the base table shares no direct key with the target, but a
+    bridge table links them (e.g. a fact row carries ``IncidentID``; the
+    facility dim is keyed on ``facility_id``; ``bronze_incident`` bridges
+    them via ``ID`` and ``FacilityID``). The generator emits
+    ``base JOIN bridge ON base.source_key = bridge.bridge_source_key`` then
+    ``JOIN target ON bridge.bridge_target_key = target.<target_column>``.
+    """
+
+    source_key: str = Field(
+        description="Column on the BASE table that keys into the bridge "
+        "(e.g. 'IncidentID')"
+    )
+    bridge_table: str = Field(
+        description="The intermediary table joining base to target "
+        "(e.g. 'bronze_incident')"
+    )
+    bridge_source_key: str = Field(
+        description="Column on the bridge that matches the base's source_key "
+        "(e.g. 'ID')"
+    )
+    bridge_target_key: str = Field(
+        description="Column on the bridge that keys into the target (e.g. 'FacilityID')"
+    )
+
+
 class OutgoingRelationship(BaseModel):
     """Outgoing foreign key relationship to another table."""
 
@@ -1257,6 +1285,28 @@ class OutgoingRelationship(BaseModel):
         default=None,
         description="Alternative join conditions using OR logic. Each dict specifies "
         "source_column and target_column for additional join paths.",
+    )
+    source_expression: str | None = Field(
+        default=None,
+        description="SQL expression over the SOURCE table's columns to use as the "
+        "join key instead of source_column (e.g. 'TRIM(NPI)'). Bare column tokens "
+        "are qualified with the base alias at generation time. Consumed by direct "
+        "joins only.",
+    )
+    target_expression: str | None = Field(
+        default=None,
+        description="SQL expression over the TARGET table's columns to use as the "
+        "join key instead of target_column (e.g. 'TRIM(NPI)'). Bare column tokens "
+        "are qualified with the target alias at generation time. Consumed by direct "
+        "joins only.",
+    )
+    lookup_join: "LookupJoin | None" = Field(
+        default=None,
+        description="Two-hop join: reach the target table THROUGH a bridge table "
+        "when the base and target share no direct key (e.g. base.IncidentID -> "
+        "bronze_incident.FacilityID -> dim_facility.facility_id). The generator "
+        "emits both joins. Consumed by direct joins only; mutually exclusive with "
+        "source_expression/target_expression.",
     )
 
     def parse_table_reference(self) -> "TableReference":
@@ -1368,10 +1418,15 @@ class UMFMetadata(BaseModel):
     source_file_modified: datetime | None = Field(
         default=None, description="Last modified timestamp of the source Excel file"
     )
-    base_table_strategy: str | None = Field(
+    base_table_strategy: (
+        Literal["union_sources", "unpivot", "union_branches"] | None
+    ) = Field(
         default=None,
-        description="Strategy for building base table. Use 'union_sources' to build "
-        "from UNION of source_tables.",
+        description="Strategy for building base table. 'union_sources': build a "
+        "key-only universe from UNION of source_tables. 'unpivot': UNPIVOT the base "
+        "table's unpivot_columns into rows. 'union_branches': UNION the base_table "
+        "with union_base_tables (falling back to source_tables), each branch "
+        "projecting the target column set through its own derivation candidates.",
     )
     base_table: str | None = Field(
         default=None,

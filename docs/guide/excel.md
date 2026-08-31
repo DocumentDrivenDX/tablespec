@@ -59,6 +59,7 @@ column-level fields written on the column's first row:
 | Order By | Window `ORDER BY` columns — JSON list in one cell |
 | Select Columns | Extra columns to carry through aggregation — JSON list |
 | Join Via | Multi-hop join through a lookup table — JSON object |
+| Union Value | Per-UNION-branch literal for synthetic columns (native type preserved: `'daily'`, `TRUE`, `1`) |
 | Reason | Why this source/priority was chosen |
 | Derivation Strategy | Top-level strategy: `primary_key`, `base_column`, `max_across_sources` |
 | Survivorship Strategy | Survivorship method (e.g. `highest_priority`, `most_recent`) |
