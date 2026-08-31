@@ -6,6 +6,7 @@ import pytest
 
 from tablespec.models.umf import (
     Cardinality,
+    UMFMetadata,
     DerivationCandidate,
     OutgoingRelationship,
     Relationships,
@@ -874,6 +875,987 @@ class TestSQLPlanGeneratorDerivations:
         gen = SQLPlanGenerator()
         sql = gen.generate_for_table(target, {})
         assert "PENDING" in sql
+
+
+# ---------------------------------------------------------------------------
+# TestOutputColumnOrder
+# ---------------------------------------------------------------------------
+
+
+class TestOutputColumnOrder:
+    """Output projections follow spec ``position`` order, not name order.
+
+    The final projection defines the physical column order of a
+    ``CREATE TABLE ... AS`` target — alphabetical output produces a
+    semantically different table schema than the spec declares.
+    """
+
+    def _source(self) -> UMF:
+        return _make_umf(
+            "ord_source",
+            [
+                UMFColumn(name="id", data_type="VARCHAR"),
+                UMFColumn(name="c1", data_type="VARCHAR"),
+                UMFColumn(name="c2", data_type="VARCHAR"),
+                UMFColumn(name="c3", data_type="VARCHAR"),
+            ],
+            primary_key=["id"],
+        )
+
+    @staticmethod
+    def _col(name: str, position: str | None, source_col: str) -> UMFColumn:
+        return UMFColumn(
+            name=name,
+            data_type="VARCHAR",
+            position=position,
+            derivation=UMFColumnDerivation(
+                candidates=[
+                    DerivationCandidate(
+                        table="ord_source", column=source_col, priority=1
+                    ),
+                ],
+            ),
+        )
+
+    def test_final_assembly_follows_spec_positions(self):
+        """Positioned columns project in position order even when it inverts
+        the alphabetical order."""
+        target = _make_umf(
+            "ord_target",
+            [
+                self._col("zulu", "1", "c1"),
+                self._col("alpha", "2", "c2"),
+                self._col("mike", "3", "c3"),
+            ],
+        )
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"ord_source": self._source()}
+        )
+        assert sql.index("AS zulu") < sql.index("AS alpha") < sql.index("AS mike")
+
+    def test_unpositioned_columns_sort_after_positioned_alphabetically(self):
+        """Legacy specs without positions keep a deterministic tail: after all
+        positioned columns, alphabetical among themselves."""
+        target = _make_umf(
+            "ord_target",
+            [
+                self._col("alpha_x", None, "c1"),
+                self._col("beta_two", "2", "c2"),
+                self._col("gamma_one", "1", "c3"),
+                self._col("aa_tail", None, "id"),
+            ],
+        )
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"ord_source": self._source()}
+        )
+        assert (
+            sql.index("AS gamma_one")
+            < sql.index("AS beta_two")
+            < sql.index("AS aa_tail")
+            < sql.index("AS alpha_x")
+        )
+
+    def test_union_branches_output_follows_spec_positions(self):
+        """The union strategy's shared column set (each branch's projection and
+        the final output) follows spec positions."""
+
+        def _source(name: str) -> UMF:
+            return UMF(
+                version="1.0",
+                table_name=name,
+                canonical_name=name,
+                table_type="ingested",
+                columns=[
+                    UMFColumn(name=n, data_type=t)
+                    for n, t in {
+                        "rid": "VARCHAR",
+                        "zz_col": "VARCHAR",
+                        "aa_col": "VARCHAR",
+                        "file_date": "DATE",
+                        "meta_load_dt": "DATE",
+                    }.items()
+                ],
+            )
+
+        def _cand(table: str, col: str, prio: int) -> DerivationCandidate:
+            cutover = (
+                "file_date < DATE '2026-01-01'"
+                if table == "u_one"
+                else "file_date >= DATE '2026-01-01'"
+            )
+            return DerivationCandidate(
+                table=table,
+                column=col,
+                priority=prio,
+                row_filter=cutover,
+                order_by=["meta_load_dt"],
+            )
+
+        def _ucol(name: str, position: str) -> UMFColumn:
+            return UMFColumn(
+                name=name,
+                data_type="VARCHAR",
+                position=position,
+                derivation=UMFColumnDerivation(
+                    candidates=[_cand("u_one", name, 1), _cand("u_two", name, 2)],
+                ),
+            )
+
+        target = UMF(
+            version="1.0",
+            table_name="ord_union",
+            canonical_name="ord_union",
+            table_type="generated",
+            primary_key=["rid"],
+            metadata={
+                "base_table": "u_one",
+                "base_table_strategy": "union_branches",
+                "union_base_tables": ["u_two"],
+                "union_type": "union_all",
+                "dedup_strategy": "latest",
+            },
+            columns=[
+                _ucol("rid", "1"),
+                _ucol("zz_col", "2"),
+                _ucol("aa_col", "3"),
+            ],
+        )
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"u_one": _source("u_one"), "u_two": _source("u_two")}
+        )
+        # position order (zz before aa) must survive; alphabetical would invert
+        assert sql.index("zz_col") < sql.index("aa_col")
+
+
+# ---------------------------------------------------------------------------
+# TestBaseTableAggregateJoin
+# ---------------------------------------------------------------------------
+
+
+class TestBaseTableAggregateJoin:
+    """A candidate with an aggregate expression over a source table becomes a
+    GROUP-BY pre-aggregation view joined back on the base key — for base-table
+    dims, not only union_sources targets."""
+
+    def _corpus(self):
+        ref = _make_umf(
+            "ref_elig",
+            [
+                UMFColumn(name="plan_id", data_type="INTEGER"),
+                UMFColumn(name="is_oon", data_type="BOOLEAN"),
+                UMFColumn(name="is_current", data_type="BOOLEAN"),
+            ],
+            primary_key=["plan_id"],
+        )
+        plan = _make_umf(
+            "bronze_plan",
+            [
+                UMFColumn(name="ID", data_type="INTEGER"),
+                UMFColumn(name="Name", data_type="VARCHAR"),
+            ],
+            primary_key=["ID"],
+        )
+
+        def col(name, cand):
+            return UMFColumn(
+                name=name,
+                data_type="VARCHAR",
+                source="derived",
+                derivation=UMFColumnDerivation(
+                    candidates=[DerivationCandidate(priority=1, **cand)]
+                ),
+            )
+
+        target = _make_umf(
+            "dim_plan",
+            [
+                col("plan_id", {"table": "bronze_plan", "column": "ID"}),
+                col(
+                    "is_oon",
+                    {
+                        "table": "ref_elig",
+                        "expression": "MAX(CAST(is_oon AS INT))",
+                        "column": "is_oon",
+                        "row_filter": "is_current = TRUE",
+                    },
+                ),
+            ],
+            primary_key=["plan_id"],
+        )
+        target.metadata = UMFMetadata(base_table="bronze_plan")
+        return target, {"ref_elig": ref, "bronze_plan": plan}
+
+    def test_aggregate_becomes_group_by_view_with_filter(self):
+        target, related = self._corpus()
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        # one GROUP-BY pre-aggregation view, filtered
+        assert "GROUP BY plan_id" in sql
+        assert "WHERE is_current = TRUE" in sql
+        # joined back on the base's real key column (ID), not the renamed PK
+        assert "ON base.ID = agg.plan_id" in sql
+        # NOT also joined as a fanned-out first_record/direct join
+        assert sql.count("MAX(CAST(is_oon AS INT))") == 1
+        assert "First Record" not in sql
+
+    def test_mixed_source_stays_a_normal_join(self):
+        """A source contributing BOTH aggregate and plain columns is not
+        excluded — it stays a regular join (aggregates resolve in assembly)."""
+        from tablespec.schemas.relationship_resolver import RelationshipResolver
+
+        target, related = self._corpus()
+        # add a plain pass-through from ref_elig
+        target.columns.append(
+            UMFColumn(
+                name="a_current",
+                data_type="BOOLEAN",
+                source="derived",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="ref_elig", column="is_current", priority=1
+                        )
+                    ]
+                ),
+            )
+        )
+        agg = RelationshipResolver(related)._aggregated_source_tables(target)
+        assert "ref_elig" not in agg
+
+
+class TestBacktickQualification:
+    """A backtick-quoted column in a derivation expression must be qualified
+    OUTSIDE its backticks (base.`Service`), never inside (`base.Service`,
+    which names a literal column that does not exist)."""
+
+    def test_backtick_column_qualified_outside_backticks(self):
+        base = _make_umf(
+            "spine",
+            [
+                UMFColumn(name="id", data_type="VARCHAR"),
+                UMFColumn(name="Service", data_type="VARCHAR"),
+            ],
+            primary_key=["id"],
+        )
+        target = _make_umf(
+            "gold_out",
+            [
+                UMFColumn(
+                    name="id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(table="spine", column="id", priority=1)
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="service",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="spine", expression="TRIM(`Service`)", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ],
+        )
+        target.metadata = UMFMetadata(base_table="spine")
+        sql = SQLPlanGenerator().generate_for_table(target, {"spine": base})
+        assert "TRIM(base.`Service`)" in sql
+        assert "`base.Service`" not in sql
+
+
+# ---------------------------------------------------------------------------
+# TestBaseViewExpressionColumns
+# ---------------------------------------------------------------------------
+
+
+class TestBaseViewExpressionColumns:
+    """Columns referenced only inside an expression candidate must survive
+    into the base view — the old regex dropped all-caps names as keywords."""
+
+    def test_uppercase_expression_column_reaches_base_view(self):
+        base = _make_umf(
+            "spine",
+            [
+                UMFColumn(name="ServiceLineID", data_type="VARCHAR"),
+                UMFColumn(name="AwardAmount", data_type="DECIMAL"),
+                UMFColumn(name="QPA", data_type="DECIMAL"),
+            ],
+            primary_key=["ServiceLineID"],
+        )
+        target = _make_umf(
+            "gold_out",
+            [
+                UMFColumn(
+                    name="sl_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="spine", column="ServiceLineID", priority=1
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="idr_increase",
+                    data_type="DECIMAL",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="spine",
+                                expression="AwardAmount - QPA",
+                                priority=1,
+                            )
+                        ]
+                    ),
+                ),
+            ],
+        )
+        target.metadata = UMFMetadata(base_table="spine")
+        sql = SQLPlanGenerator().generate_for_table(target, {"spine": base})
+        # QPA (all-caps, expression-only) must be in the base view projection
+        base_view = (
+            sql.split("STEP 0")[1].split("STEP 1")[0] if "STEP 1" in sql else sql
+        )
+        assert "QPA" in base_view
+        assert "base.AwardAmount - base.QPA" in sql
+
+
+# ---------------------------------------------------------------------------
+# TestLookupJoin
+# ---------------------------------------------------------------------------
+
+
+class TestLookupJoin:
+    """relationships.outgoing lookup_join emits a two-hop join through a bridge
+    table (base -> bridge -> target) when base and target share no direct key."""
+
+    def test_two_hop_join_emits_bridge_then_target(self):
+        from tablespec.models.umf import LookupJoin
+
+        base = _make_umf(
+            "fact_line",
+            [
+                UMFColumn(name="line_id", data_type="VARCHAR"),
+                UMFColumn(name="incident_id", data_type="VARCHAR"),
+            ],
+            primary_key=["line_id"],
+            relationships=Relationships(
+                summary=RelationshipSummary(
+                    total_relationships=1,
+                    total_incoming=0,
+                    total_outgoing=1,
+                    hub_score=5.0,
+                ),
+                outgoing=[
+                    OutgoingRelationship(
+                        target_table="dim_facility",
+                        source_column="incident_id",
+                        target_column="facility_id",
+                        type="foreign_to_primary",
+                        confidence=1.0,
+                        lookup_join=LookupJoin(
+                            source_key="incident_id",
+                            bridge_table="bronze_incident",
+                            bridge_source_key="id",
+                            bridge_target_key="facility_id",
+                        ),
+                    ),
+                ],
+            ),
+        )
+        incident = _make_umf(
+            "bronze_incident",
+            [
+                UMFColumn(name="id", data_type="VARCHAR"),
+                UMFColumn(name="facility_id", data_type="VARCHAR"),
+            ],
+            primary_key=["id"],
+        )
+        facility = _make_umf(
+            "dim_facility",
+            [
+                UMFColumn(name="facility_id", data_type="VARCHAR"),
+                UMFColumn(name="facility_name", data_type="VARCHAR"),
+            ],
+            primary_key=["facility_id"],
+        )
+        target = _make_umf(
+            "gold_line",
+            [
+                UMFColumn(
+                    name="line_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="fact_line", column="line_id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="facility_name",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="dim_facility", column="facility_name", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ],
+        )
+        target.metadata = UMFMetadata(base_table="fact_line")
+        sql = SQLPlanGenerator().generate_for_table(
+            target,
+            {"fact_line": base, "bronze_incident": incident, "dim_facility": facility},
+        )
+        # bridge joined on the base key, target joined on the bridge's target key
+        assert "JOIN bronze_incident" in sql
+        assert "ON base.incident_id = dim_facility_bridge.id" in sql
+        assert "ON target.facility_id = dim_facility_bridge.facility_id" in sql
+        assert "target.facility_name AS dim_facility__facility_name" in sql
+
+
+# ---------------------------------------------------------------------------
+# TestExpressionJoinKeys
+# ---------------------------------------------------------------------------
+
+
+class TestExpressionJoinKeys:
+    """relationships.outgoing source_expression/target_expression replace the
+    plain column equality in direct-join ON clauses (e.g. TRIM-keyed joins)."""
+
+    def test_direct_join_uses_expression_keys(self):
+        base = _make_umf(
+            "exp_base",
+            [
+                UMFColumn(name="id", data_type="VARCHAR"),
+                UMFColumn(name="npi", data_type="VARCHAR"),
+            ],
+            primary_key=["id"],
+            relationships=Relationships(
+                summary=RelationshipSummary(
+                    total_relationships=1,
+                    total_incoming=0,
+                    total_outgoing=1,
+                    hub_score=5.0,
+                ),
+                outgoing=[
+                    OutgoingRelationship(
+                        target_table="exp_registry",
+                        source_column="npi",
+                        target_column="npi",
+                        source_expression="TRIM(npi)",
+                        target_expression="TRIM(npi)",
+                        type="foreign_to_primary",
+                        confidence=1.0,
+                    ),
+                ],
+            ),
+        )
+        registry = _make_umf(
+            "exp_registry",
+            [
+                UMFColumn(name="npi", data_type="VARCHAR"),
+                UMFColumn(name="entity_type", data_type="VARCHAR"),
+            ],
+            primary_key=["npi"],
+        )
+        target = _make_umf(
+            "exp_dim",
+            [
+                UMFColumn(
+                    name="id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="exp_base", column="id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="entity_type",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="exp_registry", column="entity_type", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ],
+        )
+        target.metadata = UMFMetadata(base_table="exp_base")
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"exp_base": base, "exp_registry": registry}
+        )
+        assert "ON TRIM(base.npi) = TRIM(target.npi)" in sql
+        assert "ON base.npi = target.npi" not in sql
+
+
+# ---------------------------------------------------------------------------
+# TestCompositeJoinKeysAndFullOuter
+# ---------------------------------------------------------------------------
+
+
+class TestCompositeJoinKeysAndFullOuter:
+    """relationships.outgoing join_conditions append AND-ed equalities to the
+    direct-join ON clause; join_type full_outer emits FULL OUTER JOIN and
+    forces the direct strategy (fan-out preserved) despite 1:N cardinality."""
+
+    def _corpus(self, *, join_type=None, cardinality=None):
+        detail = _make_umf(
+            "cj_detail",
+            [
+                UMFColumn(name="incident_id", data_type="VARCHAR"),
+                UMFColumn(name="npi", data_type="VARCHAR"),
+                UMFColumn(name="charge", data_type="DECIMAL"),
+            ],
+            primary_key=["incident_id"],
+            relationships=Relationships(
+                summary=RelationshipSummary(
+                    total_relationships=1,
+                    total_incoming=0,
+                    total_outgoing=1,
+                    hub_score=5.0,
+                ),
+                outgoing=[
+                    OutgoingRelationship(
+                        target_table="cj_header",
+                        source_column="incident_id",
+                        target_column="incident_id",
+                        join_type=join_type,
+                        join_conditions=[
+                            {"source_column": "npi", "target_column": "npi"},
+                            {
+                                "source_expression": "LOWER(charge)",
+                                "target_expression": "LOWER(billed_amount)",
+                            },
+                        ],
+                        cardinality=cardinality,
+                        type="foreign_to_primary",
+                        confidence=1.0,
+                    ),
+                ],
+            ),
+        )
+        header = _make_umf(
+            "cj_header",
+            [
+                UMFColumn(name="incident_id", data_type="VARCHAR"),
+                UMFColumn(name="npi", data_type="VARCHAR"),
+                UMFColumn(name="billed_amount", data_type="DECIMAL"),
+                UMFColumn(name="payor", data_type="VARCHAR"),
+            ],
+            primary_key=["incident_id"],
+        )
+        target = _make_umf(
+            "cj_lines",
+            [
+                UMFColumn(
+                    name="incident_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="cj_detail", column="incident_id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="payor",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="cj_header", column="payor", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ],
+        )
+        target.metadata = UMFMetadata(base_table="cj_detail")
+        return target, {"cj_detail": detail, "cj_header": header}
+
+    def test_join_conditions_append_anded_equalities(self):
+        target, related = self._corpus()
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "ON base.incident_id = target.incident_id" in sql
+        assert "AND base.npi = target.npi" in sql
+        assert "AND LOWER(base.charge) = LOWER(target.billed_amount)" in sql
+
+    def test_full_outer_join_type_emits_keyword(self):
+        target, related = self._corpus(join_type="full_outer")
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "FULL OUTER JOIN" in sql
+        assert "LEFT JOIN cj_header" not in sql
+
+    def test_full_outer_forces_direct_despite_one_to_many(self):
+        target, related = self._corpus(
+            join_type="full_outer",
+            cardinality=Cardinality(
+                notation="1:N",
+                type="one_to_many",
+                mandatory=False,
+                source_multiplicity="1",
+                target_multiplicity="*",
+            ),
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "FULL OUTER JOIN" in sql
+        # first_record dedup would wrap the header in a ROW_NUMBER CTE
+        assert "First Record" not in sql
+
+    def test_prefixed_intermediate_refs_reach_join_projection(self):
+        # a verbatim intermediate expression naming cj_header__billed_amount
+        # must force the join to project billed_amount even though no plain
+        # derivation requires it
+        target, related = self._corpus()
+        # drop the header's only plain candidate so the join survives PURELY
+        # on the prefixed expression ref
+        target.columns = [c for c in target.columns if c.name != "payor"]
+        target.columns.append(
+            UMFColumn(
+                name="matched",
+                data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="intermediate",
+                            priority=1,
+                            column="charge",
+                            expression="CASE WHEN base.charge = base.cj_header__billed_amount THEN TRUE ELSE FALSE END",
+                        )
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "target.billed_amount AS cj_header__billed_amount" in sql
+        assert "JOIN cj_header" in sql
+
+    def test_intermediate_base_refs_reach_base_view(self):
+        # a verbatim expression referencing base.npi (no plain candidate
+        # requires npi) must still get npi projected by the base view
+        target, related = self._corpus()
+        target.columns = [c for c in target.columns if c.name != "payor"]
+        target.columns.append(
+            UMFColumn(
+                name="flagged",
+                data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="intermediate",
+                            priority=1,
+                            expression="CASE WHEN base.npi IS NULL THEN TRUE ELSE FALSE END",
+                        )
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        base_view = sql.split("STEP 0")[1].split("STEP 1")[0]
+        assert "npi" in base_view
+
+    def test_intermediate_base_refs_project_in_sorted_order(self):
+        # intermediate-required base columns come out of a set — they must be
+        # appended sorted, or the emitted column order (and plan bytes) would
+        # follow the process hash seed and flip between runs
+        target, related = self._corpus()
+        target.columns = [c for c in target.columns if c.name != "payor"]
+        target.columns.append(
+            UMFColumn(
+                name="flagged",
+                data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="intermediate",
+                            priority=1,
+                            expression="CASE WHEN base.npi IS NULL OR base.charge IS NULL THEN TRUE ELSE FALSE END",
+                        )
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        base_view = sql.split("STEP 0")[1].split("STEP 1")[0]
+        assert base_view.index("charge") < base_view.index("npi")
+
+    def test_underscore_canonical_name_emits_physical_column(self):
+        target, related = self._corpus()
+        target.columns.append(
+            UMFColumn(
+                name="u_debug",
+                canonical_name="_debug",
+                data_type="VARCHAR",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(table="cj_detail", column="npi", priority=1)
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "AS _debug" in sql
+        assert "AS u_debug" not in sql
+
+    def test_underscore_source_column_reaches_base_view(self):
+        # a SOURCE table storing _raw under the safe name u_raw must project
+        # the PHYSICAL name in the base view and resolve pass-through mappings
+        target, related = self._corpus()
+        related["cj_detail"].columns.append(
+            UMFColumn(name="u_raw", canonical_name="_raw", data_type="VARCHAR")
+        )
+        target.columns.append(
+            UMFColumn(
+                name="u_raw",
+                canonical_name="_raw",
+                data_type="VARCHAR",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="cj_detail", column="_raw", priority=1
+                        )
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "base._raw AS _raw" in sql
+        assert "u_raw" not in sql
+
+    def test_left_one_to_many_still_first_records(self):
+        target, related = self._corpus(
+            cardinality=Cardinality(
+                notation="1:N",
+                type="one_to_many",
+                mandatory=False,
+                source_multiplicity="1",
+                target_multiplicity="*",
+            ),
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "First Record" in sql
+
+
+# ---------------------------------------------------------------------------
+# TestAggregateSourceBase
+# ---------------------------------------------------------------------------
+
+
+class TestAggregateSourceBase:
+    """base_table_strategy: aggregate_source — the base view IS a GROUP BY
+    over the source (aggregation-native tables like a payments rollup)."""
+
+    def _corpus(self):
+        src = _make_umf(
+            "agg_payments",
+            [
+                UMFColumn(name="service_line_id", data_type="VARCHAR"),
+                UMFColumn(name="entry_dt", data_type="DATE"),
+                UMFColumn(name="amount", data_type="DECIMAL"),
+                UMFColumn(name="gluid", data_type="VARCHAR"),
+            ],
+        )
+        target = _make_umf(
+            "agg_rollup",
+            [
+                UMFColumn(
+                    name="service_line_id",
+                    data_type="VARCHAR",
+                    position="1",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="agg_payments",
+                                column="service_line_id",
+                                priority=1,
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="total_amount",
+                    data_type="DECIMAL",
+                    position="2",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="agg_payments",
+                                priority=1,
+                                expression="SUM(amount)",
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="first_payment",
+                    data_type="DECIMAL",
+                    position="3",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="agg_payments",
+                                priority=1,
+                                expression="MIN_BY(amount, STRUCT(entry_dt, gluid))",
+                            )
+                        ]
+                    ),
+                ),
+            ],
+            primary_key=["service_line_id"],
+        )
+        target.metadata = UMFMetadata(
+            base_table="agg_payments", base_table_strategy="aggregate_source"
+        )
+        return target, {"agg_payments": src}
+
+    def test_group_by_base_view_and_passthrough_assembly(self):
+        target, related = self._corpus()
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "GROUP BY" in sql
+        assert "SUM(amount) AS total_amount" in sql
+        assert "MIN_BY(amount, STRUCT(entry_dt, gluid)) AS first_payment" in sql
+        # final assembly passes the aggregates through, no re-derivation
+        assert "base.total_amount AS total_amount" in sql
+        assert "base.first_payment AS first_payment" in sql
+        assert "base.service_line_id AS service_line_id" in sql
+
+    def test_requires_group_key(self):
+        target, related = self._corpus()
+        # strip the plain candidate -> no group key -> hard error
+        target.columns = [c for c in target.columns if c.name != "service_line_id"]
+        with pytest.raises(ValueError, match="group key"):
+            SQLPlanGenerator().generate_for_table(target, related)
+
+
+# ---------------------------------------------------------------------------
+# TestInstanceBoundRelationships
+# ---------------------------------------------------------------------------
+
+
+class TestInstanceBoundRelationships:
+    """A relationship with table_instance joins ONE named instance with its
+    own keys — the same table can join twice with different keys."""
+
+    def test_same_table_joins_twice_with_different_keys(self):
+        rules = _make_umf(
+            "ib_rules",
+            [
+                UMFColumn(name="determination", data_type="VARCHAR"),
+                UMFColumn(name="stage", data_type="VARCHAR"),
+                UMFColumn(name="rank", data_type="VARCHAR"),
+            ],
+            primary_key=["rank"],
+        )
+        base = _make_umf(
+            "ib_base",
+            [
+                UMFColumn(name="id", data_type="VARCHAR"),
+                UMFColumn(name="determination", data_type="VARCHAR"),
+                UMFColumn(name="stage", data_type="VARCHAR"),
+            ],
+            primary_key=["id"],
+            relationships=Relationships(
+                summary=RelationshipSummary(
+                    total_relationships=2,
+                    total_incoming=0,
+                    total_outgoing=2,
+                    hub_score=5.0,
+                ),
+                outgoing=[
+                    OutgoingRelationship(
+                        target_table="ib_rules",
+                        table_instance="by_det",
+                        source_column="determination",
+                        target_column="determination",
+                        type="foreign_to_primary",
+                        confidence=1.0,
+                    ),
+                    OutgoingRelationship(
+                        target_table="ib_rules",
+                        table_instance="by_stage",
+                        source_column="stage",
+                        target_column="stage",
+                        type="foreign_to_primary",
+                        confidence=1.0,
+                    ),
+                ],
+            ),
+        )
+        target = _make_umf(
+            "ib_out",
+            [
+                UMFColumn(
+                    name="id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="ib_base", column="id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="det_rank",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="ib_rules",
+                                table_instance="by_det",
+                                column="rank",
+                                priority=1,
+                                join_filter="stage = '(any)'",
+                            )
+                        ]
+                    ),
+                ),
+                UMFColumn(
+                    name="stage_rank",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="ib_rules",
+                                table_instance="by_stage",
+                                column="rank",
+                                priority=1,
+                            )
+                        ]
+                    ),
+                ),
+            ],
+        )
+        target.metadata = UMFMetadata(base_table="ib_base")
+        sql = SQLPlanGenerator().generate_for_table(
+            target, {"ib_base": base, "ib_rules": rules}
+        )
+        # two distinct joins of the same table, each with its OWN key
+        assert "ON base.determination = target.determination" in sql
+        assert "ON base.stage = target.stage" in sql
+        assert "AND stage = '(any)'" in sql or "AND target.stage = '(any)'" in sql
+        # instance-aliased projections
+        assert "AS by_det__rank" in sql
+        assert "AS by_stage__rank" in sql
+        # mappings reference the instance aliases
+        assert "base.by_det__rank AS det_rank" in sql
+        assert "base.by_stage__rank AS stage_rank" in sql
 
 
 # ---------------------------------------------------------------------------

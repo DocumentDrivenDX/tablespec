@@ -42,10 +42,16 @@ class CompatibilityReport:
 # ---------------------------------------------------------------------------
 
 
-def _nullable_contexts(n: Nullable | None) -> dict[str, bool]:
-    """Return a {context_key: bool} dict for a Nullable, treating None as empty."""
+def _nullable_contexts(n: bool | Nullable | None) -> dict[str, bool]:
+    """Return a {context_key: bool} dict for a Nullable, treating None as empty.
+
+    A plain boolean nullable applies to every context and is represented by
+    the synthetic "*" key so tightening (True -> False) is still detected.
+    """
     if n is None:
         return {}
+    if isinstance(n, bool):
+        return {"*": n}
     # Nullable uses model_config extra="allow", so extra fields are in __pydantic_extra__
     result: dict[str, bool] = {}
     for key in n.model_fields_set | set(n.__pydantic_extra__ or {}):
