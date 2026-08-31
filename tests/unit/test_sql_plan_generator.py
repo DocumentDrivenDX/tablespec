@@ -1057,17 +1057,28 @@ class TestBaseTableAggregateJoin:
         )
 
         def col(name, cand):
-            return UMFColumn(name=name, data_type="VARCHAR", source="derived",
-                             derivation=UMFColumnDerivation(
-                                 candidates=[DerivationCandidate(priority=1, **cand)]))
+            return UMFColumn(
+                name=name,
+                data_type="VARCHAR",
+                source="derived",
+                derivation=UMFColumnDerivation(
+                    candidates=[DerivationCandidate(priority=1, **cand)]
+                ),
+            )
 
         target = _make_umf(
             "dim_plan",
             [
                 col("plan_id", {"table": "bronze_plan", "column": "ID"}),
-                col("is_oon", {"table": "ref_elig",
-                               "expression": "MAX(CAST(is_oon AS INT))",
-                               "column": "is_oon", "row_filter": "is_current = TRUE"}),
+                col(
+                    "is_oon",
+                    {
+                        "table": "ref_elig",
+                        "expression": "MAX(CAST(is_oon AS INT))",
+                        "column": "is_oon",
+                        "row_filter": "is_current = TRUE",
+                    },
+                ),
             ],
             primary_key=["plan_id"],
         )
@@ -1094,9 +1105,18 @@ class TestBaseTableAggregateJoin:
         target, related = self._corpus()
         # add a plain pass-through from ref_elig
         target.columns.append(
-            UMFColumn(name="a_current", data_type="BOOLEAN", source="derived",
-                      derivation=UMFColumnDerivation(candidates=[
-                          DerivationCandidate(table="ref_elig", column="is_current", priority=1)]))
+            UMFColumn(
+                name="a_current",
+                data_type="BOOLEAN",
+                source="derived",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(
+                            table="ref_elig", column="is_current", priority=1
+                        )
+                    ]
+                ),
+            )
         )
         agg = RelationshipResolver(related)._aggregated_source_tables(target)
         assert "ref_elig" not in agg
@@ -1120,15 +1140,24 @@ class TestBacktickQualification:
             "gold_out",
             [
                 UMFColumn(
-                    name="id", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="spine", column="id", priority=1)]),
+                    name="id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(table="spine", column="id", priority=1)
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="service", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(
-                            table="spine", expression="TRIM(`Service`)", priority=1)]),
+                    name="service",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="spine", expression="TRIM(`Service`)", priority=1
+                            )
+                        ]
+                    ),
                 ),
             ],
         )
@@ -1161,22 +1190,37 @@ class TestBaseViewExpressionColumns:
             "gold_out",
             [
                 UMFColumn(
-                    name="sl_id", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="spine", column="ServiceLineID", priority=1)]),
+                    name="sl_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="spine", column="ServiceLineID", priority=1
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="idr_increase", data_type="DECIMAL",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(
-                            table="spine", expression="AwardAmount - QPA", priority=1)]),
+                    name="idr_increase",
+                    data_type="DECIMAL",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="spine",
+                                expression="AwardAmount - QPA",
+                                priority=1,
+                            )
+                        ]
+                    ),
                 ),
             ],
         )
         target.metadata = UMFMetadata(base_table="spine")
         sql = SQLPlanGenerator().generate_for_table(target, {"spine": base})
         # QPA (all-caps, expression-only) must be in the base view projection
-        base_view = sql.split("STEP 0")[1].split("STEP 1")[0] if "STEP 1" in sql else sql
+        base_view = (
+            sql.split("STEP 0")[1].split("STEP 1")[0] if "STEP 1" in sql else sql
+        )
         assert "QPA" in base_view
         assert "base.AwardAmount - base.QPA" in sql
 
@@ -1202,8 +1246,10 @@ class TestLookupJoin:
             primary_key=["line_id"],
             relationships=Relationships(
                 summary=RelationshipSummary(
-                    total_relationships=1, total_incoming=0,
-                    total_outgoing=1, hub_score=5.0,
+                    total_relationships=1,
+                    total_incoming=0,
+                    total_outgoing=1,
+                    hub_score=5.0,
                 ),
                 outgoing=[
                     OutgoingRelationship(
@@ -1242,14 +1288,26 @@ class TestLookupJoin:
             "gold_line",
             [
                 UMFColumn(
-                    name="line_id", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="fact_line", column="line_id", priority=1)]),
+                    name="line_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="fact_line", column="line_id", priority=1
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="facility_name", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="dim_facility", column="facility_name", priority=1)]),
+                    name="facility_name",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="dim_facility", column="facility_name", priority=1
+                            )
+                        ]
+                    ),
                 ),
             ],
         )
@@ -1284,8 +1342,10 @@ class TestExpressionJoinKeys:
             primary_key=["id"],
             relationships=Relationships(
                 summary=RelationshipSummary(
-                    total_relationships=1, total_incoming=0,
-                    total_outgoing=1, hub_score=5.0,
+                    total_relationships=1,
+                    total_incoming=0,
+                    total_outgoing=1,
+                    hub_score=5.0,
                 ),
                 outgoing=[
                     OutgoingRelationship(
@@ -1312,14 +1372,26 @@ class TestExpressionJoinKeys:
             "exp_dim",
             [
                 UMFColumn(
-                    name="id", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="exp_base", column="id", priority=1)]),
+                    name="id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="exp_base", column="id", priority=1
+                            )
+                        ]
+                    ),
                 ),
                 UMFColumn(
-                    name="entity_type", data_type="VARCHAR",
-                    derivation=UMFColumnDerivation(candidates=[
-                        DerivationCandidate(table="exp_registry", column="entity_type", priority=1)]),
+                    name="entity_type",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="exp_registry", column="entity_type", priority=1
+                            )
+                        ]
+                    ),
                 ),
             ],
         )

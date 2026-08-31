@@ -1256,8 +1256,7 @@ class LookupJoin(BaseModel):
         "(e.g. 'ID')"
     )
     bridge_target_key: str = Field(
-        description="Column on the bridge that keys into the target "
-        "(e.g. 'FacilityID')"
+        description="Column on the bridge that keys into the target (e.g. 'FacilityID')"
     )
 
 

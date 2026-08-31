@@ -1958,9 +1958,13 @@ WHERE rn = 1;"""
             # base's source_key, then the target on the bridge's target key.
             bridge_table = self._resolve_table_name(lookup_join.bridge_table)
             bridge_alias = f"{sanitized_alias}_bridge"
-            on_clause = f"target.{target_col} = {bridge_alias}.{lookup_join.bridge_target_key}"
+            on_clause = (
+                f"target.{target_col} = {bridge_alias}.{lookup_join.bridge_target_key}"
+            )
             if join_filter:
-                on_clause += f" AND {self._rewrite_join_filter(join_filter, target_table)}"
+                on_clause += (
+                    f" AND {self._rewrite_join_filter(join_filter, target_table)}"
+                )
             return f"""-- ============================================================================
 -- STEP {step}: Join {step_label} (Two-Hop via {lookup_join.bridge_table} - {cardinality})
 -- ============================================================================
@@ -1977,7 +1981,9 @@ FROM {prev_view} base
         target_expression = join_info.get("target_expression")
         left_key = (
             self._rewrite_join_filter(
-                source_expression, target_table, alias="base",
+                source_expression,
+                target_table,
+                alias="base",
                 columns=list(self._accumulated_columns),
             )
             if source_expression
@@ -2500,7 +2506,11 @@ LEFT JOIN {agg_view_name} agg
         never be re-matched as a bare token for another.
         """
         table_cols = sorted(
-            set(columns if columns is not None else self._get_table_columns(target_table)),
+            set(
+                columns
+                if columns is not None
+                else self._get_table_columns(target_table)
+            ),
             key=len,
             reverse=True,
         )
