@@ -563,16 +563,14 @@ class SQLPlanGenerator:
         # physical names: a leading-underscore canonical_name IS the physical
         # column (_invoice stored under the UMF-safe name u_invoice) — every
         # SQL surface (base view, joins, expression rewriting) speaks physical
-        return (
-            [
-                col.canonical_name
-                if (col.canonical_name or "").startswith("_")
-                else col.name
-                for col in umf.columns
-            ]
-            if umf.columns
-            else []
-        )
+        names: list[str] = []
+        for col in umf.columns or []:
+            canonical = col.canonical_name
+            if canonical is not None and canonical.startswith("_"):
+                names.append(canonical)
+            else:
+                names.append(col.name)
+        return names
 
     # ------------------------------------------------------------------
     # Template variable substitution
