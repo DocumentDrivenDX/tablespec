@@ -10,14 +10,26 @@ then drop to internals only when the task explicitly requires it. Do not duplica
 the project's requirements or design docs here; read them when changing
 requirements.
 
+## Task Routing
+
+Focused sibling skills carry the mechanics. Route by task:
+
+| Task | Skill |
+| --- | --- |
+| Author or edit UMF split YAML, columns, relationships, domain types | `tablespec-umf-authoring` |
+| Bootstrap UMF, compile the artifact tree, run the raw-to-ingested backbone | `tablespec-pipeline` |
+| Great Expectations suites: baseline, sync, preview, apply, staged execution | `tablespec-validation` |
+| Derived/gold tables and SQL plans (derivations, base table strategies) | `tablespec-sql-plans` |
+| The data-profiling Databricks App (deploy, provision, operate) | `tablespec-profiling-app` |
+
 ## Getting tablespec
 
 tablespec is published to a GitHub Pages index, so the `--index-url` flag is
 required: `pip install tablespec --index-url
 https://documentdrivendx.github.io/tablespec/simple/` (use `tablespec[spark]` for
 the Spark-backed bootstrap, profiling, and validation features). Installing
-provides a `tablespec` CLI for validation, inspection, and conversion. Full
-documentation: https://documentdrivendx.github.io/tablespec/
+provides a `tablespec` CLI. Full documentation:
+https://documentdrivendx.github.io/tablespec/
 
 ## Default Workflow
 
@@ -25,74 +37,42 @@ documentation: https://documentdrivendx.github.io/tablespec/
 2. Keep user-facing examples on public APIs and commands. Internal modules may be
 composable, but should not be the first path shown to users or coding agents.
 
-## Databricks Bootstrap
+## The End-to-End Story
 
-There is no single-call bootstrap facade yet; compose it as follows:
+UMF specs are the single source of truth. The happy path: bootstrap UMF from
+existing tables (`bootstrap_from_tables`) or author specs by hand, compile them
+into a pinned artifact tree (`bootstrap_from_specs` / `compile_umfs`), review via
+Excel and sample data, then run the compiled artifacts — locally or on
+Databricks. Development builds artifacts; production runs installed pipeline
+artifacts and wheels, never re-derives them. Mechanics live in
+`tablespec-pipeline`.
 
-```python
-from tablespec.e2e.paths import umfs_from_tables
-from tablespec.e2e.compile import compile_umfs
+Split YAML directories (`tables/<table>/table.yaml` + `columns/<column>.yaml` +
+`expectations.yaml`) are the editable authoring format; JSON is
+artifact/interchange; inline whole-UMF YAML (`table.umf.yaml`) is
+legacy/migration-only. Layout rules live in `tablespec-umf-authoring`.
 
-umfs, suites = umfs_from_tables(spark, ["catalog.schema.table"], profile=True)
-artifacts = compile_umfs(
-    umfs,
-    "/dbfs/tmp/tablespec-bootstrap",
-    source="tables",
-    profile_enriched=True,
-    dialect="spark",
-    suites=suites,
-)
-```
+## CLI Index
 
-Do not describe the native profiler as creating UMF. The correct flow is:
+One line per command; the named skill has flags and gotchas.
 
-- Spark schema reflection creates UMF.
-- `NativeSparkProfiler` creates data profile metrics.
-- `ProfileToGxMapper` converts profile metrics into validation expectations.
-- Compile persists UMF snapshots, validation suites, and runtime artifacts.
-- Sample data is generated downstream from UMF/spec artifacts, not directly from
-  native profile output.
-
-## End-to-End Happy Path
-
-This is the intended end-to-end flow:
-
-1. Generate UMF from existing Spark/Databricks tables.
-   Use schema reflection for the UMF and native profiling for validation
-   enrichment.
-2. Generate sample data from the resulting UMF/spec artifacts.
-   Sample data should honor constraints, domain types, relationships, and
-   validation expectations.
-3. Validate real data and generated sample data.
-   Real data proves the observed source contract; sample data proves the generated
-   contract and fixtures are usable.
-4. Generate table specification and validation XLSX files.
-   Excel is a review/editing surface for domain experts, not the production
-   runtime contract.
-5. Define a derived table.
-   Express derivations in UMF so downstream Spark/LDP/dbt emitters share the same
-   source of truth.
-6. Generate Spark, LDP, and dbt pipeline artifacts.
-   Keep generation deterministic and artifact-based; do not require production to
-   re-run authoring logic.
-7. Run the pipelines.
-   Development may run locally or in Databricks for validation. Production should
-   run installed pipeline JSON artifacts and installed wheels.
-
-## UMF Formats
-
-Treat split YAML directories as the editable authoring format:
-
-```text
-tables/<table>/
-  table.yaml
-  columns/<column>.yaml
-  expectations.yaml
-```
-
-Treat JSON as artifact/interchange format. Inline whole-UMF YAML
-(`table.umf.yaml`) is legacy/migration-only; author new specs as split
-directories.
+| Command | Purpose | Skill |
+| --- | --- | --- |
+| `validate` | Validate UMF specs (schema, naming, relationships) | `tablespec-umf-authoring` |
+| `info` | Rich summary of a UMF spec | `tablespec-umf-authoring` |
+| `convert` / `batch-convert` | Split-dir ↔ JSON format conversion | `tablespec-umf-authoring` |
+| `column-add` / `column-remove` / `column-modify` / `column-rename` | Column mutations | `tablespec-umf-authoring` |
+| `domains-list` / `domains-show` / `domains-infer` / `domains-set` | Domain-type registry and assignment | `tablespec-umf-authoring` |
+| `explore` | Textual TUI browser/editor (`[tui]` extra) | `tablespec-umf-authoring` |
+| `bootstrap` | Authored specs → full compiled artifact tree | `tablespec-pipeline` |
+| `generate` | Emit ONE artifact format (sql/pyspark/json/ingest) to stdout | `tablespec-pipeline` |
+| `emit` | Materialize a runnable dbt project | `tablespec-pipeline` |
+| `validation-sync` | Regenerate baseline expectations, preserving customizations | `tablespec-validation` |
+| `validation-remove` | Delete expectations from the suite | `tablespec-validation` |
+| `preview` | Classify expectations by stage (merged view) | `tablespec-validation` |
+| `apply-response` | Apply reviewed expectation JSON | `tablespec-validation` |
+| `export-excel` / `import-excel` | Excel round trip for domain-expert review | (docs: guide/excel) |
+| `guidebook` | Static HTML data-catalog site from a UMF directory | (docs: guide/guidebook) |
 
 ## Dialects
 
@@ -127,16 +107,18 @@ otherwise.
 ## Public Surface Discipline
 
 When agents or users need a "how do I do this?" answer, point them at the public
-facade or CLI. Reserve these lower-level pieces for implementation work:
+facade or CLI. The public facade includes `bootstrap_from_tables`,
+`bootstrap_from_specs`, `compile_umfs`, `run_backbone`, `generate_sql_plan`, and
+`umf_from_information_schema`. Reserve these lower-level pieces for
+implementation work:
 
 - `tablespec.e2e.paths.umfs_from_tables`
-- `tablespec.e2e.compile.compile_umfs`
 - `tablespec.profiling.spark_mapper.SparkToUmfMapper`
 - `tablespec.profiling.native_profiler.NativeSparkProfiler`
 - `tablespec.profiling.gx_expectation_builder.ProfileToGxMapper`
 
-If no public facade covers a workflow, compose the documented public pieces as
-shown above rather than reaching into internals.
+If no public facade covers a workflow, compose the documented public pieces
+rather than reaching into internals.
 
 ## When contributing to tablespec itself
 

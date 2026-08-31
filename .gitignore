@@ -249,6 +249,16 @@ derby.log
 .agents/skills/*/
 !.agents/skills/tablespec
 !.claude/skills/tablespec
+!.agents/skills/tablespec-umf-authoring
+!.claude/skills/tablespec-umf-authoring
+!.agents/skills/tablespec-pipeline
+!.claude/skills/tablespec-pipeline
+!.agents/skills/tablespec-validation
+!.claude/skills/tablespec-validation
+!.agents/skills/tablespec-sql-plans
+!.claude/skills/tablespec-sql-plans
+!.agents/skills/tablespec-profiling-app
+!.claude/skills/tablespec-profiling-app
 .codex/
 .agent/logs/
 .agent/sessions/
