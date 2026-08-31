@@ -21,43 +21,52 @@ expectations = generator.generate_baseline_expectations(
 )
 
 # Expectations include:
-# - Column existence
-# - Column types
-# - Nullability
+# - Structural: column count and ordered column list (include_structural)
+# - Nullability (per-context row_condition checks when applicable)
 # - Length constraints
-# - Column count and order
+# - Cast and date/timestamp format checks
+# - Cross-column date-range ordering
+# - Domain-type expectations (from column domain_type)
+# - Profiling-derived expectations when profiling data is attached
 ```
+
+Column-existence and column-type expectations are intentionally not generated —
+they are redundant with schema metadata, which the compiled DDL and schemas
+already enforce.
 
 ## Constraint Extraction
 
-Extract existing Great Expectations suite into UMF format:
+Extract usable constraints from an existing expectation suite (UMF validation
+rules or a standalone suite file) — value sets, regex patterns, strftime
+formats, max lengths, and not-null flags:
 
 ```python
 from tablespec import GXConstraintExtractor
 
 extractor = GXConstraintExtractor()
 
-# Extract from GX checkpoint JSON
-validation_rules = extractor.extract_from_checkpoint(
-    checkpoint_path="checkpoints/my_checkpoint.json"
-)
+# Load the suite for a table (UMF validation rules first, then standalone files)
+expectations = extractor.load_expectations_for_table("my_table", relationships_dir)
 
-# Add to UMF
-umf.validation_rules = validation_rules
+# Extract constraints
+value_sets = extractor.extract_value_sets(expectations)
+regex_patterns = extractor.extract_regex_patterns(expectations)
+strftime_formats = extractor.extract_strftime_formats(expectations)
+
+# Or query a single column
+allowed_values = extractor.get_constraints_for_column(expectations, "state_cd")
 ```
 
 ## UMF to Great Expectations Mapping
 
-Map UMF models to GX format:
+Generate a complete GX expectation suite from a UMF file:
 
 ```python
 from tablespec import UmfToGxMapper
 
 mapper = UmfToGxMapper()
-
-# Convert column definitions
-gx_columns = mapper.map_columns(umf.columns)
-
-# Convert validation rules
-gx_expectations = mapper.map_validation_rules(umf.validation_rules)
+suite = mapper.generate_expectations("tables/my_table.umf.yaml", strictness="medium")
+# suite is a dict: {"name": "...", "meta": {...}, "expectations": [...]}
 ```
+
+`strictness` accepts `"loose"`, `"medium"`, or `"strict"`.

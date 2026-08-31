@@ -78,12 +78,6 @@ env:
   - name: "PROFILER_RUNTIME"
     value: "databricks"           # set to "mock" for local dev
 
-  - name: "OUTPUT_VOLUME_CATALOG"
-    valueFrom: "output-volume"
-    # Note: valueFrom returns a volume-resource reference string; the app code
-    # re-reads the components via DATABRICKS_RESOURCE_* standard vars. See
-    # profiler/storage.py for details.
-
   # -------------------------------------------------------------------------
   # Optional — each disables only its own surface when unset (DIAG-03)
 
