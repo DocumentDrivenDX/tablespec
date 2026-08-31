@@ -634,3 +634,32 @@ class TestPropertyBasedGenerators:
         json_str = json.dumps(result)
         parsed = json.loads(json_str)
         assert parsed == result
+
+
+class TestInternalColumnsExcluded:
+    """Internal helper columns are excluded from all generated schemas."""
+
+    @pytest.fixture
+    def umf_with_internal(self):
+        return {
+            "table_name": "test_table",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {"name": "helper", "data_type": "STRING", "internal": True},
+            ],
+        }
+
+    def test_sql_ddl_excludes_internal(self, umf_with_internal):
+        ddl = generate_sql_ddl(umf_with_internal)
+        assert "id" in ddl
+        assert "helper" not in ddl
+
+    def test_pyspark_schema_excludes_internal(self, umf_with_internal):
+        code = generate_pyspark_schema(umf_with_internal)
+        assert '"id"' in code
+        assert "helper" not in code
+
+    def test_json_schema_excludes_internal(self, umf_with_internal):
+        schema = generate_json_schema(umf_with_internal)
+        assert "id" in schema["properties"]
+        assert "helper" not in schema["properties"]

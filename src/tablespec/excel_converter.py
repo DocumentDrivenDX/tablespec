@@ -490,8 +490,13 @@ class UMFToExcelConverter:
         self._create_readme_sheet(umf)
         self._create_schema_sheet(umf)
         self._create_columns_sheet(umf)
-        self._create_survivorship_sheet(umf)
-        self._create_derivations_sheet(umf)
+
+        # Derivation-related sheets only apply to generated/derived tables;
+        # source-layer specs without survivorship metadata get a lean workbook.
+        if any(col.derivation or col.provenance_policy for col in umf.columns):
+            self._create_survivorship_sheet(umf)
+        if any(col.derivation for col in umf.columns):
+            self._create_derivations_sheet(umf)
 
         if self._get_expectation_dicts_for_export(umf):
             self._create_validation_sheet(umf)
@@ -669,6 +674,7 @@ class UMFToExcelConverter:
             "Format",
             "Notes",
             "_Validation",
+            "Report Sheet",
         ]
         headers.extend(post_nullable_headers)
 
@@ -688,6 +694,7 @@ class UMFToExcelConverter:
         reporting_idx = desc_idx + 5
         format_idx = desc_idx + 6
         notes_idx = desc_idx + 7
+        report_sheet_idx = desc_idx + 9  # desc_idx + 8 is the _Validation column
 
         # Data
         row = 2
@@ -722,9 +729,12 @@ class UMFToExcelConverter:
             self._apply_font_to_cell(ws[f"G{row}"], default_font)
 
             # Nullable - write dynamic context columns
-            if col.nullable:
+            if col.nullable is not None:
                 nullable_data: dict[str, bool] = {}
-                if isinstance(col.nullable, Nullable):
+                if isinstance(col.nullable, bool):
+                    # Simple boolean applies to every context
+                    nullable_data = dict.fromkeys(context_keys, col.nullable)
+                elif isinstance(col.nullable, Nullable):
                     nullable_data = col.nullable.model_dump(exclude_none=True)
                 elif isinstance(col.nullable, dict):
                     nullable_data = col.nullable
@@ -770,12 +780,18 @@ class UMFToExcelConverter:
                 ws[f"{col_letter(notes_idx)}{row}"] = ""
             self._apply_font_to_cell(ws[f"{col_letter(notes_idx)}{row}"], default_font)
 
+            # Report Sheet (workbook tab assignment for multi-sheet reports)
+            ws[f"{col_letter(report_sheet_idx)}{row}"] = col.report_sheet or ""
+            self._apply_font_to_cell(
+                ws[f"{col_letter(report_sheet_idx)}{row}"], default_font
+            )
+
             row += 1
 
         # Adjust column widths
         pre_nullable_widths = [15, 18, 20, 12, 10, 11, 8]
         nullable_widths = [12] * num_contexts
-        post_nullable_widths = [20, 20, 12, 18, 15, 12, 15, 30, 15]
+        post_nullable_widths = [20, 20, 12, 18, 15, 12, 15, 30, 15, 15]
         all_widths = pre_nullable_widths + nullable_widths + post_nullable_widths
         for i, width in enumerate(all_widths, 1):
             ws.column_dimensions[get_column_letter(i)].width = width
@@ -1938,6 +1954,7 @@ class ExcelToUMFConverter:
         derivation_expression_idx = header_map.get("derivation expression")
         format_idx = header_map.get("format")
         notes_idx = header_map.get("notes")
+        report_sheet_idx = header_map.get("report sheet")
 
         columns = []
         for row in ws.iter_rows(min_row=2, values_only=False):
@@ -2065,6 +2082,11 @@ class ExcelToUMFConverter:
                     col_dict["notes"] = [
                         line.strip() for line in notes_val.split("\n") if line.strip()
                     ]
+
+            # Report Sheet (workbook tab assignment for multi-sheet reports)
+            report_sheet_val = _get(row, report_sheet_idx)
+            if report_sheet_val:
+                col_dict["report_sheet"] = str(report_sheet_val).strip()
 
             columns.append(col_dict)
 

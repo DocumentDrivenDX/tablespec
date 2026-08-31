@@ -877,6 +877,77 @@ class TestExcelRoundTrip:
         assert nullable["MP"] is False
         assert nullable["ME"] is True
 
+    def test_round_trip_boolean_nullable(self, tmp_path):
+        """Plain boolean nullable exports its value into every context cell."""
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(name="col_req", data_type="VARCHAR", nullable=False),
+                UMFColumn(name="col_null", data_type="VARCHAR", nullable=True),
+            ]
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        out = tmp_path / "rt_bool_nullable.xlsx"
+        wb.save(out)
+
+        columns = ExcelToUMFConverter()._extract_columns(openpyxl.load_workbook(out))
+        col_req = next(c for c in columns if c["name"] == "col_req")
+        assert all(v is False for v in col_req["nullable"].values())
+        col_null = next(c for c in columns if c["name"] == "col_null")
+        assert all(v is True for v in col_null["nullable"].values())
+
+    def test_source_spec_omits_derivation_sheets(self, tmp_path):
+        """Tables without derivation/survivorship metadata get a lean workbook."""
+        umf = _make_minimal_umf()
+        wb = UMFToExcelConverter().convert(umf)
+        assert "Survivorship" not in wb.sheetnames
+        assert "Derivations" not in wb.sheetnames
+
+        # And the lean workbook still imports cleanly
+        out = tmp_path / "lean.xlsx"
+        wb.save(out)
+        columns = ExcelToUMFConverter()._extract_columns(openpyxl.load_workbook(out))
+        assert {c["name"] for c in columns} == {"col_id", "col_name"}
+
+    def test_generated_spec_includes_derivation_sheets(self):
+        """Tables with column derivations keep Survivorship + Derivations tabs."""
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(
+                    name="col_id",
+                    data_type="INTEGER",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="source_table", column="id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ]
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        assert "Survivorship" in wb.sheetnames
+        assert "Derivations" in wb.sheetnames
+
+    def test_round_trip_report_sheet_preserved(self, tmp_path):
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(name="col_id", data_type="INTEGER", report_sheet="Summary"),
+                UMFColumn(name="col_name", data_type="VARCHAR", length=100),
+            ]
+        )
+        exporter = UMFToExcelConverter()
+        wb = exporter.convert(umf)
+        out = tmp_path / "rt_report_sheet.xlsx"
+        wb.save(out)
+
+        importer = ExcelToUMFConverter()
+        columns = importer._extract_columns(openpyxl.load_workbook(out))
+        col_id_data = next(c for c in columns if c["name"] == "col_id")
+        assert col_id_data["report_sheet"] == "Summary"
+        col_name_data = next(c for c in columns if c["name"] == "col_name")
+        assert "report_sheet" not in col_name_data
+
 
 # ---------------------------------------------------------------------------
 # Edge cases

@@ -8,7 +8,7 @@ import logging
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Self
 
 from pydantic import (
     BaseModel,
@@ -113,6 +113,35 @@ def classify_validation_type(
     if expectation_type in INGESTED_QUALITY_CHECK_TYPES:
         return "ingested"
     return "unknown"
+
+
+# Default merge key for upsert operations when no explicit primary_key is set.
+# meta_checksum is the row-level content hash added during ingestion, so it
+# provides row-level deduplication semantics.
+DEFAULT_PRIMARY_KEY: list[str] = ["meta_checksum"]
+
+# Cached domain type registry for validation (lazy loaded)
+_domain_type_registry_cache: "DomainTypeRegistry | None" = None
+
+
+def _get_domain_type_registry() -> "DomainTypeRegistry":
+    """Get cached DomainTypeRegistry instance for validation.
+
+    Lazy loads the registry on first use so importing the UMF models does not
+    pay the registry construction cost, and repeated column validation does
+    not re-parse domain_types.yaml.
+    """
+    global _domain_type_registry_cache  # noqa: PLW0603
+    if _domain_type_registry_cache is None:
+        from tablespec.inference.domain_types import DomainTypeRegistry
+
+        _domain_type_registry_cache = DomainTypeRegistry()
+    return _domain_type_registry_cache
+
+
+if TYPE_CHECKING:
+    from tablespec.inference.domain_types import DomainTypeRegistry
+    from tablespec.models.pipeline import TableReference
 
 
 class FilenamePattern(BaseModel):
@@ -470,6 +499,13 @@ class DerivationCandidate(BaseModel):
         "meta_source_name, loinc code, etc. "
         "E.g., ['result', 'meta_source_name', 'meta_snapshot_dt'].",
     )
+    union_value: str | int | float | bool | None = Field(
+        default=None,
+        description="Literal value to emit for this column in the UNION part "
+        "corresponding to this table. Used for synthetic columns that don't exist "
+        "in source tables but need different values per UNION branch "
+        "(e.g., a flag that is false for the base table, true for the union table).",
+    )
 
     @model_validator(mode="after")
     def validate_column_or_expression(self) -> "DerivationCandidate":
@@ -478,6 +514,16 @@ class DerivationCandidate(BaseModel):
             msg = "Either 'column' or 'expression' must be provided"
             raise ValueError(msg)
         return self
+
+    def parse_table_reference(self) -> "TableReference":
+        """Parse table field into TableReference with optional pipeline qualification.
+
+        Returns:
+            TableReference with pipeline and table components
+        """
+        from tablespec.models.pipeline import TableReference
+
+        return TableReference.parse(self.table)
 
 
 class Survivorship(BaseModel):
@@ -500,6 +546,21 @@ class Survivorship(BaseModel):
         description="Condition or context for when the default value should be applied. "
         "Extracted from target column description "
         "(e.g., 'until assessment is completed', 'when not available').",
+    )
+
+
+class MergeCondition(BaseModel):
+    """Condition that gates when a column-level merge strategy applies.
+
+    When the condition is met (source column value is in the specified values),
+    the merge strategy is applied. When not met, the target value is preserved.
+    """
+
+    column: str = Field(
+        description="Column to check in source data (e.g., 'load_mode')"
+    )
+    values: list[str] = Field(
+        description="Values that activate the merge strategy (e.g., ['I', 'A'])"
     )
 
 
@@ -586,7 +647,12 @@ class UMFColumn(BaseModel):
         default=None, description="Excel column position or identifier"
     )
     description: str | None = Field(default=None, description="Column description")
-    nullable: Nullable | None = Field(default=None, description="Nullability by LOB")
+    nullable: bool | Nullable | None = Field(
+        default=None,
+        description="Nullability specification. Can be a boolean (true/false) for "
+        "simple cases, or a Nullable mapping with per-context values "
+        "(e.g., LOB keys for healthcare pipelines).",
+    )
     sample_values: list[str] | None = Field(
         default=None, description="Sample values for the column"
     )
@@ -638,10 +704,28 @@ class UMFColumn(BaseModel):
         "Use for columns whose values change every run (e.g., rundate) but should not "
         "trigger a record to be treated as 'changed'.",
     )
+    internal: bool = Field(
+        default=False,
+        description="When True, this is an internal helper column: it still participates "
+        "in SQL aggregation/derivation (its aggregation view is built and joined so it "
+        "can be referenced by other derivations), but it is EXCLUDED from the final "
+        "output table, DDL, PySpark/JSON schema, GX baseline, and final schema "
+        "validation. Use for winning-row anchors/bundles that should not appear in "
+        "the result.",
+    )
     reporting_requirement: str | None = Field(
         default=None,
         description="Reporting requirement classification: 'R' (Required), 'O' (Optional), 'S' (Suggested)",
         pattern=r"^(R|O|S)$",
+    )
+    report_sheet: str | None = Field(
+        default=None,
+        description="Excel worksheet tab this column is assigned to in a multi-sheet "
+        "workbook report. Authoring-time provenance from the source spec workbook; "
+        "consumed by report-configuration tooling, not by runtime output generation. "
+        "Length is bounded by Excel's 31-character tab-name limit.",
+        min_length=1,
+        max_length=31,
     )
     derived_from: str | None = Field(
         default=None,
@@ -733,6 +817,32 @@ class UMFColumn(BaseModel):
         "strings are converted to SQL NULL. Use this for columns where 'NULL' "
         "is a valid data value (e.g., someone's actual last name is 'NULL').",
     )
+    merge_strategy: (
+        Literal["replace", "keep_minimum", "keep_maximum", "keep_existing"] | None
+    ) = Field(
+        default=None,
+        description="Column-level merge strategy during upsert. "
+        "Default (None/'replace') overwrites with source value. "
+        "'keep_minimum' uses LEAST(target, source) to retain the smaller value. "
+        "'keep_maximum' uses GREATEST(target, source) to retain the larger value. "
+        "'keep_existing' uses COALESCE(target, source) to only fill if target is NULL.",
+    )
+    merge_source: str | None = Field(
+        default=None,
+        description="Column name to initialize this column from when it is not present "
+        "in source data. Used with merge_strategy to seed derived tracking columns "
+        "from existing data columns (e.g., a load-date column seeded from a "
+        "file-date column on first insert).",
+    )
+    merge_condition: MergeCondition | None = Field(
+        default=None,
+        description="Condition that gates when merge_strategy applies during upsert "
+        "updates. When the source row meets the condition, the merge strategy is "
+        "applied. When not met, the target (existing) value is preserved. "
+        "Only affects UPDATE path — INSERT always uses source values. "
+        "Example: merge_condition with column='load_mode', values=['I','A'] "
+        "only applies the strategy for those load modes.",
+    )
 
     @field_validator("length")
     @classmethod
@@ -813,9 +923,7 @@ class UMFColumn(BaseModel):
             return self
 
         try:
-            from tablespec.inference.domain_types import DomainTypeRegistry
-
-            registry = DomainTypeRegistry()
+            registry = _get_domain_type_registry()
         except (ImportError, FileNotFoundError):
             # Registry not available - skip validation
             return self
@@ -889,6 +997,28 @@ class ValidationRules(BaseModel):
     pending_expectations: list[dict[str, Any]] | None = Field(
         default=None, description="Expectations pending implementation"
     )
+
+    @model_validator(mode="after")
+    def warn_misclassified_expectations(self) -> Self:
+        """Warn if expectations contain ingested-stage types that belong in quality_checks."""
+        if self.expectations is None:
+            return self
+
+        misclassified = [
+            exp_type
+            for exp in self.expectations
+            if (exp_type := exp.get("type", "")) in INGESTED_QUALITY_CHECK_TYPES
+        ]
+
+        if misclassified:
+            message = (
+                "ValidationRules contains ingested-stage expectations that should "
+                f"be in quality_checks: {misclassified}"
+            )
+            warnings.warn(message, UserWarning, stacklevel=2)
+            logger.debug(message)
+
+        return self
 
 
 class QualityCheck(BaseModel):
@@ -1008,6 +1138,10 @@ class ForeignKey(BaseModel):
         default=None,
         description="SQL join type: 'left' (default) or 'inner'",
     )
+    join_filter: str | None = Field(
+        default=None,
+        description="SQL WHERE clause appended to JOIN ON clause (e.g., 'clientid = 2')",
+    )
 
     @field_validator("references_table", mode="before")
     @classmethod
@@ -1038,6 +1172,16 @@ class ForeignKey(BaseModel):
             if len(parts) == 2:
                 return parts[1]
         return v
+
+    def parse_table_reference(self) -> "TableReference":
+        """Parse references_table into TableReference with optional pipeline qualification.
+
+        Returns:
+            TableReference with pipeline and table components
+        """
+        from tablespec.models.pipeline import TableReference
+
+        return TableReference.parse(self.references_table)
 
 
 class ReferencedBy(BaseModel):
@@ -1109,6 +1253,21 @@ class OutgoingRelationship(BaseModel):
     cardinality: Cardinality | None = Field(
         default=None, description="Cardinality specification for relationship"
     )
+    alternative_joins: list[dict[str, str]] | None = Field(
+        default=None,
+        description="Alternative join conditions using OR logic. Each dict specifies "
+        "source_column and target_column for additional join paths.",
+    )
+
+    def parse_table_reference(self) -> "TableReference":
+        """Parse target_table into TableReference with optional pipeline qualification.
+
+        Returns:
+            TableReference with pipeline and table components
+        """
+        from tablespec.models.pipeline import TableReference
+
+        return TableReference.parse(self.target_table)
 
 
 class IncomingRelationship(BaseModel):
@@ -1132,6 +1291,16 @@ class IncomingRelationship(BaseModel):
     cardinality: Cardinality | None = Field(
         default=None, description="Cardinality specification for relationship"
     )
+
+    def parse_table_reference(self) -> "TableReference":
+        """Parse source_table into TableReference with optional pipeline qualification.
+
+        Returns:
+            TableReference with pipeline and table components
+        """
+        from tablespec.models.pipeline import TableReference
+
+        return TableReference.parse(self.source_table)
 
 
 class RelationshipSummary(BaseModel):
@@ -1209,9 +1378,55 @@ class UMFMetadata(BaseModel):
         description="Explicit base table name for SQL generation. Overrides automatic "
         "base table inference.",
     )
+    base_table_filter: str | None = Field(
+        default=None,
+        description="SQL WHERE clause applied to the base table when building the "
+        "base view. Used by generated tables that need to pre-filter base-table "
+        "rows before joins run.",
+    )
+    base_join_column: str | None = Field(
+        default=None,
+        description="Column on `base_table` to use as the join key when building "
+        "the base view. Overrides the auto-inferred key column. Set when the base "
+        "table has multiple key-like columns and the wrong one would be "
+        "auto-selected.",
+    )
+    final_filter: str | None = Field(
+        default=None,
+        description="SQL WHERE clause applied after the final assembly view is built. "
+        "Runs against the fully-joined derivation output, so it can reference "
+        "derived columns that don't exist on the base table. Use base_table_filter "
+        "for filters that reference only base-table columns (faster, filters "
+        "earlier).",
+    )
     source_tables: list[str] | None = Field(
         default=None,
         description="Source table names for union_sources strategy.",
+    )
+    union_base_tables: list[str] | None = Field(
+        default=None,
+        description="Additional tables to UNION ALL into the base view. "
+        "Tables must have columns matching the base_table's selected columns. "
+        "Used to merge rows from multiple sources into the generated base.",
+    )
+    union_type: Literal["union_all", "union"] | None = Field(
+        default=None,
+        description="SQL union operator for union_base_tables. "
+        "Defaults to 'union_all' (preserves all rows). "
+        "Use 'union' for deduplication across sources.",
+    )
+    union_exclude_base: bool = Field(
+        default=False,
+        description="When true, union_base_tables rows are excluded if their "
+        "primary key already exists in the base table (anti-join). "
+        "Prevents duplicate rows when populations may overlap.",
+    )
+    union_coalesce_base: bool = Field(
+        default=False,
+        description="When true (with union_exclude_base), overlapping rows "
+        "are merged using COALESCE(base_col, union_col) instead of "
+        "excluding the union table rows. Base table values preferred; "
+        "union table values fill NULLs.",
     )
     unpivot_columns: list[str] | None = Field(
         default=None,
@@ -1225,6 +1440,13 @@ class UMFMetadata(BaseModel):
         default=None,
         description="Deduplication strategy for generated tables. "
         "'latest': deduplicate on primary_key, keeping the row with the most recent load date.",
+    )
+    final_dedup: Literal["distinct"] | None = Field(
+        default=None,
+        description="Final-assembly deduplication strategy (runs after all joins). "
+        "'distinct': emit SELECT DISTINCT so exact-duplicate rows produced by join "
+        "fan-out are collapsed. Use when a joined table has higher cardinality than "
+        "the base and you don't need every joined row.",
     )
     output_config: OutputConfig | None = Field(
         default=None, description="Output file configuration"
@@ -1300,11 +1522,23 @@ class IngestionConfig(BaseModel):
         description="'snapshot': Filter to latest file, overwrite table. "
         "'incremental': Keep latest per PK, upsert to table.",
     )
+    update_mode: Literal["upsert", "update_only"] = Field(
+        default="upsert",
+        description="How rows with load_mode='U' are merged into the ingested table. "
+        "'upsert' (default): insert if PK unmatched, update if matched — use when _U "
+        "files may contain the only copy of the data for a delivery. "
+        "'update_only': update matched PKs and drop unmatched rows with a warning — use "
+        "for record-of-truth tables where an unmatched _U row indicates a data problem.",
+    )
     order_by: list[str] | None = Field(
         default=None,
         description="Columns to determine 'latest' (sorted descending). Can include: "
-        "filename-extracted columns (e.g., 'file_date_yyyymmdd') or "
-        "metadata columns (e.g., 'meta_source_name', 'meta_snapshot_dt', 'meta_load_dt'). "
+        "filename-extracted columns (e.g., 'file_date_yyyymmdd'), "
+        "metadata columns (e.g., 'meta_source_name', 'meta_snapshot_dt', 'meta_load_dt', "
+        "'meta_source_offset'), or data columns present in the row (e.g., 'run_date', "
+        "'updated_at'). Data columns are useful when the per-row recency signal lives "
+        "inside the file rather than in the filename. Use 'meta_source_offset' as a "
+        "stable tie-breaker for intra-file row order. "
         "For snapshot mode: filters to rows with MAX values of these columns. "
         "For incremental mode: orders rows when deduping by primary key.",
     )
@@ -1655,6 +1889,19 @@ class UMF(BaseModel):
             msg = f"Invalid version format: {v}"
             raise ValueError(msg) from e
         return v
+
+    @property
+    def effective_primary_key(self) -> list[str]:
+        """Return the primary key, defaulting to meta_checksum if not configured.
+
+        This property provides the merge key for upsert operations. If no explicit
+        primary_key is configured, it defaults to meta_checksum (row-level hash)
+        to enable row-level deduplication.
+
+        Returns:
+            Primary key columns, or DEFAULT_PRIMARY_KEY if not configured.
+        """
+        return self.primary_key if self.primary_key else DEFAULT_PRIMARY_KEY
 
     model_config = ConfigDict(
         validate_assignment=True,

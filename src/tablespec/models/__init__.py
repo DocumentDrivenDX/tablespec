@@ -1,6 +1,12 @@
 """UMF data models for tablespec."""
 
+from tablespec.models.pipeline import (
+    PipelineDependency,
+    PipelineMetadata,
+    TableReference,
+)
 from tablespec.models.umf import (
+    DEFAULT_PRIMARY_KEY,
     INGESTED_QUALITY_CHECK_TYPES,
     RAW_VALIDATION_TYPES,
     REDUNDANT_VALIDATION_TYPES,
@@ -23,6 +29,7 @@ from tablespec.models.umf import (
     JoinViaSpec,
     JsonProjection,
     JsonSource,
+    MergeCondition,
     Nullable,
     OutgoingRelationship,
     OutputConfig,
@@ -46,6 +53,7 @@ from tablespec.models.umf import (
 )
 
 __all__ = [
+    "DEFAULT_PRIMARY_KEY",
     "INGESTED_QUALITY_CHECK_TYPES",
     "RAW_VALIDATION_TYPES",
     "REDUNDANT_VALIDATION_TYPES",
@@ -68,10 +76,13 @@ __all__ = [
     "JoinViaSpec",
     "JsonProjection",
     "JsonSource",
+    "MergeCondition",
     "Nullable",
     "OutgoingRelationship",
     "OutputConfig",
     "ParquetSource",
+    "PipelineDependency",
+    "PipelineMetadata",
     "PostUpsertRule",
     "QualityCheck",
     "QualityChecks",
@@ -80,6 +91,7 @@ __all__ = [
     "Relationships",
     "SourceSpec",
     "Survivorship",
+    "TableReference",
     "UMFColumn",
     "UMFColumnDerivation",
     "UMFMetadata",

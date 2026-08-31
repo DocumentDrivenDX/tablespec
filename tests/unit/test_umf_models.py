@@ -802,3 +802,354 @@ class TestDeprecationWarnings:
                 table_name="test",
                 columns=[UMFColumn(name="id", data_type="INTEGER")],
             )
+
+
+class TestMergeCondition:
+    """Test MergeCondition and column-level merge fields."""
+
+    def test_merge_condition_model(self):
+        from tablespec.models.umf import MergeCondition
+
+        cond = MergeCondition(column="load_mode", values=["I", "A"])
+        assert cond.column == "load_mode"
+        assert cond.values == ["I", "A"]
+
+    def test_column_merge_strategy_fields(self):
+        from tablespec.models.umf import MergeCondition
+
+        col = UMFColumn(
+            name="chase_load_date",
+            data_type="DATE",
+            merge_strategy="keep_minimum",
+            merge_source="file_date_yyyymmdd",
+            merge_condition=MergeCondition(column="load_mode", values=["I"]),
+        )
+        assert col.merge_strategy == "keep_minimum"
+        assert col.merge_source == "file_date_yyyymmdd"
+        assert col.merge_condition is not None
+        assert col.merge_condition.values == ["I"]
+
+    def test_merge_strategy_defaults_to_none(self):
+        col = UMFColumn(name="a", data_type="VARCHAR")
+        assert col.merge_strategy is None
+        assert col.merge_source is None
+        assert col.merge_condition is None
+
+    def test_invalid_merge_strategy_rejected(self):
+        with pytest.raises(ValidationError):
+            UMFColumn(name="a", data_type="VARCHAR", merge_strategy="not_a_strategy")
+
+
+class TestInternalColumn:
+    """Test the internal helper-column flag."""
+
+    def test_internal_defaults_false(self):
+        assert UMFColumn(name="a", data_type="VARCHAR").internal is False
+
+    def test_internal_column(self):
+        col = UMFColumn(name="winning_row_anchor", data_type="VARCHAR", internal=True)
+        assert col.internal is True
+
+
+class TestBooleanNullable:
+    """Test that nullable accepts plain booleans alongside Nullable contexts."""
+
+    def test_nullable_true(self):
+        col = UMFColumn(name="a", data_type="VARCHAR", nullable=True)
+        assert col.is_nullable_for_all_contexts() is True
+        assert col.is_required_for_any_context() is False
+
+    def test_nullable_false(self):
+        col = UMFColumn(name="a", data_type="VARCHAR", nullable=False)
+        assert col.is_nullable_for_all_contexts() is False
+        assert col.is_required_for_any_context() is True
+
+    def test_nullable_model_still_works(self):
+        col = UMFColumn(
+            name="a", data_type="VARCHAR", nullable=Nullable(MD=False, MP=True, ME=True)
+        )
+        assert col.is_nullable_for_all_contexts() is False
+
+
+class TestParseTableReference:
+    """Test parse_table_reference on relationship and derivation models."""
+
+    def test_foreign_key_bare_reference(self):
+        fk = ForeignKey(
+            column="member_id", references_table="member_roster", references_column="id"
+        )
+        ref = fk.parse_table_reference()
+        assert ref.pipeline is None
+        assert ref.table == "member_roster"
+        assert ref.is_external() is False
+
+    def test_foreign_key_qualified_reference(self):
+        fk = ForeignKey(
+            column="icd_code",
+            references_table="reference_data.icd_codes",
+            references_column="code",
+        )
+        ref = fk.parse_table_reference()
+        assert ref.pipeline == "reference_data"
+        assert ref.table == "icd_codes"
+        assert ref.is_external() is True
+
+    def test_outgoing_relationship_reference(self):
+        from tablespec.models.umf import OutgoingRelationship
+
+        rel = OutgoingRelationship(
+            target_table="other_pipeline.target",
+            source_column="a",
+            target_column="b",
+            type="foreign_to_primary",
+            confidence=0.9,
+        )
+        ref = rel.parse_table_reference()
+        assert ref.pipeline == "other_pipeline"
+        assert ref.table == "target"
+
+    def test_incoming_relationship_reference(self):
+        from tablespec.models.umf import IncomingRelationship
+
+        rel = IncomingRelationship(
+            source_table="src_table",
+            source_column="a",
+            target_column="b",
+            type="foreign_to_foreign",
+            confidence=0.9,
+        )
+        ref = rel.parse_table_reference()
+        assert ref.pipeline is None
+        assert ref.table == "src_table"
+
+    def test_derivation_candidate_reference(self):
+        cand = DerivationCandidate(table="pipe.tab", column="c", priority=1)
+        ref = cand.parse_table_reference()
+        assert (ref.pipeline, ref.table) == ("pipe", "tab")
+
+
+class TestTableReference:
+    """Test TableReference parsing and formatting."""
+
+    def test_parse_bare(self):
+        from tablespec.models.pipeline import TableReference
+
+        ref = TableReference.parse("outreach_list")
+        assert ref.pipeline is None
+        assert ref.table == "outreach_list"
+        assert str(ref) == "outreach_list"
+
+    def test_parse_qualified(self):
+        from tablespec.models.pipeline import TableReference
+
+        ref = TableReference.parse("reference_data.icd_codes")
+        assert ref.pipeline == "reference_data"
+        assert ref.table == "icd_codes"
+        assert str(ref) == "reference_data.icd_codes"
+
+    def test_to_qualified_name_resolves_bare_with_current_pipeline(self):
+        from tablespec.models.pipeline import TableReference
+
+        ref = TableReference.parse("outreach_list")
+        assert ref.to_qualified_name("my_pipeline") == "my_pipeline.outreach_list"
+        assert ref.to_qualified_name() == "outreach_list"
+
+    def test_qualified_ignores_current_pipeline(self):
+        from tablespec.models.pipeline import TableReference
+
+        ref = TableReference.parse("other.t")
+        assert ref.to_qualified_name("my_pipeline") == "other.t"
+
+    def test_splits_on_first_dot_only(self):
+        from tablespec.models.pipeline import TableReference
+
+        ref = TableReference.parse("a.b.c")
+        assert ref.pipeline == "a"
+        assert ref.table == "b.c"
+
+
+class TestRelationshipJoinExtensions:
+    """Test join_filter and alternative_joins fields."""
+
+    def test_foreign_key_join_filter(self):
+        fk = ForeignKey(
+            column="member_id",
+            references_table="enterprise",
+            references_column="member_id",
+            join_filter="clientid = 2",
+        )
+        assert fk.join_filter == "clientid = 2"
+
+    def test_alternative_joins(self):
+        from tablespec.models.umf import OutgoingRelationship
+
+        rel = OutgoingRelationship(
+            target_table="t",
+            source_column="a",
+            target_column="b",
+            type="foreign_to_primary",
+            confidence=1.0,
+            alternative_joins=[{"source_column": "c", "target_column": "d"}],
+        )
+        assert rel.alternative_joins == [{"source_column": "c", "target_column": "d"}]
+
+
+class TestDerivationCandidateUnionValue:
+    """Test union_value literal on derivation candidates."""
+
+    def test_union_value_literal(self):
+        cand = DerivationCandidate(
+            table="crosswalk", column="c", priority=1, union_value=True
+        )
+        assert cand.union_value is True
+
+    def test_union_value_defaults_none(self):
+        cand = DerivationCandidate(table="t", column="c", priority=1)
+        assert cand.union_value is None
+
+
+class TestUMFMetadataSqlGenerationFields:
+    """Test SQL-generation control fields on UMFMetadata."""
+
+    def test_base_and_final_filters(self):
+        from tablespec.models.umf import UMFMetadata
+
+        meta = UMFMetadata(
+            base_table="charge_file",
+            base_table_filter="assess_type IN ('QUA','RA')",
+            base_join_column="mrn",
+            final_filter="disposition_id IS NOT NULL",
+        )
+        assert meta.base_table_filter == "assess_type IN ('QUA','RA')"
+        assert meta.base_join_column == "mrn"
+        assert meta.final_filter == "disposition_id IS NOT NULL"
+
+    def test_union_base_tables_config(self):
+        from tablespec.models.umf import UMFMetadata
+
+        meta = UMFMetadata(
+            union_base_tables=["crosswalk_outreach_list"],
+            union_type="union_all",
+            union_exclude_base=True,
+            union_coalesce_base=True,
+        )
+        assert meta.union_base_tables == ["crosswalk_outreach_list"]
+        assert meta.union_type == "union_all"
+        assert meta.union_exclude_base is True
+        assert meta.union_coalesce_base is True
+
+    def test_union_defaults(self):
+        from tablespec.models.umf import UMFMetadata
+
+        meta = UMFMetadata()
+        assert meta.union_base_tables is None
+        assert meta.union_type is None
+        assert meta.union_exclude_base is False
+        assert meta.union_coalesce_base is False
+        assert meta.final_dedup is None
+
+    def test_final_dedup_distinct(self):
+        from tablespec.models.umf import UMFMetadata
+
+        meta = UMFMetadata(final_dedup="distinct")
+        assert meta.final_dedup == "distinct"
+
+    def test_invalid_union_type_rejected(self):
+        from tablespec.models.umf import UMFMetadata
+
+        with pytest.raises(ValidationError):
+            UMFMetadata(union_type="cross_join")
+
+
+class TestIngestionUpdateMode:
+    """Test IngestionConfig.update_mode."""
+
+    def test_update_mode_defaults_to_upsert(self):
+        from tablespec.models.umf import IngestionConfig
+
+        assert IngestionConfig().update_mode == "upsert"
+
+    def test_update_only(self):
+        from tablespec.models.umf import IngestionConfig
+
+        assert IngestionConfig(update_mode="update_only").update_mode == "update_only"
+
+    def test_invalid_update_mode_rejected(self):
+        from tablespec.models.umf import IngestionConfig
+
+        with pytest.raises(ValidationError):
+            IngestionConfig(update_mode="insert_only")
+
+
+class TestEffectivePrimaryKey:
+    """Test UMF.effective_primary_key default merge key."""
+
+    def test_explicit_primary_key(self):
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            columns=[UMFColumn(name="id", data_type="INTEGER")],
+            primary_key=["id"],
+        )
+        assert umf.effective_primary_key == ["id"]
+
+    def test_defaults_to_meta_checksum(self):
+        from tablespec.models.umf import DEFAULT_PRIMARY_KEY
+
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            columns=[UMFColumn(name="id", data_type="INTEGER")],
+        )
+        assert umf.effective_primary_key == DEFAULT_PRIMARY_KEY
+        assert umf.effective_primary_key == ["meta_checksum"]
+
+
+class TestValidationRulesMisclassificationWarning:
+    """Test ValidationRules warns on ingested-stage expectations."""
+
+    def test_warns_on_ingested_stage_expectation(self):
+        from tablespec.models.umf import ValidationRules
+
+        with pytest.warns(UserWarning, match="ingested-stage expectations"):
+            ValidationRules(
+                expectations=[{"type": "expect_column_values_to_be_between"}]
+            )
+
+    def test_no_warning_for_raw_expectations(self):
+        import warnings as _warnings
+
+        from tablespec.models.umf import ValidationRules
+
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("error", UserWarning)
+            ValidationRules(
+                expectations=[{"type": "expect_column_values_to_match_regex"}]
+            )
+
+    def test_no_warning_when_expectations_absent(self):
+        import warnings as _warnings
+
+        from tablespec.models.umf import ValidationRules
+
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("error", UserWarning)
+            ValidationRules(table_level=None, column_level=None)
+
+
+class TestReportSheet:
+    """Test UMFColumn.report_sheet workbook tab assignment."""
+
+    def test_report_sheet_defaults_to_none(self):
+        col = UMFColumn(name="test_col", data_type="VARCHAR")
+        assert col.report_sheet is None
+
+    def test_report_sheet_accepts_valid_name(self):
+        col = UMFColumn(name="test_col", data_type="VARCHAR", report_sheet="Summary")
+        assert col.report_sheet == "Summary"
+
+    def test_report_sheet_rejects_out_of_range_lengths(self):
+        with pytest.raises(ValidationError):
+            UMFColumn(name="test_col", data_type="VARCHAR", report_sheet="")
+        with pytest.raises(ValidationError):
+            UMFColumn(name="test_col", data_type="VARCHAR", report_sheet="x" * 32)
