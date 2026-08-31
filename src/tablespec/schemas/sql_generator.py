@@ -560,7 +560,15 @@ class SQLPlanGenerator:
         if umf is None:
             self.logger.warning(f"Table {table_name} not found in related_umfs")
             return []
-        return [col.name for col in umf.columns] if umf.columns else []
+        # physical names: a leading-underscore canonical_name IS the physical
+        # column (_invoice stored under the UMF-safe name u_invoice) — every
+        # SQL surface (base view, joins, expression rewriting) speaks physical
+        return [
+            col.canonical_name
+            if (col.canonical_name or "").startswith("_")
+            else col.name
+            for col in umf.columns
+        ] if umf.columns else []
 
     # ------------------------------------------------------------------
     # Template variable substitution
@@ -598,6 +606,16 @@ class SQLPlanGenerator:
                     col_names.extend(
                         self._extract_columns_from_expression(cand.expression)
                     )
+                # Prefixed refs (alias__col) in verbatim expressions attribute
+                # to their REAL table so the join projects them — regardless of
+                # whether the candidate also names a column (an intermediate-
+                # attributed expression naming silver_inventory__CPTCode
+                # requires silver_inventory.CPTCode)
+                if cand.expression:
+                    for owner, owned_col in self._extract_prefixed_expression_columns(
+                        cand.expression
+                    ):
+                        required.setdefault(owner, set()).add(owned_col)
 
                 for col_name in col_names:
                     _, bare_name = _parse_table_ref(cand.table)
@@ -606,6 +624,21 @@ class SQLPlanGenerator:
                         required.setdefault(cand.table, set()).add(col_name)
 
         return required
+
+    @staticmethod
+    def _extract_prefixed_expression_columns(expression: str) -> list[tuple[str, str]]:
+        """(table, column) pairs for every ``alias__col`` reference in *expression*."""
+        try:
+            parsed = sqlglot.parse_one(expression, read="spark")
+        except Exception:  # noqa: BLE001 - best-effort projection helper
+            return []
+        pairs: list[tuple[str, str]] = []
+        for col in parsed.find_all(exp.Column):
+            if "__" in col.name:
+                owner, _, owned = col.name.rpartition("__")
+                if owner and owned:
+                    pairs.append((owner, owned))
+        return pairs
 
     def _extract_columns_from_expression(self, expression: str) -> list[str]:
         """Extract column references from a SQL expression.
@@ -702,6 +735,13 @@ class SQLPlanGenerator:
         # required-columns filter or the emitted joins reference columns the
         # base view never projected
         for col in join_source_columns or []:
+            if col in base_columns and col not in selected_columns:
+                selected_columns.append(col)
+
+        # Verbatim (intermediate-attributed) expressions may reference base
+        # columns no plain candidate requires (a window tiebreak on base.ID) —
+        # any intermediate-required name that IS a base column gets projected
+        for col in self._get_required_columns_for_table("intermediate") or []:
             if col in base_columns and col not in selected_columns:
                 selected_columns.append(col)
 
@@ -2690,7 +2730,15 @@ LEFT JOIN {agg_view_name} agg
         column_mappings: list[str] = []
 
         for col_def in _output_ordered_columns(table_umf.columns):
-            col_name = col_def.name
+            # UMF-safe name vs physical name: a canonical_name with a leading
+            # underscore is the PHYSICAL output column (`_invoice` stored under
+            # the safe name `u_invoice`) — emit the physical name, matching the
+            # DDL exporter's convention
+            col_name = (
+                col_def.canonical_name
+                if (col_def.canonical_name or "").startswith("_")
+                else col_def.name
+            )
             derivation = col_def.derivation
             data_type = (col_def.data_type or "STRING").upper()
             column_default = col_def.default

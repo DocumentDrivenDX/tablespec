@@ -1499,6 +1499,78 @@ class TestCompositeJoinKeysAndFullOuter:
         # first_record dedup would wrap the header in a ROW_NUMBER CTE
         assert "First Record" not in sql
 
+    def test_prefixed_intermediate_refs_reach_join_projection(self):
+        # a verbatim intermediate expression naming cj_header__billed_amount
+        # must force the join to project billed_amount even though no plain
+        # derivation requires it
+        target, related = self._corpus()
+        # drop the header's only plain candidate so the join survives PURELY
+        # on the prefixed expression ref
+        target.columns = [c for c in target.columns if c.name != "payor"]
+        target.columns.append(
+            UMFColumn(
+                name="matched", data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(candidates=[
+                    DerivationCandidate(
+                        table="intermediate", priority=1, column="charge",
+                        expression="CASE WHEN base.charge = base.cj_header__billed_amount THEN TRUE ELSE FALSE END",
+                    )]),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "target.billed_amount AS cj_header__billed_amount" in sql
+        assert "JOIN cj_header" in sql
+
+    def test_intermediate_base_refs_reach_base_view(self):
+        # a verbatim expression referencing base.npi (no plain candidate
+        # requires npi) must still get npi projected by the base view
+        target, related = self._corpus()
+        target.columns = [c for c in target.columns if c.name != "payor"]
+        target.columns.append(
+            UMFColumn(
+                name="flagged", data_type="BOOLEAN",
+                derivation=UMFColumnDerivation(candidates=[
+                    DerivationCandidate(
+                        table="intermediate", priority=1,
+                        expression="CASE WHEN base.npi IS NULL THEN TRUE ELSE FALSE END",
+                    )]),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        base_view = sql.split("STEP 0")[1].split("STEP 1")[0]
+        assert "npi" in base_view
+
+    def test_underscore_canonical_name_emits_physical_column(self):
+        target, related = self._corpus()
+        target.columns.append(
+            UMFColumn(
+                name="u_debug", canonical_name="_debug", data_type="VARCHAR",
+                derivation=UMFColumnDerivation(candidates=[
+                    DerivationCandidate(table="cj_detail", column="npi", priority=1)]),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "AS _debug" in sql
+        assert "AS u_debug" not in sql
+
+    def test_underscore_source_column_reaches_base_view(self):
+        # a SOURCE table storing _raw under the safe name u_raw must project
+        # the PHYSICAL name in the base view and resolve pass-through mappings
+        target, related = self._corpus()
+        related["cj_detail"].columns.append(
+            UMFColumn(name="u_raw", canonical_name="_raw", data_type="VARCHAR")
+        )
+        target.columns.append(
+            UMFColumn(
+                name="u_raw", canonical_name="_raw", data_type="VARCHAR",
+                derivation=UMFColumnDerivation(candidates=[
+                    DerivationCandidate(table="cj_detail", column="_raw", priority=1)]),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "base._raw AS _raw" in sql
+        assert "u_raw" not in sql
+
     def test_left_one_to_many_still_first_records(self):
         target, related = self._corpus(
             cardinality=Cardinality(
