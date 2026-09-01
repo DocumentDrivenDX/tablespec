@@ -128,7 +128,7 @@ jobs:
 
           ### What's Changed
 
-          See the [commit history](https://github.com/easel/tablespec/commits/$TAG) for details.
+          See the [commit history](https://github.com/DocumentDrivenDX/tablespec/commits/$TAG) for details.
 
           ### Artifacts
 
@@ -251,8 +251,17 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           VERSION=${TAG#v}
 
-          # Try installing from GitHub Pages index
-          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ tablespec==$VERSION || echo "GitHub Pages index not yet available"
+          # Install from the GitHub Pages index; the deployment checklist
+          # allows one retry after an extra propagation wait, then fails.
+          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ "tablespec==$VERSION" || {
+            echo "First install attempt failed; waiting 60s for Pages propagation..."
+            sleep 60
+            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ "tablespec==$VERSION"
+          }
+
+          # A clean install must import: catches runtime deps that only exist
+          # in the dev group (CI otherwise never installs without dev deps).
+          python -c "import tablespec, tablespec.cli; print('import OK', tablespec.__name__)"
 
       - name: Summary
         run: |
@@ -261,5 +270,5 @@ jobs:
           ✅ Release $TAG complete!
 
           📄 GitHub Pages: https://documentdrivendx.github.io/tablespec/
-          🏷️  GitHub Release: https://github.com/easel/tablespec/releases/tag/$TAG
+          🏷️  GitHub Release: https://github.com/DocumentDrivenDX/tablespec/releases/tag/$TAG
           EOF
