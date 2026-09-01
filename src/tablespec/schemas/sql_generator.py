@@ -163,6 +163,23 @@ def _parse_table_ref(name: str) -> tuple[str | None, str]:
     return None, name
 
 
+def _physical_column_name(col: Any) -> str:
+    """The emitted output name for a column.
+
+    A ``canonical_name`` that begins with an underscore or a digit IS the
+    physical column — an identifier the UMF ``name`` pattern cannot carry
+    (``_invoice`` stored under the UMF-safe name ``u_invoice``,
+    ``30DayCollectedAmount`` under ``Day30CollectedAmount``). Every SQL
+    surface (base view, joins, expression rewriting, final assembly) speaks
+    physical. Any other canonical_name is a display label ('EHR #') and
+    never reaches SQL.
+    """
+    canonical = col.canonical_name
+    if canonical and (canonical.startswith("_") or canonical[:1].isdigit()):
+        return canonical
+    return col.name
+
+
 def _output_ordered_columns(columns: list[Any]) -> list[Any]:
     """Order columns for OUTPUT projections: spec ``position`` first, then
     case-insensitive name.
@@ -560,17 +577,9 @@ class SQLPlanGenerator:
         if umf is None:
             self.logger.warning(f"Table {table_name} not found in related_umfs")
             return []
-        # physical names: a leading-underscore canonical_name IS the physical
-        # column (_invoice stored under the UMF-safe name u_invoice) — every
-        # SQL surface (base view, joins, expression rewriting) speaks physical
-        names: list[str] = []
-        for col in umf.columns or []:
-            canonical = col.canonical_name
-            if canonical is not None and canonical.startswith("_"):
-                names.append(canonical)
-            else:
-                names.append(col.name)
-        return names
+        # physical names: every SQL surface (base view, joins, expression
+        # rewriting) speaks physical — see _physical_column_name
+        return [_physical_column_name(col) for col in umf.columns or []]
 
     # ------------------------------------------------------------------
     # Template variable substitution
@@ -828,11 +837,7 @@ FROM {resolved_table}{where_clause};"""
         group_keys: list[str] = []  # (source_col AS target_name) pairs
         projections: list[str] = []
         for col_def in _output_ordered_columns(table_umf.columns):
-            out_name = (
-                col_def.canonical_name
-                if (col_def.canonical_name or "").startswith("_")
-                else col_def.name
-            )
+            out_name = _physical_column_name(col_def)
             if not col_def.derivation or not col_def.derivation.candidates:
                 continue
             cand = col_def.derivation.candidates[0]
@@ -2738,15 +2743,7 @@ LEFT JOIN {agg_view_name} agg
         column_mappings: list[str] = []
 
         for col_def in _output_ordered_columns(table_umf.columns):
-            # UMF-safe name vs physical name: a canonical_name with a leading
-            # underscore is the PHYSICAL output column (`_invoice` stored under
-            # the safe name `u_invoice`) — emit the physical name, matching the
-            # DDL exporter's convention
-            col_name = (
-                col_def.canonical_name
-                if (col_def.canonical_name or "").startswith("_")
-                else col_def.name
-            )
+            col_name = _physical_column_name(col_def)
             derivation = col_def.derivation
             data_type = (col_def.data_type or "STRING").upper()
             column_default = col_def.default

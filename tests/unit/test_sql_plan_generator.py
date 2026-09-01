@@ -1613,6 +1613,47 @@ class TestCompositeJoinKeysAndFullOuter:
         assert "AS _debug" in sql
         assert "AS u_debug" not in sql
 
+    def test_digit_leading_canonical_name_emits_physical_column(self):
+        # a digit-leading canonical_name is also a physical output name the
+        # UMF name pattern cannot carry (30DayCollectedAmount stored under
+        # Day30CollectedAmount)
+        target, related = self._corpus()
+        target.columns.append(
+            UMFColumn(
+                name="Day30CollectedAmount",
+                canonical_name="30DayCollectedAmount",
+                data_type="DECIMAL",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(table="cj_detail", column="npi", priority=1)
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "AS 30DayCollectedAmount" in sql
+        assert "AS Day30CollectedAmount" not in sql
+
+    def test_display_canonical_name_never_reaches_sql(self):
+        # a canonical_name that is neither underscore- nor digit-leading is a
+        # display label and must NOT replace the UMF name in emitted SQL
+        target, related = self._corpus()
+        target.columns.append(
+            UMFColumn(
+                name="ehr_number",
+                canonical_name="EHR #",
+                data_type="VARCHAR",
+                derivation=UMFColumnDerivation(
+                    candidates=[
+                        DerivationCandidate(table="cj_detail", column="npi", priority=1)
+                    ]
+                ),
+            )
+        )
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "AS ehr_number" in sql
+        assert "EHR #" not in sql
+
     def test_underscore_source_column_reaches_base_view(self):
         # a SOURCE table storing _raw under the safe name u_raw must project
         # the PHYSICAL name in the base view and resolve pass-through mappings
