@@ -3,21 +3,30 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 CLAUDE_PLUGIN_MANIFEST = ROOT / ".claude-plugin/plugin.json"
 MARKETPLACE_MANIFEST = ROOT / ".claude-plugin/marketplace.json"
 CODEX_PLUGIN_MANIFEST = ROOT / ".codex-plugin/plugin.json"
-SKILL_MD = ROOT / "skills/tablespec/SKILL.md"
+SKILLS_DIR = ROOT / "skills"
 SKILL_OPENAI_YAML = ROOT / "skills/tablespec/agents/openai.yaml"
-SKILL_REFERENCES_DIR = ROOT / "skills/tablespec/references"
-AGENTS_SKILL_LINK = ROOT / ".agents/skills/tablespec"
-CLAUDE_SKILL_LINK = ROOT / ".claude/skills/tablespec"
-PUBLISHED_SKILL_DIR = ROOT / "skills/tablespec"
+
+# Every published skill must also be symlinked into the install targets
+# (.agents/skills/<name>, .claude/skills/<name>) and negated in .gitignore.
+EXPECTED_SKILLS = {
+    "tablespec",
+    "tablespec-umf-authoring",
+    "tablespec-pipeline",
+    "tablespec-validation",
+    "tablespec-sql-plans",
+    "tablespec-profiling-app",
+}
 
 # Matches release.yml's `v*.*.*` trigger, including pre-release tags such as
 # v1.2.3-rc1 (the release workflow marks rc/alpha/beta tags as pre-releases).
@@ -26,6 +35,18 @@ VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$")
 
 def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _skill_dirs() -> list[Path]:
+    return sorted(path.parent for path in SKILLS_DIR.glob("*/SKILL.md"))
+
+
+def _frontmatter(skill_dir: Path) -> dict:
+    text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+    assert text.startswith("---\n"), "SKILL.md must open with a YAML frontmatter block"
+    parts = text.split("---")
+    assert len(parts) >= 3, "SKILL.md must have a YAML frontmatter block"
+    return yaml.safe_load(parts[1])
 
 
 def test_manifests_parse_and_have_required_fields() -> None:
@@ -81,16 +102,15 @@ def test_marketplace_catalog_points_at_this_repo() -> None:
     assert plugin_entry["description"] == claude_manifest["description"]
 
 
-def test_skill_is_published_at_plugin_root() -> None:
-    assert SKILL_MD.exists()
+def test_expected_skill_set() -> None:
+    assert {path.name for path in _skill_dirs()} == EXPECTED_SKILLS
 
-    text = SKILL_MD.read_text(encoding="utf-8")
-    assert text.startswith("---\n"), "SKILL.md must open with a YAML frontmatter block"
-    parts = text.split("---")
-    assert len(parts) >= 3, "SKILL.md must have a YAML frontmatter block"
-    frontmatter = yaml.safe_load(parts[1])
 
-    assert frontmatter["name"] == "tablespec"
+@pytest.mark.parametrize("skill_dir", _skill_dirs(), ids=lambda p: p.name)
+def test_skill_frontmatter(skill_dir: Path) -> None:
+    frontmatter = _frontmatter(skill_dir)
+
+    assert frontmatter["name"] == skill_dir.name
     description = frontmatter["description"]
     assert isinstance(description, str)
     assert description
@@ -99,7 +119,29 @@ def test_skill_is_published_at_plugin_root() -> None:
     for fragment in forbidden_fragments:
         assert fragment not in description, fragment
 
-    assert not SKILL_REFERENCES_DIR.exists()
+    # The Codex interface block is singular and repo-wide; only the router
+    # skill carries Codex interface metadata.
+    if skill_dir.name != "tablespec":
+        assert not (skill_dir / "agents" / "openai.yaml").exists()
+
+
+@pytest.mark.parametrize("skill_dir", _skill_dirs(), ids=lambda p: p.name)
+def test_skill_has_no_references_dir(skill_dir: Path) -> None:
+    assert not (skill_dir / "references").exists()
+
+
+@pytest.mark.parametrize("skill_dir", _skill_dirs(), ids=lambda p: p.name)
+def test_install_targets_are_symlinks_to_published_skill(skill_dir: Path) -> None:
+    published_skill = skill_dir.resolve()
+
+    for link in (
+        ROOT / ".agents/skills" / skill_dir.name,
+        ROOT / ".claude/skills" / skill_dir.name,
+    ):
+        assert link.is_symlink()
+        assert link.resolve() == published_skill
+        # Relative link text keeps the plugin relocatable across clones.
+        assert os.readlink(link) == f"../../skills/{skill_dir.name}"
 
 
 def test_codex_skill_metadata_matches_codex_manifest() -> None:
@@ -115,11 +157,3 @@ def test_codex_skill_metadata_matches_codex_manifest() -> None:
     )
     assert interface["default_prompt"]
     assert "ddx" not in interface["default_prompt"].lower()
-
-
-def test_install_targets_are_symlinks_to_published_skill() -> None:
-    published_skill = PUBLISHED_SKILL_DIR.resolve()
-
-    for link in (AGENTS_SKILL_LINK, CLAUDE_SKILL_LINK):
-        assert link.is_symlink()
-        assert link.resolve() == published_skill

@@ -59,11 +59,6 @@ records vs. typed `ingested` tables), with severity and source for each. See the
 tablespec preview tables/medical_claims/
 ```
 
-| Option | Description |
-|--------|-------------|
-| `--against TEXT` | CSV file to validate against. |
-| `--verbose`, `-v` | Verbose output. |
-
 ### `explore`
 
 Launch an interactive TUI: browse tables and columns in a tree view, search
