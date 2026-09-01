@@ -90,7 +90,7 @@ The same skills also work without installing the plugin: a repo clone carries th
 
 ```bash
 claude plugin marketplace add https://github.com/DocumentDrivenDX/tablespec
-claude plugin install tablespec@tablespec --scope user -y
+claude plugin install tablespec@tablespec
 ```
 
 In Codex, the same plugin installs from the same marketplace:
