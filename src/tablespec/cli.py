@@ -160,6 +160,15 @@ if _HAS_VALIDATOR:
             "-v",
             help="Show detailed validation errors",
         ),
+        baseline: Path | None = typer.Option(
+            None,
+            "--baseline",
+            help="Earlier revision of the same domain root; compares each "
+            "domain's published language (exports) and requires a MAJOR "
+            "version bump for breaking changes. Domain mode only.",
+            exists=True,
+            file_okay=False,
+        ),
     ) -> None:
         """Validate UMF schema for correctness.
 
@@ -171,11 +180,15 @@ if _HAS_VALIDATOR:
         - Great Expectations validation rules (if present)
         - Expectation type compatibility with GX library
         - Relationship integrity (automatic when multiple tables present)
+        - Domain rules when the directory holds domain.yaml directories
+          (exports, suppliers, cross-domain keys, glossary terms; with
+          --baseline, published-language compatibility and versioning)
 
         Examples:
           tablespec validate tables/outreach_list/
           tablespec validate outreach_list.json -v
           tablespec validate tables/
+          tablespec validate tables/ --baseline /tmp/tables-at-last-release/
 
         """
         assert _validation_context is not None
@@ -224,9 +237,13 @@ if _HAS_VALIDATOR:
                 # directory, then cross-domain rules (exports, suppliers,
                 # cross-domain keys, glossary terms).
                 table_results, report = validate_domain_root(
-                    path, _validation_context, verbose=verbose
+                    path, _validation_context, verbose=verbose, baseline=baseline
                 )
                 failed = False
+                if report.published_language:
+                    console.print("\n[cyan]Published-language changes:[/cyan]")
+                    for change in report.published_language:
+                        console.print(f"  {change}")
                 for domain_name, results in table_results.items():
                     failed_tables = {n: e for n, e in results.items() if e}
                     if failed_tables:

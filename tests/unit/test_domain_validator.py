@@ -27,6 +27,7 @@ from tests.builders import UMFBuilder
 ELIGIBILITY_DOMAIN = """\
 name: eligibility
 owner: enrollment-team
+version: 1.0.0
 exports: [member]
 glossary: glossary.yaml
 """
@@ -34,6 +35,7 @@ glossary: glossary.yaml
 CLAIMS_DOMAIN = """\
 name: claims
 owner: claims-team
+version: 1.0.0
 exports: [medical_claims]
 glossary: glossary.yaml
 suppliers:

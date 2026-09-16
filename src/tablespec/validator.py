@@ -395,17 +395,21 @@ def validate_domain_root(
     context: ValidationContext,
     verbose: bool = False,
     check_completeness: bool = True,
+    baseline: Path | None = None,
 ) -> tuple[dict[str, dict[str, list[str]]], DomainValidationReport]:
     """Validate every domain under ``root``: per-table checks, then cross-domain rules.
 
     Each domain directory is validated as a pipeline (``validate_pipeline``),
     and then the whole set is checked for exports, suppliers, cross-domain
-    foreign keys, and glossary terms (``domain_validator``).
+    foreign keys, and glossary terms (``domain_validator``). When ``baseline``
+    names the same corpus at an earlier revision, the published language of
+    every domain is compared and breaking changes must be matched by a MAJOR
+    version bump (``DOM-COMPAT``).
 
     Returns:
         ``(table_results, report)`` where ``table_results`` maps domain name to
         the per-table error dict and ``report`` carries the cross-domain
-        findings.
+        findings and published-language changes.
 
     """
     table_results: dict[str, dict[str, list[str]]] = {}
@@ -416,7 +420,8 @@ def validate_domain_root(
             verbose=verbose,
             check_completeness=check_completeness,
         )
-    report = validate_domains(discover_domains(root))
+    old = discover_domains(baseline) if baseline is not None else None
+    report = validate_domains(discover_domains(root), baseline=old)
     return table_results, report
 
 

@@ -342,6 +342,8 @@ edits; do not renumber on edit.
 - **FR-24.3** — **Cross-domain validation.** `tablespec validate <root>` validates every domain's tables and then checks exports, suppliers, cross-domain keys (target must be an exported table's primary key via a declared supplier), and glossary terms, warning on the same term defined differently across domains.
 - **FR-24.4** — **Domain map.** The guidebook renders a domain map page (owners, exports, supplier edges with pattern, cross-domain references) and links it from the top index.
 - **FR-24.5** — **Glossary terms.** Tables and columns carry an optional `term` resolved against the domain glossary, independent of `canonical_name`.
+- **FR-24.6** — **Published-language versioning.** A domain declares a `MAJOR.MINOR.PATCH` version of its published language; a consumer pins an accepted range on each supplier edge; `tablespec validate <root> --baseline <old>` compares each domain's exports across revisions and requires a MAJOR bump for a breaking change. Integration patterns are advisory except `separate_ways`, which may not consume anything (ADR-021).
+- **FR-24.7** — **Glossary surfaces.** The guidebook shows each cited term's definition on the table page, and the documentation prompt lists the terms a table and its columns cite.
 
 ## Acceptance Test Sketches
 

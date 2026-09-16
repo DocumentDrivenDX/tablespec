@@ -48,6 +48,7 @@ a warning.
 | Option | Description |
 |--------|-------------|
 | `--verbose`, `-v` | Show detailed validation errors. |
+| `--baseline <dir>` | Domain mode only. An earlier revision of the same root; compares each domain's published language (exports) and reports `DOM-COMPAT` when a breaking change lacks a MAJOR `version` bump. |
 
 ### `info`
 

@@ -13,4 +13,5 @@ ingested bronze, Great Expectations, dbt, or Databricks Lakeflow.
   {{< card link="/concepts/umf/" title="Universal Metadata Format" subtitle="Defines the UMF source-table spec: columns, types, per-context nullability, sources, relationships, and expectations." icon="academic-cap" >}}
   {{< card link="/concepts/artifacts/" title="Compiled artifacts" subtitle="Defines the reusable catalog of generated files: SQL DDL, ingest SQL, PySpark and JSON schemas, Great Expectations suites, dbt projects, and Lakeflow pipelines." icon="cube-transparent" >}}
   {{< card link="/concepts/validation/" title="Validation model" subtitle="Defines how generated Great Expectations suites run against raw records and typed ingested tables, including Databricks serverless behavior." icon="beaker" >}}
+  {{< card link="/concepts/domains/" title="Domains and the context map" subtitle="Defines the boundary between teams: domain.yaml with owner, exported tables, supplier edges, glossary terms, and the rules validate enforces across domains." icon="globe" >}}
 {{< /cards >}}

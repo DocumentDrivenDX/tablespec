@@ -38,6 +38,7 @@ down is ignored.
 name: claims                  # must equal the directory name
 owner: claims-data-team
 description: Adjudicated medical and pharmacy claims
+version: 1.0.0                # version of the published language
 exports:                      # tables other domains may reference
   - medical_claims            # each exported table must declare primary_key
 glossary: glossary.yaml
@@ -45,11 +46,43 @@ suppliers:                    # domains this one consumes from
   eligibility:
     pattern: customer_supplier
     consumes: [member]        # must be in eligibility's exports
+    version: ">=1.0.0,<2.0.0" # accepted supplier versions
 ```
 
 `pattern` is one of `partnership`, `shared_kernel`, `customer_supplier`,
 `conformist`, `anti_corruption`, `open_host`, `separate_ways`. Only the
-consumer declares the edge. Unknown keys are rejected.
+consumer declares the edge, so the pattern is the consumer's assertion: it is
+shown on the domain map and not enforced, with one exception. `separate_ways`
+means no integration, so it may not consume anything and no foreign key may
+cross it. Unknown keys are rejected.
+
+## Versioning the published language
+
+`version` is `MAJOR.MINOR.PATCH`. It versions the published language: the
+export list plus, for each exported table, its columns, types, nullability,
+and primary key. Glossary terms, expectations, and non-exported tables are not
+part of it, so changing them never needs a bump.
+
+A consumer pins the versions it accepts on the supplier edge. The range is a
+comma-separated list of clauses using `>=`, `<=`, `==`, `!=`, `>`, `<`.
+`DOM-PIN` fails when the supplier's version is outside the range or the
+supplier declares none. A domain that exports without a version gets a
+`DOM-VERSION` warning.
+
+To check a change before it lands, validate against the previous revision:
+
+```bash
+tablespec validate tables/ --baseline tables-at-last-release/
+```
+
+The run prints every published-language change. Removing an export or an
+exported table is breaking. Removing or narrowing a column is breaking, as the
+compatibility checker already classifies it. Adding a nullable column is
+informational; adding a required column is a warning because it constrains
+producers, not existing consumers. A breaking change without a MAJOR bump is
+`DOM-COMPAT` and fails the run. After the bump, every consumer whose range
+excludes the new major fails `DOM-PIN` until it widens the range. That is the
+point: the supplier signals, and each consumer accepts explicitly.
 
 ## Glossary
 
@@ -74,6 +107,22 @@ column:
 
 `term` and `canonical_name` are independent. The canonical name stays the
 source header; the term says what the column means in this domain.
+
+Terms are shown, not only checked. A guidebook table page renders each cited
+term as a chip whose tooltip and inline line carry the definition, aliases
+resolved to the canonical entry. The documentation prompt accepts the glossary
+and lists only the terms the table and its columns cite:
+
+```python
+from tablespec.prompts.documentation import generate_documentation_prompt
+from tablespec.domains import load_domain_dir
+
+domain = load_domain_dir("tables/claims")
+prompt = generate_documentation_prompt(
+    domain.tables["medical_claims"].model_dump(exclude_none=True),
+    glossary=domain.glossary,
+)
+```
 
 ## Referencing another domain
 
@@ -106,12 +155,43 @@ checks each domain's tables as usual and then the cross-domain rules:
 | `DOM-EXPORT` | an export is not a table in the domain, or has no `primary_key` |
 | `DOM-SUPPLIER` | a supplier does not exist, or a consumed table is not in its exports |
 | `DOM-XREF` | a cross-domain key targets a non-exported table, a non-primary-key column, or a supplier the consumer never declared |
+| `DOM-WAYS` | a `separate_ways` edge consumes a table or is crossed by a foreign key |
+| `DOM-PIN` | the supplier's `version` is outside the consumer's range, or the supplier has none |
 | `DOM-TERM` | a `term` is not in the domain glossary |
+| `DOM-COMPAT` | with `--baseline`, an exported table changed in a breaking way without a MAJOR bump |
+| `DOM-VERSION` | a domain exports tables but declares no `version` (warning only) |
 | `DOM-DRIFT` | the same term is defined differently in two domains (warning only) |
 
 Errors exit non-zero. `DOM-DRIFT` is a warning: two domains may legitimately
 mean different things by one word, and the warning makes that a decision
 rather than an accident.
+
+## Mapping to Domain-Driven Design
+
+tablespec uses the strategic half of DDD, the part about boundaries between
+models. Each term below names the file or field that embodies it.
+
+| DDD term | In tablespec |
+|---|---|
+| Bounded context | a domain: `domain.yaml` → `name` |
+| Ubiquitous language | the glossary, and `term` on tables and columns |
+| Published language | `exports` plus `version` |
+| Aggregate root | an exported table; only its primary key may be referenced |
+| Context map and its integration patterns | `suppliers.<d>.pattern`, advisory except `separate_ways` |
+| Value object | `domain_type` on a column |
+| Entity | a table with `primary_key` |
+
+Primary sources: Evans, *Domain-Driven Design* (2003), part IV; Vernon,
+*Implementing Domain-Driven Design* (2013), chapters 2 and 3; Fowler's
+[BoundedContext](https://martinfowler.com/bliki/BoundedContext.html) and
+[UbiquitousLanguage](https://martinfowler.com/bliki/UbiquitousLanguage.html);
+Brandolini's [EventStorming](https://www.eventstorming.com/) as the workshop
+that produces a `domain.yaml`. Adjacent ideas that map onto the same files but
+are not DDD: Dehghani, *Data Mesh* (2022), for domain ownership and data as a
+product; Skelton and Pais, *Team Topologies* (2019), for the team behind
+`owner`; the [Open Data Contract Standard](https://bitol-io.github.io/open-data-contract-standard/)
+for what a domain's exports amount to. Tactical DDD (repositories, services,
+factories, the Specification pattern) is not part of tablespec's vocabulary.
 
 From Python:
 

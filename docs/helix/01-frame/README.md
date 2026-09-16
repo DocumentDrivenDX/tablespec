@@ -164,6 +164,7 @@ Requirements and problem definition for tablespec.
 
 ### FEAT-035: Domains
 - [US-051](user-stories/US-051-declare-and-validate-domains.md) - Declare and Validate Domains
+- [US-052](user-stories/US-052-version-published-language.md) - Version the Published Language and Surface the Glossary
 
 ## Status
 
@@ -172,3 +173,4 @@ Requirements and problem definition for tablespec.
 - Index refreshed to cover FEAT-001..FEAT-032 and US-001..US-045 (2026-06-10).
 - Added FEAT-033 (Guidebook) and US-046; ADR-018 records its lineage/discovery decisions (2026-06-15).
 - Added FEAT-035 (Domains) and US-051; ADR-020 records the domain.yaml / exports / suppliers decisions; SD-035 is the surface contract (2026-09-15).
+- Added US-052 and ADR-021 (published-language versioning, advisory integration patterns, glossary surfaces) after an adversarial review of the DDD follow-up plan (2026-09-15).

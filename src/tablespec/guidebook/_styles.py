@@ -27,6 +27,8 @@ a:hover { text-decoration: underline; }
 .chip { background: var(--badge-bg); color: var(--accent); border-radius: 999px;
         padding: 2px 10px; font-size: 0.8rem; }
 .chip-warn { background: #fff4e5; color: #b75c00; }
+.chip-term { background: #e8f1ea; color: #2f6b3a; cursor: help; }
+.term-definition { color: #2f6b3a; margin: 4px 0 8px; }
 .chip-bronze { background: #f3e7d8; color: #8a5a1a; }
 .chip-silver { background: #e6e9ee; color: #495465; }
 .chip-gold { background: #fff5d6; color: #8a6a00; }

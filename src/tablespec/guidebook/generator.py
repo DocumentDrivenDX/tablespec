@@ -69,16 +69,22 @@ def generate(
     # group -> [(table, table_type, description)] for index pages.
     per_group: dict[str, list[tuple[str, str, str | None]]] = {}
 
+    # Domains (domain.yaml per group) supply the glossary that resolves
+    # `term` on table pages, and feed the domain map after the loop.
+    domains = discover_domains(root)
+
     for unit in selected:
         try:
             # Same dispatch discovery used -- split dir / .umf.json / .umf.yaml.
             umf = load_discovered_umf(unit.path)
+            owning = domains.get(unit.group)
             html = render_table_page(
                 umf,
                 reverse_index,
                 group=unit.group,
                 provenance_sha=provenance_sha,
                 generated_at=generated_at,
+                glossary=owning.glossary if owning else None,
             )
         except Exception as exc:
             logger.warning("Failed to render %s/%s: %s", unit.group, unit.table, exc)
@@ -111,7 +117,6 @@ def generate(
         written.append(index_path)
 
     # Domain map: only when the root holds domain.yaml directories.
-    domains = discover_domains(root)
     if domains:
         map_path = output_dir / DOMAIN_MAP_FILENAME
         map_path.write_text(

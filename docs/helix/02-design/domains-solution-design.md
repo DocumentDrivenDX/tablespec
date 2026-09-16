@@ -45,12 +45,13 @@ ddx:
 | `name` | `^[a-z][a-z0-9_]*$` | yes | Must equal the directory name; the qualifier in `domain.table` |
 | `description` | string | no | What the domain is about |
 | `owner` | string | no | Accountable team or person |
-| `version` | string | no | SemVer of the published language |
+| `version` | `^\d+\.\d+\.\d+$` | no | Version of the published language; MAJOR must bump on a breaking change (ADR-021). `DOM-VERSION` warns when exports exist without it |
 | `exports` | list of table names | no (default `[]`) | Tables other domains may reference; each must have `primary_key` |
 | `glossary` | relative path | no | Glossary YAML |
 | `suppliers` | map of domain name to `{pattern, consumes}` | no (default `{}`) | Context-map edges this domain consumes |
-| `suppliers.<d>.pattern` | one of `partnership`, `shared_kernel`, `customer_supplier`, `conformist`, `anti_corruption`, `open_host`, `separate_ways` | yes | DDD integration pattern |
-| `suppliers.<d>.consumes` | list of table names | no (default `[]`) | Must be in the supplier's `exports` |
+| `suppliers.<d>.pattern` | one of `partnership`, `shared_kernel`, `customer_supplier`, `conformist`, `anti_corruption`, `open_host`, `separate_ways` | yes | DDD integration pattern. Advisory (the consumer's assertion, rendered on the map); only `separate_ways` is enforced |
+| `suppliers.<d>.consumes` | list of table names | no (default `[]`) | Must be in the supplier's `exports`; must be empty for `separate_ways` |
+| `suppliers.<d>.version` | range: comma-separated clauses of `>=`, `<=`, `==`, `!=`, `>`, `<` + `MAJOR.MINOR.PATCH` (e.g. `>=1.0.0,<2.0.0`) | no | Accepted supplier versions; checked by `DOM-PIN`. Not PEP 440, not a full SemVer range language |
 
 Unknown keys are rejected.
 
@@ -84,9 +85,34 @@ owning domain's glossary. `canonical_name` is unchanged.
 | `DOM-SUPPLIER` | error | Supplier missing, self-supplier, or consumed table not exported |
 | `DOM-XREF` | error | Cross-domain FK to a missing domain, non-exported table, non-PK column, or undeclared supplier |
 | `DOM-TERM` | error | A `term` is absent from the domain glossary |
+| `DOM-WAYS` | error | A `separate_ways` edge has a `consumes` list, or a cross-domain FK crosses a `separate_ways` edge |
+| `DOM-PIN` | error | Supplier's `version` does not satisfy the consumer's range, or the supplier declares no version while the consumer pins one |
+| `DOM-COMPAT` | error | Baseline mode: a breaking published-language change without a MAJOR bump, or with a missing version on either side |
+| `DOM-VERSION` | warning | A domain exports tables but declares no `version` |
 | `DOM-DRIFT` | warning | One term defined differently in two domains |
 
 Message shape: `[RULE] <domain>/<entity>: <message>`.
+
+### Published language (Contract)
+
+Boundary: the export list, plus for each exported table the column set,
+column types, nullability, and primary key (what `check_compatibility`
+compares). Not included: glossary terms, expectations, relationships,
+non-exported tables.
+
+Change classification between a baseline root and the current root, domains
+paired by name, export lists compared as a union:
+
+| Change | Severity |
+|--------|----------|
+| `domain_removed` (old domain with exports absent in new) | breaking |
+| `export_removed` | breaking |
+| `table_removed` (still exported, table gone) | breaking |
+| `export_added` | info |
+| compatibility issue on a table exported on both sides | as classified by `check_compatibility`, except `added_required` (forward-only) → warning |
+
+Output line shape: `[<severity>] <domain>/<component>: <description>`.
+Nothing is persisted; the changelog is not written.
 
 ### CLI (Contract)
 
@@ -94,6 +120,21 @@ Message shape: `[RULE] <domain>/<entity>: <message>`.
 contains, a directory with `domain.yaml`. It validates each domain's tables as
 today, prints `Domain errors:` and `Domain warnings:` blocks, exits 1 on any
 table or domain error, and otherwise prints `Valid <n> domains, <m> tables`.
+
+`--baseline <dir>` (domain mode only; must be a directory) adds a
+`Published-language changes:` block before the errors and enables
+`DOM-COMPAT`. No new command is added.
+
+### Glossary surfaces (Contract)
+
+`render_table_page(..., glossary: Glossary | None = None)`: each cited term is
+a `<span class="chip chip-term" title="<definition>">term: <term></span>`;
+the column section adds `<p class="term-definition"><strong><term></strong>:
+<definition></p>`. Without a glossary the chip renders with no title and no
+definition line. `generate_documentation_prompt(umf_data, *, glossary=None)`
+accepts a `Glossary` or a `{term: definition}` mapping and adds a
+`## Domain Glossary` section listing only cited terms, sorted by canonical
+key; absent glossary or no cited terms leaves the prompt unchanged.
 
 ### Guidebook (Contract)
 
@@ -127,7 +168,7 @@ Direction words are supplier and consumer.
 | Artifact | Reference |
 |----------|-----------|
 | Feature | FEAT-035 |
-| Decision | ADR-020 |
-| Story | US-051 (AC1–AC5) |
-| Tests | `tests/unit/test_domain_models.py`, `tests/unit/test_domain_validator.py`, `tests/unit/test_cli_validate_domains.py`, `tests/unit/test_guidebook_domain_map.py`, `tests/unit/test_umf_schema_json_sync.py` |
-| Guide | `docs/guide/domains.md` |
+| Decisions | ADR-020, ADR-021 |
+| Stories | US-051 (AC1–AC5), US-052 (AC1–AC5) |
+| Tests | `tests/unit/test_domain_models.py`, `tests/unit/test_domain_validator.py`, `tests/unit/test_domain_versioning.py`, `tests/unit/test_glossary_surfaces.py`, `tests/unit/test_cli_validate_domains.py`, `tests/unit/test_guidebook_domain_map.py`, `tests/unit/test_umf_schema_json_sync.py` |
+| Guide | `docs/guide/domains.md`; microsite `concepts/domains` |
