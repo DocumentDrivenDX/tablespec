@@ -50,6 +50,7 @@ Requirements and problem definition for tablespec.
 - [FEAT-031](features/FEAT-031-multi-source-ingestion.md) - Multi-Source Ingestion (Specified; JDBC vertical toward the Northwind goal)
 - [FEAT-032](features/FEAT-032-embeddings-and-document-corpus.md) - Embeddings & Document Corpus (Draft; SEC 10-K demo goal)
 - [FEAT-033](features/FEAT-033-guidebook.md) - Guidebook (HTML schema guidebook with FK + derivation lineage)
+- [FEAT-035](features/FEAT-035-domains.md) - Domains (domain.yaml as bounded context: exports, suppliers, glossary; cross-domain validation; domain map)
 
 ## User Stories
 
@@ -161,9 +162,13 @@ Requirements and problem definition for tablespec.
 ### FEAT-033: Guidebook
 - [US-046](user-stories/US-046-browse-schema-guidebook.md) - Browse a Schema as a Guidebook
 
+### FEAT-035: Domains
+- [US-051](user-stories/US-051-declare-and-validate-domains.md) - Declare and Validate Domains
+
 ## Status
 
 - Frame phase backfilled from existing codebase and documentation (2026-03-15).
 - Updated for post-merge codebase with ~50 new source files across 4 new packages (2026-03-16).
 - Index refreshed to cover FEAT-001..FEAT-032 and US-001..US-045 (2026-06-10).
 - Added FEAT-033 (Guidebook) and US-046; ADR-018 records its lineage/discovery decisions (2026-06-15).
+- Added FEAT-035 (Domains) and US-051; ADR-020 records the domain.yaml / exports / suppliers decisions; SD-035 is the surface contract (2026-09-15).

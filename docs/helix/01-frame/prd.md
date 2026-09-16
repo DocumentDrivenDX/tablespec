@@ -333,6 +333,16 @@ edits; do not renumber on edit.
 - **FR-23.5** — **Optional integrations degrade.** Optional configuration (dashboard link, Genie space, pre-generated UMF volume) is absent-tolerant: an unset value hides or disables the dependent surface rather than erroring.
 - **FR-23.6** — **Fail-fast configuration validation.** Missing or unusable configuration — no warehouse id, unreachable catalog/schema/volume, or an app identity lacking the required grant — surfaces one actionable startup error naming the setting and the grant required, rather than an incidental stack trace mid-session.
 
+### Subsystem: Domains
+
+**FR-24** requirement family. *A domain is a directory of UMF tables with a `domain.yaml`: the DDD bounded context. Feature decomposition is FEAT-035; the decision record is ADR-020; surface is in SD-035. Domains never influence emitted-artifact routing (ADR-013).*
+
+- **FR-24.1** — **Domain declaration.** A `domain.yaml` declares a domain's name (equal to its directory), owner, exported tables (the published language, each with a primary key), suppliers with a DDD integration pattern and the tables consumed, and an optional glossary.
+- **FR-24.2** — **Cross-domain references.** A foreign key can name the owning domain of its target (`references_domain`) and an integration pattern; the legacy `references_pipeline` spelling is reconciled, and unknown foreign-key keys are rejected rather than dropped.
+- **FR-24.3** — **Cross-domain validation.** `tablespec validate <root>` validates every domain's tables and then checks exports, suppliers, cross-domain keys (target must be an exported table's primary key via a declared supplier), and glossary terms, warning on the same term defined differently across domains.
+- **FR-24.4** — **Domain map.** The guidebook renders a domain map page (owners, exports, supplier edges with pattern, cross-domain references) and links it from the top index.
+- **FR-24.5** — **Glossary terms.** Tables and columns carry an optional `term` resolved against the domain glossary, independent of `canonical_name`.
+
 ## Acceptance Test Sketches
 
 | Requirement | Scenario | Input | Expected Output |

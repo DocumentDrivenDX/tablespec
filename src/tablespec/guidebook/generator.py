@@ -11,8 +11,10 @@ from datetime import UTC, datetime
 import logging
 from pathlib import Path
 
+from tablespec.domains import discover_domains
 from tablespec.guidebook._styles import CSS
 from tablespec.guidebook.discovery import discover_umfs, load_discovered_umf
+from tablespec.guidebook.domain_map import DOMAIN_MAP_FILENAME, render_domain_map
 from tablespec.guidebook.index_renderer import (
     render_group_index,
     render_top_index_flat,
@@ -108,11 +110,24 @@ def generate(
         index_path.write_text(index_html, encoding="utf-8")
         written.append(index_path)
 
+    # Domain map: only when the root holds domain.yaml directories.
+    domains = discover_domains(root)
+    if domains:
+        map_path = output_dir / DOMAIN_MAP_FILENAME
+        map_path.write_text(
+            render_domain_map(domains, CSS, provenance_sha=provenance_sha),
+            encoding="utf-8",
+        )
+        written.append(map_path)
+
     # Top-level index: grouped when groups exist, flat otherwise.
     if has_groups:
         group_counts = [(name, len(rows)) for name, rows in per_group.items() if name]
         top_html = render_top_index_grouped(
-            group_counts, CSS, provenance_sha=provenance_sha
+            group_counts,
+            CSS,
+            provenance_sha=provenance_sha,
+            domain_map_href=DOMAIN_MAP_FILENAME if domains else None,
         )
     else:
         flat_rows = per_group.get("", [])

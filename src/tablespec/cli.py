@@ -39,7 +39,9 @@ try:
     from tablespec.validator import (  # type: ignore[import-not-found]
         ValidationContext,
         convert_table,
+        is_domain_root,
         show_table_info,
+        validate_domain_root,
         validate_pipeline,
         validate_table,
     )
@@ -217,6 +219,40 @@ if _HAS_VALIDATOR:
                     for error in errors:
                         console.print(f"  {error}")
                     raise typer.Exit(1)
+            elif path.is_dir() and is_domain_root(path):
+                # Domain validation: per-table checks inside each domain.yaml
+                # directory, then cross-domain rules (exports, suppliers,
+                # cross-domain keys, glossary terms).
+                table_results, report = validate_domain_root(
+                    path, _validation_context, verbose=verbose
+                )
+                failed = False
+                for domain_name, results in table_results.items():
+                    failed_tables = {n: e for n, e in results.items() if e}
+                    if failed_tables:
+                        failed = True
+                        console.print(f"\n[red]{domain_name}:[/red] table errors")
+                        for table_name, errs in failed_tables.items():
+                            console.print(f"  [red]{table_name}:[/red]")
+                            for error in errs:
+                                console.print(f"    {error}")
+                if report.errors:
+                    failed = True
+                    console.print("\n[red]Domain errors:[/red]")
+                    for finding in report.errors:
+                        console.print(f"  {finding}")
+                if report.warnings:
+                    console.print("\n[yellow]Domain warnings:[/yellow]")
+                    for finding in report.warnings:
+                        console.print(f"  {finding}")
+                if failed:
+                    console.print("[red]FAIL[/red] Validation failed")
+                    raise typer.Exit(1)
+                n_tables = sum(len(r) for r in table_results.values())
+                console.print(
+                    f"[green]Valid[/green] {len(table_results)} domains, "
+                    f"{n_tables} tables passed validation"
+                )
             elif path.is_dir():
                 # Pipeline validation
                 results = validate_pipeline(path, _validation_context, verbose=verbose)

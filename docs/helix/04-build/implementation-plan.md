@@ -90,6 +90,8 @@ The inventory below mirrors the top-level `src/tablespec` surface exactly. Packa
 | `date_formats.py` | Date-format definitions and conversion helpers. |
 | `dependency_resolver.py` | Dependency resolution for the runtime pipeline. |
 | `dialects.py` | SQL dialect helpers. |
+| `domain_validator.py` | Cross-domain rules: exports, suppliers, cross-domain keys, glossary terms (FEAT-035). |
+| `domains.py` | Domain (bounded-context) discovery from domain.yaml directories (FEAT-035). |
 | `excel_converter.py` | Excel round-trip conversion. |
 | `excel_import_git.py` | Git-aware Excel import. |
 | `expectation_migration.py` | Expectation migration helpers. |

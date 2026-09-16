@@ -37,6 +37,14 @@ compatibility, relationship integrity (when multiple tables are present), and
 pipeline completeness — provenance columns, domain types, and baseline
 expectations.
 
+When the directory is, or directly contains, domain directories (each with a
+`domain.yaml`), `validate` also checks the cross-domain rules: every export
+names a keyed table, every supplier exists and exports what is consumed, every
+cross-domain foreign key targets an exported table's primary key through a
+declared supplier, and every `term` is in the domain glossary. Findings are
+prefixed `DOM-EXPORT`, `DOM-SUPPLIER`, `DOM-XREF`, `DOM-TERM`; `DOM-DRIFT` is
+a warning.
+
 | Option | Description |
 |--------|-------------|
 | `--verbose`, `-v` | Show detailed validation errors. |

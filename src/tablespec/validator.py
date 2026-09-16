@@ -21,6 +21,8 @@ from tablespec.completeness_validator import (
     validate_domain_types,
     validate_provenance_columns,
 )
+from tablespec.domain_validator import DomainValidationReport, validate_domains
+from tablespec.domains import discover_domains, find_domain_dirs
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.expectation_utils import expectation_dicts_from_umf
 from tablespec.models import UMF, save_umf_to_yaml
@@ -381,6 +383,41 @@ def validate_pipeline(
         results[umf.table_name] = errors
 
     return results
+
+
+def is_domain_root(path: Path) -> bool:
+    """True when ``path`` is, or directly contains, a ``domain.yaml`` directory."""
+    return bool(find_domain_dirs(path))
+
+
+def validate_domain_root(
+    root: Path,
+    context: ValidationContext,
+    verbose: bool = False,
+    check_completeness: bool = True,
+) -> tuple[dict[str, dict[str, list[str]]], DomainValidationReport]:
+    """Validate every domain under ``root``: per-table checks, then cross-domain rules.
+
+    Each domain directory is validated as a pipeline (``validate_pipeline``),
+    and then the whole set is checked for exports, suppliers, cross-domain
+    foreign keys, and glossary terms (``domain_validator``).
+
+    Returns:
+        ``(table_results, report)`` where ``table_results`` maps domain name to
+        the per-table error dict and ``report`` carries the cross-domain
+        findings.
+
+    """
+    table_results: dict[str, dict[str, list[str]]] = {}
+    for domain_dir in find_domain_dirs(root):
+        table_results[domain_dir.name] = validate_pipeline(
+            domain_dir,
+            context,
+            verbose=verbose,
+            check_completeness=check_completeness,
+        )
+    report = validate_domains(discover_domains(root))
+    return table_results, report
 
 
 def show_table_info(

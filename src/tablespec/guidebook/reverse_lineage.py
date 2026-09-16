@@ -153,11 +153,13 @@ def build_reverse_lineage_index(
         relationships = umf.relationships
         if relationships and relationships.foreign_keys:
             for fk in relationships.foreign_keys:
-                # A qualified references_table (e.g. "hc_2026_ent.member") names
-                # the target group in its prefix; otherwise stay in this group.
-                if fk.references_pipeline:
-                    target_group = fk.references_pipeline
-                    target_table = fk.references_table
+                # An explicit references_domain (or its legacy spelling,
+                # references_pipeline) names the target group; a qualified
+                # references_table ("hc_2026_ent.member") names it in its
+                # prefix; otherwise stay in this group.
+                if fk.references_domain:
+                    target_group = fk.references_domain
+                    target_table = fk.target_table
                 elif fk.references_table:
                     target_group, target_table = _split_table_ref(
                         fk.references_table, unit.group
