@@ -304,7 +304,7 @@ body > a[href="#content"]:focus-visible {
   border-style: dashed;
 }
 
-.ts-node-ingested {
+.ts-node-contract {
   border-color: var(--ts-cyan);
   box-shadow: inset 0 0 0 1px rgba(23, 167, 184, 0.24);
 }

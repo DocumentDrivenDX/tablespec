@@ -1,23 +1,23 @@
 ---
 title: tablespec
-description: "tablespec helps data teams define the ingested bronze contract for source tables and compile one UMF spec into SQL, dbt, Lakeflow, schema, validation, Excel, and guidebook artifacts."
+description: "tablespec compiles one UMF spec into the SQL, dbt, Lakeflow, schema, validation, Excel, and guidebook artifacts a data platform runs, from raw ingestion through gold tables."
 layout: hextra-home
 ---
 
 <section class="ts-blueprint-hero" aria-labelledby="ts-home-title">
   <div class="ts-hero-copy">
     <a class="ts-hero-kicker" href="concepts/raw-ingested-silver/">
-      Where bronze ends and silver begins
+      From raw records to gold tables
     </a>
     <p class="ts-drawing-label">TABLESPEC / SOURCE CONTRACT</p>
-    <h1 id="ts-home-title">Definition of done for ingested bronze</h1>
+    <h1 id="ts-home-title">One UMF. Every runtime artifact.</h1>
     <p class="ts-hero-lede">
-      tablespec is for data engineers and platform teams who need source data
-      ready for downstream work. It defines a source-semantic ingested bronze
-      contract: the source meaning is preserved, while types, validation,
-      keys, and relationships are declared. Then it compiles one Universal
-      Metadata Format (UMF) spec into SQL, dbt, Lakeflow, schema,
-      validation, Excel review workbooks, and static guidebook artifacts.
+      tablespec is for data engineers and platform teams who need table
+      contracts that compile. It defines a source-semantic ingested bronze
+      contract, the definition of done for a source table, and declares silver
+      and gold derivations in the same Universal Metadata Format (UMF). Then it
+      compiles each spec into SQL, dbt, Lakeflow, schema, validation, Excel
+      review workbooks, and static guidebook artifacts.
     </p>
     <div class="ts-hero-actions" aria-label="Primary actions">
       <a class="ts-button ts-button-primary" href="getting-started/">Start with a UMF</a>
@@ -25,7 +25,7 @@ layout: hextra-home
     </div>
   </div>
 
-  <div class="ts-blueprint-panel" aria-label="Raw to ingested bronze blueprint">
+  <div class="ts-blueprint-panel" aria-label="Raw to silver blueprint">
     <div class="ts-panel-title">
       <span>compile path</span>
       <span>review surface</span>
@@ -43,13 +43,13 @@ layout: hextra-home
         <small>transport shape kept for audit and replay</small>
       </div>
       <div class="ts-arrow" aria-hidden="true"></div>
-      <div class="ts-node ts-node-ingested">
+      <div class="ts-node ts-node-contract">
         <span class="ts-node-label">ingested bronze</span>
         <strong>typed, validated, keyed</strong>
         <small>source meaning captured in Delta-compatible tables</small>
       </div>
       <div class="ts-arrow" aria-hidden="true"></div>
-      <div class="ts-node">
+      <div class="ts-node ts-node-contract">
         <span class="ts-node-label">silver</span>
         <strong>conform, resolve, enrich</strong>
         <small>business choices across one or more sources</small>
@@ -91,8 +91,8 @@ layout: hextra-home
     </article>
     <article>
       <span>03</span>
-      <h3>Validate before silver starts</h3>
-      <p>Run checks against raw source records and typed ingested tables before silver models add business rules.</p>
+      <h3>Validate every layer</h3>
+      <p>Run checks against raw source records, typed ingested tables, and the derived tables built from them, all generated from the same specs.</p>
     </article>
   </div>
 </section>
@@ -126,6 +126,7 @@ tablespec guidebook tables/ -o site/guidebook</code></pre>
   <div class="ts-band-heading">
     <p class="ts-drawing-label">DECIDE</p>
     <h2 id="ts-boundary-title">Bronze records source meaning. Silver records business choices.</h2>
+    <p>Both are UMF contracts compiled by tablespec. The layer names say what each contract may decide.</p>
   </div>
   <div class="ts-comparison" role="table" aria-label="Ingested bronze and silver responsibilities">
     <div role="row" class="ts-comparison-head">
@@ -159,7 +160,7 @@ tablespec guidebook tables/ -o site/guidebook</code></pre>
 <section class="ts-band ts-final-cta" aria-labelledby="ts-next-title">
   <p class="ts-drawing-label">OPERATE</p>
   <h2 id="ts-next-title">Compile the UMF contract. Review the diff.</h2>
-  <p>Install tablespec, write one UMF source-table spec, generate runtime artifacts, then inspect the bronze boundary before silver work begins.</p>
+  <p>Install tablespec, write one UMF spec, generate runtime artifacts, then review the diff before anything runs.</p>
   <div class="ts-hero-actions">
     <a class="ts-button ts-button-primary" href="getting-started/">Get started</a>
     <a class="ts-button ts-button-secondary" href="concepts/raw-ingested-silver/">Read raw, ingested, and silver</a>

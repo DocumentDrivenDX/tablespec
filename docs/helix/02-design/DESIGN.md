@@ -149,11 +149,11 @@ Use this scale: `4, 8, 12, 16, 24, 32, 48, 64, 96`.
 The hero presents the product as a system drawing:
 
 - Title: `tablespec`
-- Primary promise: `Definition of done for ingested bronze`
+- Primary promise: `One UMF. Every runtime artifact.`
 - Supporting line: one UMF compiles to SQL, dbt, Lakeflow, schemas, and GX.
 - Visual: ruled pipeline from `source` to `raw` to `ingested bronze` to
-  `silver`, with the tablespec contract drawn around the ingested boundary.
-- CTAs: `Start with a UMF` and `Read the bronze contract`.
+  `silver`, with tablespec contracts drawn around ingested and silver alike.
+- CTAs: `Start with a UMF` and `Read raw, ingested, and silver`.
 
 ### Artifact Strip
 

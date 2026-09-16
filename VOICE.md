@@ -10,9 +10,9 @@ change; keep this file as a pointer only.
 
 ## Quick spine
 
-tablespec defines the source-semantic ingested bronze contract and compiles one
-UMF into the SQL, dbt, Lakeflow, schema, and validation artifacts a data
-platform actually runs.
+tablespec compiles one UMF into the SQL, dbt, Lakeflow, schema, and validation
+artifacts a data platform actually runs, from raw ingestion through gold tables,
+with a source-semantic ingested bronze contract as the first definition of done.
 
 ## When writing
 
