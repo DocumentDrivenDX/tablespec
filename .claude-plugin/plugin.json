@@ -1,0 +1,13 @@
+{
+  "name": "tablespec",
+  "version": "0.0.3",
+  "description": "UMF table-schema workflows: bootstrap UMF from Spark/Databricks tables, profile, validate, generate sample data and Spark/LDP/dbt pipeline artifacts.",
+  "author": {
+    "name": "DocumentDrivenDX",
+    "url": "https://github.com/DocumentDrivenDX"
+  },
+  "homepage": "https://documentdrivendx.github.io/tablespec/",
+  "repository": "https://github.com/DocumentDrivenDX/tablespec",
+  "license": "Apache-2.0",
+  "skills": "./skills/"
+}

@@ -224,6 +224,9 @@ class TestValidateTable:
         assert success is False
         assert any("Missing 'type' field" in e for e in errors)
 
+    @pytest.mark.filterwarnings(
+        "ignore:ValidationRules contains ingested-stage expectations"
+    )
     @patch("tablespec.validator.validate_naming_conventions", return_value=[])
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])
@@ -296,6 +299,9 @@ class TestValidateTable:
         success, errors = validate_table(table_file, ctx)
         assert success is True
 
+    @pytest.mark.filterwarnings(
+        "ignore:ValidationRules contains ingested-stage expectations"
+    )
     @patch("tablespec.validator.validate_naming_conventions", return_value=[])
     @patch("tablespec.validator.validate_provenance_columns", return_value=[])
     @patch("tablespec.validator.validate_domain_types", return_value=[])

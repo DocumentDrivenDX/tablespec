@@ -877,6 +877,77 @@ class TestExcelRoundTrip:
         assert nullable["MP"] is False
         assert nullable["ME"] is True
 
+    def test_round_trip_boolean_nullable(self, tmp_path):
+        """Plain boolean nullable exports its value into every context cell."""
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(name="col_req", data_type="VARCHAR", nullable=False),
+                UMFColumn(name="col_null", data_type="VARCHAR", nullable=True),
+            ]
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        out = tmp_path / "rt_bool_nullable.xlsx"
+        wb.save(out)
+
+        columns = ExcelToUMFConverter()._extract_columns(openpyxl.load_workbook(out))
+        col_req = next(c for c in columns if c["name"] == "col_req")
+        assert all(v is False for v in col_req["nullable"].values())
+        col_null = next(c for c in columns if c["name"] == "col_null")
+        assert all(v is True for v in col_null["nullable"].values())
+
+    def test_source_spec_omits_derivation_sheets(self, tmp_path):
+        """Tables without derivation/survivorship metadata get a lean workbook."""
+        umf = _make_minimal_umf()
+        wb = UMFToExcelConverter().convert(umf)
+        assert "Survivorship" not in wb.sheetnames
+        assert "Derivations" not in wb.sheetnames
+
+        # And the lean workbook still imports cleanly
+        out = tmp_path / "lean.xlsx"
+        wb.save(out)
+        columns = ExcelToUMFConverter()._extract_columns(openpyxl.load_workbook(out))
+        assert {c["name"] for c in columns} == {"col_id", "col_name"}
+
+    def test_generated_spec_includes_derivation_sheets(self):
+        """Tables with column derivations keep Survivorship + Derivations tabs."""
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(
+                    name="col_id",
+                    data_type="INTEGER",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="source_table", column="id", priority=1
+                            )
+                        ]
+                    ),
+                ),
+            ]
+        )
+        wb = UMFToExcelConverter().convert(umf)
+        assert "Survivorship" in wb.sheetnames
+        assert "Derivations" in wb.sheetnames
+
+    def test_round_trip_report_sheet_preserved(self, tmp_path):
+        umf = _make_minimal_umf(
+            columns=[
+                UMFColumn(name="col_id", data_type="INTEGER", report_sheet="Summary"),
+                UMFColumn(name="col_name", data_type="VARCHAR", length=100),
+            ]
+        )
+        exporter = UMFToExcelConverter()
+        wb = exporter.convert(umf)
+        out = tmp_path / "rt_report_sheet.xlsx"
+        wb.save(out)
+
+        importer = ExcelToUMFConverter()
+        columns = importer._extract_columns(openpyxl.load_workbook(out))
+        col_id_data = next(c for c in columns if c["name"] == "col_id")
+        assert col_id_data["report_sheet"] == "Summary"
+        col_name_data = next(c for c in columns if c["name"] == "col_name")
+        assert "report_sheet" not in col_name_data
+
 
 # ---------------------------------------------------------------------------
 # Edge cases
@@ -1170,6 +1241,73 @@ class TestDerivationsRoundTrip:
         assert cand.join_via.lookup_table == "dw"
         assert cand.join_via.target_key == "pid"
 
+    def test_union_value_round_trips_native_types(self, tmp_path):
+        """union_value keeps its native type (str/int/bool) across the trip,
+        so the generated SQL literal is unchanged ('daily' vs TRUE vs 1)."""
+        umf = UMF(
+            version="1.0",
+            table_name="t",
+            canonical_name="t",
+            table_type="generated",
+            columns=[
+                UMFColumn(
+                    name="source_generation",
+                    data_type="VARCHAR",
+                    length=20,
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="legacy",
+                                column="source_generation",
+                                priority=1,
+                                union_value="legacy_snapshot",
+                            ),
+                            DerivationCandidate(
+                                table="daily",
+                                column="source_generation",
+                                priority=2,
+                                union_value="daily",
+                            ),
+                        ],
+                    ),
+                ),
+                UMFColumn(
+                    name="is_daily",
+                    data_type="BOOLEAN",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="daily",
+                                column="is_daily",
+                                priority=1,
+                                union_value=True,
+                            ),
+                        ],
+                    ),
+                ),
+                UMFColumn(
+                    name="generation_rank",
+                    data_type="INTEGER",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            DerivationCandidate(
+                                table="daily",
+                                column="generation_rank",
+                                priority=1,
+                                union_value=2,
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        )
+        rt = self._round_trip(umf, tmp_path)
+        by_name = {c.name: c for c in rt.columns}
+        sg = by_name["source_generation"].derivation.candidates
+        assert [c.union_value for c in sg] == ["legacy_snapshot", "daily"]
+        assert by_name["is_daily"].derivation.candidates[0].union_value is True
+        assert by_name["generation_rank"].derivation.candidates[0].union_value == 2
+
     def test_survivorship_defaults_round_trip(self, tmp_path):
         umf = UMF(
             version="1.0",
@@ -1288,6 +1426,132 @@ class TestDerivationSqlIdentity:
         before = generate_sql_plan(target, related, mode="cte")
 
         path = tmp_path / "member_summary.xlsx"
+        UMFToExcelConverter().convert(target).save(path)
+        rt, notes = ExcelToUMFConverter().convert(path)
+        assert not {k: v for k, v in notes.items() if v}, notes
+
+        after = generate_sql_plan(rt, related, mode="cte")
+        assert after == before
+
+    def _union_branches_corpus(self):
+        from tablespec.schemas import generate_sql_plan
+
+        def _source(name: str, extra: dict[str, str]) -> UMF:
+            cols = {
+                "arbit_id": "VARCHAR",
+                "snapshot_date": "DATE",
+                "file_date": "DATE",
+                "meta_load_dt": "DATE",
+                **extra,
+            }
+            return UMF(
+                version="1.0",
+                table_name=name,
+                canonical_name=name,
+                table_type="ingested",
+                columns=[UMFColumn(name=n, data_type=t) for n, t in cols.items()],
+            )
+
+        legacy = _source("inv_legacy", {"fee_amount": "INTEGER"})
+        daily = _source("inv_daily", {"licn": "VARCHAR"})
+
+        def _cand(table: str, col: str, prio: int, **kw) -> DerivationCandidate:
+            cutover = (
+                "file_date < DATE '2026-07-20'"
+                if table == "inv_legacy"
+                else "file_date >= DATE '2026-07-20'"
+            )
+            return DerivationCandidate(
+                table=table,
+                column=col,
+                priority=prio,
+                row_filter=cutover,
+                order_by=["meta_load_dt"],
+                **kw,
+            )
+
+        target = UMF(
+            version="1.0",
+            table_name="fact_inv",
+            canonical_name="fact_inv",
+            table_type="generated",
+            primary_key=["arbit_id", "snapshot_date"],
+            metadata={
+                "base_table": "inv_legacy",
+                "base_table_strategy": "union_branches",
+                "union_base_tables": ["inv_daily"],
+                "union_type": "union_all",
+                "dedup_strategy": "latest",
+            },
+            columns=[
+                UMFColumn(
+                    name="arbit_id",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            _cand("inv_legacy", "arbit_id", 1),
+                            _cand("inv_daily", "arbit_id", 2),
+                        ],
+                    ),
+                ),
+                UMFColumn(
+                    name="snapshot_date",
+                    data_type="DATE",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            _cand("inv_legacy", "snapshot_date", 1),
+                            _cand("inv_daily", "snapshot_date", 2),
+                        ],
+                    ),
+                ),
+                UMFColumn(
+                    name="fee_amount",
+                    data_type="INTEGER",
+                    derivation=UMFColumnDerivation(
+                        candidates=[_cand("inv_legacy", "fee_amount", 1)],
+                    ),
+                ),
+                UMFColumn(
+                    name="licn",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[_cand("inv_daily", "licn", 1)],
+                    ),
+                ),
+                UMFColumn(
+                    name="source_generation",
+                    data_type="VARCHAR",
+                    derivation=UMFColumnDerivation(
+                        candidates=[
+                            _cand(
+                                "inv_legacy",
+                                "source_generation",
+                                1,
+                                union_value="legacy_snapshot",
+                            ),
+                            _cand(
+                                "inv_daily",
+                                "source_generation",
+                                2,
+                                union_value="daily",
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        )
+        related = {"inv_legacy": legacy, "inv_daily": daily}
+        return generate_sql_plan, target, related
+
+    def test_union_branches_sql_identical_after_round_trip(self, tmp_path):
+        """F009-DERIV-02 for the union_branches consumer set: union_value,
+        row_filter, and order_by all feed the generated SQL, so the CTE plan
+        must be byte-identical across an Excel round-trip."""
+        generate_sql_plan, target, related = self._union_branches_corpus()
+        before = generate_sql_plan(target, related, mode="cte")
+        assert "CAST('legacy_snapshot' AS STRING)" in before
+
+        path = tmp_path / "fact_inv.xlsx"
         UMFToExcelConverter().convert(target).save(path)
         rt, notes = ExcelToUMFConverter().convert(path)
         assert not {k: v for k, v in notes.items() if v}, notes

@@ -1281,8 +1281,6 @@ def explore(
 @app.command()
 def preview(
     table_path: str = typer.Argument(..., help="Path to UMF table (directory or file)"),
-    against: str = typer.Option(None, "--against", help="CSV file to validate against"),
-    verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Preview validation expectations classified by stage."""
     from tablespec.authoring.preview import generate_preview

@@ -56,7 +56,7 @@ def test_built_site_has_no_root_absolute_links_outside_baseurl(tmp_path: Path) -
     # via a relative path that resolves under the site tree.
     gs = (out / "getting-started" / "index.html").read_text(encoding="utf-8")
     assert "hextra-card" in gs
-    assert re.search(r'href=[^>\s]*demos', gs), "Getting Started must link to demos"
+    assert re.search(r"href=[^>\s]*demos", gs), "Getting Started must link to demos"
     assert not re.search(r'href=(["\']?)/demos/?\1?(?:[\s>]|$)', gs), (
         "Getting Started must not use root-absolute /demos"
     )

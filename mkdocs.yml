@@ -29,6 +29,7 @@ nav:
     - Happy Path: guide/happy-path.md
     - UMF Format: guide/umf-format.md
     - Schema Generation: guide/schema-generation.md
+    - SQL Plans: guide/sql-plans.md
     - Great Expectations: guide/great-expectations.md
     - Profiling: guide/profiling.md
     - LLM Prompts: guide/llm-prompts.md

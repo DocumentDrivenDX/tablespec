@@ -99,6 +99,36 @@ In CTE mode, diamond dependencies (where multiple downstream steps reference the
 
 Not all intermediates are suitable as pure CTEs. Steps that perform 1:N deduplication via `ROW_NUMBER()`, pivots, or aggregations should be materialized (temporary tables or views) because re-executing them from a CTE reference would be expensive and potentially non-deterministic. Simple 1:1 joins and filters can remain as pure CTEs since they are cheap to re-evaluate if the query engine chooses not to factor them out.
 
+##### Relationship-Driven Plan Composition (`src/tablespec/schemas/sql_generator.py`, `src/tablespec/schemas/relationship_resolver.py`)
+
+Ported from production use and now source-backed in this feature's scope
+(PRs #18/#19 and the composite sql-plan stack):
+
+- **Join shaping on outgoing relationships**: expression join keys
+  (`source_expression`/`target_expression`), composite `join_conditions`
+  (AND-ed column or expression equalities), `join_type: full_outer` (forces
+  the direct strategy regardless of cardinality notation), candidate-level
+  `join_filter`, and portable `alternative_joins` (UNION-of-joins).
+- **Instance-bound relationships**: `table_instance` binds a relationship to
+  one named instance so the same table can join twice under different keys
+  (rule-table pattern).
+- **Two-hop `lookup_join`**: a direct join reaches its target through a
+  declared bridge table when base and target share no direct key.
+- **Base-table strategies**: `union_branches` (per-source UNION branches with
+  per-branch `row_filter`, `union_value` literals, and CAST(NULL) alignment)
+  and `aggregate_source` (the GROUP BY *is* the table), alongside GROUP-BY
+  aggregate joins for base-table dims with fully-aggregated sources excluded
+  from the regular join sequence.
+- **Assembly controls**: `base_table_filter`, `base_join_column`,
+  `final_filter`, and `final_dedup` — `distinct`, or `latest` with
+  `final_dedup_keys`/`final_dedup_order_by` emitting a declared-grain
+  `QUALIFY ROW_NUMBER() = 1` (rows with a NULL dedup key pass through
+  undeduplicated).
+- **Deterministic emission**: output projections follow spec position order,
+  and intermediate-required base columns are emitted sorted so plan bytes do
+  not vary with the process hash seed (protects the zero-drift
+  regenerate-and-diff KPI).
+
 ##### Semantic Equivalence Testing
 
 Semantic equivalence testing: both modes produce identical query results when executed against DuckDB with identical source data. DuckDB is used as a dev/test dependency for this verification.

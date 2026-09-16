@@ -104,17 +104,27 @@ def umfs_from_tables(
 
 
 def umfs_from_specs(spec_paths: list[str | Path]) -> list[UMF]:
-    """Path B: load a UMF set from spec YAML files via ``load_umf_from_yaml``.
+    """Path B: load a UMF set from authored spec paths.
 
     Args:
-        spec_paths: UMF ``.yaml`` spec files (one table each).
+        spec_paths: split table directories, ``.json`` interchange files, or
+            inline ``.yaml`` spec files (one table each).
 
     Returns:
         The loaded :class:`UMF` models, in input order.
     """
     from tablespec.models.umf import load_umf_from_yaml
+    from tablespec.umf_loader import UMFLoader
 
-    return [load_umf_from_yaml(p) for p in spec_paths]
+    loader = UMFLoader()
+    umfs: list[UMF] = []
+    for spec_path in spec_paths:
+        path = Path(spec_path)
+        if path.is_dir() or path.suffix == ".json":
+            umfs.append(loader.load(path))
+        else:
+            umfs.append(load_umf_from_yaml(path))
+    return umfs
 
 
 def _to_strict_umf_data(base: dict[str, Any]) -> dict[str, Any]:

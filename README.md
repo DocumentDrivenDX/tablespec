@@ -65,6 +65,44 @@ pip install tablespec[spark] --index-url https://documentdrivendx.github.io/tabl
 **Optional extras**:
 - `tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.
 
+### Claude Code / Codex plugin
+
+The tablespec agent skills ship as a plugin. In Claude Code:
+
+```
+/plugin marketplace add https://github.com/DocumentDrivenDX/tablespec
+/plugin install tablespec@tablespec
+```
+
+The plugin ships six skills, loaded automatically by task relevance (or invoked directly, e.g.
+`/tablespec:tablespec`):
+
+- `tablespec` - routing layer and cross-cutting conventions
+- `tablespec-umf-authoring` - authoring/editing split-format UMF specs
+- `tablespec-pipeline` - bootstrap, compile the artifact tree, run the backbone
+- `tablespec-validation` - Great Expectations suite lifecycle
+- `tablespec-sql-plans` - derived/gold tables and SQL plan generation
+- `tablespec-profiling-app` - the data-profiling Databricks App
+
+The same skills also work without installing the plugin: a repo clone carries them under
+`.claude/skills/` and `.agents/skills/`. For automation
+(scripts, Dockerfiles), use the CLI form:
+
+```bash
+claude plugin marketplace add https://github.com/DocumentDrivenDX/tablespec
+claude plugin install tablespec@tablespec
+```
+
+In Codex, the same plugin installs from the same marketplace:
+
+```bash
+codex plugin marketplace add DocumentDrivenDX/tablespec
+codex plugin add tablespec@tablespec
+```
+
+The plugin version is pinned in `.claude-plugin/plugin.json`; each release bumps it so installed copies
+refresh.
+
 ## Quick Start
 
 ### Loading and Saving UMF Files

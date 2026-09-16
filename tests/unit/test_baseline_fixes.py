@@ -425,3 +425,60 @@ class TestProfilingExpectations:
         gen = BaselineExpectationGenerator()
         exps = gen.generate_baseline_expectations(umf_data)
         assert any(e["type"] == "expect_column_values_to_be_unique" for e in exps)
+
+
+class TestInternalColumnsExcludedFromBaseline:
+    """Internal helper columns never appear in baseline expectations."""
+
+    def test_internal_columns_skipped_everywhere(self):
+        umf_data = {
+            "table_name": "t",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {
+                    "name": "helper",
+                    "data_type": "VARCHAR",
+                    "internal": True,
+                    "nullable": False,
+                    "max_length": 10,
+                },
+            ],
+        }
+        gen = BaselineExpectationGenerator()
+        expectations = gen.generate_baseline_expectations(umf_data)
+
+        for exp in expectations:
+            kwargs = exp.get("kwargs", {})
+            assert kwargs.get("column") != "helper"
+            assert "helper" not in kwargs.get("column_list", [])
+            if exp["type"] == "expect_table_column_count_to_equal":
+                assert kwargs["value"] == 1
+
+
+class TestBooleanNullableBaseline:
+    """Plain boolean nullable generates the right not-null expectations."""
+
+    def _not_null_columns(self, expectations):
+        return {
+            exp["kwargs"]["column"]
+            for exp in expectations
+            if exp["type"] == "expect_column_values_to_not_be_null"
+        }
+
+    def test_nullable_false_bool_generates_not_null(self):
+        umf_data = {
+            "table_name": "t",
+            "columns": [{"name": "id", "data_type": "INTEGER", "nullable": False}],
+        }
+        gen = BaselineExpectationGenerator()
+        expectations = gen.generate_baseline_expectations(umf_data)
+        assert "id" in self._not_null_columns(expectations)
+
+    def test_nullable_true_bool_generates_no_not_null(self):
+        umf_data = {
+            "table_name": "t",
+            "columns": [{"name": "id", "data_type": "INTEGER", "nullable": True}],
+        }
+        gen = BaselineExpectationGenerator()
+        expectations = gen.generate_baseline_expectations(umf_data)
+        assert "id" not in self._not_null_columns(expectations)

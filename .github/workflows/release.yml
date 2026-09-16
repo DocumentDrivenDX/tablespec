@@ -15,8 +15,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  version-guard:
+    name: Plugin manifest version guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Claude Code refreshes an installed plugin only when plugin.json's
+      # `version` changes. A tag pushed without bumping the manifests ships
+      # nothing to plugin users and fails silently — so fail the release here.
+      - name: Assert plugin manifests match the release tag
+        run: |
+          EXPECTED="${GITHUB_REF_NAME#v}"
+          echo "release tag: $GITHUB_REF_NAME -> expected plugin version: $EXPECTED"
+          python3 - "$EXPECTED" <<'PY'
+          import json
+          import sys
+
+          expected = sys.argv[1]
+          checks = {
+              ".claude-plugin/plugin.json": lambda m: m["version"],
+              ".codex-plugin/plugin.json": lambda m: m["version"],
+              ".claude-plugin/marketplace.json": lambda m: next(
+                  p["version"] for p in m["plugins"] if p["name"] == "tablespec"
+              ),
+          }
+          bad = []
+          for path, get in checks.items():
+              try:
+                  found = get(json.load(open(path)))
+              except (OSError, KeyError, StopIteration, json.JSONDecodeError) as exc:
+                  bad.append(f"{path}: could not read version ({exc})")
+                  continue
+              if found != expected:
+                  bad.append(f"{path}: {found!r} != tag {expected!r}")
+          if bad:
+              print("\n".join(bad), file=sys.stderr)
+              sys.exit(1)
+          print(f"all plugin manifests declare {expected}")
+          PY
+
   build:
     name: Build Distribution
+    needs: version-guard
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -86,7 +128,7 @@ jobs:
 
           ### What's Changed
 
-          See the [commit history](https://github.com/easel/tablespec/commits/$TAG) for details.
+          See the [commit history](https://github.com/DocumentDrivenDX/tablespec/commits/$TAG) for details.
 
           ### Artifacts
 
@@ -209,8 +251,17 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           VERSION=${TAG#v}
 
-          # Try installing from GitHub Pages index
-          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ tablespec==$VERSION || echo "GitHub Pages index not yet available"
+          # Install from the GitHub Pages index; the deployment checklist
+          # allows one retry after an extra propagation wait, then fails.
+          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ "tablespec==$VERSION" || {
+            echo "First install attempt failed; waiting 60s for Pages propagation..."
+            sleep 60
+            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ "tablespec==$VERSION"
+          }
+
+          # A clean install must import: catches runtime deps that only exist
+          # in the dev group (CI otherwise never installs without dev deps).
+          python -c "import tablespec, tablespec.cli; print('import OK', tablespec.__name__)"
 
       - name: Summary
         run: |
@@ -219,5 +270,5 @@ jobs:
           ✅ Release $TAG complete!
 
           📄 GitHub Pages: https://documentdrivendx.github.io/tablespec/
-          🏷️  GitHub Release: https://github.com/easel/tablespec/releases/tag/$TAG
+          🏷️  GitHub Release: https://github.com/DocumentDrivenDX/tablespec/releases/tag/$TAG
           EOF

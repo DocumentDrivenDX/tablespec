@@ -226,9 +226,11 @@ class BaselineExpectationGenerator:
         if include_structural:
             expectations.extend(self._generate_structural_expectations(umf_data))
 
-        # Column-level baseline expectations
+        # Column-level baseline expectations (skip internal helper columns - not in output)
         context_column = umf_data.get("context_column")
         for column in umf_data.get("columns", []):
+            if column.get("internal", False):
+                continue
             expectations.extend(
                 self.generate_baseline_column_expectations(
                     column, context_column=context_column
@@ -262,7 +264,11 @@ class BaselineExpectationGenerator:
 
         """
         expectations = []
-        columns = umf_data.get("columns", [])
+        # Internal helper columns are excluded from the output table, so
+        # structural checks must count only the externally visible columns.
+        columns = [
+            col for col in umf_data.get("columns", []) if not col.get("internal", False)
+        ]
         column_names = [col["name"] for col in columns]
 
         # Expect specific column count
@@ -312,7 +318,9 @@ class BaselineExpectationGenerator:
 
         """
         expectations = []
-        columns = umf_data.get("columns", [])
+        columns = [
+            col for col in umf_data.get("columns", []) if not col.get("internal", False)
+        ]
 
         # Build lookup of date/datetime columns
         date_columns: dict[str, dict[str, Any]] = {}
@@ -391,7 +399,20 @@ class BaselineExpectationGenerator:
         # Note: expect_column_to_exist and expect_column_values_to_be_of_type
         # are no longer generated here as they are in REDUNDANT_VALIDATION_TYPES
         nullable = column.get("nullable", {})
-        if nullable:
+        if nullable is False:
+            # Simple boolean form: required in all contexts
+            expectations.append(
+                {
+                    "type": "expect_column_values_to_not_be_null",
+                    "kwargs": {"column": column_name},
+                    "meta": {
+                        "description": f"Column {column_name} is required (nullable=false)",
+                        "severity": "critical",
+                        "generated_from": "baseline",
+                    },
+                }
+            )
+        elif nullable:
             if isinstance(nullable, dict):
                 # Dict format: {context: is_nullable} e.g. {"MD": False, "MP": True}
                 required_contexts = [
