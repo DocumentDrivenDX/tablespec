@@ -42,7 +42,7 @@ menu:
         icon: github
 
 params:
-  description: A UMF compiler that defines the source-semantic ingested bronze contract for data platform teams.
+  description: A UMF compiler that turns table specs into the SQL, dbt, Lakeflow, schema, and validation artifacts a data platform runs, from raw to gold.
 
   # Blueprint CSS is light-only (paper grid + ink). Do not follow system dark mode —
   # Hextra's dark text classes make card titles near-white on the forced light paper.

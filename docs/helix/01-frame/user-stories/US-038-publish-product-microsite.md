@@ -14,7 +14,7 @@ ddx:
 ## Story
 
 **As a** data platform engineer evaluating tablespec
-**I want** a public microsite that explains the product, source-semantic bronze boundary, installation path, and reference material
+**I want** a public microsite that explains the product, the layer model (raw, ingested bronze, silver, gold), installation path, and reference material
 **So that** I can decide whether to adopt tablespec and try the happy path without reading the repository internals first
 
 ## Context
@@ -37,7 +37,7 @@ API reference generation; this story owns the public product shell and navigatio
 - [ ] **US-038-AC2** - Given the Pages artifact, when it is inspected before deployment, then `/index.html`, `/simple/index.html`, and `/simple/tablespec/index.html` are all present.
 - [ ] **US-038-AC3** - Given the generated site, when Playwright checks desktop and mobile viewports, then the homepage, top-level sections, representative deep pages, and navigation state render without clipped or overlapping text.
 - [ ] **US-038-AC4** - Given the Getting Started page, when a user follows installation instructions, then the documented command still uses the project package index and remains compatible with release verification.
-- [ ] **US-038-AC5** - Given the Concepts section, when a user reads the raw/ingested/silver boundary, then it states that ingested preserves source semantics while silver begins with cross-source conformance, survivorship, entity resolution, enrichment, or dimensional modeling.
+- [ ] **US-038-AC5** - Given the Concepts section, when a user reads the layer model, then it states that ingested preserves source semantics, that silver covers cross-source conformance, survivorship, entity resolution, enrichment, or dimensional modeling, and that silver decisions are declared in their own UMF specs and compiled by tablespec rather than left outside the product.
 
 ## Edge Cases
 

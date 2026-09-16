@@ -25,8 +25,9 @@ Current boundary notes:
   typed columns, validation criteria, relationships, aliases, keys, raw-to-ingest
   SQL, validation suites, and manifest entries.
 - Ingested is still source-preserving bronze, not silver. Cross-source
-  conformance, survivorship, entity resolution, enrichment, and dimensional
-  modeling remain downstream responsibilities.
+  conformance, survivorship, and derived gold tables are declared in their own
+  UMF specs and compiled as gold plans by the same step, never folded into
+  ingestion.
 - Databricks-facing compile UX accepts `dialect="databricks"` for the
   Spark-family SQL emitted by tablespec; internal emitters may normalize to
   `spark` when the rendered SQL is identical.
@@ -227,8 +228,8 @@ print(artifacts.manifest_path)
 ```
 
 The ingested outputs are the source-semantic bronze completion point. They make
-source meaning explicit without claiming to solve silver-layer conformance or
-entity-resolution concerns.
+source meaning explicit. Silver-layer conformance and survivorship are declared
+in separate specs and compiled as gold plans by the same orchestrator.
 
 If you only need one backend family, call the emitters directly:
 

@@ -12,7 +12,7 @@
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="{{ .Permalink }}">
 <meta property="og:site_name" content="tablespec">
-<meta property="og:title" content="{{ if .IsHome }}tablespec - definition of done for ingested bronze{{ else }}{{ .Title }} - tablespec{{ end }}">
+<meta property="og:title" content="{{ if .IsHome }}tablespec - one UMF, every runtime artifact{{ else }}{{ .Title }} - tablespec{{ end }}">
 <meta property="og:description" content="{{ $description }}">
 <meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}">
 <meta property="og:url" content="{{ .Permalink }}">
@@ -25,7 +25,7 @@
   "name": "tablespec",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Python, Spark, Databricks",
-  "description": "tablespec defines the source-semantic ingested bronze contract and compiles one UMF into SQL, dbt, Lakeflow, schema, and validation artifacts.",
+  "description": "tablespec compiles one UMF into SQL, dbt, Lakeflow, schema, and validation artifacts for raw, ingested, silver, and gold tables, with a source-semantic ingested bronze contract as the first milestone.",
   "url": "{{ .Permalink }}",
   "codeRepository": "https://github.com/DocumentDrivenDX/tablespec",
   "programmingLanguage": "Python",
@@ -46,15 +46,15 @@
       "name": "What does tablespec define?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "tablespec defines the source-semantic ingested bronze contract: types, validation criteria, relationships, aliases, keys, and compiled runtime artifacts from one UMF."
+        "text": "tablespec defines table contracts in UMF: types, validation criteria, relationships, aliases, keys, and derivations. The ingested bronze contract is source-semantic; silver and gold specs declare business decisions. All compile to runtime artifacts."
       }
     },
     {
       "@type": "Question",
-      "name": "Where does silver begin?",
+      "name": "Does tablespec stop at bronze?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Silver begins after the source contract is complete, with cross-source conformance, survivorship, entity resolution, enrichment, and dimensional modeling."
+        "text": "No. Ingested bronze is the layer tablespec covers most completely. Cross-source conformance, survivorship, and derived gold tables are declared in the same UMF format and compiled by the same step, not hidden inside ingestion."
       }
     }
   ]

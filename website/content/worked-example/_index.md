@@ -15,8 +15,9 @@ Schema, and Great Expectations artifacts a data team can review and run.
 A claims feed arrives with source column names and business-specific
 nullability. In this example, ingested bronze means the source table has a
 reviewed contract and generated runtime artifacts. The goal is not to rename,
-enrich, dedupe, or resolve entities. Those are silver-layer decisions. The
-goal is to finish ingested bronze:
+enrich, dedupe, or resolve entities. Those are silver-layer decisions, declared
+in their own UMF specs and compiled the same way. The goal here is to finish
+ingested bronze:
 
 - source fields are captured with their source names
 - source types and nullability are declared
@@ -121,12 +122,13 @@ The review surface is now a concrete set of generated files:
 | `gx/medical_claims/suite.json` | Baseline validation generated from the same contract |
 | `review/guidebook/index.html` | Static browsable review surface for tables, columns, validations, and lineage |
 
-## 5. Hand off to silver
+## 5. Continue to silver
 
 At this point ingested bronze is done. Silver can now make governed business
 decisions: cross-source conformance, survivorship, entity resolution,
-enrichment, and dimensional modeling. Those choices happen after the
-source-table contract is complete, not hidden inside ingestion.
+enrichment, and dimensional modeling. Those choices are declared in a silver
+table's own UMF spec and compiled into gold SQL plans and dbt models by the
+same compile step, not hidden inside ingestion.
 
 ## Review checklist
 
