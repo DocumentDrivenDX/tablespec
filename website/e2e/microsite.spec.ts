@@ -8,12 +8,12 @@ import { test, expect } from '@playwright/test'
 const article = (page: any) => page.locator('article')
 
 test.describe('Homepage', () => {
-  test('loads with hero stating the compile-once promise and source-semantic bronze', async ({ page }) => {
+  test('loads with hero stating the one-UMF promise and source-semantic bronze', async ({ page }) => {
     await page.goto('/')
 
     await test.step('verify hero headline', async () => {
       await expect(
-        page.getByRole('heading', { name: /Definition of done for ingested bronze/i }).first(),
+        page.getByRole('heading', { name: /One UMF\. Every runtime artifact\./i }).first(),
       ).toBeVisible()
     })
 
@@ -32,7 +32,7 @@ test.describe('Homepage', () => {
 
     await test.step('verify blueprint artifact evidence is visible', async () => {
       await expect(page.locator('.ts-artifact-strip').getByText('claims.ingest.sql')).toBeVisible()
-      await expect(page.locator('.ts-node-ingested').getByText('typed, validated, keyed')).toBeVisible()
+      await expect(page.locator('.ts-node-contract').getByText('typed, validated, keyed')).toBeVisible()
     })
 
     // Visual baselines drift with theme/CSS and font metrics across runners.
@@ -174,6 +174,12 @@ test.describe('Core Concepts', () => {
       expect(body).toMatch(/entity resolution/i)
       expect(body).toMatch(/enrichment/i)
       expect(body).toMatch(/dimensional modeling/i)
+    })
+
+    await test.step('states that silver decisions are declared in UMF and compiled by tablespec', async () => {
+      const body = await page.locator('body').textContent()
+      expect(body).toMatch(/compiled by the same step/i)
+      expect(body).not.toMatch(/begins after the source-table contract/i)
     })
   })
 })

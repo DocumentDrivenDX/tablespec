@@ -28,7 +28,7 @@ Write for intelligent technical readers who are new to tablespec. The primary
 audience is data engineers, analytics engineers, platform engineers, and
 technical data stewards who understand tables, schemas, validation, and data
 pipelines, but may not know UMF, tablespec's artifact catalog, Databricks
-Lakeflow, Great Expectations, or this project's bronze/silver boundary.
+Lakeflow, Great Expectations, or this project's layer vocabulary.
 
 Do not assume the reader has followed previous pages. A page or module should
 stand on its own by naming:
@@ -47,9 +47,9 @@ artifacts`.
 
 ## Positioning Sentence
 
-tablespec defines the source-semantic ingested bronze contract and compiles one
-UMF into the SQL, dbt, Lakeflow, schema, and validation artifacts a data
-platform actually runs.
+tablespec compiles one UMF into the SQL, dbt, Lakeflow, schema, and validation
+artifacts a data platform actually runs, from raw ingestion through gold tables,
+with a source-semantic ingested bronze contract as the first definition of done.
 
 Use this as the default spine for homepage, docs, and demo copy. Shorten it
 when needed, but do not replace it with generic data-platform language.
@@ -60,8 +60,10 @@ when needed, but do not replace it with generic data-platform language.
    or refuses. Do not lead with broad promises.
 2. **Artifacts over abstractions.** Name the files and surfaces: UMF,
    `ingest.sql`, `schema.json`, GX suite, dbt project, Lakeflow pipeline.
-3. **Boundaries over buzzwords.** Explain where raw ends, where ingested bronze
-   is done, and where silver begins.
+3. **Layers over buzzwords.** Say which layer a contract governs: raw records,
+   source-semantic ingested tables, or silver and gold tables that declare
+   business decisions. tablespec compiles all of them; never write copy that
+   scopes the product to one layer.
 4. **Source semantics, not source accidents.** Preserve source meaning; reject
    avoidable quirks like flat-file string typing, ambiguous casts, and dump
    formatting as downstream contracts.
@@ -98,6 +100,7 @@ Use these phrases consistently:
 - `reviewable diffs`
 - `one UMF`
 - `raw to ingested`
+- `raw to ingested to gold`
 - `typed, validated, keyed, relationship-aware`
 - `source semantics`
 - `source accidents`
@@ -150,7 +153,8 @@ the public microsite or in "Delivery" banners for shipped features.
 | Instead of | Say |
 |---|---|
 | Unlock trusted data pipelines. | Compile one UMF into the artifacts your pipeline runs. |
-| Seamlessly bridge raw and silver. | Define where ingested bronze is done and where silver work begins. |
+| Seamlessly bridge raw and silver. | Declare the ingested contract, then declare silver and gold derivations in the same UMF. |
+| Silver begins after the source contract is complete. | Silver decisions are declared in their own specs and compiled by the same step. |
 | Modernize schema management. | Replace per-tool schema drift with committed artifacts generated from one UMF. |
 | Data quality made easy. | Generate validation suites from the same contract that defines the table. |
 | Source preserving bronze. | Source-semantic ingested bronze: typed, validated, keyed, and still faithful to the source. |
@@ -169,7 +173,7 @@ Good headlines use a product noun plus an engineering consequence.
 - `Source semantics without source accidents`
 - `Compile the contract. Review the diff.`
 - `Raw stays auditable. Ingested becomes usable.`
-- `Silver starts after the source contract is complete.`
+- `Silver decisions are declared, not hidden in ingestion.`
 
 Avoid headlines that could belong to any data product.
 
@@ -177,13 +181,15 @@ Avoid headlines that could belong to any data product.
 
 ### Homepage
 
-Lead with the bronze contract, not a general productivity promise. The homepage
-must show the pipeline boundary and artifact outputs in the first two sections.
+Lead with the compiled contract, not a general productivity promise. The homepage
+must show the layers tablespec compiles and the artifact outputs in the first
+two sections.
 
 Required nouns near the top:
 
 - `UMF`
 - `ingested bronze`
+- `gold`
 - `runtime artifacts`
 - `SQL`
 - `dbt`
@@ -237,7 +243,7 @@ the generated artifacts, the validation result, and the environment.
 Buttons:
 
 - `Start with a UMF`
-- `Read the bronze contract`
+- `Read raw, ingested, and silver`
 - `View compile artifacts`
 - `Run the demo`
 - `Open CLI reference`
@@ -287,7 +293,7 @@ This file is the single voice authority. Build on it in place:
 
 - [ ] Does the copy name the contract or artifact?
 - [ ] Does it avoid generic platform claims?
-- [ ] Does it preserve the raw / ingested bronze / silver boundary?
+- [ ] Does it name the layer a contract governs without scoping tablespec to one layer?
 - [ ] Does it say what changes in review?
 - [ ] Does it use one of the approved product terms when relevant?
 - [ ] Does it avoid hype words and abstract value claims?

@@ -7,8 +7,12 @@ This page is for readers who know data pipelines but do not yet know
 tablespec's layer vocabulary. It defines three terms used throughout the
 project: raw source records, ingested bronze tables, and silver models.
 
-tablespec governs the boundary between raw source data and ingested bronze.
-Silver begins after the source-table contract is complete.
+tablespec compiles UMF specs for every layer. The layer names say what each
+contract may decide, not where tablespec stops. Ingested bronze is the layer
+tablespec covers most completely, because a source table's contract can be
+finished without business judgment. Silver and gold work is declared in the
+same UMF format, through derivations, survivorship rules, and cross-table
+relationships, and compiled by the same step.
 
 ## The three layers
 
@@ -24,7 +28,7 @@ build business logic on.
 
 ### Ingested bronze
 
-Ingested bronze is where tablespec operates. An ingested bronze table is still
+Ingested bronze is the first contract tablespec compiles. An ingested bronze table is still
 source-faithful, but it is no longer an unchecked transport record. The
 ingested bronze layer:
 
@@ -61,7 +65,11 @@ transformations that require judgment beyond what the source system records:
 
 Silver is intentionally separate from ingested bronze because these
 transformations make choices that must be governed explicitly. A silver table
-is not source-faithful. It represents a business decision.
+is not source-faithful. It represents a business decision. In tablespec that
+decision is written into the silver table's own UMF spec, as declared
+derivations, survivorship rules, and relationships, and compiled into gold SQL
+plans, dbt models, and Lakeflow datasets alongside the ingested tables. The
+decision is reviewable because it is declared, not because it is deferred.
 
 ## Why the boundary matters
 
@@ -73,8 +81,9 @@ ingestion.
 
 tablespec enforces the separation. The ingested bronze table mirrors the
 source meaning: no renames, no type promotions, no nullability assumptions
-beyond what the source feed exhibits. Silver transformations are separate jobs
-with their own contracts.
+beyond what the source feed exhibits. Silver transformations are separate UMF
+specs with their own contracts, compiled by the same tool into their own
+artifacts.
 
 The raw/ingested split is also how validation executes. String-shape checks
 (castability, lengths, date formats) run against the raw landing table;
@@ -119,6 +128,8 @@ column:
     MP: true    # the Medicare Part D feed sometimes omits this
 ```
 
-A silver table that standardizes across sources would have its own UMF spec
-with different column names, additional derived columns, and explicit
-provenance columns tracking which source each row came from.
+A silver table that standardizes across sources has its own UMF spec with
+different column names, derived columns declared with `derivation`, survivorship
+rules for conflicting sources, and provenance columns tracking which source each
+row came from. tablespec compiles that spec the same way it compiles the
+ingested one.
