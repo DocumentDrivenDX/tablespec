@@ -74,16 +74,15 @@ F035-DECL-03. The feature SHALL load an optional glossary (bare `term: {definiti
 
 #### References
 
-F035-REF-01. The feature SHALL add `references_domain` and `integration` to `ForeignKey`, populate the legacy `references_pipeline` and force `cross_pipeline` when `references_domain` is set, leave a key that uses only the legacy spelling exactly as authored (so existing specs load, save, and compile unchanged), read either spelling through `target_domain`, and reject disagreement. In domain mode, tables directly under the root outside any domain SHALL still be validated.
-F035-REF-02. The feature SHALL forbid unknown keys on `ForeignKey` and SHALL add an optional `term` to tables and columns that round-trips through split format without changing `canonical_name`.
+F035-REF-01. The feature SHALL add `references_domain` and `integration` to `ForeignKey`, populate the legacy `references_pipeline` and force `cross_pipeline` when `references_domain` is set, leave a key that uses only the legacy spelling exactly as authored (so existing specs load, save, and compile unchanged), read either spelling through `target_domain`, and reject disagreement.F035-REF-02. The feature SHALL forbid unknown keys on `ForeignKey` and SHALL add an optional `term` to tables and columns that round-trips through split format without changing `canonical_name`.
 
 #### Validation
 
-F035-VAL-01. The feature SHALL discover domains as the root and its direct child directories that contain `domain.yaml`, recording a table that fails to load as a finding rather than aborting.
+F035-VAL-01. The feature SHALL treat the directory that holds `domain.yaml` directories as a domain root whose domains are siblings, ignore a `domain.yaml` nested inside a domain, report a `domain.yaml` that fails to load as `DOM-LOAD` rather than skipping it silently, and record a table that fails to load as a finding rather than aborting.
 F035-VAL-02. The feature SHALL report `DOM-EXPORT` when an export is not a table in the domain or lacks a primary key.
 F035-VAL-03. The feature SHALL report `DOM-SUPPLIER` when a supplier is missing, is the domain itself, or a consumed table is not in the supplier's exports.
 F035-VAL-04. The feature SHALL report `DOM-XREF` when a cross-domain foreign key targets a missing domain, a non-exported table, a non-primary-key column, or a supplier not declared by the consumer.
-F035-VAL-05. The feature SHALL report `DOM-TERM` when a declared term is absent from the domain glossary, and SHALL report `DOM-DRIFT` as a warning (not an error) when two domains define the same term differently; `tablespec validate <root>` SHALL enter domain mode when the root is or directly contains domain directories, exiting non-zero only on errors.
+F035-VAL-05. The feature SHALL report `DOM-TERM` when a declared term is absent from the domain glossary, and SHALL report `DOM-DRIFT` as a warning (not an error) when two domains define the same term differently; `tablespec validate <path>` SHALL have one behavior: validate every table beneath the path at any depth, and apply the domain rules whenever a `domain.yaml` applies to the path (the path is a domain, is inside one, or has domains beneath it), always loading the sibling domains from the domain's parent directory and narrowing findings to the domains, or the single table, the path covers; it SHALL exit non-zero only on errors.
 
 #### Map
 
@@ -115,7 +114,10 @@ F035-GLOSS-02. The documentation prompt SHALL accept an optional keyword-only gl
 
 ## Edge Cases and Error Handling
 
-- Nested domain directories are ignored below the first level.
+- A `domain.yaml` nested inside another domain directory is ignored.
+- Validating one domain directory, or one table inside it, resolves sibling domains from the parent directory; findings narrow to that domain or table.
+- A path above several domain roots reports each root's domains prefixed with the root's relative path.
+- `--baseline` with no `domain.yaml` on either side prints a note instead of doing nothing silently.
 - A qualified `references_table` (`eligibility.member`) counts as cross-domain by prefix without setting `references_domain`.
 - A domain without a glossary skips `DOM-TERM`.
 - `references_domain` and `references_pipeline` with different values is a model-level `ValidationError`.
@@ -136,7 +138,7 @@ F035-GLOSS-02. The documentation prompt SHALL accept an optional keyword-only gl
 - **Other features**: FEAT-001 (UMF models), FEAT-033 (guidebook), FEAT-021 (validator).
 - **External services**: None.
 - **PRD requirements**: FR-24.1–FR-24.5.
-- **Source Evidence**: `src/tablespec/models/domain.py`, `src/tablespec/domains.py`, `src/tablespec/domain_validator.py`, `src/tablespec/guidebook/domain_map.py`, `src/tablespec/validator.py` (`validate_domain_root`), `src/tablespec/cli.py` (`validate`).
+- **Source Evidence**: `src/tablespec/models/domain.py`, `src/tablespec/domains.py`, `src/tablespec/domain_validator.py`, `src/tablespec/guidebook/domain_map.py`, `src/tablespec/validator.py` (`validate_domain_scopes`, recursive `validate_pipeline`), `src/tablespec/cli.py` (`validate`).
 
 ## Out of Scope
 

@@ -39,9 +39,8 @@ try:
     from tablespec.validator import (  # type: ignore[import-not-found]
         ValidationContext,
         convert_table,
-        is_domain_root,
         show_table_info,
-        validate_domain_root,
+        validate_domain_scopes,
         validate_pipeline,
         validate_table,
     )
@@ -55,6 +54,32 @@ app = typer.Typer(
     help="Work with UMF (Universal Metadata Format) table schemas",
 )
 console = Console(no_color=bool(os.environ.get("NO_COLOR")))
+
+
+def _report_domain_run(run) -> bool:  # noqa: ANN001 - DomainRun; validator import is optional
+    """Print a domain run's changes, errors, warnings, and notes.
+
+    Returns True when the run has errors. Prints nothing when no domain.yaml
+    applied to the validated path.
+    """
+    report = run.report
+    if report.published_language:
+        console.print("\n[cyan]Published-language changes:[/cyan]")
+        for change in report.published_language:
+            console.print(f"  {change}")
+    if report.errors:
+        console.print("\n[red]Domain errors:[/red]")
+        for finding in report.errors:
+            console.print(f"  {finding}")
+    if report.warnings:
+        console.print("\n[yellow]Domain warnings:[/yellow]")
+        for finding in report.warnings:
+            console.print(f"  {finding}")
+    for note in run.notes:
+        console.print(f"[yellow]Note:[/yellow] {note}")
+    return bool(report.errors)
+
+
 _EMIT_DIALECT_HELP = (
     "Cast dialect for emitted models (duckdb, spark, databricks); "
     "databricks is the Databricks-facing alias for Spark-family cast SQL"
@@ -163,14 +188,16 @@ if _HAS_VALIDATOR:
         baseline: Path | None = typer.Option(
             None,
             "--baseline",
-            help="Earlier revision of the same domain root; compares each "
-            "domain's published language (exports) and requires a MAJOR "
-            "version bump for breaking changes. Domain mode only.",
+            help="The same path at an earlier revision. Compares the published "
+            "language (exports) of every domain the path covers and requires "
+            "a MAJOR version bump for a breaking change.",
             exists=True,
-            file_okay=False,
         ),
     ) -> None:
         """Validate UMF schema for correctness.
+
+        PATH may be one table, or any directory: every table beneath it is
+        found (at any depth) and validated.
 
         Performs comprehensive validation including:
         - JSON schema validation against UMF specification
@@ -180,14 +207,17 @@ if _HAS_VALIDATOR:
         - Great Expectations validation rules (if present)
         - Expectation type compatibility with GX library
         - Relationship integrity (automatic when multiple tables present)
-        - Domain rules when the directory holds domain.yaml directories
-          (exports, suppliers, cross-domain keys, glossary terms; with
-          --baseline, published-language compatibility and versioning)
+        - Domain rules (automatic when a domain.yaml applies to PATH): exports,
+          suppliers, cross-domain keys, glossary terms, version pins; with
+          --baseline, published-language compatibility. Sibling domains are
+          found next to the domain, so validating one domain or one table
+          still checks its references into the others.
 
         Examples:
           tablespec validate tables/outreach_list/
           tablespec validate outreach_list.json -v
           tablespec validate tables/
+          tablespec validate tables/claims/
           tablespec validate tables/ --baseline /tmp/tables-at-last-release/
 
         """
@@ -232,61 +262,38 @@ if _HAS_VALIDATOR:
                     for error in errors:
                         console.print(f"  {error}")
                     raise typer.Exit(1)
-            elif path.is_dir() and is_domain_root(path):
-                # Domain validation: per-table checks inside each domain.yaml
-                # directory, then cross-domain rules (exports, suppliers,
-                # cross-domain keys, glossary terms).
-                table_results, report = validate_domain_root(
-                    path, _validation_context, verbose=verbose, baseline=baseline
+                domain_failed = _report_domain_run(
+                    validate_domain_scopes(path, baseline=baseline)
                 )
-                failed = False
-                if report.published_language:
-                    console.print("\n[cyan]Published-language changes:[/cyan]")
-                    for change in report.published_language:
-                        console.print(f"  {change}")
-                for domain_name, results in table_results.items():
-                    failed_tables = {n: e for n, e in results.items() if e}
-                    if failed_tables:
-                        failed = True
-                        console.print(f"\n[red]{domain_name}:[/red] table errors")
-                        for table_name, errs in failed_tables.items():
-                            console.print(f"  [red]{table_name}:[/red]")
-                            for error in errs:
-                                console.print(f"    {error}")
-                if report.errors:
-                    failed = True
-                    console.print("\n[red]Domain errors:[/red]")
-                    for finding in report.errors:
-                        console.print(f"  {finding}")
-                if report.warnings:
-                    console.print("\n[yellow]Domain warnings:[/yellow]")
-                    for finding in report.warnings:
-                        console.print(f"  {finding}")
-                if failed:
+                if domain_failed:
                     console.print("[red]FAIL[/red] Validation failed")
                     raise typer.Exit(1)
-                n_tables = sum(len(r) for r in table_results.values())
-                n_domains = sum(1 for name in table_results if name != "(no domain)")
-                console.print(
-                    f"[green]Valid[/green] {n_domains} domains, "
-                    f"{n_tables} tables passed validation"
-                )
             elif path.is_dir():
-                # Pipeline validation
+                # Directory validation: every table beneath the path, at any
+                # depth, then the domain rules for whatever domain.yaml files
+                # apply to it.
                 results = validate_pipeline(path, _validation_context, verbose=verbose)
+                domain_run = validate_domain_scopes(path, baseline=baseline)
 
                 failed_tables = {name: errs for name, errs in results.items() if errs}
+                domain_failed = _report_domain_run(domain_run)
 
-                if failed_tables:
+                if failed_tables or domain_failed:
                     console.print("[red]FAIL[/red] Validation failed")
                     for table_name, errs in failed_tables.items():
                         console.print(f"\n[red]{table_name}:[/red]")
                         for error in errs:
                             console.print(f"  {error}")
                     raise typer.Exit(1)
-                console.print(
-                    f"[green]Valid[/green] All {len(results)} tables passed validation"
-                )
+                if domain_run.domains:
+                    console.print(
+                        f"[green]Valid[/green] {len(domain_run.domains)} domains, "
+                        f"{len(results)} tables passed validation"
+                    )
+                else:
+                    console.print(
+                        f"[green]Valid[/green] All {len(results)} tables passed validation"
+                    )
             else:
                 # Single file validation
                 success, errors = validate_table(
@@ -304,6 +311,12 @@ if _HAS_VALIDATOR:
                     console.print("[red]FAIL[/red] Validation failed")
                     for error in errors:
                         console.print(f"  {error}")
+                    raise typer.Exit(1)
+                domain_failed = _report_domain_run(
+                    validate_domain_scopes(path, baseline=baseline)
+                )
+                if domain_failed:
+                    console.print("[red]FAIL[/red] Validation failed")
                     raise typer.Exit(1)
 
         except Exception as e:

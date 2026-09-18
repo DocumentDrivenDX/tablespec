@@ -1,4 +1,4 @@
-"""`tablespec validate <root>` switches to domain mode when domain.yaml dirs exist."""
+"""`tablespec validate <root>` applies the domain rules when domain.yaml directories are beneath it."""
 
 # @covers US-051-AC4
 
@@ -67,14 +67,14 @@ def _corpus(tmp_path: Path, *, export_member: bool = True) -> Path:
     return tmp_path
 
 
-def test_validate_domain_root_passes(tmp_path: Path) -> None:
+def test_validate_corpus_root_passes(tmp_path: Path) -> None:
     root = _corpus(tmp_path)
     result = runner.invoke(app, ["validate", str(root)])
     assert result.exit_code == 0, result.output
     assert "2 domains" in result.output
 
 
-def test_validate_domain_root_reports_cross_domain_error(tmp_path: Path) -> None:
+def test_validate_corpus_root_reports_cross_domain_error(tmp_path: Path) -> None:
     root = _corpus(tmp_path, export_member=False)
     result = runner.invoke(app, ["validate", str(root)])
     assert result.exit_code == 1

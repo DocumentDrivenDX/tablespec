@@ -29,8 +29,9 @@ tables/
         └── columns/
 ```
 
-Domains are the root and its direct children only. A `domain.yaml` deeper
-down is ignored.
+The directory that holds domain directories is a domain root, and the domains
+in it are each other's siblings. A `domain.yaml` nested inside another domain
+directory is ignored, so the `domain.table` qualifier stays one segment.
 
 ## domain.yaml
 
@@ -148,8 +149,24 @@ rewritten, so existing specs save unchanged. A qualified
 tablespec validate tables/
 ```
 
-When the root is, or directly contains, `domain.yaml` directories, `validate`
-checks each domain's tables as usual and then the cross-domain rules:
+`validate` has one behavior. It finds every table under the path, at any
+depth, and validates each. When a `domain.yaml` applies to the path, it also
+checks the rules below. "Applies" means the path is a domain, is inside one,
+or has domains beneath it.
+
+A domain's suppliers live next to it, not beneath it, so `validate` always
+loads the sibling domains from the directory that holds them. Validating one
+domain, or one table, still checks its references into the others:
+
+```bash
+tablespec validate tables/                        # every domain
+tablespec validate tables/claims/                 # one domain, siblings resolved
+tablespec validate tables/claims/medical_claims/  # one table, its cross-domain keys
+```
+
+Findings are limited to what the path covers. A problem in `eligibility` is
+reported when you validate `eligibility` or the root, not when you validate
+`claims`; `claims` sees only the consequence for its own keys.
 
 | Rule | Fires when |
 |------|------------|

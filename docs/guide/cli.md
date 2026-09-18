@@ -5,12 +5,14 @@ The `tablespec` command provides schema management, conversion, and validation f
 ## Commands
 
 ```bash
-# Validate a UMF schema (single table or entire pipeline directory)
+# Validate one table
 tablespec validate tables/outreach_list/
 
-# Validate a root of domains (domain.yaml per directory): per-table checks
-# plus exports, suppliers, cross-domain keys, and glossary terms
+# Validate every table under a directory, at any depth. When domain.yaml files
+# apply, the rules between domains run too (exports, suppliers, cross-domain
+# keys, version pins, glossary terms). Works on one domain or one table as well.
 tablespec validate tables/
+tablespec validate tables/claims/
 
 # Display schema summary
 tablespec info tables/outreach_list/

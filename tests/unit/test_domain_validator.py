@@ -21,7 +21,6 @@ from tablespec.domain_validator import (
 from tablespec.domains import discover_domains, find_domain_dirs, load_domain_dir
 from tablespec.models.umf import ForeignKey, Relationships
 from tablespec.umf_loader import UMFLoader
-from tablespec.validator import ValidationContext, is_domain_root, validate_domain_root
 from tests.builders import UMFBuilder
 
 ELIGIBILITY_DOMAIN = """\
@@ -299,40 +298,6 @@ def test_term_drift_is_a_warning_not_an_error(tmp_path: Path) -> None:
 def test_identical_definitions_do_not_drift(tmp_path: Path) -> None:
     _write_corpus(tmp_path)
     assert detect_term_drift(discover_domains(tmp_path)) == []
-
-
-# ---------------------------------------------------------------- validator entry point
-
-
-def test_is_domain_root_and_validate_domain_root(tmp_path: Path) -> None:
-    _write_corpus(tmp_path)
-    assert is_domain_root(tmp_path)
-    assert not is_domain_root(tmp_path / "eligibility" / "member")
-    table_results, report = validate_domain_root(tmp_path, ValidationContext())
-    assert set(table_results) == {"claims", "eligibility"}
-    assert "medical_claims" in table_results["claims"]
-    assert report.ok
-
-
-def test_domain_mode_still_validates_loose_root_tables(tmp_path: Path) -> None:
-    """Domain mode must never check less than plain directory mode did."""
-    _write_corpus(tmp_path)
-    loose = UMFBuilder("loose_table").column("BadColumnName", "INTEGER").build()
-    UMFLoader().save(loose, tmp_path / "loose_table")
-    table_results, _report = validate_domain_root(
-        tmp_path, ValidationContext(), check_completeness=False
-    )
-    assert "(no domain)" in table_results
-    errors = table_results["(no domain)"]["loose_table"]
-    assert any("lowercase_snake_case" in e for e in errors)
-
-
-def test_root_that_is_itself_a_domain_is_not_double_validated(tmp_path: Path) -> None:
-    _write_corpus(tmp_path)
-    table_results, _report = validate_domain_root(
-        tmp_path / "claims", ValidationContext(), check_completeness=False
-    )
-    assert set(table_results) == {"claims"}
 
 
 def test_report_by_domain_groups_findings(tmp_path: Path) -> None:

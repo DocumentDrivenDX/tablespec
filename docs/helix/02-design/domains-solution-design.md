@@ -24,7 +24,7 @@ ddx:
 |------------|----------------------|-----------|----------|
 | FR-24.1 domain declaration | Parse and validate `domain.yaml` and its glossary | `models/domain.py` | P1 |
 | FR-24.2 cross-domain reference fields | `references_domain`, `integration`, legacy reconciliation, `extra="forbid"` | `models/umf.py` (`ForeignKey`) | P1 |
-| FR-24.3 cross-domain validation | Discovery plus rules `DOM-*`; `validate` domain mode | `domains.py`, `domain_validator.py`, `validator.py`, `cli.py` | P1 |
+| FR-24.3 cross-domain validation | Scope resolution plus rules `DOM-*`, applied by `validate` whenever a `domain.yaml` applies to the path | `domains.py`, `domain_validator.py`, `validator.py`, `cli.py` | P1 |
 | FR-24.4 domain map | Render `domains.html`; link from top index | `guidebook/domain_map.py`, `guidebook/generator.py`, `guidebook/index_renderer.py` | P1 |
 | FR-24.5 glossary terms | `term` on `UMF` and `UMFColumn`; split-format persistence | `models/umf.py`, `umf_loader.py` | P1 |
 
@@ -34,7 +34,8 @@ ddx:
 |----------|--------|-----|
 | One `domain.yaml` per directory; validation reads all domains under a root | Yes | One name for the unit; rules need a multi-directory view the per-table validator lacks |
 | Extend `pipeline.yaml` | No | Dead model, wrong word (ADR-020) |
-| New CLI command for domain validation | No | `validate <root>` already means "validate this directory"; domain mode is detected from `domain.yaml`, so the command count and docs surface do not grow |
+| New CLI command for domain validation | No | `validate <path>` already means "validate what is here"; domain rules are more rules that apply when their inputs exist, like relationship integrity, so the command count and docs surface do not grow |
+| A separate "domain mode" of `validate`, switched on by `domain.yaml` at or directly under the path | No (built first, then removed) | It made a metadata file decide whether tables were validated at all (grouped folders without `domain.yaml` validated zero tables), and it loaded only what sat under the path, so validating one domain reported its suppliers as "not found" |
 
 ## Domain Model
 
@@ -121,14 +122,45 @@ Nothing is persisted; the changelog is not written.
 
 ### CLI (Contract)
 
-`tablespec validate <root>` enters domain mode when `<root>` is, or directly
-contains, a directory with `domain.yaml`. It validates each domain's tables as
-today, prints `Domain errors:` and `Domain warnings:` blocks, exits 1 on any
-table or domain error, and otherwise prints `Valid <n> domains, <m> tables`.
+`tablespec validate <path>` has one behavior; there is no mode.
 
-`--baseline <dir>` (domain mode only; must be a directory) adds a
-`Published-language changes:` block before the errors and enables
-`DOM-COMPAT`. No new command is added.
+1. **Tables.** A single table (split directory or file) is validated as
+   before. Any other directory is searched at any depth for split-format table
+   directories (hidden directories and `node_modules`, `__pycache__`, `venv`,
+   `site-packages` are skipped; the search does not descend into a table
+   directory). Relationship integrity is checked among tables sharing a parent
+   directory. Result keys: a direct child is its `table_name`; a nested table
+   is `<parent path>/<table_name>`. *Behavior change:* directory validation
+   previously looked one level down only, so a corpus organized into group
+   folders validated zero tables; `validate_pipeline(..., recursive=False)`
+   keeps the old lookup for API callers.
+2. **Domain scope.** A `domain.yaml` applies to the path when the path is a
+   domain directory, is inside one (found by walking up, stopping at a
+   repository root), or has domain directories beneath it. The directory that
+   holds domain directories is a domain root; all of its domains are loaded so
+   a consumer's suppliers are present even when only the consumer was named. A
+   `domain.yaml` nested inside a domain is ignored. A `domain.yaml` that fails
+   to load is a `DOM-LOAD` error.
+3. **Narrowing.** Rules run over the full sibling set; findings are reported
+   only for the domains the path covers, and only for the one table when the
+   path is a single table. A path above several domain roots prefixes each
+   domain with its root's relative path.
+4. **Output.** `Domain errors:` and `Domain warnings:` blocks; exit 1 on any
+   table or domain error; otherwise `Valid <n> domains, <m> tables passed
+   validation` when domains are covered, else `Valid All <m> tables passed
+   validation` as before.
+
+`--baseline <path>` is the same location at an earlier revision. Its domain
+roots are resolved the same way and paired with the current ones (the only
+root on each side, otherwise by relative location). It adds a
+`Published-language changes:` block and enables `DOM-COMPAT` for the domains
+the path covers, including a domain removed from a covered root. When no
+`domain.yaml` applies on either side it prints a `Note:` that nothing was
+compared. No new command is added.
+
+Python surface: `validator.validate_domain_scopes(path, *, baseline=None) ->
+DomainRun(report, domains, notes)`; `domains.resolve_domain_scopes(path) ->
+list[DomainScope]`; `domains.iter_table_dirs(root)`.
 
 ### Glossary surfaces (Contract)
 
@@ -154,8 +186,8 @@ Direction words are supplier and consumer.
 | `models/domain.py` | Pydantic models, `load_domain`, `load_glossary` | pydantic, yaml |
 | `domains.py` | `find_domain_dirs`, `load_domain_dir`, `discover_domains`, `LoadedDomain` | models, `umf_loader` |
 | `domain_validator.py` | Pure rule functions and `validate_domains` | `domains`, models |
-| `validator.py` | `is_domain_root`, `validate_domain_root` | the above plus `validate_pipeline` |
-| `cli.py` | Domain-mode branch of `validate` | `validator` |
+| `validator.py` | `validate_domain_scopes` (scope, run rules on the full sibling set, narrow findings, pair baseline roots); recursive `validate_pipeline` | the above |
+| `cli.py` | `validate`: tables, then `validate_domain_scopes`, one output path | `validator` |
 | `guidebook/domain_map.py` | `render_domain_map` | `domains`, `index_renderer` |
 
 `tablespec.core`, `tablespec.dbt`, and `tablespec.ldp` import none of these;

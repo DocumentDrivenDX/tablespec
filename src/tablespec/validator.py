@@ -21,8 +21,19 @@ from tablespec.completeness_validator import (
     validate_domain_types,
     validate_provenance_columns,
 )
-from tablespec.domain_validator import DomainValidationReport, validate_domains
-from tablespec.domains import discover_domains, find_domain_dirs
+from tablespec.domain_validator import (
+    DomainFinding,
+    DomainValidationReport,
+    validate_domains,
+    validate_published_language,
+)
+from tablespec.domains import (
+    DomainScope,
+    iter_table_dirs,
+    load_domain_dir,
+    resolve_domain_scopes,
+)
+from tablespec.models.domain import DomainLoadError
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.expectation_utils import expectation_dicts_from_umf
 from tablespec.models import UMF, save_umf_to_yaml
@@ -336,108 +347,190 @@ def validate_pipeline(
     context: ValidationContext,
     verbose: bool = False,
     check_completeness: bool = True,
+    recursive: bool = True,
 ) -> dict[str, list[str]]:
-    """Validate all tables in a pipeline.
+    """Validate every table under a directory.
 
-    Loads all table UMFs and performs validation, with batch relationship checking.
+    Finds every split-format table directory (one containing ``table.yaml``)
+    beneath ``pipeline_dir`` -- at any depth, so a corpus organized into group
+    or domain folders is validated the same as a flat one -- and validates
+    each. Relationship integrity is checked among the tables that share a
+    parent directory, exactly as for a single table. Hidden directories and
+    vendored trees (``node_modules``, ``__pycache__``, ...) are skipped.
 
     Args:
-        pipeline_dir: Path to pipeline directory containing table subdirectories
+        pipeline_dir: Directory to search for table directories
         context: ValidationContext with caching
         verbose: Include detailed error information
         check_completeness: If True, validate provenance columns, domain types,
             and baseline expectations (default True)
+        recursive: Search at any depth (default). ``False`` restores the
+            historical behavior of looking only at direct child directories.
 
     Returns:
-        Dict mapping table names to error lists
-        Empty list for each table means validation passed
+        Dict mapping each table to its error list; an empty list means the
+        table passed. A direct child is keyed by its ``table_name`` (or its
+        directory name if it failed to load). A nested table is keyed by
+        ``<parent path>/<table_name>`` so tables with the same name in
+        different folders stay distinct.
 
     """
     results: dict[str, list[str]] = {}
+    pipeline_dir = Path(pipeline_dir)
 
-    # Get all table directories
-    table_dirs = sorted(
-        [d for d in pipeline_dir.iterdir() if d.is_dir() and not d.name.startswith(".")]
-    )
+    if recursive:
+        table_dirs = iter_table_dirs(pipeline_dir)
+    else:
+        table_dirs = sorted(
+            d
+            for d in pipeline_dir.iterdir()
+            if d.is_dir() and not d.name.startswith(".") and (d / "table.yaml").exists()
+        )
 
-    if not table_dirs:
-        return results
+    def key_for(table_dir: Path, name: str) -> str:
+        parent = table_dir.relative_to(pipeline_dir).parent
+        return name if parent == Path() else f"{parent.as_posix()}/{name}"
 
     # Load all UMFs and track their paths
     umf_paths: list[tuple[UMF, Path]] = []
     for table_dir in table_dirs:
-        if not (table_dir / "table.yaml").exists():
-            continue
-
         try:
             umf = context.load_umf(table_dir)
             umf_paths.append((umf, table_dir))
         except Exception as e:
-            results[table_dir.name] = [f"Failed to load: {e}"]
+            results[key_for(table_dir, table_dir.name)] = [f"Failed to load: {e}"]
 
     # Validate each table
     for umf, table_path in umf_paths:
         _success, errors = validate_table(
             table_path, context, verbose=verbose, check_completeness=check_completeness
         )
-        results[umf.table_name] = errors
+        results[key_for(table_path, umf.table_name)] = errors
 
     return results
 
 
-NO_DOMAIN = "(no domain)"
-"""Key in ``validate_domain_root`` results for tables outside any domain."""
+@dataclass
+class DomainRun:
+    """Outcome of the domain rules for one validated path.
 
-
-def is_domain_root(path: Path) -> bool:
-    """True when ``path`` is, or directly contains, a ``domain.yaml`` directory."""
-    return bool(find_domain_dirs(path))
-
-
-def validate_domain_root(
-    root: Path,
-    context: ValidationContext,
-    verbose: bool = False,
-    check_completeness: bool = True,
-    baseline: Path | None = None,
-) -> tuple[dict[str, dict[str, list[str]]], DomainValidationReport]:
-    """Validate every domain under ``root``: per-table checks, then cross-domain rules.
-
-    Each domain directory is validated as a pipeline (``validate_pipeline``),
-    and then the whole set is checked for exports, suppliers, cross-domain
-    foreign keys, and glossary terms (``domain_validator``). When ``baseline``
-    names the same corpus at an earlier revision, the published language of
-    every domain is compared and breaking changes must be matched by a MAJOR
-    version bump (``DOM-COMPAT``).
-
-    Returns:
-        ``(table_results, report)`` where ``table_results`` maps domain name to
-        the per-table error dict and ``report`` carries the cross-domain
-        findings and published-language changes.
+    Attributes:
+        report: Errors, warnings, and (with a baseline) published-language
+            changes, narrowed to what the path covers.
+        domains: Labels of the domains the path covers, sorted.
+        notes: Things the caller should tell the user that are not findings,
+            e.g. a baseline that had nothing to compare against.
 
     """
-    table_results: dict[str, dict[str, list[str]]] = {}
-    domain_dirs = find_domain_dirs(root)
-    for domain_dir in domain_dirs:
-        table_results[domain_dir.name] = validate_pipeline(
-            domain_dir,
-            context,
-            verbose=verbose,
-            check_completeness=check_completeness,
-        )
-    # Tables that sit directly under the root, outside any domain directory,
-    # are still validated -- domain mode must never check less than plain
-    # directory mode did. (Skipped when the root is itself a domain: its
-    # tables were validated above.)
-    if Path(root).resolve() not in domain_dirs:
-        loose = validate_pipeline(
-            root, context, verbose=verbose, check_completeness=check_completeness
-        )
-        if loose:
-            table_results[NO_DOMAIN] = loose
-    old = discover_domains(baseline) if baseline is not None else None
-    report = validate_domains(discover_domains(root), baseline=old)
-    return table_results, report
+
+    report: DomainValidationReport = field(default_factory=DomainValidationReport)
+    domains: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+def _label(scope: DomainScope, name: str, *, many: bool) -> str:
+    return f"{scope.label}/{name}" if many and scope.label else name
+
+
+def _covers(scope: DomainScope, finding_domain: str, entity: str) -> bool:
+    """True when a finding belongs to what the validated path covers."""
+    if finding_domain not in scope.in_scope:
+        return False
+    if scope.table is None:
+        return True
+    table = scope.table.lower()
+    ent = entity.lower()
+    # "<table>", "<table>.<column>", or a published-language component:
+    # "table.<table>" / "column.<x>@<table>".
+    return (
+        ent in (table, f"table.{table}")
+        or ent.startswith(f"{table}.")
+        or ent.endswith(f"@{table}")
+    )
+
+
+def validate_domain_scopes(path: Path, *, baseline: Path | None = None) -> DomainRun:
+    """Run the domain rules for whatever domains ``path`` involves.
+
+    There is no separate mode: if no ``domain.yaml`` is at, above (within the
+    repository), or below ``path``, this returns an empty run. Otherwise each
+    involved domain root is loaded in full -- a consumer's supplier lives next
+    to it, not beneath it -- the rules run over that full sibling set, and the
+    findings are narrowed to the domains (or the single table) ``path`` covers.
+
+    ``baseline`` is the same location at an earlier revision. Its domain roots
+    are resolved the same way and paired with the current ones (the only root
+    on each side, or otherwise by relative location) to compare each domain's
+    published language; see :func:`domain_validator.validate_published_language`.
+    """
+    run = DomainRun()
+    scopes = resolve_domain_scopes(path)
+    many = len(scopes) > 1
+
+    for scope in scopes:
+        full = validate_domains(scope.domains)
+        for name in sorted(scope.in_scope):
+            run.domains.append(_label(scope, name, many=many))
+            if name not in scope.domains:
+                # discover_domains skipped it; surface why instead of silence.
+                try:
+                    load_domain_dir(scope.root / name)
+                except DomainLoadError as exc:
+                    run.report.errors.append(
+                        DomainFinding(
+                            _label(scope, name, many=many), "DOM-LOAD", "-", str(exc)
+                        )
+                    )
+        for bucket, target in (
+            (full.errors, run.report.errors),
+            (full.warnings, run.report.warnings),
+        ):
+            for f in bucket:
+                if _covers(scope, f.domain, f.entity):
+                    target.append(
+                        DomainFinding(
+                            _label(scope, f.domain, many=many),
+                            f.rule,
+                            f.entity,
+                            f.message,
+                        )
+                    )
+
+    if baseline is not None:
+        old_scopes = resolve_domain_scopes(baseline)
+        if not scopes and not old_scopes:
+            run.notes.append(
+                "--baseline was given but no domain.yaml was found for either "
+                "path, so there is no published language to compare"
+            )
+        if len(scopes) == 1 and len(old_scopes) == 1:
+            pairs = [(old_scopes[0], scopes[0])]
+        else:
+            old_by_label = {s.label: s for s in old_scopes}
+            pairs = [(old_by_label.pop(s.label, None), s) for s in scopes]
+            pairs += [(s, None) for s in old_by_label.values()]
+        for old, new in pairs:
+            anchor = new or old
+            assert anchor is not None
+            covered = set(anchor.in_scope)
+            if new is not None and new.covers_root and old is not None:
+                covered |= set(old.domains)  # a domain removed from the root
+            changes, compat = validate_published_language(
+                old.domains if old else {}, new.domains if new else {}
+            )
+            for c in changes:
+                if c.domain in covered and (
+                    anchor.table is None or _covers(anchor, c.domain, c.component)
+                ):
+                    c.domain = _label(anchor, c.domain, many=many)
+                    run.report.published_language.append(c)
+            for f in compat:
+                if f.domain in covered:
+                    f.domain = _label(anchor, f.domain, many=many)
+                    run.report.errors.append(f)
+
+    run.domains.sort()
+    return run
 
 
 def show_table_info(

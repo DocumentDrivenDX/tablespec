@@ -56,11 +56,18 @@ ddx:
 6. **Domains do not drive routing.** No emitter reads `domain.yaml` to choose
    a catalog or schema. ADR-013's name-to-node seam and the "no hardcoded
    catalogs" concern stand unchanged.
-7. **Validation spans domains through one entry point.** `tablespec validate
-   <root>` switches to domain mode when `<root>` is, or directly contains,
-   `domain.yaml` directories: per-table checks per domain, then the
-   cross-domain rules (`DOM-EXPORT`, `DOM-SUPPLIER`, `DOM-XREF`, `DOM-TERM`,
-   and the advisory `DOM-DRIFT`).
+7. **Validation spans domains through one entry point, with no mode.**
+   `tablespec validate <path>` validates every table beneath the path at any
+   depth, and applies the cross-domain rules (`DOM-EXPORT`, `DOM-SUPPLIER`,
+   `DOM-XREF`, `DOM-TERM`, and the advisory `DOM-DRIFT`) whenever a
+   `domain.yaml` applies to the path: the path is a domain, is inside one, or
+   has domains beneath it. Sibling domains are always loaded from the
+   directory that holds them, because a consumer's supplier lives next to it,
+   not beneath it; findings are then narrowed to what the path covers. A
+   first implementation switched `validate` into a separate mode when
+   `domain.yaml` sat at or directly under the path. That made a metadata file
+   decide whether tables were validated at all, and reported a lone domain's
+   suppliers as "not found". It was removed before release.
 
 **Key Points**: `domain_type` on a column is read as a value-object type scoped
 to a domain; the global registry is unchanged in this decision (per-domain

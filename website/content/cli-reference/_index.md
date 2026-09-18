@@ -37,18 +37,25 @@ compatibility, relationship integrity (when multiple tables are present), and
 pipeline completeness — provenance columns, domain types, and baseline
 expectations.
 
-When the directory is, or directly contains, domain directories (each with a
-`domain.yaml`), `validate` also checks the cross-domain rules: every export
-names a keyed table, every supplier exists and exports what is consumed, every
-cross-domain foreign key targets an exported table's primary key through a
-declared supplier, and every `term` is in the domain glossary. Findings are
-prefixed `DOM-EXPORT`, `DOM-SUPPLIER`, `DOM-XREF`, `DOM-TERM`; `DOM-DRIFT` is
-a warning.
+A directory is searched at any depth, so tables organized into group folders
+are validated the same as a flat directory. Hidden directories and vendored
+trees such as `node_modules` are skipped.
+
+When a `domain.yaml` applies to the path, `validate` also checks the rules
+between domains: every export names a keyed table, every supplier exists and
+exports what is consumed, every cross-domain foreign key targets an exported
+table's primary key through a declared supplier, every version pin is
+satisfied, and every `term` is in the domain glossary. A `domain.yaml` applies
+when the path is a domain directory, is inside one, or has domain directories
+beneath it. Sibling domains are loaded from the directory that holds them, so
+validating one domain or one table still checks its references into the
+others. Findings are prefixed `DOM-`; `DOM-DRIFT` and `DOM-VERSION` are
+warnings. See [Domains and the context map](/concepts/domains/).
 
 | Option | Description |
 |--------|-------------|
 | `--verbose`, `-v` | Show detailed validation errors. |
-| `--baseline <dir>` | Domain mode only. An earlier revision of the same root; compares each domain's published language (exports) and reports `DOM-COMPAT` when a breaking change lacks a MAJOR `version` bump. |
+| `--baseline <path>` | The same path at an earlier revision. Compares the published language (exports) of every domain the path covers and reports `DOM-COMPAT` when a breaking change lacks a MAJOR `version` bump. Prints a note when no `domain.yaml` applies to either path. |
 
 ### `info`
 
