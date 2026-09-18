@@ -645,6 +645,7 @@ class UMFLoader:
         # Add optional fields
         for key in [
             "aliases",
+            "term",
             "source_sheet_name",
             "source_file",
             "sheet_name",

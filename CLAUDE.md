@@ -52,6 +52,7 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
 - `compatibility.py` - Compatibility checks and report types.
 - `date_formats.py` - Shared date and timestamp format constants.
 - `dependency_resolver.py` - Dependency and relation resolution helpers.
+- `domains.py`, `domain_validator.py` - Domain (bounded-context) discovery from `domain.yaml` and cross-domain rules: exports, suppliers, cross-domain keys, glossary terms. Models live in `models/domain.py`.
 - `excel_converter.py` / `excel_import_git.py` - Excel import/export helpers.
 - `gx_baseline.py`, `gx_constraint_extractor.py`, `gx_schema_validator.py`, `gx_wrapper.py` - Great Expectations integration entrypoints.
 - `merge.py`, `relationship_validator.py`, `completeness_validator.py`, `validator.py` - Validation and merge orchestration.

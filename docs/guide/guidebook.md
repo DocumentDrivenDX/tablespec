@@ -20,6 +20,10 @@ anywhere.
 - **Validation rules** — per-column expectations pulled from the UMF.
 - **Indexes + search** — a top-level index (grouped by subfolder when present,
   flat otherwise) and a JSON search index covering every table and column.
+- **Domain map** — when the root holds `domain.yaml` directories, a
+  `domains.html` page lists each domain's owner and exports, the supplier
+  edges with their integration pattern, and cross-domain references. See
+  [Domains](domains.md).
 
 ## Generate from the CLI
 

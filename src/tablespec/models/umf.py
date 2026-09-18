@@ -19,6 +19,8 @@ from pydantic import (
     model_validator,
 )
 
+from tablespec.models.domain import IntegrationPattern
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -634,6 +636,12 @@ class UMFColumn(BaseModel):
         description="Alternative names for this column (e.g., variations in spelling, case, or abbreviations). "
         "Used for resolving column name mismatches when mapping between different data sources.",
     )
+    term: str | None = Field(
+        default=None,
+        description="Glossary term this column represents, resolved against the owning "
+        "domain's glossary (domain.yaml -> glossary). Independent of canonical_name, "
+        "which stays the source-spec label.",
+    )
     data_type: str = Field(
         description="Column data type",
         pattern=r"^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
@@ -1098,7 +1106,13 @@ class QualityChecks(BaseModel):
 
 
 class ForeignKey(BaseModel):
-    """Foreign key relationship."""
+    """Foreign key relationship.
+
+    Extra keys are forbidden so a misspelled or unknown key fails loudly
+    instead of being silently dropped on the next load/save round-trip.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     column: str = Field(description="Source column name")
     references_table: str = Field(description="Referenced table name")
@@ -1130,7 +1144,20 @@ class ForeignKey(BaseModel):
     )
     references_pipeline: str | None = Field(
         default=None,
-        description="Pipeline name for cross-pipeline references",
+        description="Legacy spelling of references_domain; kept for older specs",
+    )
+
+    # Cross-domain (bounded-context) support
+    references_domain: str | None = Field(
+        default=None,
+        description="Domain that owns the referenced table when it is not this table's "
+        "domain. The target must be in that domain's exports (see domain.yaml).",
+    )
+    integration: IntegrationPattern | None = Field(
+        default=None,
+        description="DDD integration pattern for a cross-domain reference "
+        "(customer_supplier, conformist, anti_corruption, shared_kernel, ...). "
+        "Advisory; the domain's suppliers map is the governing declaration.",
     )
 
     # Join behavior
@@ -1172,6 +1199,56 @@ class ForeignKey(BaseModel):
             if len(parts) == 2:
                 return parts[1]
         return v
+
+    @model_validator(mode="after")
+    def reconcile_domain_fields(self) -> Self:
+        """Reconcile ``references_domain`` with the legacy ``references_pipeline``.
+
+        One direction only. A spec that uses the new ``references_domain``
+        spelling also gets ``references_pipeline`` and ``cross_pipeline=True``
+        so every existing reader (registry, resolver, dbt schema facts) treats
+        it as cross-domain. A spec that uses only the legacy
+        ``references_pipeline`` is left exactly as authored: it loads and saves
+        byte-for-byte as before and its emitted artifacts do not change.
+        ``target_domain`` reads either spelling.
+        """
+        if self.references_domain and self.references_pipeline:
+            if self.references_domain != self.references_pipeline:
+                msg = (
+                    "references_domain and references_pipeline disagree: "
+                    f"{self.references_domain!r} vs {self.references_pipeline!r}"
+                )
+                raise ValueError(msg)
+        elif self.references_domain:
+            self.references_pipeline = self.references_domain
+        if self.references_domain and not self.cross_pipeline:
+            self.cross_pipeline = True
+        return self
+
+    @property
+    def explicit_domain(self) -> str | None:
+        """The owning domain named by either spelling, ignoring table prefixes."""
+        return self.references_domain or self.references_pipeline
+
+    @property
+    def target_domain(self) -> str | None:
+        """Domain that owns the referenced table, if the reference is qualified.
+
+        Prefers ``references_domain``, then the legacy ``references_pipeline``,
+        then the prefix of a ``domain.table`` spelling in ``references_table``.
+        """
+        if self.explicit_domain:
+            return self.explicit_domain
+        if "." in self.references_table:
+            return self.references_table.split(".", 1)[0]
+        return None
+
+    @property
+    def target_table(self) -> str:
+        """Bare referenced table name with any ``domain.`` prefix removed."""
+        if "." in self.references_table:
+            return self.references_table.split(".", 1)[1]
+        return self.references_table
 
     def parse_table_reference(self) -> "TableReference":
         """Parse references_table into TableReference with optional pipeline qualification.
@@ -1769,6 +1846,11 @@ class UMF(BaseModel):
         default=None,
         description="Alternative names for this table (e.g., sheet name variations, case variants). "
         "Used for resolving references when table names don't match exactly.",
+    )
+    term: str | None = Field(
+        default=None,
+        description="Glossary term this table represents, resolved against the owning "
+        "domain's glossary (domain.yaml -> glossary).",
     )
     source_sheet_name: str | None = Field(
         default=None,

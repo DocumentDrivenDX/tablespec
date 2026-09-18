@@ -107,6 +107,9 @@ Use these phrases consistently:
 - `compile once, run from artifacts`
 - `Connect-safe validation`
 - `fails closed`
+- `domain` (a directory of tables with a `domain.yaml`; the bounded context)
+- `exports` (a domain's published language)
+- `supplier` / `consumer` (context-map direction; never upstream/downstream, which belong to lineage)
 
 ## Avoided Language
 
