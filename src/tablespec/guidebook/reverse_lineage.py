@@ -157,8 +157,8 @@ def build_reverse_lineage_index(
                 # references_pipeline) names the target group; a qualified
                 # references_table ("hc_2026_ent.member") names it in its
                 # prefix; otherwise stay in this group.
-                if fk.references_domain:
-                    target_group = fk.references_domain
+                if fk.explicit_domain:
+                    target_group = fk.explicit_domain
                     target_table = fk.target_table
                 elif fk.references_table:
                     target_group, target_table = _split_table_ref(

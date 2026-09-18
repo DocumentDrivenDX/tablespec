@@ -138,7 +138,8 @@ relationships:
 ```
 
 `references_domain` marks the key as cross-domain. The older
-`references_pipeline` spelling still loads and is kept in sync. A qualified
+`references_pipeline` spelling still loads, is read the same way, and is never
+rewritten, so existing specs save unchanged. A qualified
 `references_table: eligibility.member` is also treated as cross-domain.
 
 ## Validation

@@ -266,8 +266,9 @@ if _HAS_VALIDATOR:
                     console.print("[red]FAIL[/red] Validation failed")
                     raise typer.Exit(1)
                 n_tables = sum(len(r) for r in table_results.values())
+                n_domains = sum(1 for name in table_results if name != "(no domain)")
                 console.print(
-                    f"[green]Valid[/green] {len(table_results)} domains, "
+                    f"[green]Valid[/green] {n_domains} domains, "
                     f"{n_tables} tables passed validation"
                 )
             elif path.is_dir():

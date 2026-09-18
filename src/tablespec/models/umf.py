@@ -1202,11 +1202,15 @@ class ForeignKey(BaseModel):
 
     @model_validator(mode="after")
     def reconcile_domain_fields(self) -> Self:
-        """Make ``references_domain`` and the legacy ``references_pipeline`` agree.
+        """Reconcile ``references_domain`` with the legacy ``references_pipeline``.
 
-        A spec may set either spelling. Both end up populated so old readers
-        (``references_pipeline``) and new ones (``references_domain``) see the
-        same target, and a cross-domain reference is always ``cross_pipeline``.
+        One direction only. A spec that uses the new ``references_domain``
+        spelling also gets ``references_pipeline`` and ``cross_pipeline=True``
+        so every existing reader (registry, resolver, dbt schema facts) treats
+        it as cross-domain. A spec that uses only the legacy
+        ``references_pipeline`` is left exactly as authored: it loads and saves
+        byte-for-byte as before and its emitted artifacts do not change.
+        ``target_domain`` reads either spelling.
         """
         if self.references_domain and self.references_pipeline:
             if self.references_domain != self.references_pipeline:
@@ -1217,21 +1221,24 @@ class ForeignKey(BaseModel):
                 raise ValueError(msg)
         elif self.references_domain:
             self.references_pipeline = self.references_domain
-        elif self.references_pipeline:
-            self.references_domain = self.references_pipeline
         if self.references_domain and not self.cross_pipeline:
             self.cross_pipeline = True
         return self
 
     @property
+    def explicit_domain(self) -> str | None:
+        """The owning domain named by either spelling, ignoring table prefixes."""
+        return self.references_domain or self.references_pipeline
+
+    @property
     def target_domain(self) -> str | None:
         """Domain that owns the referenced table, if the reference is qualified.
 
-        Prefers the explicit ``references_domain``; falls back to the prefix of
-        a ``domain.table`` spelling in ``references_table``.
+        Prefers ``references_domain``, then the legacy ``references_pipeline``,
+        then the prefix of a ``domain.table`` spelling in ``references_table``.
         """
-        if self.references_domain:
-            return self.references_domain
+        if self.explicit_domain:
+            return self.explicit_domain
         if "." in self.references_table:
             return self.references_table.split(".", 1)[0]
         return None

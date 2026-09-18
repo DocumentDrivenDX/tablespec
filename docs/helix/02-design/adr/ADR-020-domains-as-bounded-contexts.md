@@ -45,11 +45,14 @@ ddx:
    `UMFColumn.term` resolve against it. `canonical_name` keeps its source-spec
    meaning (it is a CSV header, an IR relation name, and an Excel key).
 5. **Foreign keys gain `references_domain` and `integration`, and forbid
-   extras.** `references_pipeline` is kept as a legacy alias: a model
-   validator populates whichever spelling is missing, rejects disagreement,
-   and forces `cross_pipeline=True` for any cross-domain reference.
-   `ForeignKey` now has `extra="forbid"` so an unknown key fails on load
-   instead of vanishing on save.
+   extras.** `references_pipeline` is kept as a legacy alias, reconciled in
+   one direction only: a key that uses `references_domain` also gets
+   `references_pipeline` and `cross_pipeline=True` so every existing reader
+   treats it as cross-domain; a key that uses only the legacy spelling is
+   left exactly as authored, so existing specs load, save, and compile
+   unchanged. `target_domain` reads either spelling; disagreement between the
+   two is an error. `ForeignKey` now has `extra="forbid"` so an unknown key
+   fails on load instead of vanishing on save.
 6. **Domains do not drive routing.** No emitter reads `domain.yaml` to choose
    a catalog or schema. ADR-013's name-to-node seam and the "no hardcoded
    catalogs" concern stand unchanged.
@@ -79,7 +82,7 @@ untouched; nothing new reads it.
 | Type | Impact |
 |------|--------|
 | Positive | Cross-domain references are validated against a declared surface instead of routed by string prefix. Owners and vocabulary live next to the tables. The guidebook gains a domain map page from the same declarations. Unknown foreign-key keys fail loudly. |
-| Negative | Existing multi-directory corpora get no new checks until they add `domain.yaml`; a corpus with nested domain directories must flatten to one level. `cross_pipeline` is now forced true whenever `references_domain` is set, which normalizes older files on save. |
+| Negative | Existing multi-directory corpora get no new checks until they add `domain.yaml`; a corpus with nested domain directories must flatten to one level. A spec with an unknown key on a foreign key, previously dropped in silence, now fails to load. |
 | Neutral | `PipelineMetadata` and `DependencyResolver` remain as-is (dead but harmless). Domain-scoped `domain_type` registries, the compatibility report filtered to exports, and the line-of-business axis rename are follow-up beads. |
 
 ## Risks

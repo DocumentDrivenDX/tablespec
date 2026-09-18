@@ -314,6 +314,27 @@ def test_is_domain_root_and_validate_domain_root(tmp_path: Path) -> None:
     assert report.ok
 
 
+def test_domain_mode_still_validates_loose_root_tables(tmp_path: Path) -> None:
+    """Domain mode must never check less than plain directory mode did."""
+    _write_corpus(tmp_path)
+    loose = UMFBuilder("loose_table").column("BadColumnName", "INTEGER").build()
+    UMFLoader().save(loose, tmp_path / "loose_table")
+    table_results, _report = validate_domain_root(
+        tmp_path, ValidationContext(), check_completeness=False
+    )
+    assert "(no domain)" in table_results
+    errors = table_results["(no domain)"]["loose_table"]
+    assert any("lowercase_snake_case" in e for e in errors)
+
+
+def test_root_that_is_itself_a_domain_is_not_double_validated(tmp_path: Path) -> None:
+    _write_corpus(tmp_path)
+    table_results, _report = validate_domain_root(
+        tmp_path / "claims", ValidationContext(), check_completeness=False
+    )
+    assert set(table_results) == {"claims"}
+
+
 def test_report_by_domain_groups_findings(tmp_path: Path) -> None:
     _write_corpus(tmp_path, eligibility_yaml="name: eligibility\nexports: [ghost]\n")
     report = _report(tmp_path)

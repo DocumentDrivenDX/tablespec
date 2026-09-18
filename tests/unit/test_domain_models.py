@@ -135,10 +135,22 @@ class TestForeignKeyDomainFields:
         assert fk.target_domain == "eligibility"
         assert fk.target_table == "member"
 
-    def test_legacy_references_pipeline_populates_domain(self) -> None:
+    def test_legacy_references_pipeline_is_left_as_authored(self) -> None:
         fk = self._fk(references_pipeline="eligibility")
-        assert fk.references_domain == "eligibility"
-        assert fk.cross_pipeline is True
+        # Read through either spelling...
+        assert fk.target_domain == "eligibility"
+        assert fk.explicit_domain == "eligibility"
+        # ...but never rewritten: existing specs save unchanged and their
+        # emitted artifacts (dbt relationship tests key off cross_pipeline)
+        # do not change on upgrade.
+        assert fk.references_domain is None
+        assert fk.cross_pipeline is False
+        assert fk.model_dump(exclude_none=True, exclude_defaults=True) == {
+            "column": "member_id",
+            "references_table": "member",
+            "references_column": "id",
+            "references_pipeline": "eligibility",
+        }
 
     def test_disagreement_is_an_error(self) -> None:
         with pytest.raises(ValidationError, match="disagree"):

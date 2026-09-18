@@ -385,6 +385,10 @@ def validate_pipeline(
     return results
 
 
+NO_DOMAIN = "(no domain)"
+"""Key in ``validate_domain_root`` results for tables outside any domain."""
+
+
 def is_domain_root(path: Path) -> bool:
     """True when ``path`` is, or directly contains, a ``domain.yaml`` directory."""
     return bool(find_domain_dirs(path))
@@ -413,13 +417,24 @@ def validate_domain_root(
 
     """
     table_results: dict[str, dict[str, list[str]]] = {}
-    for domain_dir in find_domain_dirs(root):
+    domain_dirs = find_domain_dirs(root)
+    for domain_dir in domain_dirs:
         table_results[domain_dir.name] = validate_pipeline(
             domain_dir,
             context,
             verbose=verbose,
             check_completeness=check_completeness,
         )
+    # Tables that sit directly under the root, outside any domain directory,
+    # are still validated -- domain mode must never check less than plain
+    # directory mode did. (Skipped when the root is itself a domain: its
+    # tables were validated above.)
+    if Path(root).resolve() not in domain_dirs:
+        loose = validate_pipeline(
+            root, context, verbose=verbose, check_completeness=check_completeness
+        )
+        if loose:
+            table_results[NO_DOMAIN] = loose
     old = discover_domains(baseline) if baseline is not None else None
     report = validate_domains(discover_domains(root), baseline=old)
     return table_results, report

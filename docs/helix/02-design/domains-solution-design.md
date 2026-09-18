@@ -66,8 +66,13 @@ top-level `terms:` key. Lookup is case-insensitive over keys and aliases.
 |-----|------|---------|
 | `references_domain` | string | Owning domain of the target when not this domain |
 | `integration` | integration pattern | Advisory pattern for this edge |
-| `references_pipeline` | string | Legacy alias of `references_domain`; both are populated on load, disagreement is an error |
-| `cross_pipeline` | bool | Forced `true` when `references_domain` is set |
+| `references_pipeline` | string | Legacy alias of `references_domain`. Populated from `references_domain` on load; a key that sets only this spelling is left as authored. Disagreement is an error |
+| `cross_pipeline` | bool | Forced `true` when `references_domain` is set; untouched for legacy-only keys |
+
+Read model: `target_domain` = `references_domain`, else `references_pipeline`,
+else the prefix of a qualified `references_table`. Upgrade guarantee: a spec
+that does not use `references_domain` loads, saves, and compiles byte-for-byte
+as before, except that an unknown key on a foreign key is now an error.
 
 `ForeignKey` now forbids unknown keys.
 

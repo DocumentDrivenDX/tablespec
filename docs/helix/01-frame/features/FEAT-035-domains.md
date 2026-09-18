@@ -74,7 +74,7 @@ F035-DECL-03. The feature SHALL load an optional glossary (bare `term: {definiti
 
 #### References
 
-F035-REF-01. The feature SHALL add `references_domain` and `integration` to `ForeignKey`, populate the legacy `references_pipeline` from `references_domain` (and vice versa), reject disagreement, and force `cross_pipeline` for any cross-domain reference.
+F035-REF-01. The feature SHALL add `references_domain` and `integration` to `ForeignKey`, populate the legacy `references_pipeline` and force `cross_pipeline` when `references_domain` is set, leave a key that uses only the legacy spelling exactly as authored (so existing specs load, save, and compile unchanged), read either spelling through `target_domain`, and reject disagreement. In domain mode, tables directly under the root outside any domain SHALL still be validated.
 F035-REF-02. The feature SHALL forbid unknown keys on `ForeignKey` and SHALL add an optional `term` to tables and columns that round-trips through split format without changing `canonical_name`.
 
 #### Validation
