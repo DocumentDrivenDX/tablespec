@@ -2198,10 +2198,11 @@ with tab_load:
 # umf_from_information_schema rather than SparkToUmfMapper/JdbcToUmfMapper,
 # both of which require Spark.
 #
-# The guidebook is a multi-page static site whose pages link to one another.
-# st.components.v1.html renders a srcdoc iframe in which those relative links
-# cannot resolve, so a page selector replaces cross-page navigation. The full
-# site is still downloadable as a zip, where the links work normally.
+# The guidebook is a multi-page static site whose pages link to one another
+# and share assets/. st.components.v1.html renders a srcdoc iframe in which
+# relative URLs cannot resolve, so pages are generated self-contained (CSS/JS
+# inlined) and a page selector replaces cross-page navigation. The download
+# zip is a normal build of the site, where links and search work.
 
 _GUIDEBOOK_HEIGHT = 900
 
@@ -2229,6 +2230,12 @@ def _collect_site(out_dir) -> dict:
                 encoding="utf-8"
             )
     return files
+
+
+def _build_guidebook(generate_guidebook, umf_dir, out_dir) -> None:
+    """Write the embeddable (self-contained) pages plus a normal site for the zip."""
+    generate_guidebook(root=umf_dir, output_dir=out_dir / "embed", self_contained=True)
+    generate_guidebook(root=umf_dir, output_dir=out_dir / "site")
 
 
 def _zip_site(files: dict) -> bytes:
@@ -2267,7 +2274,7 @@ def _guidebook_from_reflection(catalog: str, schema: str, tables: tuple) -> dict
             save_umf_to_yaml(umf, umf_dir / f"{table}.umf.yaml")
 
         out_dir = _Path(tmp) / "guidebook"
-        generate_guidebook(root=umf_dir, output_dir=out_dir)
+        _build_guidebook(generate_guidebook, umf_dir, out_dir)
         return _collect_site(out_dir)
 
 
@@ -2318,13 +2325,19 @@ def _guidebook_from_volume(volume_dir: str) -> dict:
             (umf_dir / name).write_text(read_text(path), encoding="utf-8")
 
         out_dir = _Path(tmp) / "guidebook"
-        generate_guidebook(root=umf_dir, output_dir=out_dir)
+        _build_guidebook(generate_guidebook, umf_dir, out_dir)
         return _collect_site(out_dir)
 
 
 def _render_guidebook_site(files: dict) -> None:
     """Page selector + inline render + zip download for a generated site."""
-    pages = sorted(name for name in files if name.endswith(".html"))
+    embed = {
+        k.removeprefix("embed/"): v for k, v in files.items() if k.startswith("embed/")
+    }
+    site = {
+        k.removeprefix("site/"): v for k, v in files.items() if k.startswith("site/")
+    }
+    pages = sorted(name for name in embed if name.endswith(".html"))
     if not pages:
         st.warning("The guidebook generated no pages - no UMFs were discovered.")
         return
@@ -2347,20 +2360,21 @@ def _render_guidebook_site(files: dict) -> None:
     with right:
         st.download_button(
             "Download site (.zip)",
-            data=_zip_site(files),
+            data=_zip_site(site),
             file_name="guidebook.zip",
             mime="application/zip",
             use_container_width=True,
         )
 
     st.caption(f"{len(pages)} page(s) generated.")
-    components.html(files[selected], height=_GUIDEBOOK_HEIGHT, scrolling=True)
+    components.html(embed[selected], height=_GUIDEBOOK_HEIGHT, scrolling=True)
 
 
 with tab_guidebook:
     st.markdown(
         "Render the **tablespec guidebook** - one page per table with columns, "
-        "types, lineage, and validation rules - from UMF specs."
+        "types, lineage back to source tables, derivations, and validation rules - "
+        "from UMF specs."
     )
     st.divider()
 

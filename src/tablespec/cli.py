@@ -1539,6 +1539,82 @@ def guidebook(
         console.print(f"  ... and {len(written) - 10} more")
 
 
+@app.command()
+def lineage(
+    root: Path = typer.Argument(
+        ..., help="Directory of UMFs (as for `tablespec guidebook`)."
+    ),
+    table: str = typer.Argument(
+        ..., help="Table to trace: `group.table`, or `table` at the root."
+    ),
+    column: str | None = typer.Option(
+        None, "--column", "-c", help="Trace a single column."
+    ),
+    format: str = typer.Option(
+        "text", "--format", "-f", help="Output: text, json, or html."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output file (json/html)."
+    ),
+) -> None:
+    """Trace columns back to the source tables they ultimately read from.
+
+    ``-f html`` writes the table as one self-contained guidebook page
+    (``--column`` is ignored).
+    """
+    from rich.markup import escape  # noqa: PLC0415
+
+    from tablespec.guidebook import render_standalone_table  # noqa: PLC0415
+    from tablespec.lineage import DiscoveredUMFProvider, LineageBuilder  # noqa: PLC0415
+
+    if format not in ("text", "json", "html"):
+        console.print(
+            f"[red]Error:[/red] Unknown format '{format}'. Use text, json, or html."
+        )
+        raise typer.Exit(1)
+    if not root.is_dir():
+        console.print(f"[red]Error:[/red] Root must be a directory of UMFs: {root}")
+        raise typer.Exit(1)
+
+    try:
+        if format == "html":
+            text = render_standalone_table(root, table)
+            output = output or Path(f"{table.rpartition('.')[2]}_lineage.html")
+            output.write_text(text, encoding="utf-8")
+            console.print(f"[green]Wrote {output}[/green]")
+            return
+        group, _, name = table.rpartition(".")
+        builder = LineageBuilder(DiscoveredUMFProvider(root))
+        graph = (
+            builder.trace_column(group, name, column)
+            if column
+            else builder.trace_table(group, name)
+        )
+    except ValueError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1) from e
+
+    if format == "json":
+        text = graph.model_dump_json(indent=2, exclude_none=True)
+        if output:
+            output.write_text(text, encoding="utf-8")
+            console.print(f"[green]Wrote {output}[/green]")
+        else:
+            typer.echo(text)
+        return
+
+    for target in graph.targets:
+        console.print(f"[bold]{escape(graph.columns[target].name)}[/bold]")
+        for leaf in graph.leaf_summaries[target]:
+            path = " → ".join(str(p) for p in leaf.path_priority) or "-"
+            console.print(
+                f"  \\[{path}] [cyan]{escape(leaf.source_system or '-')}[/cyan]  "
+                f"{escape(leaf.column_id)}  ({leaf.leaf_kind})"
+            )
+    for warning in graph.warnings:
+        console.print(f"[yellow]Warning:[/yellow] {escape(warning)}")
+
+
 @app.callback(invoke_without_command=True)
 def version_callback(ctx: typer.Context) -> None:
     """Show version info or help."""
