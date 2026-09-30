@@ -31,7 +31,7 @@ The prior March 2026 phase narrative is preserved in [implementation-plan-v2.md]
 3. Emission and interoperability: dbt, LDP, Excel, changelog, bootstrap, merge, and compatibility surfaces that translate UMF into committed artifacts or external representations.
 4. Analysis and synthesis: profiling, sample data, inference, expectation helpers, and prompt generation that feed the governed runtime.
 5. Operator-facing utilities: CLI, TUI, formatting, naming, and change-management helpers that support repeatable maintenance work.
-6. Guidebook + multi-source ingestion: `guidebook/` (FR-22) and `ingestion/` (FR-21).
+6. Guidebook + multi-source ingestion: `guidebook/` and `lineage/` (FR-22) and `ingestion/` (FR-21).
 7. Product microsite: `website/` Hugo/Hextra + Playwright (FEAT-030).
 8. Databricks App: `apps/data-profiling/` deployability (FR-23) — config precedence, provision, startup diagnostics (shipped; operator walkthrough on microsite).
 
@@ -62,10 +62,11 @@ The inventory below mirrors the top-level `src/tablespec` surface exactly. Packa
 | `dbt/` | dbt project emitters, routing, registry, renderer, contracts, and selection helpers. |
 | `e2e/` | Compile/bootstrap/manifest/runtime backbones for shipped artifacts. |
 | `formatting/` | YAML formatter support. |
-| `guidebook/` | Static HTML guidebook generation: UMF discovery, lineage, search index, and rendering. |
+| `guidebook/` | Static catalog + lineage site generation: UMF discovery, page payloads, search catalog, and rendering (ADR-020). |
 | `inference/` | Domain-type inference surface. |
 | `ingestion/` | Raw/JDBC ingestion helpers and constants. |
 | `ldp/` | LDP sibling emitter surface. |
+| `lineage/` | Design-time column lineage from UMF derivations to source tables (ADR-020). |
 | `models/` | UMF, quality, pipeline, and changelog models. |
 | `profiling/` | Native and Spark profiling helpers. |
 | `prompts/` | Prompt-generation helpers for authoring and validation. |

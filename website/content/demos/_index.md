@@ -88,8 +88,9 @@ The committed demo artifacts live under
 
 - `umfs/` — split UMF specs for raw tables and the computed report.
 - `specs/` — Excel review workbooks generated from those UMFs.
-- `guidebook/` — rendered static HTML output, one page per table plus
-  `index.html` and `search_index.json`.
+- `guidebook/` — the rendered static site: one page per table (with each
+  column's source tables, derivation, and consumers) plus `index.html` and
+  `assets/`.
 
 Run it locally after installing tablespec:
 

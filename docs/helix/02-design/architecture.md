@@ -15,7 +15,8 @@ ddx:
 [adr/ADR-012-compile-orchestrator-runtime-consumes-committed-artifacts.md](adr/ADR-012-compile-orchestrator-runtime-consumes-committed-artifacts.md),
 [adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md](adr/ADR-013-target-agnostic-core-seam-sibling-emitters.md),
 [adr/ADR-018-guidebook-lineage-semantics.md](adr/ADR-018-guidebook-lineage-semantics.md),
-[adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md](adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md)
+[adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md](adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md),
+[adr/ADR-020-interactive-guidebook-and-column-lineage.md](adr/ADR-020-interactive-guidebook-and-column-lineage.md)
 
 ## Scope
 
@@ -97,7 +98,7 @@ graph TB
 | Runtime Platform substrate | `session.py`, `spark_factory.py`, `casting_utils.py` | Obtain a session, probe per-session capabilities, select the engine-correct `functions`/Column module from the DataFrame in hand — never a process-global `is_remote()` (FR-20.x, ADR-010) | PySpark / Spark Connect |
 | Bootstrap entry points | `scripts/bootstrap_from_tables.py` (Path A), `scripts/bootstrap_from_specs.py` (Path B) | Produce the UMF list the compiler consumes; compile is path-agnostic (FR-18.4) | CLI → UMF list |
 | Ingestion readers | `ingestion/` | Kind-dependent raw readers (delimited, parquet, json, jdbc) driven by UMF `source:` (FR-21.x, ADR-015) | Spark DataFrame API |
-| Guidebook generator | `guidebook/` | Static HTML guidebook from a UMF directory (FR-22.x, ADR-018); CLI `tablespec guidebook` | Filesystem → HTML |
+| Guidebook generator | `guidebook/`, `lineage/` | Static catalog + lineage site from a UMF directory, with transitive column lineage to source tables (FR-22.x, ADR-018, ADR-020); CLI `tablespec guidebook`, `tablespec lineage` | Filesystem → HTML/JS |
 | Databricks App | `apps/data-profiling/` | Operator UI for guidebook, profiling, comparison, load results; desired deployability via declared config + provisioning (FR-23.x, ADR-019) | Streamlit / Databricks Apps |
 | Product microsite | `website/` | Hugo/Hextra docs site co-published with Pages package index (FEAT-030, ADR-014) | Hugo → GitHub Pages |
 | Library surface | `cli.py`, `excel_converter.py`, `umf_loader.py`, `umf_diff.py`, `sample_data/`, `quality/`, `inference/`, `prompts/` | The existing authoring/authoring-adjacent surface (CLI, Excel, change mgmt, sample data, baselines, inference, prompts) | CLI / Python API |
@@ -236,6 +237,7 @@ sequenceDiagram
 | ADR-015: discriminated source-shape contract with kind-dependent raw typing | Accepted (DUMP/PARQ/JDBC shipped; JSON backbone residual) | One `source:` declaration (delimited/parquet/jdbc/json) drives readers, casts, and suites; typed sources land native-typed raw — never string-parsed; JDBC is compiled read specs via Spark's connector, with secret-referenced credentials only | FEAT-031, US-039; story floor US-040/042/043/050; JSON residual bead `tablespec-9f98cf03` |
 | ADR-018: guidebook lineage semantics | Accepted | Static HTML guidebook surfaces FK + derivation lineage without runtime coupling | FEAT-033, US-046 |
 | ADR-019: app configuration precedence and provisioning authority | Accepted (desired deployability) | Env → connections.yaml → defaults; metadata home is a declared input; provisioning is idempotent | FEAT-034, US-047–049; implementation gaps in alignment beads |
+| ADR-020: interactive guidebook and column lineage | Accepted | Vanilla-JS static site; UMF lineage engine mirrors `SQLPlanGenerator`; keeps ADR-018 FK semantics | FEAT-033, US-046 |
 | ADR-003: optional PySpark via `[spark]` extra | Accepted (extended by ADR-010) | Keeps the pure-Python core importable; boundary now also forbids assuming a `SparkContext` | dbt/pysail moved to dev group |
 | dbt + pysail in the dev (test-only) group, not user extras | Accepted | Generating dbt/LDP is pure-Python text; the stacks are only needed to EXECUTE generated projects in tests | `pyproject.toml` dev group; `test_src_never_imports_dbt` |
 

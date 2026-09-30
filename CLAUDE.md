@@ -31,7 +31,8 @@ Top-level layout:
 - `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
 - `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
 - `formatting/` - YAML formatting helpers and shared formatting constants.
-- `guidebook/` - Static HTML guidebook generator (discovery, lineage, rendering) for UMF directories.
+- `guidebook/` - Static catalog + lineage site generator (discovery, page payloads, rendering, `assets/` JS/CSS) for UMF directories.
+- `lineage/` - Design-time column lineage: traces UMF derivations through generated tables to their source tables.
 - `inference/` - Domain-type inference and registry helpers.
 - `ingestion/` - Raw/JDBC ingestion helpers and ingestion constants.
 - `ldp/` - Local data-product project rendering and expectations.
@@ -48,7 +49,7 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
 - `bootstrap.py` - Bootstrap UMFs from tables.
 - `canonical.py` - Canonicalization helpers for stable field/value handling.
 - `casting_utils.py` - Dialect-aware casting and format conversion utilities.
-- `cli.py` - Typer CLI for validation, inspection, conversion, and TUI launch.
+- `cli.py` - Typer CLI for validation, inspection, conversion, guidebook/lineage, and TUI launch.
 - `compatibility.py` - Compatibility checks and report types.
 - `date_formats.py` - Shared date and timestamp format constants.
 - `dependency_resolver.py` - Dependency and relation resolution helpers.
