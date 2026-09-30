@@ -36,7 +36,7 @@ A compile for a set of related tables also produces these generated files:
 |----------|----------|----------|
 | dbt gold DAG project | `generate_dbt_dag_project` | `dbt_gold/` |
 | Lakeflow Declarative Pipelines project | `tablespec.ldp.generate_ldp_project` | `ldp/` (`raw_<t>.sql`, `ingested_<t>.sql`, `gold_<t>.sql`) |
-| Guidebook site | `tablespec.guidebook.generate` | `guidebook/` (`index.html`, one page per table, `search_index.json`) |
+| Guidebook site | `tablespec.guidebook.generate` | `guidebook/` (`index.html`, one page per table, `assets/` with the search catalog) |
 | Manifest | compile orchestrator | `manifest.json` — every persisted path, so consumers never re-derive filenames |
 
 `tablespec.e2e.manifest` pins this layout in tests. `bootstrap_from_tables`

@@ -318,9 +318,10 @@ edits; do not renumber on edit.
 **FR-22** requirement family.
 
 - **FR-22.1** — Discover UMFs flatly and recursively under a root directory (split `table.yaml` directories and `*.umf.json` artifacts), grouping output by parent subfolder when present and flat otherwise
-- **FR-22.2** — Render one self-contained HTML page per table (inline CSS, no JS frameworks, no network requests) with per-column metadata, plus top-level and per-group indexes and a JSON search index
+- **FR-22.2** — Render a static site with one page per table (vanilla JavaScript and CSS shipped as local assets; no JS frameworks, no network requests) with per-column metadata, top-level and per-group pages, and client-side search over a bundled table/column catalog; optionally emit self-contained single pages (ADR-020)
 - **FR-22.3** — Surface cross-table lineage: foreign keys as downstream consumers on the referenced table, and column derivations as upstream sources (with SQL expression and survivorship) on the derived column
 - **FR-22.4** — Expose generation through the `tablespec guidebook` CLI command and the `generate_guidebook` Python API
+- **FR-22.5** — Trace each column's lineage transitively through generated tables to the source tables it ultimately reads (with their location from the source contract), shown in the guidebook and exposed through the `tablespec lineage` CLI command (text, JSON, or a single HTML page) (ADR-020)
 
 ### Subsystem: App Deployment & Configuration
 
