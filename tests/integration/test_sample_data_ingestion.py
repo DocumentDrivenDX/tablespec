@@ -180,3 +180,33 @@ def test_csv_zip_ingestion_and_readback(ingestion_sink, tmp_path):
             sink.execute(f"DROP SCHEMA {target} CASCADE")
         finally:
             data.close()
+
+
+def test_official_medical_csv_load_readback_and_replacement(ingestion_sink, tmp_path):
+    from tablespec.sample_data.ingest import ImportedDataset
+    from tests.unit.test_medical_sample_data import EXAMPLE
+
+    sink, target = ingestion_sink
+    data = ImportedDataset(tmp_path / "medical.sqlite", EXAMPLE / "domain-pack.json")
+    try:
+        expected = {
+            row["resource_key"]: row["resource_json"]
+            for batch in data.batches("resources")
+            for row in batch
+        }
+        for _ in range(2):
+            load_dataset(data, target, sink, batch_size=3)
+            verify_loaded(data.specs, data.counts, target, sink)
+            assert (
+                dict(
+                    sink.query(
+                        f"SELECT resource_key,resource_json FROM {target}.resources"
+                    )
+                )
+                == expected
+            )
+            assert sink.query(
+                f"SELECT value_decimal,effective_start FROM {target}.observations WHERE resource_key='Observation/body-height'"
+            ) == [["66.899999999999991", "1999-07-02"]]
+    finally:
+        data.close()

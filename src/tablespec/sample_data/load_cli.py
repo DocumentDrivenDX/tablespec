@@ -249,3 +249,72 @@ def load(
     except (ValueError, ImportError, RuntimeError, TimeoutError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
+
+
+@app.command("ingest")
+def ingest(
+    pack: Path = typer.Option(..., "--pack", exists=True, dir_okay=False),
+    output: Path | None = typer.Option(None, "--output", dir_okay=False),
+    target: str | None = typer.Option(None, "--target"),
+    backend: str = typer.Option("warehouse", "--backend"),
+    warehouse_id: str | None = typer.Option(None, "--warehouse-id"),
+    profile: str | None = typer.Option(None, "--profile"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+) -> None:
+    """Verify pinned local CSV sources, export a ZIP, or use the shared loader."""
+    from .archive import export_csv_zip
+    from .ingest import ImportedDataset
+
+    try:
+        if output is None and target is None:
+            raise ValueError("Provide --output or --target")
+        if output is not None and output.suffix.lower() != ".zip":
+            raise ValueError("Output must have a .zip suffix")
+        if backend not in ("warehouse", "spark"):
+            raise ValueError("Backend must be warehouse or spark")
+        if target is not None:
+            target_namespace(target)
+            if (
+                not dry_run
+                and backend == "warehouse"
+                and (not warehouse_id or not profile)
+            ):
+                raise ValueError("Loading requires --warehouse-id and --profile")
+        with TemporaryDirectory(prefix="tablespec-ingest-") as temp:
+            data = ImportedDataset(Path(temp) / "rows.sqlite", pack)
+            try:
+                typer.echo(json.dumps(data.report, sort_keys=True, indent=2))
+                if output is not None:
+                    export_csv_zip(data, output)
+                    typer.echo(str(output))
+                if target is not None:
+                    sink = None
+                    if not dry_run:
+                        if backend == "spark":
+                            from tablespec.spark_factory import (
+                                create_delta_spark_session,
+                            )
+
+                            sink = SparkSQLSink(
+                                create_delta_spark_session("tablespec-source-ingest")
+                            )
+                        else:
+                            sink = WarehouseSQLSink(warehouse_id or "", profile or "")
+                    statements = load_dataset(data, target, sink, dry_run=dry_run)
+                    if dry_run:
+                        for statement in statements:
+                            typer.echo(statement)
+                    elif sink is not None:
+                        typer.echo(
+                            json.dumps(
+                                verify_loaded(data.specs, data.counts, target, sink),
+                                sort_keys=True,
+                                indent=2,
+                            )
+                        )
+                        typer.echo("Load verification PASSED")
+            finally:
+                data.close()
+    except (ValueError, ImportError, RuntimeError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc

@@ -15,7 +15,7 @@ ddx:
 
 ## Overview
 
-Generate fabricated healthcare or legal sample data from UMF specifications, respecting constraints, foreign keys, and domain types.
+Generate fabricated healthcare or legal sample data, or explicitly ingest published sample fixtures, from UMF specifications, respecting constraints, foreign keys, and domain types.
 
 ## Ideal Future State
 
@@ -48,12 +48,13 @@ F011-DOMAIN-01. The feature SHALL select a domain generator set and matching typ
 F011-LEGAL-01. Legal values SHALL be fabricated and seeded, correlate billing rates to timekeeper levels and narratives to tasks, and constrain time-entry dates to referenced matter periods. Teams and walls SHALL contain unique, disjoint staff pairs; every matter SHALL have a partner and another member; entries SHALL use eligible team members. Typed documents and varied narratives SHALL expose optional tabular issue ground truth. Invoice sample windows SHALL have exact entry-derived totals.
 F011-LOAD-01. Unity Catalog loading SHALL be optional, injectable for offline testing, batched and repeatable, with an explicit volume-bulk path, read-back verification, verify-only auditing, local DDL/count review and opt-in table recreation.
 F011-SCALE-01. Row counts SHALL follow configured parent relationships with per-table overrides and configurable power-law FK skew and minimum parent coverage. Million-row generation SHALL keep dataset rows and uniqueness state on disk.
+F011-SOURCE-01. Explicit fixture ingestion SHALL verify local source checksums, redistribution declarations, tabular constraints and foreign keys before using the shared archive and loading paths. It SHALL retain original source artifacts and clinical literal meanings, and SHALL refuse fabricated substitution for external rows.
 F011-VERIFY-01. A successful load SHALL require zero orphan, null and uniqueness violations; unsupported or unsatisfiable constraints SHALL fail explicitly. Generation and post-load audits SHALL independently check tabular entitlement invariants.
 
 ### Non-Functional Requirements
 
 - **Performance**: No new feature-specific runtime target is introduced by this backfill; existing PRD, test, and implementation evidence remain authoritative until a feature-specific target is specified.
-- **Security**: The feature SHALL use fabricated data only, keep authentication inside the optional SDK profile mechanism, and require operator invocation for workspace writes.
+- **Security**: Generation SHALL use fabricated data only; fixture ingestion SHALL preserve declared source kind and require explicit redistribution clearance without claiming privacy certification. The feature SHALL keep authentication inside the optional SDK profile mechanism, and require operator invocation for workspace writes.
 - **Scalability**: The bounded generation path SHALL generate the large preset with three million time entries without retaining dataset rows or key indexes in Python memory; benchmark evidence qualifies runtime claims.
 - **Reliability**: The feature contract SHALL remain source-backed: behavior changes require updated source citations or tests before this document is marked current.
 

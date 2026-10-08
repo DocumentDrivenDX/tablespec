@@ -92,19 +92,36 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
                     entry(name), json.dumps(value, sort_keys=True, indent=2)
                 )
 
+            pack_metadata = dataset.source_metadata
+            if pack_metadata is None:
+                pack_metadata = get_run_domain_pack(dataset.config).metadata
             metadata(
                 "manifest.json",
                 {
                     "format": "tablespec.csv-pack",
                     "version": 1,
                     "domain": dataset.config.domain,
-                    "seed": dataset.config.random_seed,
+                    "seed": dataset.config.random_seed
+                    if dataset.source_metadata is None
+                    else None,
+                    "origin": "external"
+                    if dataset.source_metadata is not None
+                    else "synthetic",
                     "encoding": "UTF-8",
                     "null_value": "\\N",
                     "header": True,
                     "delimiter": ",",
                     "quote": '"',
                     "line_ending": "\n",
+                    "schema_artifacts": {
+                        schema["reference"]: f"schemas/{schema['id']}.json"
+                        for schema in (pack_metadata or {}).get("schemas", [])
+                        if schema["id"] in dataset.specs
+                    },
+                    "source_artifacts": {
+                        name: f"inputs/{name}"
+                        for name in sorted(dataset.source_artifacts)
+                    },
                     "tables": {
                         name: {"file": f"data/{name}.csv", "rows": dataset.counts[name]}
                         for name in sorted(dataset.specs)
@@ -112,9 +129,16 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
                 },
             )
             metadata("report.json", dataset.report)
-            pack = get_run_domain_pack(dataset.config)
-            if pack.metadata is not None:
-                metadata("domain-pack.json", pack.metadata)
+            if pack_metadata is not None:
+                metadata("domain-pack.json", pack_metadata)
+            for name, path in sorted(dataset.source_artifacts.items()):
+                with (
+                    path.open("rb") as source,
+                    archive.open(entry(f"inputs/{name}"), "w") as target,
+                ):
+                    from shutil import copyfileobj
+
+                    copyfileobj(source, target, length=1024 * 1024)
             for name in sorted(dataset.specs):
                 identifier(name)  # Also prevents path traversal in ZIP members.
                 spec = dataset.specs[name]
