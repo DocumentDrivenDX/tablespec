@@ -119,7 +119,9 @@ def from_legacy(data: dict, *, document_id: str | None = None) -> Document:
             if shared:
                 element[key] = metadata.pop(key)
         native_type = metadata.get("data_type")
-        scalar = NATIVE_TO_SCALAR.get(native_type) if isinstance(native_type, str) else None
+        scalar = (
+            NATIVE_TO_SCALAR.get(native_type) if isinstance(native_type, str) else None
+        )
         if scalar is not None:
             element["scalarType"] = scalar
         element["extensions"][EXTENSION_ID] = {"metadata": metadata}
