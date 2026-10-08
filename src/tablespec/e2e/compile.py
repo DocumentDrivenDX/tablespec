@@ -46,9 +46,9 @@ import yaml
 from tablespec.e2e.manifest import (
     CompiledArtifacts,
     TableArtifacts,
-    ddl_path,
     dbt_gold_project_dir,
     dbt_ingest_project_dir,
+    ddl_path,
     gold_plan_path,
     ingest_sql_path,
     json_schema_path,
@@ -214,9 +214,24 @@ def _compile_table(
         umf_data["primary_key"] = promotion["columns"]
 
     # 0. snapshot the UMF the compile ran against (audit + reproducibility).
+    if umf._shared_document is not None:
+        from umf import write_document
+
+        from tablespec.extensions.umf import EXTENSION_ID
+
+        document = umf.to_document()
+        if promotion["promoted"]:
+            extensions = document.modules[0].extensions or {}
+            extensions.setdefault(EXTENSION_ID, {"metadata": {}})["metadata"][
+                "primary_key"
+            ] = promotion["columns"]
+            document.modules[0].extensions = extensions
+        snapshot = write_document(document, "yaml")
+    else:
+        snapshot = yaml.safe_dump(umf_data, sort_keys=False, allow_unicode=True)
     umf_snap = _write(
         umf_snapshot_path(root, name),
-        yaml.safe_dump(umf_data, sort_keys=False, allow_unicode=True),
+        snapshot,
     )
 
     # 1. ingest SQL (raw DDL + typed DDL + raw->ingested transform).

@@ -152,3 +152,18 @@ This section preserves the pre-template feature content as source-backed scope e
 - [x] Acceptance criteria remain in user stories, not this feature spec.
 - [x] Dependencies and source evidence reference existing artifacts.
 - [x] Backfill does not introduce new implementation behavior.
+
+### Shared UMF ownership amendment
+
+Shared core schemas and Python support machinery belong to the official UMF
+package. TableSpec's existing models remain its native extension/compiler view,
+including contextual nullability, source declarations and pipeline policy.
+Canonical documents use core 0.8.0 plus `tablespec.pipeline` 0.1.0. Core field
+name/description/title/aliases and scalar family are read from the document;
+native type refinements and pipeline metadata remain in the TableSpec extension.
+The compiler binding MUST reject inconsistent scalar/native types, duplicated
+schema authority and unsupported shared execution semantics.
+
+Source archives MUST permit exact unchanged-file recovery and refuse rollback
+after semantic edits. A derived compiler view MUST NOT silently overwrite its
+authoritative document. Legacy model I/O remains available for compatibility.

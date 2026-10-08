@@ -14,6 +14,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    PrivateAttr,
     StringConstraints,
     field_validator,
     model_validator,
@@ -1754,6 +1755,22 @@ class ExpectationSuite(BaseModel):
 class UMF(BaseModel):
     """Universal Metadata Format model."""
 
+    _shared_document: Any = PrivateAttr(default=None)
+    _shared_snapshot: dict[str, Any] | None = PrivateAttr(default=None)
+
+    def to_document(self):
+        """Return the authoritative shared document or migrate a legacy view."""
+        from tablespec.extensions.umf import document_from_view
+
+        return document_from_view(self)
+
+    @classmethod
+    def from_document(cls, document):
+        """Derive a compiler view from an official UMF Python Document."""
+        from tablespec.extensions.umf import compiler_view
+
+        return compiler_view(document)
+
     version: Annotated[str, StringConstraints(pattern=r"^\d+\.\d+$")] = Field(
         description="UMF format version"
     )
@@ -2053,6 +2070,13 @@ def load_umf_from_yaml(yaml_path: str | Path) -> UMF:
     with yaml_file.open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
+    if isinstance(data, dict) and "umf" in data:
+        from umf import read_document
+
+        return UMF.from_document(
+            read_document(yaml_file.read_text(encoding="utf-8"), "yaml")
+        )
+
     return UMF(**data)
 
 
@@ -2068,6 +2092,14 @@ def save_umf_to_yaml(umf: UMF, yaml_path: str | Path) -> None:
 
     yaml_file = Path(yaml_path)
     yaml_file.parent.mkdir(parents=True, exist_ok=True)
+
+    if umf._shared_document is not None:
+        from umf import write_document
+
+        yaml_file.write_text(
+            write_document(umf.to_document(), "yaml"), encoding="utf-8"
+        )
+        return
 
     # Convert to dict and remove None values for cleaner output
     data = umf.model_dump(exclude_none=True)

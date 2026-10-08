@@ -113,6 +113,14 @@ def _declared_source(umf_snapshot: Path) -> _SourceShape | None:
     import yaml
 
     data = yaml.safe_load(umf_snapshot.read_text(encoding="utf-8")) or {}
+    if "umf" in data:
+        from umf import read_document
+
+        from tablespec.extensions.umf import to_legacy
+
+        data = to_legacy(
+            read_document(umf_snapshot.read_text(encoding="utf-8"), "yaml")
+        )
     declared = data.get("source")
     if declared is not None:
         kind = declared.get("kind")
