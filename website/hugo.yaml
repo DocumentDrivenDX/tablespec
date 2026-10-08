@@ -42,6 +42,7 @@ menu:
         icon: github
 
 params:
+  images: [social-preview.png]
   description: A UMF compiler that turns table specs into the SQL, dbt, Lakeflow, schema, and validation artifacts a data platform runs, from raw to gold.
 
   # Blueprint CSS is light-only (paper grid + ink). Do not follow system dark mode —

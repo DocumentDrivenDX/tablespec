@@ -74,6 +74,11 @@ jobs:
         env:
           CI: true
 
+      # The Hugo test server writes localhost URLs and livereload into public/.
+      - name: Rebuild production output after browser tests
+        working-directory: website
+        run: hugo --gc --minify --cleanDestinationDir
+
       - name: Generate combined Pages artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

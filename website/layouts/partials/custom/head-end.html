@@ -11,12 +11,6 @@
 <meta name="description" content="{{ $description }}">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="{{ .Permalink }}">
-<meta property="og:site_name" content="tablespec">
-<meta property="og:title" content="{{ if .IsHome }}tablespec - one UMF, every runtime artifact{{ else }}{{ .Title }} - tablespec{{ end }}">
-<meta property="og:description" content="{{ $description }}">
-<meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}">
-<meta property="og:url" content="{{ .Permalink }}">
-<meta name="twitter:card" content="summary_large_image">
 {{- if .IsHome }}
 <script type="application/ld+json">
 {
