@@ -48,7 +48,9 @@ npm run test:all
 | `microsite.yml` | Content suite (nav + screenshots) + links | PR/main check only |
 
 Homepage visual snapshots (`toHaveScreenshot`) can drift with fonts/theme CSS.
-They use a raised `maxDiffPixelRatio` (0.12). Rebaseline on **Linux** (matches CI):
+They use a raised `maxDiffPixelRatio` (0.12). The Microsite workflow runs in
+`mcr.microsoft.com/playwright:v1.60.0-noble` to pin browser libraries and fonts.
+Rebaseline in that **Linux container**, using Hugo 0.160.0 and Go 1.23.x:
 
 ```bash
 cd website
