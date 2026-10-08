@@ -51,7 +51,7 @@ def _copy_site(site_dir: Path, out_dir: Path) -> None:
     (out_dir / ".nojekyll").touch()
 
 
-def _current_dist_links(dist_dir: Path, tag: str) -> list[PackageLink]:
+def _current_dist_links(dist_dir: Path, tag: str, repo: str) -> list[PackageLink]:
     if not tag:
         raise SystemExit("--tag is required when --dist-dir is provided")
     if not dist_dir.is_dir():
@@ -61,7 +61,7 @@ def _current_dist_links(dist_dir: Path, tag: str) -> list[PackageLink]:
     for artifact in sorted(path for path in dist_dir.iterdir() if path.is_file()):
         digest = _sha256(artifact)
         name = artifact.name
-        href = f"../../../releases/download/{tag}/{name}#sha256={digest}"
+        href = f"https://github.com/{repo}/releases/download/{tag}/{name}#sha256={digest}"
         links.append(PackageLink(name=name, href=href, tag=tag))
     return links
 
@@ -190,7 +190,7 @@ def build_pages_artifact(args: argparse.Namespace) -> None:
 
     links: list[PackageLink] = []
     if args.dist_dir:
-        links.extend(_current_dist_links(Path(args.dist_dir), args.tag))
+        links.extend(_current_dist_links(Path(args.dist_dir), args.tag, args.repo))
     if args.releases_json:
         payload = json.loads(Path(args.releases_json).read_text(encoding="utf-8"))
         links.extend(_links_from_release_payload(payload))

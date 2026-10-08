@@ -63,6 +63,8 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
             str(dist_dir),
             "--out-dir",
             str(out_dir),
+            "--repo",
+            "DocumentDrivenDX/tablespec",
             "--tag",
             "v1.2.3",
             "--releases-json",
@@ -82,7 +84,8 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
 
     assert "tablespec-1.2.3-py3-none-any.whl" in html
     assert "tablespec-1.2.3.tar.gz" in html
-    assert "../../../releases/download/v1.2.3/" in html
+    assert "https://github.com/DocumentDrivenDX/tablespec/releases/download/v1.2.3/" in html
+    assert "../../../releases/" not in html
     assert "#sha256=" in html
     assert "tablespec-1.1.0-py3-none-any.whl" in html
     assert "notes.txt" not in html
