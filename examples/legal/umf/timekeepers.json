@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "table_name": "timekeepers",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "timekeeper_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated timekeeper id"
+    },
+    {
+      "name": "timekeeper_name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated timekeeper name",
+      "domain_type": "timekeeper_name"
+    },
+    {
+      "name": "timekeeper_level",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated timekeeper level",
+      "domain_type": "timekeeper_level"
+    },
+    {
+      "name": "billing_rate",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Fabricated billing rate",
+      "domain_type": "billing_rate",
+      "precision": 10,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "timekeeper_id"
+  ]
+}

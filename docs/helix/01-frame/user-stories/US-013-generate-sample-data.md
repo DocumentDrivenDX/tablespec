@@ -34,6 +34,11 @@ This story covers the generate sample data from umf slice in the parent feature.
 - [ ] **US-013-AC3** — Given a `member` UMF with `claim_id`, `status`, and `service_date` constraints, when the sample-data generator runs, then **US-013-AC3** - Healthcare domain types (SSN, NPI, state codes) generate realistic values
 - [ ] **US-013-AC4** — Given a `member` UMF with `claim_id`, `status`, and `service_date` constraints, when the sample-data generator runs, then **US-013-AC4** - Output available in CSV and JSON formats with configurable row counts
 
+- [ ] **US-013-AC5** — Given fabricated legal specs and a fixed seed, repeated generation produces identical rows with legal row/parent correlations.
+- [ ] **US-013-AC6** — Given a verified dataset and an offline sink, staging batches publish one replacement per table; failed staging leaves that target data untouched.
+- [ ] **US-013-AC7** — Given a configured scale and parent overrides, child counts propagate and all generated foreign keys reference fabricated parent rows.
+- [ ] **US-013-AC8** — Given unsupported or unsatisfiable constraints, generation fails before sink writes; a local review requires no authentication or workspace access.
+
 ## Edge Cases
 
 - **foreign keys must stay referentially consistent**: foreign keys must stay referentially consistent

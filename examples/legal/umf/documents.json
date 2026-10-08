@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "table_name": "documents",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "document_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated document id"
+    },
+    {
+      "name": "matter_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter id"
+    },
+    {
+      "name": "document_type",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated document type",
+      "domain_type": "document_type"
+    },
+    {
+      "name": "document_title",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated document title",
+      "domain_type": "document_title"
+    },
+    {
+      "name": "document_body",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated document body",
+      "domain_type": "document_body"
+    }
+  ],
+  "primary_key": [
+    "document_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "matter_id",
+        "references_table": "matters",
+        "references_column": "matter_id"
+      }
+    ]
+  }
+}

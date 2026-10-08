@@ -30,6 +30,7 @@ from .config import GenerationConfig
 from .constraint_handlers import ConstraintHandlers
 from .date_processing import convert_umf_format_to_strftime, extract_date_constraints
 from .filename_generator import FilenameGenerator
+from .domains import get_domain_pack
 from .generators import HealthcareDataGenerators
 from .graph import RelationshipGraph
 from .registry import KeyRegistry
@@ -59,6 +60,7 @@ class TableGenerationInfo(TypedDict):
 class GenerationConfigDict(TypedDict):
     """Configuration section in generation report."""
 
+    root_entity_count: int
     num_members: int
     relationship_density: float
     temporal_range_days: int
@@ -69,6 +71,7 @@ class KeyStatistics(TypedDict):
 
     total_tables: int
     total_records: int
+    unique_root_keys: int
     unique_member_ids: int
 
 
@@ -131,11 +134,18 @@ class SampleDataGenerator:
 
         # Initialize components in correct order
         self.gx_extractor = GXConstraintExtractor()
-        self.domain_type_registry = (
-            DomainTypeRegistry() if DomainTypeRegistry is not None else None
+        pack = get_domain_pack(config.domain)
+        registry_factory = (
+            DomainTypeRegistry if config.domain == "healthcare" else pack.registry
         )
+        self.domain_type_registry = registry_factory() if registry_factory else None
         self.key_registry = KeyRegistry(config, self.gx_extractor)
-        self.generators = HealthcareDataGenerators(config, self.key_registry)
+        generator_factory = (
+            HealthcareDataGenerators
+            if config.domain == "healthcare"
+            else pack.generators
+        )
+        self.generators = generator_factory(config, self.key_registry)
         self.validation_processor = ValidationRuleProcessor(self.generators)
         self.constraint_handlers = ConstraintHandlers()
         self.graph = RelationshipGraph()
@@ -160,7 +170,7 @@ class SampleDataGenerator:
             str, str
         ] = {}  # filename -> table_name that wrote it
 
-    def load_umf_files(self) -> dict[str, dict]:
+    def load_umf_files(self, *, strict: bool = False) -> dict[str, dict]:
         """Load all UMF files from input directory using standard UMF discovery.
 
         Uses UMFLoader to load from split format directories or JSON tablespecs.
@@ -191,11 +201,19 @@ class SampleDataGenerator:
             if item.name.startswith(".") or item.name.startswith("__"):
                 continue
 
+            if strict and not (
+                item.suffix == ".json"
+                or (item.is_dir() and (item / "table.yaml").exists())
+            ):
+                continue
+
             # Try to load: UMFLoader auto-detects format (split dir or JSON file)
             try:
                 # Load via UMFLoader - works for directories (split) and JSON files
                 umf = converter.load(item)
                 table_name = umf.table_name
+                if strict and table_name in umf_files:
+                    raise ValueError(f"Duplicate UMF table name: {table_name}")
                 # Convert UMF model to dict for compatibility with rest of code
                 umf_files[table_name] = umf.model_dump(mode="json", exclude_none=True)
                 format_type = "directory" if item.is_dir() else "JSON file"
@@ -203,9 +221,13 @@ class SampleDataGenerator:
                     f"Loaded UMF for {table_name} from {format_type}: {item.name}"
                 )
             except (ValueError, FileNotFoundError):
+                if strict:
+                    raise
                 # Not a valid UMF file/directory - skip silently
                 continue
             except Exception as e:
+                if strict:
+                    raise
                 self.logger.warning(f"Failed to load UMF from {item.name}: {e}")
                 # Continue loading other tables instead of failing completely
                 continue
@@ -650,6 +672,8 @@ class SampleDataGenerator:
                 # No composite PK, accept record immediately
                 break
 
+            if hasattr(self.generators, "correlate"):
+                record = self.generators.correlate(record, columns, index=len(records))
             records.append(record)
 
         # Register primary keys for foreign key relationships
@@ -945,7 +969,7 @@ class SampleDataGenerator:
         # Check if table is in the graph
         if table_name not in self.graph.nodes:
             # Table not in graph (e.g., generated table) - use default sizing
-            default_count = max(100, int(self.config.num_members * 0.1))
+            default_count = max(100, int(self.config.entity_count * 0.1))
             self.logger.debug(
                 f"Table {table_name} not in relationship graph, using default sizing: {default_count} records"
             )
@@ -958,9 +982,9 @@ class SampleDataGenerator:
         if len(table_node.dependencies) == 0:
             self.logger.debug(
                 f"Table {table_name} identified as base table (no dependencies), "
-                + f"generating {self.config.num_members} records"
+                + f"generating {self.config.entity_count} records"
             )
-            return self.config.num_members
+            return self.config.entity_count
 
         # Table has dependencies - calculate count based on relationship cardinality
         # Use UMF data to get cardinality information
@@ -973,16 +997,16 @@ class SampleDataGenerator:
                 cardinality = rel.get("cardinality", {}).get("type", "one_to_many")
 
                 if cardinality == "one_to_one":
-                    record_count = self.config.num_members
+                    record_count = self.config.entity_count
                 elif cardinality == "one_to_zero_or_one":
                     record_count = int(
-                        self.config.num_members * self.config.relationship_density
+                        self.config.entity_count * self.config.relationship_density
                     )
                 elif cardinality in ["one_to_many", "one_to_zero_or_many"]:
-                    # Average 2-5 records per member
+                    # Average 2-5 records per root entity
                     multiplier = random.uniform(2.0, 5.0)
                     record_count = int(
-                        self.config.num_members
+                        self.config.entity_count
                         * multiplier
                         * self.config.relationship_density
                     )
@@ -997,7 +1021,7 @@ class SampleDataGenerator:
                 return record_count
 
         # Fallback: table has dependencies but no cardinality info in UMF
-        default_count = max(100, int(self.config.num_members * 0.1))
+        default_count = max(100, int(self.config.entity_count * 0.1))
         self.logger.debug(
             f"Table {table_name} has dependencies but no cardinality info, using default sizing: {default_count} records"
         )
@@ -1160,7 +1184,8 @@ class SampleDataGenerator:
         report: GenerationReport = {
             "generation_timestamp": self.config.get_reference_date().isoformat(),
             "configuration": {
-                "num_members": self.config.num_members,
+                "root_entity_count": self.config.entity_count,
+                "num_members": self.config.entity_count,
                 "relationship_density": self.config.relationship_density,
                 "temporal_range_days": self.config.temporal_range_days,
             },
@@ -1170,7 +1195,13 @@ class SampleDataGenerator:
                 "total_records": sum(
                     len(records) for records in self.generated_data.values()
                 ),
-                "unique_member_ids": len(self.generators.member_ids),
+                "unique_root_keys": sum(
+                    len(keys)
+                    for table, keys in self.key_registry.primary_keys.items()
+                    if table in self.graph.nodes
+                    and not self.graph.nodes[table].dependencies
+                ),
+                "unique_member_ids": len(getattr(self.generators, "member_ids", ())),
             },
         }
 

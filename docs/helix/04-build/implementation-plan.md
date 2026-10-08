@@ -61,6 +61,7 @@ The inventory below mirrors the top-level `src/tablespec` surface exactly. Packa
 | `core/` | IR, registry, relations, schema-facts, and selection helpers. |
 | `dbt/` | dbt project emitters, routing, registry, renderer, contracts, and selection helpers. |
 | `e2e/` | Compile/bootstrap/manifest/runtime backbones for shipped artifacts. |
+| `extensions/` | Tablespec-owned pipeline and source-archive metadata extensions over shared UMF. |
 | `formatting/` | YAML formatter support. |
 | `guidebook/` | Static HTML guidebook generation: UMF discovery, lineage, search index, and rendering. |
 | `inference/` | Domain-type inference surface. |

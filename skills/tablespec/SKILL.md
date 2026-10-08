@@ -144,3 +144,14 @@ code, docs, or specs, these also apply:
 - If no public facade exists for a common workflow, file an issue (or a bead, in
   DDx repositories) to add one instead of normalizing hand-written orchestration
   in docs.
+
+## Fabricated sample-data loading
+
+Use `tablespec sample-data load --umf <dir> --target <catalog.schema>
+--domain legal --scale small --dry-run` to review local generation, DDL and
+verification. Healthcare is the default pack. Read `docs/guide/sample-data.md`
+for registration, custom scale configuration and supported constraints. Only
+perform a workspace load when explicitly authorized; supply warehouse/profile
+names, never credentials. Replacement stages batches then overwrites each
+target table; it is not a transaction across tables. `--drop-existing` requires
+explicit operator intent. Praxis specs belong in praxis, not this library.

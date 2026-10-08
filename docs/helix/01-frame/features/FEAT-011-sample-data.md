@@ -10,12 +10,12 @@ ddx:
 **Feature ID**: FEAT-011
 **Owner**: Data-Quality Platform
 **Covered PRD Subsystem(s)**: Sample Data Generation
-**Covered PRD Requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5, FR-12.6
+**Covered PRD Requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5, FR-12.6, FR-12.7, FR-12.8, FR-12.9
 **Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Overview
 
-Generate realistic healthcare-specific sample data from UMF specifications, respecting constraints, foreign keys, and domain types.
+Generate fabricated healthcare or legal sample data from UMF specifications, respecting constraints, foreign keys, and domain types.
 
 ## Ideal Future State
 
@@ -42,11 +42,19 @@ A data engineer can rely on Sample Data Generation as a governed tablespec capab
 F011-COMPON-01. The feature SHALL provide the components behavior described in the existing scope evidence and cited source modules below.
 F011-COMPON-02. Changes to the components behavior SHALL update this feature specification, affected user stories, and registry metadata in the same governed change.
 
+#### Domain packs and loading
+
+F011-DOMAIN-01. The feature SHALL select a domain generator set and matching type registry per run, retain healthcare defaults, and retain the legacy root-count alias.
+F011-LEGAL-01. Legal values SHALL be fabricated and seeded, correlate billing rates to timekeeper levels and narratives to tasks, and constrain time-entry dates to referenced matter periods.
+F011-LOAD-01. Unity Catalog loading SHALL be optional, injectable for offline testing, batched and repeatable, with local DDL/count review and opt-in table recreation.
+F011-SCALE-01. Row counts SHALL follow configured parent relationships with per-table overrides and configurable FK skew. Million-row generation SHALL keep dataset rows and uniqueness state on disk.
+F011-VERIFY-01. A successful load SHALL require zero orphan, null and uniqueness violations; unsupported constraints SHALL fail explicitly.
+
 ### Non-Functional Requirements
 
 - **Performance**: No new feature-specific runtime target is introduced by this backfill; existing PRD, test, and implementation evidence remain authoritative until a feature-specific target is specified.
-- **Security**: The feature SHALL not expand data exposure, logging, or external-service behavior beyond the cited implementation and dependency evidence.
-- **Scalability**: No new feature-specific scalability target is introduced by this backfill; scalability claims require explicit benchmark or test evidence.
+- **Security**: The feature SHALL use fabricated data only, keep authentication inside the optional SDK profile mechanism, and require operator invocation for workspace writes.
+- **Scalability**: The bounded generation path SHALL generate the large preset with three million time entries without retaining dataset rows or key indexes in Python memory; benchmark evidence qualifies runtime claims.
 - **Reliability**: The feature contract SHALL remain source-backed: behavior changes require updated source citations or tests before this document is marked current.
 
 ### Existing Scope Evidence
@@ -99,15 +107,15 @@ This section preserves the pre-template feature content as source-backed scope e
 
 ## Constraints and Assumptions
 
-- This backfill is source-preserving: it reorganizes and clarifies the governing contract without adding runtime behavior.
+- The legal/loading extension is authorized by the praxis-harness enhancement request. Legacy scope evidence remains source-preserving and descriptive; the new requirements govern the extension.
 - Exact API, CLI, schema, and execution semantics remain owned by the implementation and any dedicated contract artifacts; this feature records the product-level capability boundary.
 - Feature delivery stage remains tracked in `docs/helix/01-frame/feature-registry.md`; this document uses the feature-specification status field.
 
 ## Dependencies
 
 - **Other features**: See the feature-registry dependency table for cross-feature dependencies; this backfill does not introduce new runtime dependencies.
-- **External services**: Existing source-backed dependencies only; no new external service is introduced by this spec backfill.
-- **PRD requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5, FR-12.6
+- **External services**: Optional Databricks SQL warehouse or caller-supplied Spark session; offline generation and tests require neither. Authentication remains owned by the SDK profile.
+- **PRD requirements**: FR-12.1, FR-12.2, FR-12.3, FR-12.4, FR-12.5, FR-12.6, FR-12.7, FR-12.8, FR-12.9
 
 ### Source Evidence
 
@@ -115,7 +123,7 @@ This section preserves the pre-template feature content as source-backed scope e
 
 ## Out of Scope
 
-- Adding runtime behavior, public API surface, CLI flags, schemas, or telemetry solely through this documentation backfill.
+- Actual workspace execution in this enhancement, praxis-owned UMF specs, credential handling, full UTBMS coverage, and cross-table atomic publication.
 - Reassigning PRD requirement ownership without updating the PRD and feature registry.
 - Duplicating story-level acceptance criteria in this feature spec.
 

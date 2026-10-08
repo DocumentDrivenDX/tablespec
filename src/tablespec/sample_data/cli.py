@@ -35,10 +35,12 @@ class GenerateSampleDataScript:
             help="Output directory for generated sample data",
         )
         parser.add_argument(
+            "--root-entity-count",
             "--num-members",
+            dest="root_entity_count",
             type=int,
             default=10000,
-            help="Number of base members to generate (default: 10000)",
+            help="Number of root entities to generate (default: 10000)",
         )
         parser.add_argument(
             "--relationship-density",
@@ -52,13 +54,17 @@ class GenerateSampleDataScript:
             default=365,
             help="Date range in days for temporal fields (default: 365)",
         )
+        parser.add_argument(
+            "--domain", default="healthcare", help="Registered domain pack"
+        )
         return parser
 
     def execute(self, args: argparse.Namespace) -> bool:
         """Execute sample data generation."""
         # Create generation configuration
         config = GenerationConfig(
-            num_members=args.num_members,
+            root_entity_count=args.root_entity_count,
+            domain=args.domain,
             relationship_density=args.relationship_density,
             temporal_range_days=args.temporal_range,
         )

@@ -30,6 +30,7 @@ Top-level layout:
 - `core/` - Shared IR, relation, registry, selection, and schema-fact primitives.
 - `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
 - `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
+- `extensions/` - Tablespec-owned pipeline and source-archive metadata extensions over shared UMF.
 - `formatting/` - YAML formatting helpers and shared formatting constants.
 - `guidebook/` - Static HTML guidebook generator (discovery, lineage, rendering) for UMF directories.
 - `inference/` - Domain-type inference and registry helpers.
@@ -39,7 +40,7 @@ Top-level layout:
 - `profiling/` - Native profiler types plus Spark/JDBC profile-to-UMF mappers, and `sql_reflect` (Spark-free UMF reflection from INFORMATION_SCHEMA rows).
 - `prompts/` - LLM prompt templates for docs, validation, filenames, relationships, and survivorship.
 - `quality/` - Baseline capture/storage and quality execution helpers.
-- `sample_data/` - Synthetic data generation, registry, validation, and filename helpers.
+- `sample_data/` - Selectable healthcare/legal generators, disk-backed scale planning, constraint reports, file output, and injectable Unity Catalog sinks.
 - `schemas/` - Schema generators, relationship resolution, and packaged JSON schema assets.
 - `validation/` - GX processors, staged reports, custom expectations, and the Spark-backed table validator.
 
@@ -63,6 +64,8 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
 
 ## Optional Dependencies
 
+- **`[databricks]`** - SDK statement execution for the optional Unity Catalog sample-data loader; authentication stays in the SDK profile.
+  - Install: `uv sync --extra databricks`
 - **`[spark]`** - PySpark support for Spark session helpers, profiling, validation, and other Spark-backed APIs.
   - Install: `uv sync --extra spark`
 - **`[duckdb]`** - DuckDB plus SQLAlchemy support for local dbt/SQL execution paths and dialect parity checks.

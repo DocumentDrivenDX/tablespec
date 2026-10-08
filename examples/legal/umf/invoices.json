@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "invoices",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "invoice_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated invoice id"
+    },
+    {
+      "name": "matter_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter id"
+    },
+    {
+      "name": "invoice_number",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated invoice number",
+      "domain_type": "invoice_number"
+    },
+    {
+      "name": "invoice_status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated invoice status",
+      "domain_type": "invoice_status"
+    }
+  ],
+  "primary_key": [
+    "invoice_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "matter_id",
+        "references_table": "matters",
+        "references_column": "matter_id"
+      }
+    ]
+  }
+}

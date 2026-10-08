@@ -10,6 +10,10 @@ from .config import GenerationConfig
 from .constraint_handlers import ConstraintHandlers
 from .date_processing import convert_umf_format_to_strftime, extract_date_constraints
 from .engine import SampleDataGenerator
+from .domains import DomainPack, get_domain_pack, register_domain_pack
+from .legal import LegalDataGenerators
+from .sink import SQLSink, SparkSQLSink, WarehouseSQLSink, load_dataset
+from .streaming import GeneratedDataset, plan_counts
 from .filename_generator import FilenameGenerator
 from .foreign_keys import (
     DynamicValueGenerator,
@@ -22,6 +26,16 @@ from .registry import KeyRegistry
 from .validation import ValidationRuleProcessor
 
 __all__ = [
+    "DomainPack",
+    "get_domain_pack",
+    "register_domain_pack",
+    "LegalDataGenerators",
+    "SQLSink",
+    "SparkSQLSink",
+    "WarehouseSQLSink",
+    "load_dataset",
+    "GeneratedDataset",
+    "plan_counts",
     "ColumnValueGenerator",
     "ConstraintHandlers",
     "DynamicValueGenerator",

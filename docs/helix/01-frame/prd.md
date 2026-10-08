@@ -263,12 +263,15 @@ edits; do not renumber on edit.
 
 **FR-12** requirement family.
 
-- **FR-12.1** — Healthcare-specific sample data from UMF specifications
+- **FR-12.1** — Selectable domain-specific sample data from UMF specifications, retaining healthcare as the default
 - **FR-12.2** — Constraint-aware generation (value sets, regex patterns, date formats)
 - **FR-12.3** — Foreign key relationship graph for referential integrity
 - **FR-12.4** — Domain type-aware generators (SSN, NPI, phone, state codes)
 - **FR-12.5** — CSV and JSON output with configurable row counts
 - **FR-12.6** — Filename pattern generation from UMF file format specs
+- **FR-12.7** — Fabricated legal-domain sample values with seeded parent/row correlations and no real records or credential content
+- **FR-12.8** — Optional Unity Catalog loading through an injectable sink, local dry-run review, batched deterministic replacement and opt-in destructive recreation
+- **FR-12.9** — Relationship-based configurable scale presets and table overrides, disk-backed generation at millions of rows, and zero-violation generation reports
 
 ### Subsystem: Quality Baselines
 

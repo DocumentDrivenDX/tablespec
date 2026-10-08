@@ -32,6 +32,7 @@ from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
 from tablespec.dialects import CAST_DIALECTS
 from tablespec.umf_loader import UMFFormat, UMFLoader
+from tablespec.sample_data.load_cli import app as sample_data_app
 
 # validator module is not yet ported; commands that depend on it will be
 # registered only when the module is available.
@@ -52,6 +53,9 @@ app = typer.Typer(
     name="tablespec",
     help="Work with UMF (Universal Metadata Format) table schemas",
 )
+
+app.add_typer(sample_data_app, name="sample-data")
+
 console = Console(no_color=bool(os.environ.get("NO_COLOR")))
 _EMIT_DIALECT_HELP = (
     "Cast dialect for emitted models (duckdb, spark, databricks); "
