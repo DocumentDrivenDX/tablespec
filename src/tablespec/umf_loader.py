@@ -9,8 +9,8 @@ auto-detection
 Secondary use: Converting between supported formats
 """
 
-from enum import Enum
 import json
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -341,6 +341,13 @@ class UMFLoader:
         # Normalize string types for Spark/serialization consistency.
         data = self._convert_yaml_to_plain_strings(data)
 
+        if isinstance(data, dict) and "umf" in data:
+            from umf import read_document
+
+            return UMF.from_document(
+                read_document(file_path.read_text(encoding="utf-8"), "yaml")
+            )
+
         # Populate expectations from legacy fields if not already present (ADR-005).
         if "expectations" not in data and (
             "validation_rules" in data or "quality_checks" in data
@@ -375,6 +382,13 @@ class UMFLoader:
             msg = f"JSON file not found: {file_path}"
             raise FileNotFoundError(msg) from None
 
+        if isinstance(data, dict) and "umf" in data:
+            from umf import read_document
+
+            return UMF.from_document(
+                read_document(file_path.read_text(encoding="utf-8"))
+            )
+
         # Convert all string types to plain Python str for consistency and Spark compatibility
         data = self._convert_yaml_to_plain_strings(data)
 
@@ -391,7 +405,7 @@ class UMFLoader:
             umf.mtime = file_path.stat().st_mtime
         return umf
 
-    def _load_column_centric(self, dir_path: Path) -> UMF:
+    def _load_column_centric(self, dir_path: Path, *, raw: bool = False) -> UMF | dict:
         """Load UMF from split directory structure.
 
         Loads from split format:
@@ -411,11 +425,19 @@ class UMFLoader:
             ValueError: If data is invalid
 
         """
+
+        def load_yaml(stream):
+            if raw:
+                from umf import read_json_value
+
+                return read_json_value(stream.read(), "yaml")
+            return self.yaml.load(stream)
+
         # Load table.yaml
         table_file = dir_path / "table.yaml"
         try:
             with table_file.open() as f:
-                umf_data = self.yaml.load(f) or {}
+                umf_data = load_yaml(f) or {}
         except FileNotFoundError:
             msg = f"Missing table.yaml in {dir_path}"
             raise FileNotFoundError(msg) from None
@@ -428,11 +450,11 @@ class UMFLoader:
         cross_validations: dict = {}
         try:
             with validation_rules_file.open() as f:
-                cross_validations = self.yaml.load(f) or {}
+                cross_validations = load_yaml(f) or {}
         except FileNotFoundError:
             try:
                 with cross_val_file.open() as f:
-                    cross_validations = self.yaml.load(f) or {}
+                    cross_validations = load_yaml(f) or {}
                 # Backward compatibility: Support old filename but emit warning
                 import warnings
 
@@ -460,7 +482,7 @@ class UMFLoader:
         pending_val_file = dir_path / "pending_validations.yaml"
         try:
             with pending_val_file.open() as f:
-                pending_validations = self.yaml.load(f) or {}
+                pending_validations = load_yaml(f) or {}
             # Merge pending expectations with table validations
             if pending_validations and "validation_rules" not in umf_data:
                 umf_data["validation_rules"] = pending_validations
@@ -476,7 +498,7 @@ class UMFLoader:
         quality_checks_file = dir_path / "quality_checks.yaml"
         try:
             with quality_checks_file.open() as f:
-                quality_checks_data = self.yaml.load(f) or {}
+                quality_checks_data = load_yaml(f) or {}
             if quality_checks_data:
                 umf_data["quality_checks"] = quality_checks_data
         except FileNotFoundError:
@@ -486,7 +508,7 @@ class UMFLoader:
         expectations_file = dir_path / "expectations.yaml"
         try:
             with expectations_file.open() as f:
-                expectations_data = self.yaml.load(f) or {}
+                expectations_data = load_yaml(f) or {}
             if expectations_data:
                 umf_data["expectations"] = expectations_data
         except FileNotFoundError:
@@ -505,7 +527,7 @@ class UMFLoader:
         column_files = sorted(columns_dir.glob("*.yaml"))
         for column_file in column_files:
             with column_file.open() as f:
-                column_data = self.yaml.load(f) or {}
+                column_data = load_yaml(f) or {}
 
             # Extract base column metadata
             if "column" in column_data:
@@ -570,6 +592,9 @@ class UMFLoader:
 
             umf_data["expectations"] = ensure_expectation_suite_data(umf_data)
 
+        if raw:
+            return umf_data
+
         # Create UMF model
         umf = UMF(**umf_data)
         if hasattr(umf, "mtime"):
@@ -591,6 +616,10 @@ class UMFLoader:
         if format == UMFFormat.JSON:
             self.save_json(umf, path)
         elif format == UMFFormat.SPLIT:
+            if umf._shared_document is not None:
+                raise ValueError(
+                    "Shared UMF requires JSON persistence; legacy split export would lose shared content"
+                )
             self._save_split(umf, path)
         else:
             msg = "UMFFormat.INLINE is legacy-only; migrate inline YAML explicitly instead."
@@ -604,6 +633,9 @@ class UMFLoader:
             file_path: Output JSON file path
 
         """
+        if umf._shared_document is not None:
+            self.save_document(umf.to_document(), file_path)
+            return
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Convert to dict with sorted keys for deterministic output
@@ -613,6 +645,42 @@ class UMFLoader:
         # Write with indentation for readability
         with file_path.open("w") as f:
             json.dump(sorted_data, f, indent=2, default=str)
+
+    def load_document(self, path: str | Path):
+        """Load shared UMF or migrate legacy input with retained source files."""
+        from umf import read_document, read_json_value
+
+        from tablespec.extensions.umf import from_legacy, retain_sources
+
+        path = Path(path)
+        if path.is_file() and path.suffix == ".json":
+            text = path.read_text(encoding="utf-8")
+            data = read_json_value(text)
+            if isinstance(data, dict) and "umf" in data:
+                return read_document(text)
+            document = from_legacy(data)
+            return retain_sources(document, {path.name: text})
+        if path.is_file() and path.suffix in (".yaml", ".yml", ".umf"):
+            text = path.read_text(encoding="utf-8")
+            data = read_json_value(text, "yaml")
+            if isinstance(data, dict) and "umf" in data:
+                return read_document(text, "yaml")
+            return retain_sources(from_legacy(data), {path.name: text})
+        document = from_legacy(self._load_column_centric(path, raw=True))
+        files = {
+            file.relative_to(path).as_posix(): file.read_text(encoding="utf-8")
+            for file in sorted(path.rglob("*"))
+            if file.is_file()
+        }
+        return retain_sources(document, files)
+
+    def save_document(self, document, path: str | Path) -> None:
+        """Persist shared and unknown content with official UMF serialization."""
+        from umf import write_document
+
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(write_document(document), encoding="utf-8")
 
     def _save_split(self, umf: UMF, dir_path: Path) -> None:
         """Save UMF in split format (table.yaml + columns/).
@@ -968,8 +1036,8 @@ class UMFLoader:
             formatted_yaml = output.getvalue()
         except Exception as e:
             # Fallback to unformatted YAML if formatting fails
-            from io import StringIO
             import warnings
+            from io import StringIO
 
             warnings.warn(
                 f"YAML formatting failed for {path}: {e}. Writing unformatted YAML.",

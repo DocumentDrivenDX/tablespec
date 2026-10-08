@@ -298,3 +298,13 @@ surface and tracks pre-existing coverage gaps.
 - [x] Build handoff commands are concrete and runnable
 - [x] Plan traces to PRD FR-5/7/18/19/20 and the governing FEAT/US
 - [x] Every P0 criterion allocated to a primary layer without restating per-AC rows
+
+### Official Python UMF binding
+
+CONTRACT-001 requires native model/loader compatibility, shared field/type
+consumption, canonical persistence with unknown content, source archive recovery,
+stale-view refusal, explicit unsupported-property refusal and no numeric loss.
+`tests/unit/test_shared_umf.py` exercises those cases, existing ingest fixtures,
+a directly authored document and native compiler artifact comparisons. Synthetic
+DuckDB rows qualify one integer/decimal/string ingest subset; they do not establish
+Spark, Databricks, every core property or full end-to-end pipeline equivalence.

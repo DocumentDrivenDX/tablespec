@@ -279,3 +279,31 @@ Full documentation is available at [documentdrivendx.github.io/tablespec](https:
 ## License
 
 Apache License 2.0 - see LICENSE file for details.
+
+## Shared UMF Python documents
+
+TableSpec uses the official `umf-core` Python package from DocumentDrivenDX/umf
+for shared document models, schemas, serialization and validation machinery.
+TableSpec's pipeline extension remains in this repository.
+
+```python
+from tablespec.models import UMF
+from tablespec.umf_loader import UMFLoader
+
+loader = UMFLoader()
+document = loader.load_document("tables/orders")  # legacy migration + archive
+loader.save_document(document, "orders.umf.json")
+view = UMF.from_document(document)  # existing compiler input
+```
+
+Normal JSON loading recognizes shared documents. Shared-loaded compiler views
+retain their authoritative document; saving preserves unknown vocabularies. Edit
+the document and derive a new view rather than modifying that view directly.
+Legacy JSON/split APIs remain compatibility surfaces. Shared-to-split export
+refuses because it would drop shared content.
+
+Core Fields require explicit native `tablespec.pipeline` data_type refinements
+for execution. The initial binding consumes shared names/descriptions/titles/
+aliases and scalar families; other core constraints refuse until their native
+execution mapping is qualified. Native contextual nullability, source declarations,
+keys, relationships and pipeline policies remain TableSpec extension semantics.

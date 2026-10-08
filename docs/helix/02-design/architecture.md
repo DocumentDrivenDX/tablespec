@@ -325,3 +325,16 @@ never user extras — generating dbt/LDP is pure-Python text emission, enforced 
 - Versioning: Git tag-based via uv-dynamic-versioning (fallback: 0.0.0).
 - The shipped wheel contains `src/` only — the backbone ships its deps from `src/`
   and never imports the `tests/` tree.
+
+### Official UMF Python dependency
+
+TableSpec depends on the UMF-owned `umf-core` Python distribution and retains
+its extension under `src/tablespec/extensions/`. Canonical JSON Schema and
+serialization machinery are imported from `umf`. Native models remain local
+compiler/compatibility views. `load_document`/`save_document` provide canonical
+I/O; normal JSON loading recognizes shared documents and derives a checked
+compiler view. Shared-loaded views save the retained document and reject lossy
+split export or unsynchronized mutation. Legacy APIs retain existing behavior.
+Native migration maps shared field metadata to core and retains all other
+metadata in independently versioned TableSpec payloads. Exact source archives
+qualify unchanged-file recovery independently from compiler execution.

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tablespec.source-archive:0.1.0",
+  "type": "object",
+  "required": [
+    "files",
+    "snapshot",
+    "filesSha256"
+  ],
+  "properties": {
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "snapshot": {
+      "type": "string"
+    },
+    "filesSha256": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

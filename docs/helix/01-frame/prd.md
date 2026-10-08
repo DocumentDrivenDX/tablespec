@@ -400,3 +400,13 @@ edits; do not renumber on edit.
   workspace credentials are configured.
 - Manual transform/validation authoring time is reduced by at least 50% on the
   documented 3-table onboarding sample.
+
+### Official UMF Python consumption
+
+Owner direction (2026-10-07) places reusable Python core models, canonical core
+schemas, serialization and extension registration in DocumentDrivenDX/umf.
+TableSpec MUST own its pipeline extension schemas/models in this repository.
+Shared documents MUST be consumable through the existing compiler path without
+creating a second shared-schema authority. Unknown content survives canonical
+persistence; unsupported execution properties and lossy legacy export refuse.
+Legacy split/JSON APIs remain explicit compatibility surfaces.

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tablespec.pipeline:0.1.0",
+  "additionalProperties": true,
+  "description": "Native refinements and pipeline metadata; never part of UMF core.",
+  "properties": {
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "metadata"
+  ],
+  "title": "PipelinePayload",
+  "type": "object"
+}

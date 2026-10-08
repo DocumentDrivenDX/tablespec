@@ -9,9 +9,9 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import jsonschema
 import yaml
 from jsonschema import ValidationError
+from umf import schema_validator
 
 
 class UMFValidationError(Exception):
@@ -53,7 +53,7 @@ class UMFValidator:
             self.logger.info("UMF validator initialized with Pydantic-generated schema")
 
         # Create validator
-        self.validator = jsonschema.Draft7Validator(self.schema)
+        self.validator = schema_validator(self.schema)
 
     def validate_file(self, umf_file_path: Path, raise_on_error: bool = True) -> bool:
         """Validate a UMF file.
@@ -324,12 +324,12 @@ class UMFValidator:
             List of error messages for unknown expectation types
 
         """
+        from tablespec.expectation_migration import ensure_expectation_suite_data
         from tablespec.models.umf import (
             INGESTED_QUALITY_CHECK_TYPES,
             RAW_VALIDATION_TYPES,
             REDUNDANT_VALIDATION_TYPES,
         )
-        from tablespec.expectation_migration import ensure_expectation_suite_data
 
         known_types = (
             RAW_VALIDATION_TYPES
