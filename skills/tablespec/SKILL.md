@@ -162,3 +162,14 @@ entitlements. Optional `nda_issues`/`vague_entry` columns expose evaluation grou
 truth. `--bulk --volume /Volumes/catalog/schema/volume/path` uses CSV + Files API
 + COPY INTO; normal loading runs read-back audits and `--verify-only` reads
 existing tables. Preserve dry-run local-only behavior. See the sample-data guide.
+
+UMF owns portable pack/source metadata, schemas and schema export tooling;
+tablespec owns data generation, CSV ZIP export, ingestion and data tests.
+`sample-data export --umf <dir> --domain legal --scale small --output <file.zip>`
+creates a verified local archive without authentication. `--domain-pack` selects
+UMF metadata per run; resolve generator IDs through explicit trusted registration.
+Retain external source origin, declared data kind, revision/checksum, rights and
+provenance. Never fetch references or substitute generated rows for external input
+implicitly. Use the typed local CSV reader to preserve null/empty distinctions.
+Run the Sail and Spark ingestion lanes; live warehouse tests require both
+`TABLESPEC_LIVE_WAREHOUSE_ID` and `TABLESPEC_LIVE_PROFILE` and are opt-in only.

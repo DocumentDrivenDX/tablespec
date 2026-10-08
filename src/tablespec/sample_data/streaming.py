@@ -15,7 +15,7 @@ from tablespec.expectation_utils import expectation_dicts_from_umf_data
 from tablespec.schemas.generators import _resolve_nullable
 
 from .config import GenerationConfig
-from .domains import get_domain_pack
+from .domains import get_run_domain_pack
 
 
 def plan_counts(
@@ -25,11 +25,15 @@ def plan_counts(
     root_count: int = 100,
     relationships: dict[str, dict[str, Any]] | None = None,
     preset_path: Path | None = None,
+    presets: dict[str, Any] | None = None,
 ) -> dict[str, int]:
     """Resolve counts from configured parent edges and explicit overrides."""
-    presets = yaml.safe_load(
-        (preset_path or Path(__file__).with_name("scales.yaml")).read_text()
-    )
+    if preset_path is not None or presets is None:
+        presets = yaml.safe_load(
+            (preset_path or Path(__file__).with_name("scales.yaml")).read_text()
+        )
+    if not isinstance(presets, dict):
+        raise ValueError("Scale configuration must be a mapping")
     if scale not in presets:
         raise ValueError(f"Unknown scale: {scale}")
     preset = presets[scale]
@@ -99,7 +103,7 @@ class GeneratedDataset:
         self.counts = counts
         self.config = config
         self.rng = random.Random(config.random_seed)
-        pack = get_domain_pack(config.domain)
+        pack = get_run_domain_pack(config)
         self.generators = pack.generators(config)
         self.registry = pack.registry()
         self.report: dict[str, Any] = {}

@@ -5,6 +5,8 @@ not a claim of full UTBMS coverage. No source records are consumed.
 """
 
 from datetime import date, timedelta
+import json
+from pathlib import Path
 import random
 from typing import Any
 
@@ -54,14 +56,10 @@ LEGAL_NAMES = (
     "document_title",
     "document_body",
 )
-LEGAL_TYPES = {
-    name: {
-        "description": f"Fabricated legal sample {name.replace('_', ' ')}",
-        "sample_generation": {"method": f"generate_{name}"},
-        "detection": {"column_name_patterns": [f"^{name}$"]},
-    }
-    for name in LEGAL_NAMES
-}
+# Generated consumer snapshot. UMF spec/domain-packs/legal/pack.json owns pack
+# metadata and schemas; this module owns only executable fabricated generators.
+LEGAL_PACK = json.loads(Path(__file__).with_name("legal_pack.json").read_text())
+LEGAL_TYPES = LEGAL_PACK["domain_types"]
 
 
 class LegalDataGenerators(HealthcareDataGenerators):
@@ -180,7 +178,7 @@ class LegalDataGenerators(HealthcareDataGenerators):
         )
         for col in ordered:
             kind = col.get("domain_type")
-            if kind in LEGAL_TYPES:
+            if isinstance(kind, str) and kind in LEGAL_TYPES:
                 row[col["name"]] = self.value(kind, index, context)
                 context[kind] = row[col["name"]]
                 if kind == "document_body" and "nda_issues" in row:

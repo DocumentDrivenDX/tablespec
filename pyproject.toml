@@ -43,10 +43,10 @@ dependencies = [
 tablespec = "tablespec.cli:app"
 
 [project.optional-dependencies]
-databricks = ["databricks-sdk>=0.47.0,<1.0.0"]
+databricks = ["databricks-sdk>=0.117.0,<1.0.0"]
 spark = [
     "pyspark>=4.0.0,<5.0.0",
-    "pyarrow>=15.0.0,<18.0.0",
+    "pyarrow>=18.0.0,<23.0.0",
 ]
 duckdb = [
     "duckdb>=1.0.0,<2.0.0",
@@ -95,7 +95,7 @@ dev = [
     # (no JVM / no JAVA_HOME). It powers the cheap, JVM-free Connect test lane
     # for the profiler and the GX domain/date-order standalone validators. The
     # grpc/protobuf packages are the Spark Connect *client* dependencies.
-    "pysail>=0.6.3",
+    "pysail>=0.6.4,<0.7",
     "grpcio",
     "grpcio-status",
     "googleapis-common-protos",

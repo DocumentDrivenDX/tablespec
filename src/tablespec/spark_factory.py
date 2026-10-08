@@ -363,7 +363,9 @@ class SparkSessionFactory:
             # Basic verification - Delta Lake setup verification is handled by setup script
             try:
                 # Test basic Spark functionality
-                spark.range(1).collect()
+                # Exercise execution without opening Python's result-collection
+                # socket, which some PySpark releases leave unclosed.
+                spark.range(1).count()
 
                 # Verify Delta Lake extensions are configured
                 extensions = spark.conf.get("spark.sql.extensions", "") or ""

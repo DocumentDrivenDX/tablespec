@@ -30,7 +30,7 @@ from .config import GenerationConfig
 from .constraint_handlers import ConstraintHandlers
 from .date_processing import convert_umf_format_to_strftime, extract_date_constraints
 from .filename_generator import FilenameGenerator
-from .domains import get_domain_pack
+from .domains import get_run_domain_pack
 from .generators import HealthcareDataGenerators
 from .graph import RelationshipGraph
 from .registry import KeyRegistry
@@ -134,7 +134,7 @@ class SampleDataGenerator:
 
         # Initialize components in correct order
         self.gx_extractor = GXConstraintExtractor()
-        pack = get_domain_pack(config.domain)
+        pack = get_run_domain_pack(config)
         registry_factory = (
             DomainTypeRegistry if config.domain == "healthcare" else pack.registry
         )

@@ -35,3 +35,16 @@ and COPY INTO through a warehouse. Normal loading reads back counts, FK integrit
 and entitlement checks. `--verify-only` reruns these checks without writing.
 See the guide for requirements and failure behavior. Live loading is operator-run;
 repository tests use offline SQL and Files API fakes.
+
+The pack metadata and table schemas are owned by UMF under
+`spec/domain-packs/legal/`. This directory is a generated consumer example.
+Generate a verified, reproducible CSV archive without a workspace:
+
+```bash
+tablespec sample-data export --umf examples/legal/umf --domain legal \
+  --domain-pack examples/legal/domain-pack.json --scale small --output legal-small.zip
+```
+
+The archive includes typed schema snapshots, source metadata and the generation
+report. CSV uses explicit `\N` nulls and quoted empty strings. For ingestion,
+`read_csv_rows` preserves those distinctions before a typed Delta write.

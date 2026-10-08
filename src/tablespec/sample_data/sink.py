@@ -27,6 +27,69 @@ class SQLSink(Protocol):
         ...
 
 
+def warehouse_failure(status: Any, statement: str = "") -> str:
+    """Expose structural diagnostics without copying remote SQL or row data.
+
+    Remote messages are untrusted and can contain unquoted row values, URLs or
+    credentials. A closed vocabulary retains useful diagnostic prose; all
+    other words, quoted text and numeric values are withheld. This deliberately
+    favors confidentiality over reproducing arbitrary vendor error messages.
+    """
+    error = getattr(status, "error", None)
+    code = getattr(error, "error_code", None)
+    code = getattr(code, "value", code)
+    details = []
+    if isinstance(code, str) and re.fullmatch(r"[A-Z][A-Z_]{0,63}", code):
+        details.append(code)
+    message = str(getattr(error, "message", "") or "")[:8192]
+    # Withhold submitted string values even when the remote error echoes them unquoted.
+    escapes = {"0": "\0", "b": "\b", "n": "\n", "r": "\r", "t": "\t", "Z": "\x1a"}
+    for quoted in re.findall(r"'(?:\\.|[^'\\])*'", statement, flags=re.S):
+        value = re.sub(
+            r"\\(.)",
+            lambda match: escapes.get(match.group(1), match.group(1)),
+            quoted[1:-1],
+            flags=re.S,
+        )
+        if value:
+            message = re.sub(
+                r"(?<!\w)" + re.escape(value) + r"(?!\w)",
+                " [redacted] ",
+                message,
+                flags=re.I,
+            )
+    sqlstate = getattr(status, "sql_state", None)
+    if not sqlstate:
+        match = re.search(r"\bSQLSTATE\s*[:=]?\s*([0-9A-Z]{5})\b", message)
+        sqlstate = match.group(1) if match else None
+    if isinstance(sqlstate, str) and re.fullmatch(r"[0-9A-Z]{5}", sqlstate):
+        details.append("SQLSTATE " + sqlstate)
+    classes = re.findall(r"\[([A-Z][A-Z0-9_]*(?:\.[A-Z][A-Z0-9_]*)*)\]", message)
+    details.extend(c for c in classes if len(c) <= 120)
+    # Remove whole quoted spans before word filtering, including SQL expressions.
+    message = re.sub(r"(['\"`])(?:\\.|(?!\1).)*\1", " [redacted] ", message, flags=re.S)
+    message = re.split(r"\b(?:INSERT|SELECT|CREATE|VALUES|COPY|ALTER|DROP)\b", message)[
+        0
+    ]
+    allowed = set(
+        "cannot evaluate expression in inline table definition invalid argument syntax error parse parsing failed permission denied insufficient privileges missing unsupported not supported found expected column type mismatch incompatible data schema does exist access operation request execution statement internal timeout timed out too many rows resource exhausted null constraint violated duplicate value conversion overflow malformed input file format function requires is are was the a an for to of with on at near and or no".split()
+    )
+    words = re.findall(r"[A-Za-z_]+|[^\w\s]", message)
+    prose = " ".join(
+        word.lower() if word.lower() in allowed else "[redacted]" for word in words
+    )
+    prose = re.sub(r"(?:\[redacted\]\s*)+", "[redacted] ", prose).strip()
+    if prose and prose != "[redacted]":
+        details.append(prose[:256])
+    state = getattr(status, "state", None)
+    state = getattr(state, "value", state)
+    state = state if state in ("FAILED", "CANCELED", "CLOSED") else "unsuccessful"
+    return (
+        f"Warehouse statement ended in {state}"
+        + (": " + "; ".join(details) if details else " (no safe error details)")
+    )[:512]
+
+
 def identifier(value: str) -> str:
     """Accept conservative UC identifiers, then quote them."""
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value):
@@ -42,10 +105,35 @@ def target_namespace(target: str) -> str:
     return ".".join(identifier(part) for part in parts)
 
 
-def literal(value: Any) -> str:
-    """Render typed fabricated values without SQL string escaping ambiguity."""
+def literal(value: Any, data_type: str | None = None) -> str:
+    """Render constant Spark SQL literals accepted by inline VALUES tables."""
     if value is None:
         return "NULL"
+    dtype = (data_type or "").upper()
+    if dtype == "DATE" or (
+        not dtype and isinstance(value, date) and not isinstance(value, datetime)
+    ):
+        try:
+            parsed_date = (
+                value
+                if isinstance(value, date) and not isinstance(value, datetime)
+                else date.fromisoformat(str(value))
+            )
+        except ValueError:
+            raise ValueError("Invalid DATE value") from None
+        return "DATE" + comment_literal(parsed_date.isoformat())
+    if dtype in ("TIMESTAMP", "DATETIME") or (
+        not dtype and isinstance(value, datetime)
+    ):
+        try:
+            parsed_time = (
+                value
+                if isinstance(value, datetime)
+                else datetime.fromisoformat(str(value))
+            )
+        except ValueError:
+            raise ValueError("Invalid TIMESTAMP value") from None
+        return "TIMESTAMP" + comment_literal(parsed_time.isoformat(sep=" "))
     if isinstance(value, bool):
         return "TRUE" if value else "FALSE"
     if isinstance(value, (int, float, Decimal)):
@@ -53,15 +141,36 @@ def literal(value: Any) -> str:
             raise ValueError("Non-finite numeric value")
         return str(value)
     if isinstance(value, (date, datetime)):
-        value = value.isoformat()
+        return comment_literal(value.isoformat())
     if isinstance(value, str):
-        return f"decode(unhex('{value.encode('utf-8').hex()}'), 'UTF-8')"
+        return comment_literal(value)
     raise ValueError(f"Unsupported SQL literal type {type(value).__name__}")
 
 
 def comment_literal(value: str) -> str:
-    """Escape a Spark SQL comment literal, including backslashes."""
-    return "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'"
+    """Quote a UTF-8 Spark SQL string, shared by row values and comments."""
+    # Escape backslashes first so original backslash sequences stay literal;
+    # then quote apostrophes. LF/CR/tab/backspace/NUL/SUB use Spark's documented
+    # escapes, preventing raw controls in SQL text. Non-BMP characters (emoji)
+    # remain UTF-8. Lone surrogates and other C0/DEL controls refuse explicitly.
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError:
+        raise ValueError("SQL strings require valid Unicode scalar values") from None
+    escapes = {
+        "\x00": r"\0",
+        "\b": r"\b",
+        "\n": r"\n",
+        "\r": r"\r",
+        "\t": r"\t",
+        "\x1a": r"\Z",
+    }
+    if any((ord(c) < 32 or ord(c) == 127) and c not in escapes for c in value):
+        raise ValueError("Unsupported SQL string control character")
+    escaped = value.replace("\\", "\\\\").replace("'", "\\'")
+    for char, replacement in escapes.items():
+        escaped = escaped.replace(char, replacement)
+    return "'" + escaped + "'"
 
 
 def delta_ddl(spec: dict[str, Any], name: str) -> str:
@@ -177,8 +286,9 @@ class WarehouseSQLSink:
             if state == "SUCCEEDED":
                 return response
             if state not in ("PENDING", "RUNNING"):
-                # Avoid copying remote errors, which can contain environment details.
-                raise RuntimeError(f"Warehouse statement ended in {state}")
+                raise RuntimeError(
+                    warehouse_failure(getattr(response, "status", None), statement)
+                )
             if time.monotonic() >= deadline:
                 self.client.statement_execution.cancel_execution(response.statement_id)
                 raise TimeoutError("Warehouse statement timed out")
@@ -344,6 +454,9 @@ def load_dataset(
                 for c in dataset.specs[name]["columns"]
                 if not c.get("internal")
             ]
+            column_types = {
+                c["name"]: c["data_type"] for c in dataset.specs[name]["columns"]
+            }
             if volume and files:
                 bulk_stage(dataset, name, stage, volume, files, sink)
             else:
@@ -352,7 +465,11 @@ def load_dataset(
                 size = len(prefix.encode())
                 for batch in dataset.batches(name, batch_size):
                     for row in batch:
-                        value = "(" + ",".join(literal(row[c]) for c in cols) + ")"
+                        value = (
+                            "("
+                            + ",".join(literal(row[c], column_types[c]) for c in cols)
+                            + ")"
+                        )
                         encoded = len(value.encode()) + 1
                         if len(prefix.encode()) + encoded > max_statement_bytes:
                             raise ValueError("A row exceeds the statement byte limit")

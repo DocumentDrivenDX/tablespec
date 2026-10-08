@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 
 
 @dataclass
@@ -26,6 +27,7 @@ class GenerationConfig:
 
     root_entity_count: int | None = None
     domain: str = "healthcare"
+    domain_pack_path: Path | None = None
     skew_exponent: float = 0.8
     matter_duration_min_days: int = 30
     matter_duration_max_days: int = 1095

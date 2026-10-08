@@ -9,6 +9,7 @@ import yaml
 
 from .config import GenerationConfig
 from .engine import SampleDataGenerator
+from .domains import get_run_domain_pack
 from .sink import (
     SDKVolumeFiles,
     SparkSQLSink,
@@ -23,12 +24,76 @@ from .verification import verify_loaded
 app = typer.Typer(help="Generate fabricated domain sample data and load Unity Catalog")
 
 
+@app.command("export")
+def export(
+    umf: Path = typer.Option(..., "--umf", exists=True, file_okay=False),
+    output: Path = typer.Option(..., "--output", dir_okay=False),
+    scale: str = typer.Option("small", "--scale"),
+    domain: str = typer.Option("healthcare", "--domain"),
+    domain_pack: Path | None = typer.Option(
+        None, "--domain-pack", exists=True, dir_okay=False
+    ),
+    seed: int = typer.Option(42, "--seed"),
+    table_count: list[str] | None = typer.Option(None, "--table-count"),
+    scale_config: Path | None = typer.Option(
+        None, "--scale-config", exists=True, dir_okay=False
+    ),
+) -> None:
+    """Generate and verify a portable ZIP of CSV tables without a workspace."""
+    from .archive import export_csv_zip
+
+    try:
+        if output.suffix.lower() != ".zip":
+            raise ValueError("Output must have a .zip suffix")
+        overrides = {}
+        for item in table_count or []:
+            name, value = item.split("=", 1)
+            overrides[name] = int(value)
+        config = GenerationConfig(
+            domain=domain, domain_pack_path=domain_pack, random_seed=seed
+        )
+        with TemporaryDirectory(prefix="tablespec-export-") as temp:
+            specs = SampleDataGenerator(umf, Path(temp), config).load_umf_files(
+                strict=True
+            )
+            if not specs:
+                raise ValueError("No UMF tables found")
+            metadata = get_run_domain_pack(config).metadata or {}
+            presets = metadata.get("scale_presets")
+            if scale_config:
+                presets = yaml.safe_load(scale_config.read_text())
+            if presets and scale in presets:
+                config.relationship_distributions = {
+                    name: edge.get("distribution", "skewed")
+                    for name, edge in presets[scale]["children"].items()
+                }
+            counts = plan_counts(
+                specs, scale, overrides, preset_path=scale_config, presets=presets
+            )
+            dataset = GeneratedDataset(
+                Path(temp) / "rows.sqlite", specs, counts, config
+            )
+            try:
+                dataset.generate()
+                export_csv_zip(dataset, output)
+                typer.echo(json.dumps(dataset.report, sort_keys=True, indent=2))
+                typer.echo(str(output))
+            finally:
+                dataset.close()
+    except (ValueError, ImportError, RuntimeError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+
 @app.command("load")
 def load(
     umf: Path = typer.Option(..., "--umf", exists=True, file_okay=False),
     target: str = typer.Option(..., "--target", help="Unity Catalog catalog.schema"),
     scale: str = typer.Option("small", "--scale"),
     domain: str = typer.Option("healthcare", "--domain"),
+    domain_pack: Path | None = typer.Option(
+        None, "--domain-pack", exists=True, dir_okay=False
+    ),
     scale_config: Path | None = typer.Option(
         None,
         "--scale-config",
@@ -100,6 +165,7 @@ def load(
             high_frequency_key_ratio=hot_key_ratio,
             root_entity_count=root_entity_count,
             domain=domain,
+            domain_pack_path=domain_pack,
             random_seed=seed,
             skew_exponent=skew_exponent,
             matter_duration_min_days=matter_duration_min_days,
@@ -110,8 +176,19 @@ def load(
             specs = engine.load_umf_files(strict=True)
             if not specs:
                 raise ValueError("No UMF tables found")
+            presets = (get_run_domain_pack(config).metadata or {}).get("scale_presets")
+            if presets and scale in presets and not scale_config:
+                config.relationship_distributions = {
+                    name: edge.get("distribution", "skewed")
+                    for name, edge in presets[scale]["children"].items()
+                }
             counts = plan_counts(
-                specs, scale, overrides, root_entity_count, preset_path=scale_config
+                specs,
+                scale,
+                overrides,
+                root_entity_count,
+                preset_path=scale_config,
+                presets=presets,
             )
             dataset = GeneratedDataset(
                 Path(temp) / "rows.sqlite", specs, counts, config
