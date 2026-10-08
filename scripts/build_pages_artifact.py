@@ -61,7 +61,9 @@ def _current_dist_links(dist_dir: Path, tag: str, repo: str) -> list[PackageLink
     for artifact in sorted(path for path in dist_dir.iterdir() if path.is_file()):
         digest = _sha256(artifact)
         name = artifact.name
-        href = f"https://github.com/{repo}/releases/download/{tag}/{name}#sha256={digest}"
+        href = (
+            f"https://github.com/{repo}/releases/download/{tag}/{name}#sha256={digest}"
+        )
         links.append(PackageLink(name=name, href=href, tag=tag))
     return links
 
