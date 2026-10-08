@@ -101,6 +101,9 @@ def test_release_workflow_builds_combined_pages_artifact() -> None:
     assert "hugo --gc --minify" in workflow
     assert "scripts/build_pages_artifact.py" in workflow
     assert "/simple/tablespec/index.html" in workflow
+    install_commands = [line.strip() for line in workflow.splitlines() if "pip install" in line]
+    assert len(install_commands) == 4
+    assert all("--extra-index-url https://pypi.org/simple" in line for line in install_commands)
 
 
 def test_microsite_workflow_rebuilds_pages_without_dist_artifacts() -> None:

@@ -120,10 +120,10 @@ jobs:
 
           \`\`\`bash
           # From GitHub Pages index
-          pip install tablespec==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/
+          pip install tablespec==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 
           # With PySpark support
-          pip install tablespec[spark]==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/
+          pip install tablespec[spark]==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
           \`\`\`
 
           ### What's Changed
@@ -253,10 +253,10 @@ jobs:
 
           # Install from the GitHub Pages index; the deployment checklist
           # allows one retry after an extra propagation wait, then fails.
-          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ "tablespec==$VERSION" || {
+          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "tablespec==$VERSION" || {
             echo "First install attempt failed; waiting 60s for Pages propagation..."
             sleep 60
-            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ "tablespec==$VERSION"
+            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "tablespec==$VERSION"
           }
 
           # A clean install must import: catches runtime deps that only exist

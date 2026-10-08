@@ -9,8 +9,8 @@ open a guidebook — **without Spark or a Databricks workspace**.
 ## 1. Install
 
 ```bash
-uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
-# or: pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+# or: pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
 
 ## 2. Author a minimal split UMF

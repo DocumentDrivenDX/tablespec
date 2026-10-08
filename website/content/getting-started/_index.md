@@ -11,21 +11,26 @@ that a data pipeline can run or review.
 
 ## Install
 
-tablespec is distributed via GitHub Pages. The `--index-url` flag is required.
+tablespec is distributed via GitHub Pages. Use the project index for tablespec
+and PyPI for its dependencies:
 
 ```bash
 # Using uv (recommended)
-uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # Using pip
-pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
+
+`uv` commands declare the pinned `umf-core` source explicitly because uv
+requires transitive Git dependencies to be direct requirements. The Python
+package and compiler use the same pinned UMF revision.
 
 Add the `[spark]` extra only if you need PySpark-based profiling, JDBC
 discovery, or DataFrame validation:
 
 ```bash
-uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ## Author a UMF table spec
