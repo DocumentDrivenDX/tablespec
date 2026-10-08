@@ -12,12 +12,11 @@ layout: hextra-home
     <p class="ts-drawing-label">TABLESPEC / SOURCE CONTRACT</p>
     <h1 id="ts-home-title">One UMF. Every runtime artifact.</h1>
     <p class="ts-hero-lede">
-      tablespec is for data engineers and platform teams who need table
-      contracts that compile. It defines a source-semantic ingested bronze
-      contract, the definition of done for a source table, and declares silver
-      and gold derivations in the same Universal Metadata Format (UMF). Then it
-      compiles each spec into SQL, dbt, Lakeflow, schema, validation, Excel
-      review workbooks, and static guidebook artifacts.
+      Define table types, quality rules, and transformations once. tablespec
+      compiles those contracts into SQL, dbt, Lakeflow, schemas, and Great
+      Expectations suites, plus Excel workbooks and guidebooks for review.
+      Keep source meaning in source-semantic ingested bronze; declare business
+      choices in silver and gold. Review the runtime artifacts before they run.
     </p>
     <div class="ts-hero-actions" aria-label="Primary actions">
       <a class="ts-button ts-button-primary" href="getting-started/">Start with a UMF</a>
@@ -73,10 +72,19 @@ layout: hextra-home
   </div>
 </section>
 
+<section class="ts-band" aria-labelledby="ts-umf-title">
+  <div class="ts-band-heading">
+    <p class="ts-drawing-label">SHARED FORMAT / PIPELINE COMPILER</p>
+    <h2 id="ts-umf-title">UMF carries the metadata. tablespec compiles the pipeline.</h2>
+    <p>Universal Metadata Format (UMF) is now a separate project. Its <code>umf-core</code> Python package supplies shared document models, schemas, serialization, and validation machinery. tablespec owns the <code>tablespec.pipeline</code> extension: native table types, source declarations, contextual nullability, keys, relationships, and pipeline policies.</p>
+    <p>Existing split-directory specs remain supported. Shared documents preserve unknown vocabularies; compilation requires an explicit tablespec execution mapping. <a href="concepts/umf/">Read the format and compatibility boundaries</a> or explore <a href="https://github.com/DocumentDrivenDX/umf">the UMF project</a>.</p>
+  </div>
+</section>
+
 <section class="ts-band ts-proof-band" aria-labelledby="ts-proof-title">
   <div class="ts-band-heading">
     <p class="ts-drawing-label">EVALUATE</p>
-    <h2 id="ts-proof-title">One source-table spec, every generated artifact</h2>
+    <h2 id="ts-proof-title">Define once. Generate. Review.</h2>
   </div>
   <div class="ts-proof-grid">
     <article>
@@ -91,7 +99,7 @@ layout: hextra-home
     </article>
     <article>
       <span>03</span>
-      <h3>Validate every layer</h3>
+      <h3>Generate checks for each layer</h3>
       <p>Run checks against raw source records, typed ingested tables, and the derived tables built from them, all generated from the same specs.</p>
     </article>
   </div>

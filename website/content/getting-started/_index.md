@@ -30,10 +30,12 @@ uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec
 
 ## Author a UMF table spec
 
-Universal Metadata Format (UMF) is tablespec's schema contract for a source
-table. The canonical UMF editing format is a **split directory**: one
+UMF is a separate metadata project; tablespec supplies its pipeline extension
+and compiler. This walkthrough uses the supported legacy table-spec model and
+its **split directory** editing format: one
 `table.yaml` file for table-level metadata plus one file per column under
-`columns/`. Build one from Python:
+`columns/`. See [UMF and tablespec](/concepts/umf/) for shared documents
+and preservation rules. Build a split spec from Python:
 
 ```python
 from pathlib import Path
