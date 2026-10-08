@@ -62,6 +62,28 @@
       "domain_type": "billing_rate",
       "precision": 10,
       "scale": 2
+    },
+    {
+      "name": "hours",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Synthetic duration, 0.1 to 8 hours",
+      "precision": 4,
+      "scale": 1
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Hours multiplied by billing rate",
+      "precision": 12,
+      "scale": 2
+    },
+    {
+      "name": "vague_entry",
+      "data_type": "BOOLEAN",
+      "nullable": false,
+      "description": "Ground truth: deliberately vague narrative"
     }
   ],
   "primary_key": [

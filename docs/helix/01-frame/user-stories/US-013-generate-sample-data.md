@@ -39,6 +39,10 @@ This story covers the generate sample data from umf slice in the parent feature.
 - [ ] **US-013-AC7** — Given a configured scale and parent overrides, child counts propagate and all generated foreign keys reference fabricated parent rows.
 - [ ] **US-013-AC8** — Given unsupported or unsatisfiable constraints, generation fails before sink writes; a local review requires no authentication or workspace access.
 
+- [ ] **US-013-AC9** — Given small and demo legal fixtures at several seeds, unique team/wall pairs are disjoint, every matter has a partner and another member, and entries use eligible team members; independent audits fail on injected violations.
+- [ ] **US-013-AC10** — Given typed documents, narratives and sample invoice windows, issue labels match clauses, hours/rates reconcile exactly, invoice totals equal period sums, and parent coverage/skew meet tested bounds.
+- [ ] **US-013-AC11** — Given an offline Files API port, explicit bulk loading uploads bounded CSV chunks, COPY loads staging, then overwrites targets and cleans files; verify-only issues reads and fails on mismatched counts or integrity checks.
+
 ## Edge Cases
 
 - **foreign keys must stay referentially consistent**: foreign keys must stay referentially consistent

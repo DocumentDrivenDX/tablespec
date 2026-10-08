@@ -35,6 +35,12 @@
       "nullable": false,
       "description": "Fabricated document body",
       "domain_type": "document_body"
+    },
+    {
+      "name": "nda_issues",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Ground truth: long_term, residuals, missing_governing_law, or empty"
     }
   ],
   "primary_key": [

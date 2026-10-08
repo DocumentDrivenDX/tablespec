@@ -1,7 +1,8 @@
 """Disk-backed generation, FK selection, and constraint verification."""
 
 from collections.abc import Iterator
-from datetime import timedelta
+from datetime import date, datetime, timedelta
+import math
 import json
 from pathlib import Path
 import random
@@ -102,6 +103,13 @@ class GeneratedDataset:
         self.generators = pack.generators(config)
         self.registry = pack.registry()
         self.report: dict[str, Any] = {}
+        self.verified = False
+        self.verification: dict[str, int] = {}
+        self.planner = (
+            self.generators.table_planner(self)
+            if hasattr(self.generators, "table_planner")
+            else None
+        )
 
     def close(self) -> None:
         """Release the spool connection."""
@@ -119,21 +127,31 @@ class GeneratedDataset:
         while values := cursor.fetchmany(batch_size):
             yield [json.loads(value[0]) for value in values]
 
-    def _parent(self, table: str, child: str) -> dict[str, Any]:
+    def power_index(self, size: int, child: str) -> int:
+        """Sample rank weights proportional to integral x^-exponent, without arrays."""
+        if size < 1:
+            raise ValueError("Cannot sample an empty parent")
+        exponent = (
+            self.config.skew_exponent
+            if self.config.relationship_distributions.get(child, "skewed") == "skewed"
+            else 0
+        )
+        power = 1 - exponent
+        return min(
+            size - 1,
+            int((1 + self.rng.random() * ((size + 1) ** power - 1)) ** (1 / power)) - 1,
+        )
+
+    def _parent(
+        self, table: str, child: str, index: int | None = None
+    ) -> dict[str, Any]:
         size = self.counts[table]
         if not size:
             raise ValueError(f"Foreign key references empty table {table}")
-        hot = max(1, size // 5)
-        ratio = (
-            self.config.high_frequency_key_ratio
-            if self.config.relationship_distributions.get(
-                child,
-                self.config.relationship_distributions.get(child.lower(), "skewed"),
-            )
-            == "skewed"
-            else 0
-        )
-        index = self.rng.randrange(hot if self.rng.random() < ratio else size)
+        if index is None:
+            index = self.power_index(size, child)
+        elif index >= size:
+            raise ValueError(f"One-to-one child count exceeds parent count: {child}")
         value = self.db.execute(
             "SELECT body FROM rows WHERE tbl=? AND idx=?", (table, index)
         ).fetchone()
@@ -189,13 +207,20 @@ class GeneratedDataset:
                     )
                 if any(fk["references_table"] not in completed for fk in fks):
                     continue
+                if self.planner and not self.planner.dependencies(name) <= completed:
+                    continue
                 self._table(name, spec, fks)
                 completed.add(name)
                 pending.remove(name)
                 progress = True
             if not progress:
                 raise ValueError(f"Cyclic or missing FK parents: {sorted(pending)}")
+        if self.planner:
+            self.verification = self.planner.verify()
+            if self.verification:
+                self.report["time_entries"]["legal_verification"] = self.verification
         self.db.commit()
+        self.verified = True
         return self.report
 
     def _table(
@@ -219,7 +244,9 @@ class GeneratedDataset:
         if spec.get("primary_key"):
             unique.append(spec["primary_key"])
         unique.extend(
-            [c["name"]] for c in columns if c.get("key_type") in ("primary", "unique")
+            [c["name"]]
+            for c in columns
+            if c.get("key_type") in ("primary", "unique", "foreign_one_to_one")
         )
         for rule in rules:
             if rule["type"] == "expect_column_values_to_be_unique":
@@ -227,16 +254,44 @@ class GeneratedDataset:
             if rule["type"] == "expect_compound_columns_to_be_unique":
                 unique.append(rule["kwargs"]["column_list"])
         unique = [list(cols) for cols in dict.fromkeys(tuple(cols) for cols in unique)]
+        one_to_one = {
+            c["name"] for c in columns if c.get("key_type") == "foreign_one_to_one"
+        }
+        distinct_parents = {
+            fk["references_table"] for fk in fks if fk["column"] in one_to_one
+        }
+        for parent in distinct_parents:
+            if self.counts[name] > self.counts[parent]:
+                raise ValueError(f"One-to-one child count exceeds parent count: {name}")
         for index in range(self.counts[name]):
             parents: dict[str, dict[str, Any]] = {}
             row: dict[str, Any] = {}
-            for fk in fks:
-                if fk["references_table"] not in parents:
-                    parents[fk["references_table"]] = self._parent(
-                        fk["references_table"], name
+            # Matter context must exist before selecting an eligible timekeeper.
+            for fk in sorted(
+                fks,
+                key=lambda f: (
+                    f["references_table"] != "matters",
+                    f["references_table"] == "timekeepers",
+                ),
+            ):
+                parent_name = fk["references_table"]
+                if parent_name not in parents:
+                    selected = (
+                        self.planner.select_person(name, index, parents)
+                        if self.planner and parent_name == "timekeepers"
+                        else None
                     )
-                parent = parents[fk["references_table"]]
-                row[fk["column"]] = parent[fk["references_column"]]
+                    selected_index = (
+                        index
+                        if parent_name in distinct_parents
+                        else self.planner.parent_index(name, fk, index, parents)
+                        if self.planner
+                        else None
+                    )
+                    parents[parent_name] = selected or self._parent(
+                        parent_name, name, selected_index
+                    )
+                row[fk["column"]] = parents[parent_name][fk["references_column"]]
             for col in columns:
                 if col["name"] not in row:
                     row[col["name"]] = self._value(col, index)
@@ -257,22 +312,37 @@ class GeneratedDataset:
                     context,
                     index,
                 )
+            if self.planner:
+                self.planner.adjust(name, row, parents)
             # Apply value sets/ranges only to generic values; semantic conflicts fail.
             for rule in rules:
                 kw = rule["kwargs"]
                 colname = kw.get("column")
                 col = next((c for c in columns if c["name"] == colname), {})
-                if col.get("domain_type") or colname in {fk["column"] for fk in fks}:
+                if (
+                    col.get("domain_type")
+                    or colname in {fk["column"] for fk in fks}
+                    or row.get(colname) is None
+                ):
                     continue
                 if rule["type"] == "expect_column_values_to_be_in_set":
                     row[colname] = self.rng.choice(kw["value_set"])
                 if rule["type"] == "expect_column_values_to_be_between":
-                    minimum = kw.get("min_value")
-                    maximum = kw.get("max_value")
+                    minimum = self._bound(
+                        kw.get("min_value"), col, kw.get("strict_min", False), 1
+                    )
+                    maximum = self._bound(
+                        kw.get("max_value"), col, kw.get("strict_max", False), -1
+                    )
                     if minimum is not None:
                         row[colname] = max(minimum, row[colname])
                     if maximum is not None:
                         row[colname] = min(maximum, row[colname])
+            if hasattr(self.generators, "validate_correlations"):
+                self.generators.validate_correlations(
+                    row,
+                    {k: v for parent in parents.values() for k, v in parent.items()},
+                )
             for fk in fks:
                 if (
                     row[fk["column"]]
@@ -282,6 +352,8 @@ class GeneratedDataset:
                         f"FK orphan after correlation: {name}.{fk['column']}"
                     )
             self._check(name, row, columns, unique, rules)
+            if self.planner:
+                self.planner.recorded(name, row, index)
             self.db.execute(
                 "INSERT INTO rows VALUES (?,?,?)", (name, index, json.dumps(row))
             )
@@ -291,6 +363,32 @@ class GeneratedDataset:
             "null_violations": 0,
             "uniqueness_violations": 0,
         }
+
+    @staticmethod
+    def _bound(value: Any, col: dict[str, Any], strict: bool, direction: int) -> Any:
+        """Convert exclusive bounds to the next representable generated value."""
+        if value is None or not strict:
+            return value
+        dtype = col["data_type"].upper()
+        if dtype in ("INTEGER", "INT", "LONG", "BIGINT", "SMALLINT"):
+            return math.floor(value) + 1 if direction > 0 else math.ceil(value) - 1
+        if dtype == "DECIMAL":
+            from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
+
+            step = Decimal(10) ** -(col.get("scale") or 0)
+            units = (Decimal(str(value)) / step).to_integral_value(
+                rounding=ROUND_FLOOR if direction > 0 else ROUND_CEILING
+            )
+            return float((units + direction) * step)
+        if dtype in ("FLOAT", "DOUBLE"):
+            return math.nextafter(value, math.inf if direction > 0 else -math.inf)
+        if dtype == "DATE":
+            return (date.fromisoformat(value) + timedelta(days=direction)).isoformat()
+        if dtype in ("DATETIME", "TIMESTAMP"):
+            return (
+                datetime.fromisoformat(value) + timedelta(microseconds=direction)
+            ).isoformat()
+        raise ValueError(f"Unsupported exclusive range type: {dtype}")
 
     def _check(
         self,
@@ -362,8 +460,13 @@ class GeneratedDataset:
             elif value is not None and kind == "expect_column_values_to_be_in_set":
                 valid = value in kw["value_set"]
             elif value is not None and kind == "expect_column_values_to_be_between":
-                valid = (kw.get("min_value") is None or value >= kw["min_value"]) and (
-                    kw.get("max_value") is None or value <= kw["max_value"]
+                minimum, maximum = kw.get("min_value"), kw.get("max_value")
+                valid = (
+                    minimum is None
+                    or (value > minimum if kw.get("strict_min") else value >= minimum)
+                ) and (
+                    maximum is None
+                    or (value < maximum if kw.get("strict_max") else value <= maximum)
                 )
             elif value is not None and kind == "expect_column_values_to_be_of_type":
                 expected = str(kw["type_"]).upper().replace("TYPE", "")

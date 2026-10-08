@@ -155,3 +155,10 @@ perform a workspace load when explicitly authorized; supply warehouse/profile
 names, never credentials. Replacement stages batches then overwrites each
 target table; it is not a transaction across tables. `--drop-existing` requires
 explicit operator intent. Praxis specs belong in praxis, not this library.
+
+Legal sample data is tabular; ontology modeling belongs in truss and ashlar.
+The bounded legal path coordinates teams/walls before entries and audits
+entitlements. Optional `nda_issues`/`vague_entry` columns expose evaluation ground
+truth. `--bulk --volume /Volumes/catalog/schema/volume/path` uses CSV + Files API
++ COPY INTO; normal loading runs read-back audits and `--verify-only` reads
+existing tables. Preserve dry-run local-only behavior. See the sample-data guide.

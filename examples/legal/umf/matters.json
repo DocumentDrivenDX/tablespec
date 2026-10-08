@@ -45,7 +45,7 @@
     {
       "name": "close_date",
       "data_type": "DATE",
-      "nullable": false,
+      "nullable": true,
       "description": "Fabricated close date"
     },
     {

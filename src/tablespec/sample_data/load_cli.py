@@ -10,13 +10,15 @@ import yaml
 from .config import GenerationConfig
 from .engine import SampleDataGenerator
 from .sink import (
-    SQLSink,
+    SDKVolumeFiles,
     SparkSQLSink,
     WarehouseSQLSink,
     load_dataset,
     target_namespace,
+    volume_path,
 )
 from .streaming import GeneratedDataset, plan_counts
+from .verification import verify_loaded
 
 app = typer.Typer(help="Generate fabricated domain sample data and load Unity Catalog")
 
@@ -34,8 +36,21 @@ def load(
         dir_okay=False,
         help="YAML presets with roots and children",
     ),
-    hot_key_ratio: float = typer.Option(0.8, "--hot-key-ratio", min=0, max=1),
+    hot_key_ratio: float = typer.Option(
+        0.8,
+        "--hot-key-ratio",
+        min=0,
+        max=1,
+        help="Legacy option; bounded sampling uses --skew-exponent",
+    ),
     seed: int = typer.Option(42, "--seed"),
+    skew_exponent: float = typer.Option(0.8, "--skew-exponent", min=0, max=0.95),
+    matter_duration_min_days: int = typer.Option(
+        30, "--matter-duration-min-days", min=1
+    ),
+    matter_duration_max_days: int = typer.Option(
+        1095, "--matter-duration-max-days", min=1
+    ),
     root_entity_count: int = typer.Option(
         100, "--root-entity-count", "--num-members", min=0
     ),
@@ -47,11 +62,24 @@ def load(
     profile: str | None = typer.Option(None, "--profile"),
     dry_run: bool = typer.Option(False, "--dry-run"),
     drop_existing: bool = typer.Option(False, "--drop-existing"),
+    bulk: bool = typer.Option(False, "--bulk"),
+    volume: str | None = typer.Option(None, "--volume"),
+    verify_only: bool = typer.Option(False, "--verify-only"),
     batch_size: int = typer.Option(500, "--batch-size", min=1),
 ) -> None:
     """Verify fabricated data locally, then stage and replace UC table data."""
     try:
         target_namespace(target)
+        if bulk and (not volume or backend != "warehouse"):
+            raise ValueError("--bulk requires --volume and --backend warehouse")
+        if volume:
+            volume_path(volume)
+            if not bulk:
+                raise ValueError("--volume requires --bulk")
+        if verify_only and (dry_run or bulk or drop_existing):
+            raise ValueError(
+                "--verify-only cannot combine with dry-run, bulk or drop-existing"
+            )
         if backend not in ("warehouse", "spark"):
             raise ValueError("Backend must be warehouse or spark")
         if not dry_run and backend == "warehouse" and (not warehouse_id or not profile):
@@ -73,6 +101,9 @@ def load(
             root_entity_count=root_entity_count,
             domain=domain,
             random_seed=seed,
+            skew_exponent=skew_exponent,
+            matter_duration_min_days=matter_duration_min_days,
+            matter_duration_max_days=matter_duration_max_days,
         )
         with TemporaryDirectory(prefix="tablespec-sample-") as temp:
             engine = SampleDataGenerator(umf, Path(temp), config)
@@ -86,8 +117,9 @@ def load(
                 Path(temp) / "rows.sqlite", specs, counts, config
             )
             try:
-                typer.echo(json.dumps(dataset.generate(), sort_keys=True, indent=2))
-                sink: SQLSink | None = None
+                if not verify_only:
+                    typer.echo(json.dumps(dataset.generate(), sort_keys=True, indent=2))
+                sink: SparkSQLSink | WarehouseSQLSink | None = None
                 if not dry_run:
                     if backend == "spark":
                         from tablespec.spark_factory import create_delta_spark_session
@@ -97,6 +129,18 @@ def load(
                         )
                     else:
                         sink = WarehouseSQLSink(warehouse_id or "", profile or "")
+                if verify_only and sink:
+                    typer.echo(
+                        json.dumps(
+                            verify_loaded(
+                                specs, counts, target, sink, domain == "legal"
+                            ),
+                            sort_keys=True,
+                            indent=2,
+                        )
+                    )
+                    typer.echo("Load verification PASSED")
+                    return
                 statements = load_dataset(
                     dataset,
                     target,
@@ -104,7 +148,22 @@ def load(
                     dry_run=dry_run,
                     drop_existing=drop_existing,
                     batch_size=batch_size,
+                    volume=volume if bulk else None,
+                    files=SDKVolumeFiles(sink.client)
+                    if bulk and isinstance(sink, WarehouseSQLSink)
+                    else None,
                 )
+                if not dry_run and sink:
+                    typer.echo(
+                        json.dumps(
+                            verify_loaded(
+                                specs, counts, target, sink, domain == "legal"
+                            ),
+                            sort_keys=True,
+                            indent=2,
+                        )
+                    )
+                    typer.echo("Load verification PASSED")
                 if dry_run:
                     for statement in statements:
                         typer.echo(statement)

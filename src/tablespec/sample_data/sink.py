@@ -1,6 +1,10 @@
 """Unity Catalog SQL port and adapters; no credential handling in tablespec."""
 
 from collections.abc import Callable
+import csv
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import BinaryIO
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
@@ -117,6 +121,10 @@ class SparkSQLSink:
         """Await Spark SQL completion."""
         self.spark.sql(statement).collect()
 
+    def query(self, statement: str) -> list[list[Any]]:
+        """Read bounded aggregate results."""
+        return [list(row) for row in self.spark.sql(statement).collect()]
+
 
 class WarehouseSQLSink:
     """Statement Execution adapter using an SDK auth profile, never secrets."""
@@ -145,6 +153,19 @@ class WarehouseSQLSink:
         self.sleep = sleep
 
     def execute(self, statement: str) -> None:
+        """Execute synchronously without retaining results."""
+        self._statement(statement)
+
+    def query(self, statement: str) -> list[list[Any]]:
+        """Return the inline aggregate result from Statement Execution."""
+        response = self._statement(statement)
+        result = getattr(response, "result", None)
+        rows = getattr(result, "data_array", None)
+        if rows is None or getattr(result, "next_chunk_index", None) is not None:
+            raise RuntimeError("Expected a bounded inline verification result")
+        return rows
+
+    def _statement(self, statement: str) -> Any:
         """Poll through completion, cancel on timeout, and propagate failures."""
         response = self.client.statement_execution.execute_statement(
             warehouse_id=self.warehouse_id, statement=statement, wait_timeout="10s"
@@ -154,7 +175,7 @@ class WarehouseSQLSink:
             state = getattr(getattr(response, "status", None), "state", None)
             state = getattr(state, "value", state)
             if state == "SUCCEEDED":
-                return
+                return response
             if state not in ("PENDING", "RUNNING"):
                 # Avoid copying remote errors, which can contain environment details.
                 raise RuntimeError(f"Warehouse statement ended in {state}")
@@ -167,6 +188,110 @@ class WarehouseSQLSink:
             )
 
 
+class VolumeFiles(Protocol):
+    """Upload and delete only invocation-owned files in a UC volume."""
+
+    def upload(self, path: str, contents: BinaryIO) -> None:
+        """Upload a bounded local file."""
+        ...
+
+    def delete(self, path: str) -> None:
+        """Delete an invocation-owned file."""
+        ...
+
+
+@dataclass
+class SDKVolumeFiles:
+    """Files API adapter sharing the warehouse adapter's SDK client."""
+
+    client: Any
+
+    def upload(self, path: str, contents: BinaryIO) -> None:
+        """Create the owned directory and upload without overwriting other files."""
+        self.client.files.create_directory(path.rsplit("/", 1)[0])
+        self.client.files.upload(path, contents, overwrite=False)
+
+    def delete(self, path: str) -> None:
+        """Delete only the uploaded file."""
+        self.client.files.delete(path)
+
+
+def volume_path(path: str) -> str:
+    """Validate an absolute UC volume path; reject traversal and URI aliases."""
+    parts = path.rstrip("/").split("/")
+    if len(parts) < 5 or parts[:2] != ["", "Volumes"]:
+        raise ValueError("Volume must be /Volumes/catalog/schema/volume[/path]")
+    if parts[2].lower() == "hive_metastore":
+        raise ValueError("Hive metastore volumes are forbidden")
+    for part in parts[2:]:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", part):
+            raise ValueError("Invalid volume path component")
+    return "/".join(parts)
+
+
+def bulk_stage(
+    dataset: GeneratedDataset,
+    name: str,
+    stage: str,
+    volume: str,
+    files: VolumeFiles,
+    sink: SQLSink,
+    chunk_rows: int = 50000,
+) -> None:
+    """Stream bounded CSV files and COPY them into an invocation-owned stage."""
+    folder = volume_path(volume) + "/tablespec_" + uuid4().hex
+    uploaded: list[str] = []
+    columns = [c for c in dataset.specs[name]["columns"] if not c.get("internal")]
+    try:
+        with TemporaryDirectory(prefix="tablespec-bulk-") as tmp:
+            # One batch/file in memory at a time. All dataset rows remain on disk.
+            for index, batch in enumerate(dataset.batches(name, chunk_rows)):
+                local = Path(tmp) / "chunk.csv"
+                with local.open("w", newline="", encoding="utf-8") as stream:
+                    writer = csv.writer(stream)
+                    writer.writerow([c["name"] for c in columns])
+                    for row in batch:
+                        writer.writerow(
+                            [
+                                "\\N"
+                                if row[c["name"]] is None
+                                else "~" + row[c["name"]]
+                                if c["data_type"].upper()
+                                in ("TEXT", "VARCHAR", "CHAR", "STRING")
+                                else row[c["name"]]
+                                for c in columns
+                            ]
+                        )
+                remote = f"{folder}/part_{index}.csv"
+                uploaded.append(remote)
+                with local.open("rb") as contents:
+                    files.upload(remote, contents)
+            if uploaded:
+                projection = []
+                for col in columns:
+                    dtype = col["data_type"].upper()
+                    if dtype in ("TEXT", "VARCHAR", "CHAR"):
+                        dtype = "STRING"
+                    if dtype == "DATETIME":
+                        dtype = "TIMESTAMP"
+                    if dtype == "DECIMAL":
+                        dtype += (
+                            f"({col.get('precision') or 18},{col.get('scale') or 0})"
+                        )
+                    source = identifier(col["name"])
+                    if dtype == "STRING":
+                        source = f"SUBSTRING({source},2)"
+                    projection.append(
+                        f"CAST({source} AS {dtype}) AS {identifier(col['name'])}"
+                    )
+                sink.execute(
+                    f"COPY INTO {stage} FROM (SELECT {','.join(projection)} FROM {comment_literal(folder)}) FILEFORMAT = CSV FORMAT_OPTIONS ('header'='true', 'multiLine'='true', 'escape'='\"', 'nullValue'='\\\\N', 'mode'='FAILFAST')"
+                )
+    finally:
+        for remote in uploaded:
+            files.delete(remote)
+
+
 def load_dataset(
     dataset: GeneratedDataset,
     target: str,
@@ -176,6 +301,8 @@ def load_dataset(
     drop_existing: bool = False,
     batch_size: int = 500,
     max_statement_bytes: int = 1_000_000,
+    volume: str | None = None,
+    files: VolumeFiles | None = None,
 ) -> list[str]:
     """Stage bounded batches, then atomically overwrite each target's data.
 
@@ -184,9 +311,13 @@ def load_dataset(
     Staging table names are unique to this invocation and cleaned in finally.
     """
     namespace = target_namespace(target)
+    if volume:
+        volume_path(volume)
+        if not dry_run and files is None:
+            raise ValueError("Bulk loading requires a volume Files API port")
     if batch_size <= 0 or max_statement_bytes <= 0:
         raise ValueError("Batch limits must be positive")
-    if set(dataset.report) != set(dataset.specs):
+    if not dataset.verified or set(dataset.report) != set(dataset.specs):
         raise ValueError("Dataset must pass generation verification before loading")
     ddls = [
         delta_ddl(spec, f"{namespace}.{identifier(name)}")
@@ -213,28 +344,29 @@ def load_dataset(
                 for c in dataset.specs[name]["columns"]
                 if not c.get("internal")
             ]
-            prefix = (
-                f"INSERT INTO {stage} ({','.join(identifier(c) for c in cols)}) VALUES "
-            )
-            values: list[str] = []
-            size = len(prefix.encode())
-            for batch in dataset.batches(name, batch_size):
-                for row in batch:
-                    value = "(" + ",".join(literal(row[c]) for c in cols) + ")"
-                    encoded = len(value.encode()) + 1
-                    if len(prefix.encode()) + encoded > max_statement_bytes:
-                        raise ValueError("A row exceeds the statement byte limit")
-                    if values and (
-                        size + encoded > max_statement_bytes
-                        or len(values) >= batch_size
-                    ):
-                        sink.execute(prefix + ",".join(values))
-                        values = []
-                        size = len(prefix.encode())
-                    values.append(value)
-                    size += encoded
-            if values:
-                sink.execute(prefix + ",".join(values))
+            if volume and files:
+                bulk_stage(dataset, name, stage, volume, files, sink)
+            else:
+                prefix = f"INSERT INTO {stage} ({','.join(identifier(c) for c in cols)}) VALUES "
+                values: list[str] = []
+                size = len(prefix.encode())
+                for batch in dataset.batches(name, batch_size):
+                    for row in batch:
+                        value = "(" + ",".join(literal(row[c]) for c in cols) + ")"
+                        encoded = len(value.encode()) + 1
+                        if len(prefix.encode()) + encoded > max_statement_bytes:
+                            raise ValueError("A row exceeds the statement byte limit")
+                        if values and (
+                            size + encoded > max_statement_bytes
+                            or len(values) >= batch_size
+                        ):
+                            sink.execute(prefix + ",".join(values))
+                            values = []
+                            size = len(prefix.encode())
+                        values.append(value)
+                        size += encoded
+                if values:
+                    sink.execute(prefix + ",".join(values))
             if drop_existing:
                 sink.execute(f"DROP TABLE IF EXISTS {final}")
             sink.execute(ddl.replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ", 1))

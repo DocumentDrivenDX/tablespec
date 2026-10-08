@@ -38,5 +38,11 @@
         "references_column": "timekeeper_id"
       }
     ]
-  }
+  },
+  "unique_constraints": [
+    [
+      "matter_id",
+      "timekeeper_id"
+    ]
+  ]
 }

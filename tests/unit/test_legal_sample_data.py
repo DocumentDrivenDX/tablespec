@@ -57,7 +57,14 @@ def test_deterministic_correlated_integrity(
         for batch in left.batches("time_entries"):
             for row in batch:
                 matter = matters[row["matter_id"]]
-                assert matter["open_date"] <= row["entry_date"] <= matter["close_date"]
+                assert (
+                    matter["open_date"]
+                    <= row["entry_date"]
+                    <= (
+                        matter["close_date"]
+                        or left.config.get_reference_date().date().isoformat()
+                    )
+                )
                 assert (
                     row["billing_rate"]
                     == LEVEL_RATES[people[row["timekeeper_id"]]["timekeeper_level"]]
@@ -393,5 +400,488 @@ def test_generic_umf_constraints(
         assert len(rows) == report["root"]["row_count"] == count
         assert len({r["id"] for r in rows}) == count
         assert all(r["status"] in ("open", "closed") and r["score"] <= 10 for r in rows)
+    finally:
+        data.close()
+
+
+def constraint_dataset(tmp_path, specs, counts):
+    return GeneratedDataset(
+        tmp_path / "constraints.sqlite",
+        specs,
+        counts,
+        GenerationConfig(domain="legal", random_seed=42),
+    )
+
+
+def range_rule(column, minimum, maximum, **kwargs):
+    return {
+        "type": "expect_column_values_to_be_between",
+        "kwargs": {
+            "column": column,
+            "min_value": minimum,
+            "max_value": maximum,
+            **kwargs,
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "dtype,minimum,maximum",
+    [
+        ("INTEGER", 1, 10),
+        ("FLOAT", 1.0, 10.0),
+        ("DECIMAL", 1.0, 10.0),
+        ("DATE", "2024-01-01", "2024-01-10"),
+    ],
+)
+def test_exclusive_bounds(tmp_path, dtype, minimum, maximum):
+    specs = {
+        "root": {
+            "columns": [{"name": "value", "data_type": dtype, "scale": 2}],
+            "validation_rules": {
+                "expectations": [
+                    range_rule(
+                        "value", minimum, maximum, strict_min=True, strict_max=True
+                    )
+                ]
+            },
+        }
+    }
+    data = constraint_dataset(tmp_path, specs, {"root": 4})
+    try:
+        data.generate()
+        assert all(
+            minimum < row["value"] < maximum
+            for batch in data.batches("root")
+            for row in batch
+        )
+    finally:
+        data.close()
+
+
+@pytest.mark.parametrize("children", [10, 11])
+def test_one_to_one_parent_allocation(tmp_path, children):
+    specs = {
+        "parent": {
+            "columns": [{"name": "id", "data_type": "INTEGER"}],
+            "primary_key": ["id"],
+        },
+        "child": {
+            "columns": [
+                {
+                    "name": "parent_id",
+                    "data_type": "INTEGER",
+                    "key_type": "foreign_one_to_one",
+                }
+            ],
+            "relationships": {
+                "foreign_keys": [
+                    {
+                        "column": "parent_id",
+                        "references_table": "parent",
+                        "references_column": "id",
+                    }
+                ]
+            },
+        },
+    }
+    data = constraint_dataset(tmp_path, specs, {"parent": 10, "child": children})
+    try:
+        if children > 10:
+            with pytest.raises(ValueError, match="One-to-one child count"):
+                data.generate()
+        else:
+            data.generate()
+            assert {
+                row["parent_id"] for batch in data.batches("child") for row in batch
+            } == set(range(1, 11))
+    finally:
+        data.close()
+
+
+@pytest.mark.parametrize("minimum,valid", [("2024-01-05", True), ("2024-02-01", False)])
+def test_entry_date_range_and_matter_period(tmp_path, minimum, valid):
+    specs = {
+        "matters": {
+            "columns": [
+                {"name": "id", "data_type": "INTEGER"},
+                {"name": "open_date", "data_type": "DATE"},
+                {"name": "close_date", "data_type": "DATE"},
+            ],
+            "validation_rules": {
+                "expectations": [
+                    range_rule("open_date", "2024-01-01", "2024-01-01"),
+                    range_rule("close_date", "2024-01-10", "2024-01-10"),
+                ]
+            },
+        },
+        "entries": {
+            "columns": [
+                {"name": "matter_id", "data_type": "INTEGER"},
+                {"name": "entry_date", "data_type": "DATE"},
+            ],
+            "relationships": {
+                "foreign_keys": [
+                    {
+                        "column": "matter_id",
+                        "references_table": "matters",
+                        "references_column": "id",
+                    }
+                ]
+            },
+            "validation_rules": {
+                "expectations": [range_rule("entry_date", minimum, None)]
+            },
+        },
+    }
+    data = constraint_dataset(tmp_path, specs, {"matters": 1, "entries": 20})
+    try:
+        if valid:
+            data.generate()
+            assert all(
+                minimum <= row["entry_date"] <= "2024-01-10"
+                for batch in data.batches("entries")
+                for row in batch
+            )
+        else:
+            sink = FakeSink()
+            with pytest.raises(ValueError, match="outside matter open period"):
+                data.generate()
+                load_dataset(data, "sample.legal", sink)
+            assert not sink.statements
+    finally:
+        data.close()
+
+
+@pytest.mark.parametrize("scale", ["small", "demo"])
+@pytest.mark.parametrize("seed", [7, 42, 101])
+def test_legal_tabular_invariants_and_distribution(tmp_path, scale, seed):
+    from collections import Counter
+    from decimal import Decimal
+
+    config = GenerationConfig(domain="legal", random_seed=seed)
+    specs = SampleDataGenerator(EXAMPLE, tmp_path, config).load_umf_files(strict=True)
+    data = GeneratedDataset(
+        tmp_path / "legal.sqlite", specs, plan_counts(specs, scale), config
+    )
+    try:
+        data.generate()
+        assert data.verification and not any(data.verification.values())
+        rows = {table: [r for b in data.batches(table) for r in b] for table in specs}
+        teams = {(r["matter_id"], r["timekeeper_id"]) for r in rows["matter_teams"]}
+        walls = {(r["matter_id"], r["timekeeper_id"]) for r in rows["ethical_walls"]}
+        assert len(teams) == len(rows["matter_teams"])
+        assert len(walls) == len(rows["ethical_walls"])
+        assert not teams & walls
+        people = {r["timekeeper_id"]: r for r in rows["timekeepers"]}
+        for matter in rows["matters"]:
+            levels = {
+                people[p]["timekeeper_level"]
+                for m, p in teams
+                if m == matter["matter_id"]
+            }
+            assert "partner" in levels and len(levels) >= 2
+        for r in rows["time_entries"]:
+            pair = r["matter_id"], r["timekeeper_id"]
+            assert pair in teams and pair not in walls
+            assert Decimal(str(r["amount"])) == Decimal(str(r["hours"])) * Decimal(
+                str(r["billing_rate"])
+            )
+            assert 0.1 <= r["hours"] <= 8
+        for field, parents in [
+            ("matter_id", rows["matters"]),
+            ("timekeeper_id", rows["timekeepers"]),
+        ]:
+            counter = Counter(r[field] for r in rows["time_entries"])
+            counts = sorted(counter[p[field]] for p in parents)
+            total, n = sum(counts), len(counts)
+            gini = sum((2 * i - n - 1) * v for i, v in enumerate(counts, 1)) / (
+                n * total
+            )
+            assert max(counts) / total < (0.5 if scale == "small" else 0.25)
+            assert (0.04 if scale == "small" else 0.3) < gini < 0.85
+        assert {r["client_id"] for r in rows["matters"]} == {
+            r["client_id"] for r in rows["clients"]
+        }
+        assert (
+            len({r["billing_narrative"] for r in rows["time_entries"]})
+            > len(rows["time_entries"]) // 2
+        )
+        assert len({r["document_body"] for r in rows["documents"]}) == len(
+            rows["documents"]
+        )
+        for r in rows["documents"]:
+            if r["document_type"] != "NDA":
+                assert "confidential information" not in r["document_body"]
+                assert not r["nda_issues"]
+            if r["nda_issues"] == "long_term":
+                assert "25 years" in r["document_body"]
+            if r["nda_issues"] == "residuals":
+                assert "residual information" in r["document_body"]
+            if r["nda_issues"] == "missing_governing_law":
+                assert " govern" not in r["document_body"]
+        if scale == "demo":
+            ndas = [r for r in rows["documents"] if r["document_type"] == "NDA"]
+            assert 0.04 < sum(bool(r["nda_issues"]) for r in ndas) / len(ndas) < 0.12
+            assert {r["nda_issues"] for r in ndas} == {
+                "",
+                "long_term",
+                "residuals",
+                "missing_governing_law",
+            }
+        # Independent exact integer-cent reconciliation, with indexed daily aggregates.
+        amounts = {}
+        for r in rows["time_entries"]:
+            days = amounts.setdefault(r["matter_id"], {})
+            days[r["entry_date"]] = days.get(r["entry_date"], 0) + round(
+                r["amount"] * 100
+            )
+        for invoice in rows["invoices"]:
+            expected = sum(
+                c
+                for day, c in amounts.get(invoice["matter_id"], {}).items()
+                if invoice["period_start"] <= day <= invoice["period_end"]
+            )
+            assert round(invoice["total_amount"] * 100) == expected
+            if invoice["invoice_status"] in ("paid", "overdue"):
+                assert (
+                    invoice["invoice_date"]
+                    <= config.get_reference_date().date().isoformat()
+                )
+    finally:
+        data.close()
+
+
+def test_bulk_upload_csv_and_cleanup(tmp_path):
+    import csv
+    import io
+    import sqlglot
+    from tablespec.sample_data.sink import bulk_stage, volume_path
+
+    class Files:
+        def __init__(self):
+            self.uploads = {}
+            self.deleted = []
+
+        def upload(self, path, contents):
+            self.uploads[path] = contents.read().decode()
+
+        def delete(self, path):
+            self.deleted.append(path)
+
+    data = dataset(tmp_path)
+    try:
+        files, sink = Files(), FakeSink()
+        bulk_stage(
+            data,
+            "documents",
+            "`sample`.`legal`.`stage`",
+            "/Volumes/sample/legal/fixtures",
+            files,
+            sink,
+            chunk_rows=7,
+        )
+        assert len(files.uploads) == 6
+        assert set(files.deleted) == set(files.uploads)
+        csv_rows = [
+            r
+            for text in files.uploads.values()
+            for r in csv.DictReader(io.StringIO(text))
+        ]
+        assert len(csv_rows) == data.counts["documents"]
+        assert (
+            csv_rows[0]["document_body"][1:]
+            == next(data.batches("documents"))[0]["document_body"]
+        )
+        assert len(sink.statements) == 1 and sink.statements[0].startswith("COPY INTO")
+        assert sqlglot.parse(sink.statements[0], read="databricks")
+        failing = FakeSink()
+        failing.execute = lambda _: (_ for _ in ()).throw(RuntimeError("copy failure"))
+        files = Files()
+        with pytest.raises(RuntimeError, match="copy failure"):
+            bulk_stage(
+                data,
+                "documents",
+                "`sample`.`legal`.`stage`",
+                "/Volumes/sample/legal/fixtures",
+                files,
+                failing,
+            )
+        assert set(files.deleted) == set(files.uploads)
+        for invalid in ("dbfs:/tmp", "/Volumes/a/b", "/Volumes/a/b/c/../x"):
+            with pytest.raises(ValueError):
+                volume_path(invalid)
+    finally:
+        data.close()
+
+
+def test_readback_checks_detect_loaded_corruption(tmp_path):
+    from tablespec.sample_data.verification import verify_loaded
+    import re
+
+    data = dataset(tmp_path)
+
+    class Readback:
+        def query(self, statement):
+            local = re.sub(r"`sample`.`legal`.(`\w+`)", r"\1", statement)
+            return [list(row) for row in data.db.execute(local)]
+
+    try:
+        result = verify_loaded(
+            data.specs, data.counts, "sample.legal", Readback(), legal=True
+        )
+        assert all(r["passed"] for r in result.values())
+        data.db.execute(
+            "UPDATE rows SET body=json_set(body,'$.timekeeper_id',9999) WHERE tbl='time_entries' AND idx=0"
+        )
+        with pytest.raises(RuntimeError, match="FAILED"):
+            verify_loaded(
+                data.specs, data.counts, "sample.legal", Readback(), legal=True
+            )
+    finally:
+        data.close()
+
+
+def test_spark_and_warehouse_readback_adapters():
+    from tablespec.sample_data.sink import SparkSQLSink
+
+    spark = SimpleNamespace(sql=lambda _: SimpleNamespace(collect=lambda: [(12,)]))
+    assert SparkSQLSink(spark).query("SELECT COUNT(*)") == [[12]]
+    api = SimpleNamespace(
+        execute_statement=lambda **kw: SimpleNamespace(
+            status=SimpleNamespace(state="SUCCEEDED"),
+            result=SimpleNamespace(data_array=[["12"]]),
+        )
+    )
+    assert WarehouseSQLSink(
+        "warehouse", "sample-profile", SimpleNamespace(statement_execution=api)
+    ).query("SELECT COUNT(*)") == [["12"]]
+
+
+def test_verify_only_cli_does_not_generate_or_write(tmp_path, monkeypatch):
+    import re
+    from tablespec.sample_data import load_cli
+
+    data = dataset(tmp_path)
+
+    class ReadbackWarehouse:
+        def __init__(self, *args):
+            pass
+
+        def query(self, statement):
+            return [
+                list(row)
+                for row in data.db.execute(
+                    re.sub(r"`sample`.`legal`.(`\w+`)", r"\1", statement)
+                )
+            ]
+
+        def execute(self, statement):
+            raise AssertionError("verify-only must not write")
+
+    try:
+        monkeypatch.setattr(load_cli, "WarehouseSQLSink", ReadbackWarehouse)
+        monkeypatch.setattr(
+            GeneratedDataset,
+            "generate",
+            lambda _: (_ for _ in ()).throw(AssertionError("must not generate")),
+        )
+        result = CliRunner().invoke(
+            app,
+            [
+                "sample-data",
+                "load",
+                "--umf",
+                str(EXAMPLE),
+                "--target",
+                "sample.legal",
+                "--domain",
+                "legal",
+                "--verify-only",
+                "--warehouse-id",
+                "warehouse",
+                "--profile",
+                "sample-profile",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert "Load verification PASSED" in result.output
+    finally:
+        data.close()
+
+
+def test_sdk_volume_files_port():
+    import io
+    from tablespec.sample_data.sink import SDKVolumeFiles
+
+    calls = []
+    client = SimpleNamespace(
+        files=SimpleNamespace(
+            create_directory=lambda path: calls.append(("mkdir", path)),
+            upload=lambda path, contents, **kw: calls.append(
+                ("upload", path, contents.read(), kw)
+            ),
+            delete=lambda path: calls.append(("delete", path)),
+        )
+    )
+    port = SDKVolumeFiles(client)
+    path = "/Volumes/sample/legal/fixtures/owned/part.csv"
+    port.upload(path, io.BytesIO(b"synthetic rows"))
+    port.delete(path)
+    assert calls == [
+        ("mkdir", path.rsplit("/", 1)[0]),
+        ("upload", path, b"synthetic rows", {"overwrite": False}),
+        ("delete", path),
+    ]
+
+
+def test_bulk_publication_and_failure_cleanup(tmp_path):
+    from tablespec.sample_data.sink import load_dataset
+
+    class Files:
+        def __init__(self):
+            self.paths = []
+            self.deleted = []
+
+        def upload(self, path, contents):
+            assert contents.read(1)
+            self.paths.append(path)
+
+        def delete(self, path):
+            self.deleted.append(path)
+
+    data = dataset(tmp_path)
+    try:
+        sink, files = FakeSink(), Files()
+        load_dataset(
+            data,
+            "sample.legal",
+            sink,
+            volume="/Volumes/sample/legal/fixtures",
+            files=files,
+        )
+        assert sum(s.startswith("COPY INTO") for s in sink.statements) == 8
+        assert sum(s.startswith("INSERT OVERWRITE") for s in sink.statements) == 8
+        assert not any(s.startswith("INSERT INTO") for s in sink.statements)
+        assert set(files.paths) == set(files.deleted)
+
+        class FailingCopy(FakeSink):
+            def execute(self, statement):
+                super().execute(statement)
+                if statement.startswith("COPY INTO"):
+                    raise RuntimeError("synthetic copy failure")
+
+        sink, files = FailingCopy(), Files()
+        with pytest.raises(RuntimeError, match="copy failure"):
+            load_dataset(
+                data,
+                "sample.legal",
+                sink,
+                volume="/Volumes/sample/legal/fixtures",
+                files=files,
+            )
+        assert sink.statements[-1].startswith("DROP TABLE IF EXISTS")
+        assert not any(s.startswith("INSERT OVERWRITE") for s in sink.statements)
+        assert set(files.paths) == set(files.deleted)
     finally:
         data.close()

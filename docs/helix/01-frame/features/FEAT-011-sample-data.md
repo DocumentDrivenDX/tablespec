@@ -45,10 +45,10 @@ F011-COMPON-02. Changes to the components behavior SHALL update this feature spe
 #### Domain packs and loading
 
 F011-DOMAIN-01. The feature SHALL select a domain generator set and matching type registry per run, retain healthcare defaults, and retain the legacy root-count alias.
-F011-LEGAL-01. Legal values SHALL be fabricated and seeded, correlate billing rates to timekeeper levels and narratives to tasks, and constrain time-entry dates to referenced matter periods.
-F011-LOAD-01. Unity Catalog loading SHALL be optional, injectable for offline testing, batched and repeatable, with local DDL/count review and opt-in table recreation.
-F011-SCALE-01. Row counts SHALL follow configured parent relationships with per-table overrides and configurable FK skew. Million-row generation SHALL keep dataset rows and uniqueness state on disk.
-F011-VERIFY-01. A successful load SHALL require zero orphan, null and uniqueness violations; unsupported constraints SHALL fail explicitly.
+F011-LEGAL-01. Legal values SHALL be fabricated and seeded, correlate billing rates to timekeeper levels and narratives to tasks, and constrain time-entry dates to referenced matter periods. Teams and walls SHALL contain unique, disjoint staff pairs; every matter SHALL have a partner and another member; entries SHALL use eligible team members. Typed documents and varied narratives SHALL expose optional tabular issue ground truth. Invoice sample windows SHALL have exact entry-derived totals.
+F011-LOAD-01. Unity Catalog loading SHALL be optional, injectable for offline testing, batched and repeatable, with an explicit volume-bulk path, read-back verification, verify-only auditing, local DDL/count review and opt-in table recreation.
+F011-SCALE-01. Row counts SHALL follow configured parent relationships with per-table overrides and configurable power-law FK skew and minimum parent coverage. Million-row generation SHALL keep dataset rows and uniqueness state on disk.
+F011-VERIFY-01. A successful load SHALL require zero orphan, null and uniqueness violations; unsupported or unsatisfiable constraints SHALL fail explicitly. Generation and post-load audits SHALL independently check tabular entitlement invariants.
 
 ### Non-Functional Requirements
 
@@ -123,6 +123,7 @@ This section preserves the pre-template feature content as source-backed scope e
 
 ## Out of Scope
 
+- Ontology data modeling (owned by truss and ashlar).
 - Actual workspace execution in this enhancement, praxis-owned UMF specs, credential handling, full UTBMS coverage, and cross-table atomic publication.
 - Reassigning PRD requirement ownership without updating the PRD and feature registry.
 - Duplicating story-level acceptance criteria in this feature spec.

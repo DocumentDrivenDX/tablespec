@@ -28,6 +28,38 @@
       "nullable": false,
       "description": "Fabricated invoice status",
       "domain_type": "invoice_status"
+    },
+    {
+      "name": "client_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Referenced matter client"
+    },
+    {
+      "name": "invoice_date",
+      "data_type": "DATE",
+      "nullable": false,
+      "description": "Synthetic issue date"
+    },
+    {
+      "name": "period_start",
+      "data_type": "DATE",
+      "nullable": false,
+      "description": "Inclusive sample billing window start"
+    },
+    {
+      "name": "period_end",
+      "data_type": "DATE",
+      "nullable": false,
+      "description": "Inclusive sample billing window end"
+    },
+    {
+      "name": "total_amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Exact sum of matter entry amounts within this sample window; windows may overlap",
+      "precision": 14,
+      "scale": 2
     }
   ],
   "primary_key": [
@@ -39,6 +71,11 @@
         "column": "matter_id",
         "references_table": "matters",
         "references_column": "matter_id"
+      },
+      {
+        "column": "client_id",
+        "references_table": "clients",
+        "references_column": "client_id"
       }
     ]
   }

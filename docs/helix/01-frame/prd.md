@@ -269,8 +269,8 @@ edits; do not renumber on edit.
 - **FR-12.4** — Domain type-aware generators (SSN, NPI, phone, state codes)
 - **FR-12.5** — CSV and JSON output with configurable row counts
 - **FR-12.6** — Filename pattern generation from UMF file format specs
-- **FR-12.7** — Fabricated legal-domain sample values with seeded parent/row correlations and no real records or credential content
-- **FR-12.8** — Optional Unity Catalog loading through an injectable sink, local dry-run review, batched deterministic replacement and opt-in destructive recreation
+- **FR-12.7** — Fabricated tabular legal values with seeded parent/row correlations, consistent teams/walls/entries, typed content and optional evaluation ground truth; ontology modeling belongs in truss and ashlar; no real records or credential content
+- **FR-12.8** — Optional Unity Catalog loading through an injectable sink, local dry-run review, batched or explicit volume-bulk deterministic replacement, read-back verification and opt-in destructive recreation
 - **FR-12.9** — Relationship-based configurable scale presets and table overrides, disk-backed generation at millions of rows, and zero-violation generation reports
 
 ### Subsystem: Quality Baselines

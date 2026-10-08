@@ -26,6 +26,10 @@ class GenerationConfig:
 
     root_entity_count: int | None = None
     domain: str = "healthcare"
+    skew_exponent: float = 0.8
+    matter_duration_min_days: int = 30
+    matter_duration_max_days: int = 1095
+    open_matter_fraction: float = 0.15
     relationship_distributions: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -35,6 +39,12 @@ class GenerationConfig:
         elif self.num_members != 10000 and self.num_members != self.root_entity_count:
             raise ValueError("Conflicting root_entity_count and num_members")
         self.num_members = self.root_entity_count
+        if not 0 <= self.skew_exponent <= 0.95:
+            raise ValueError("skew_exponent must be between 0 and 0.95")
+        if not 1 <= self.matter_duration_min_days <= self.matter_duration_max_days:
+            raise ValueError("Invalid matter duration range")
+        if not 0 <= self.open_matter_fraction <= 1:
+            raise ValueError("open_matter_fraction must be between zero and one")
         if not 0 <= self.high_frequency_key_ratio <= 1:
             raise ValueError("high_frequency_key_ratio must be between zero and one")
         if any(
