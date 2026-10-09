@@ -102,11 +102,18 @@ def local_artifact(root: Path, reference: str) -> Path:
     return resolved
 
 
-def checked_source(root: Path, source: dict[str, Any]) -> Path:
+def checked_source(
+    root: Path, source: dict[str, Any], source_policy: str = "redistribution"
+) -> Path:
     """Require explicit redistribution clearance and pinned bytes before inclusion."""
     if source["kind"] != "external":
         raise ValueError("CSV ingestion requires external sources")
-    if source.get("license", {}).get("redistribution") != "allowed":
+    if source_policy not in {"redistribution", "local-use"}:
+        raise ValueError("Unsupported source policy")
+    rights = source.get("license", {}).get("redistribution", "unknown")
+    if rights != "allowed" and not (
+        source_policy == "local-use" and rights == "unknown"
+    ):
         raise ValueError("Source redistribution is not cleared")
     checksum = source.get("checksum", {})
     if checksum.get("algorithm") != "sha256":
@@ -127,7 +134,11 @@ class ImportedDataset(GeneratedDataset):
     references remain metadata. No generator runs and no rows are fabricated.
     """
 
-    def __init__(self, path: Path, pack_path: Path) -> None:
+    def __init__(
+        self, path: Path, pack_path: Path, source_policy: str = "redistribution"
+    ) -> None:
+        if source_policy not in {"redistribution", "local-use"}:
+            raise ValueError("Unsupported source policy")
         metadata = read_domain_pack(pack_path)
         root = pack_path.resolve().parent
         profile = metadata.get("execution_profile")
@@ -169,7 +180,7 @@ class ImportedDataset(GeneratedDataset):
             source = metadata["sources"][binding["source_id"]]
             if name in row_sources or source.get("format") != "csv":
                 raise ValueError("Each table requires exactly one local CSV row source")
-            row_sources[name] = checked_source(root, source)
+            row_sources[name] = checked_source(root, source, source_policy)
         if set(row_sources) != set(specs):
             raise ValueError("Every schema requires a CSV row source")
         # A zero-row initialization reuses the shared spool. The legacy healthcare
@@ -177,6 +188,7 @@ class ImportedDataset(GeneratedDataset):
         super().__init__(path, specs, dict.fromkeys(specs, 0), GenerationConfig())
         self.config.domain = metadata["id"]
         self.source_metadata = metadata
+        self.run_metadata = {"origin": "external", "source_policy": source_policy}
         self.row_sources = row_sources
         self.schema_artifacts = schema_artifacts
         self.artifact_hashes = {
@@ -200,7 +212,7 @@ class ImportedDataset(GeneratedDataset):
                 reference = source.get("reference", "")
                 if ":" in reference or not reference:
                     continue
-                artifact = checked_source(root, source)
+                artifact = checked_source(root, source, source_policy)
                 total_bytes += artifact.stat().st_size
                 if (
                     artifact.stat().st_size > 10 * 1024 * 1024

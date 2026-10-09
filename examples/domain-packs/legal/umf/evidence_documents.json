@@ -1,0 +1,115 @@
+{
+  "version": "1.0",
+  "table_name": "evidence_documents",
+  "description": "Observed public litigation corpus. Source PDF bytes are authoritative; extraction is a lossy search aid. No fictional firm or client association.",
+  "columns": [
+    {
+      "name": "evidence_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "evidence key"
+    },
+    {
+      "name": "case_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "case key"
+    },
+    {
+      "name": "title",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "title"
+    },
+    {
+      "name": "document_kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "document kind"
+    },
+    {
+      "name": "document_date",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "document date"
+    },
+    {
+      "name": "docket_number",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "docket number"
+    },
+    {
+      "name": "exhibit_number",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "exhibit number"
+    },
+    {
+      "name": "upstream_url",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "upstream url"
+    },
+    {
+      "name": "source_listing_url",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "source listing url"
+    },
+    {
+      "name": "publication_status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "publication status"
+    },
+    {
+      "name": "discovery_status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "discovery status"
+    },
+    {
+      "name": "redistribution",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "redistribution"
+    },
+    {
+      "name": "original_file",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "original file"
+    },
+    {
+      "name": "sha256",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "sha256"
+    },
+    {
+      "name": "page_count",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "page count"
+    },
+    {
+      "name": "extraction_status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "extraction status"
+    }
+  ],
+  "primary_key": [
+    "evidence_key"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "case_key",
+        "references_table": "cases",
+        "references_column": "case_key"
+      }
+    ]
+  }
+}

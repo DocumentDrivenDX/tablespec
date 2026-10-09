@@ -306,3 +306,37 @@ def test_domain_catalog_native_queries_and_replacement(
     finally:
         data.close()
         sink.execute(f"DROP SCHEMA {target} CASCADE")
+
+
+def test_mixed_legal_real_documents_load_readback(ingestion_sink, tmp_path):
+    """Load actual multiline evidence, with exact typed readback and replacement."""
+    from tablespec.sample_data.mixed import MixedDataset
+
+    sink, target = ingestion_sink
+    pack = (
+        Path(__file__).resolve().parents[2]
+        / "examples/domain-packs/legal/domain-pack.json"
+    )
+    data = MixedDataset(tmp_path / "mixed.sqlite", pack, source_policy="local-use")
+    try:
+        for _ in range(2):
+            load_dataset(data, target, sink)
+            assert all(
+                item["passed"]
+                for item in verify_loaded(
+                    data.specs, data.counts, target, sink, legal=True
+                ).values()
+            )
+            expected = next(data.batches("evidence_pages"))[0]
+            actual = sink.query(
+                f"SELECT text, pdf_page FROM {target}.evidence_pages WHERE page_key={literal(expected['page_key'])}"
+            )
+            assert actual == [[expected["text"], expected["pdf_page"]]]
+            assert sink.query(f"SELECT COUNT(*) FROM {target}.evidence_documents") == [
+                [7]
+            ]
+            assert sink.query(f"SELECT COUNT(*) FROM {target}.evidence_pages") == [
+                [383]
+            ]
+    finally:
+        data.close()

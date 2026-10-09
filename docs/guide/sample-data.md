@@ -369,3 +369,67 @@ and mapped in the archive manifest, alongside normalized `data/` CSV. Remote
 references remain metadata; missing or invalid sources are never fabricated.
 The medical snapshot preserves original FHIR examples and clinical literals;
 its notices document HL7, LOINC and UCUM terms. CMS sources remain reference-only.
+
+### Mixed legal pack for Databricks
+
+`examples/legal` and the built-in legal generator remain the eight-table synthetic
+compatibility example. `examples/domain-packs/legal` is the UMF 1.1.0 mixed pack:
+eight generated operation tables plus fixed `cases` (1), `evidence_documents` (7)
+and `evidence_pages` (383). Scale and seed apply only to generated operations.
+Observed text and identities are preserved, with no invented firm/client links.
+
+Preflight without authentication or writes:
+
+```sh
+tablespec sample-data ingest --mixed \
+  --pack examples/domain-packs/legal/domain-pack.json \
+  --scale small --seed 42 --source-policy local-use \
+  --target YOUR_CATALOG.legal_mixed --dry-run
+```
+
+`local-use` is an explicit processing selection for pinned public material whose
+redistribution rights remain unknown. It does not establish reuse permission.
+Restricted sources, stale hashes, missing files, unresolved bindings and
+unsupported cross-source relationships refuse before target writes. The default
+`redistribution` policy and ZIP export require cleared included sources; selecting
+local-use never bypasses the archive gate.
+
+For a SQL warehouse, remove `--dry-run` and supply `--warehouse-id` and `--profile`.
+For a cluster/notebook, import `scripts/load_mixed_legal_databricks.py`, install the
+built wheel into the runtime with `%pip`, and set its `pack_path` and `target`
+widgets. The full adjacent pack directory must be accessible on the driver.
+The notebook uses the existing Spark factory, preflights by default and reads
+back table counts, foreign keys, legal relational audits and real multiline text.
+Set `load_tables=true` after reviewing the preflight to write to a dedicated
+schema. The loader replaces each target table; the eleven-table operation is not
+an atomic transaction. Retrying after a partial failure replaces the same tables.
+
+Optionally set `originals_volume` to an existing Unity Catalog Volume subdirectory
+(`/Volumes/catalog/schema/volume/legal-1.1.0`). The notebook copies the seven PDFs,
+verifies their SHA-256 hashes and writes a source map carrying the retained rights
+status. No confidential/sealed endpoint is accessed. This private workspace
+transport is distinct from the refused redistributable CSV ZIP export.
+
+Build the installable wheel with `uv build --wheel`. On Databricks, do not run
+`uv run` or a subprocess to access Spark; use the runtime kernel and its active
+session. Live target writes require the operator's actual catalog/schema and
+workspace authentication. Local Sail/Spark evidence is distinct from live
+Databricks qualification.
+
+Mixed legal verification (2026-10-08): 131 focused unit cases pass, including the
+notebook's no-Spark/no-write preflight, exact 383-page CSV text preservation,
+seed-independent observed rows, tampered-source refusal and retained graph schema
+artifacts. Ruff formatting/lint and scoped Pyright pass. The built wheel contains
+mixed assembly, CLI flags and source-policy admission. Independent local Sail
+0.6.6 and classic Spark 4.0.0 / Delta 4.0.0 runs pass all eleven tables loaded
+twice, row/FK/legal audits and exact real multiline-text readback. The isolated
+classic Spark replay uses a controlled `/tmp` directory and completes in 241.09
+seconds. These checks qualify this small corpus and engines, not live Databricks.
+
+Failed attempts are retained: the first Sail attempt could not start its server
+inside the sandbox; the next exposed numeric expansion from applying imported
+Decimal recovery to generated float carriers. Mixed batches now preserve the
+existing generator carriers and use lexical Decimal recovery only for imported
+rows. The first combined native run failed during a local filesystem write;
+the isolated classic Spark replay passed. Source hashes, constraints, rights
+requirements and SQL behavior were not weakened to pass checks.

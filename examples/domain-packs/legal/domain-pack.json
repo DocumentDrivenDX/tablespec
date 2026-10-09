@@ -1,5 +1,5 @@
 {
-  "description": "Fabricated tabular legal sample data",
+  "description": "Mixed legal pack: fabricated firm operations plus observed public court filings, deposition designations and corporate trial exhibits. No invented association between the two.",
   "domain_types": {
     "billing_narrative": {
       "description": "Fabricated legal sample billing narrative",
@@ -334,6 +334,21 @@
       "reference": "umf/timekeepers.json"
     },
     {
+      "id": "cases",
+      "format": "tablespec",
+      "reference": "umf/cases.json"
+    },
+    {
+      "id": "evidence_documents",
+      "format": "tablespec",
+      "reference": "umf/evidence_documents.json"
+    },
+    {
+      "id": "evidence_pages",
+      "format": "tablespec",
+      "reference": "umf/evidence_pages.json"
+    },
+    {
       "id": "ontology",
       "format": "umf",
       "reference": "ontology.json"
@@ -379,6 +394,56 @@
       "role": "rows",
       "schema_id": "timekeepers",
       "source_id": "fabricated"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "complaint",
+      "role": "reference"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "memorandum-opinion",
+      "role": "reference"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "rowley-deposition",
+      "role": "reference"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "okelley-deposition",
+      "role": "reference"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "PTX0014",
+      "role": "reference"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "PTX0032",
+      "role": "reference"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "PTX0110",
+      "role": "reference"
+    },
+    {
+      "schema_id": "cases",
+      "source_id": "csv_cases",
+      "role": "rows"
+    },
+    {
+      "schema_id": "evidence_documents",
+      "source_id": "csv_evidence_documents",
+      "role": "rows"
+    },
+    {
+      "schema_id": "evidence_pages",
+      "source_id": "csv_evidence_pages",
+      "role": "rows"
     }
   ],
   "sources": {
@@ -390,9 +455,308 @@
         "version": "1.0.0"
       },
       "kind": "synthetic"
+    },
+    "complaint": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/complaint.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7428413ba41883eae3628af51aac958da668f0cabbb05ead6a9dfcfceead788b"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/media/1272576/dl?inline=",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "memorandum-opinion": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/memorandum-opinion.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cdfd832f191fb38fbe795cb301fd8c41ee5d9c4c9f69906b09531e3825c82296"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/atr/media/1412561/dl?inline=",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "rowley-deposition": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/rowley-deposition.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8a8e15e515d2dea8e0e1be2d9799448d33e0cb9aa88ee7967aa518f8aa6cf1ef"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/atr/media/1372421/dl?inline=",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "okelley-deposition": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/okelley-deposition.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "9f313014b96168675decd3a53cc3a74a8c7eba76982af23afcb29b6dd9e0c357"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/atr/media/1368926/dl",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "PTX0014": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/PTX0014.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "6e0a10e724b4c39b37370c240fee603c108fd91727f4be3cff4cbb80333f8f2d"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/atr/media/1368461/dl",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "PTX0032": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/PTX0032.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b06e8aebc902c3ac841e461b819e92ff5b392a7d9be2e66b7a489d14d3cbded8"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/atr/media/1368436/dl",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "PTX0110": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "sources/PTX0110.pdf",
+      "format": "pdf",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "227b7eeed7e484ada5f5610ada8da2fd7cf077a4aff377a4c81762a3fee4c9ff"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "U.S. Department of Justice / source authors identified in document",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "U.S. Department of Justice / source authors identified in document",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://www.justice.gov/atr/media/1368771/dl",
+        "source_ids": [],
+        "transformations": []
+      }
+    },
+    "csv_cases": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "data/cases.csv",
+      "format": "csv",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "18ebf9a3792e6d097a7c13d7d90f758b853e074d0c82c908c55edea05e096f60"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "UMF project",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": null,
+        "source_ids": [
+          "complaint",
+          "memorandum-opinion",
+          "rowley-deposition",
+          "okelley-deposition",
+          "PTX0014",
+          "PTX0032",
+          "PTX0110"
+        ],
+        "transformations": [
+          "Selected metadata or per-PDF-page text projection; originals remain authoritative."
+        ]
+      }
+    },
+    "csv_evidence_documents": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "data/evidence_documents.csv",
+      "format": "csv",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "6ce2b456996f00bc11dfb3698d8cc8dfc1bbc1d64e3e33e7327ca543567853c9"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "UMF project",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": null,
+        "source_ids": [
+          "complaint",
+          "memorandum-opinion",
+          "rowley-deposition",
+          "okelley-deposition",
+          "PTX0014",
+          "PTX0032",
+          "PTX0110"
+        ],
+        "transformations": [
+          "Selected metadata or per-PDF-page text projection; originals remain authoritative."
+        ]
+      }
+    },
+    "csv_evidence_pages": {
+      "kind": "external",
+      "data_kind": "observed",
+      "reference": "data/evidence_pages.csv",
+      "format": "csv",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "78039a41246617364cb0c6cd1ebfeec43e025d0b62527a37576b5d5165e127f9"
+      },
+      "license": {
+        "redistribution": "unknown",
+        "reference": "https://www.justice.gov/legalpolicies",
+        "attribution": "UMF project",
+        "notices": [
+          "Public access does not establish third-party reuse rights. Original confidentiality markings and redactions remain untouched."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": null,
+        "source_ids": [
+          "complaint",
+          "memorandum-opinion",
+          "rowley-deposition",
+          "okelley-deposition",
+          "PTX0014",
+          "PTX0032",
+          "PTX0110"
+        ],
+        "transformations": [
+          "Selected metadata or per-PDF-page text projection; originals remain authoritative."
+        ]
+      }
     }
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "csv_conventions": {
+    "encoding": "UTF-8",
+    "null_value": "\\N",
+    "header": true,
+    "quote": "\""
+  },
+  "fixture_counts": {
+    "cases": 1,
+    "evidence_documents": 7,
+    "evidence_pages": 383
+  },
+  "qualification": {
+    "subset": "One digital-advertising antitrust case; seven selected PDFs, not a complete docket or discovery production.",
+    "extraction": "pypdf 6.10.0; PDF page ordinals, not transcript page/line citations; text layer only, no OCR.",
+    "original_authority": "sources/*.pdf; images, redactions, annotations, signatures and layout are not represented completely in CSV text.",
+    "joins": "Real evidence links only to sourced cases; no fabricated client/matter association.",
+    "execution": "Synthetic generation for the full mixed pack refuses external row bindings; consumers must select and explicitly ingest external CSV sources.",
+    "redistribution": "Full source export refuses while any bundled source has unknown redistribution rights."
+  },
   "execution_profile": {
     "version": "1.0.0",
     "targets": {
@@ -404,7 +768,10 @@
         "matter_teams",
         "matters",
         "time_entries",
-        "timekeepers"
+        "timekeepers",
+        "cases",
+        "evidence_documents",
+        "evidence_pages"
       ],
       "graph": [
         "ontology"
@@ -412,8 +779,18 @@
     },
     "mode": "fixed",
     "include_sources": [
-      "fabricated"
+      "fabricated",
+      "complaint",
+      "memorandum-opinion",
+      "rowley-deposition",
+      "okelley-deposition",
+      "PTX0014",
+      "PTX0032",
+      "PTX0110",
+      "csv_cases",
+      "csv_evidence_documents",
+      "csv_evidence_pages"
     ],
-    "qualification": "Delivered tabular behavior unchanged. Graph schema candidate only; no graph storage acceptance."
+    "qualification": "Mixed legal tabular inputs: generate eight fabricated operations tables; ingest three fixed observed evidence tables without replay. Unknown rights prohibit redistributable source archives. Graph schema describes fabricated operations only; no graph storage acceptance."
   }
 }

@@ -91,6 +91,25 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
                     raise ValueError(
                         "Generation schema differs from admitted domain-pack schema"
                     )
+    if dataset.source_metadata:
+        sources = dataset.source_metadata.get("sources", {})
+        included = {
+            b["source_id"]
+            for b in dataset.source_metadata.get("source_bindings", [])
+            if b["role"] == "rows" and b["schema_id"] in dataset.specs
+        }
+        included.update(
+            name
+            for name, source in sources.items()
+            if source.get("reference") in dataset.source_artifacts
+        )
+        for name in included:
+            source = sources[name]
+            if (
+                source["kind"] == "external"
+                and source.get("license", {}).get("redistribution") != "allowed"
+            ):
+                raise ValueError("Source redistribution is not cleared for ZIP export")
     if not dataset.verified or set(dataset.report) != set(dataset.specs):
         raise ValueError("Dataset must pass verification before export")
     output.parent.mkdir(parents=True, exist_ok=True)

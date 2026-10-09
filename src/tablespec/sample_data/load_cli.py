@@ -260,6 +260,10 @@ def ingest(
     warehouse_id: str | None = typer.Option(None, "--warehouse-id"),
     profile: str | None = typer.Option(None, "--profile"),
     dry_run: bool = typer.Option(False, "--dry-run"),
+    mixed: bool = typer.Option(False, "--mixed"),
+    scale: str = typer.Option("small", "--scale"),
+    seed: int = typer.Option(42, "--seed"),
+    source_policy: str = typer.Option("redistribution", "--source-policy"),
 ) -> None:
     """Verify pinned local CSV sources, export a ZIP, or use the shared loader."""
     from .archive import export_csv_zip
@@ -281,7 +285,14 @@ def ingest(
             ):
                 raise ValueError("Loading requires --warehouse-id and --profile")
         with TemporaryDirectory(prefix="tablespec-ingest-") as temp:
-            data = ImportedDataset(Path(temp) / "rows.sqlite", pack)
+            if mixed:
+                from .mixed import MixedDataset
+
+                data = MixedDataset(
+                    Path(temp) / "rows.sqlite", pack, scale, seed, source_policy
+                )
+            else:
+                data = ImportedDataset(Path(temp) / "rows.sqlite", pack, source_policy)
             try:
                 typer.echo(json.dumps(data.report, sort_keys=True, indent=2))
                 if output is not None:
@@ -307,7 +318,13 @@ def ingest(
                     elif sink is not None:
                         typer.echo(
                             json.dumps(
-                                verify_loaded(data.specs, data.counts, target, sink),
+                                verify_loaded(
+                                    data.specs,
+                                    data.counts,
+                                    target,
+                                    sink,
+                                    mixed and data.config.domain == "legal",
+                                ),
                                 sort_keys=True,
                                 indent=2,
                             )
