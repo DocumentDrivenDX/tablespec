@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "site_matches",
+  "description": "Synthetic site_matches; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored site_matches id; synthetic reference scenario."
+    },
+    {
+      "name": "site_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored site_matches site_id; synthetic reference scenario."
+    },
+    {
+      "name": "candidate_native_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored site_matches candidate_native_id; synthetic reference scenario."
+    },
+    {
+      "name": "evidence",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored site_matches evidence; synthetic reference scenario."
+    },
+    {
+      "name": "resolution",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored site_matches resolution; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "site_id",
+        "references_table": "monitoring_sites",
+        "references_column": "id"
+      }
+    ]
+  }
+}

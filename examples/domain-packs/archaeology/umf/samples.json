@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "samples",
+  "description": "Synthetic samples; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored samples id; synthetic reference scenario."
+    },
+    {
+      "name": "context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored samples context_id; synthetic reference scenario."
+    },
+    {
+      "name": "material",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored samples material; synthetic reference scenario."
+    },
+    {
+      "name": "parent_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored samples parent_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      },
+      {
+        "column": "parent_id",
+        "references_table": "samples",
+        "references_column": "id"
+      }
+    ]
+  }
+}

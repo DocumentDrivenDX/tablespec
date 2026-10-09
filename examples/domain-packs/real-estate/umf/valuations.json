@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "table_name": "valuations",
+  "description": "Synthetic valuations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored valuations id; synthetic reference scenario."
+    },
+    {
+      "name": "property_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored valuations property_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored valuations amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored valuations currency; synthetic reference scenario."
+    },
+    {
+      "name": "basis",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored valuations basis; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "property_id",
+        "references_table": "properties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

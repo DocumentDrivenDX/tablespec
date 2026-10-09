@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "find_lots",
+  "description": "Synthetic find_lots; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored find_lots id; synthetic reference scenario."
+    },
+    {
+      "name": "context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored find_lots context_id; synthetic reference scenario."
+    },
+    {
+      "name": "basket_code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored find_lots basket_code; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      }
+    ]
+  }
+}

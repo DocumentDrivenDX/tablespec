@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "table_name": "sampling_events",
+  "description": "Synthetic sampling_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sampling_events id; synthetic reference scenario."
+    },
+    {
+      "name": "site_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sampling_events site_id; synthetic reference scenario."
+    },
+    {
+      "name": "project_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sampling_events project_id; synthetic reference scenario."
+    },
+    {
+      "name": "method_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sampling_events method_id; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sampling_events event_time; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "site_id",
+        "references_table": "monitoring_sites",
+        "references_column": "id"
+      },
+      {
+        "column": "project_id",
+        "references_table": "projects",
+        "references_column": "id"
+      },
+      {
+        "column": "method_id",
+        "references_table": "methods",
+        "references_column": "id"
+      }
+    ]
+  }
+}

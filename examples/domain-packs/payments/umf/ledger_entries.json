@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "table_name": "ledger_entries",
+  "description": "Synthetic ledger_entries; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored ledger_entries id; synthetic reference scenario."
+    },
+    {
+      "name": "journal",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored ledger_entries journal; synthetic reference scenario."
+    },
+    {
+      "name": "account_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored ledger_entries account_id; synthetic reference scenario."
+    },
+    {
+      "name": "side",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored ledger_entries side; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored ledger_entries amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored ledger_entries currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "journal",
+        "references_table": "journals",
+        "references_column": "id"
+      },
+      {
+        "column": "account_id",
+        "references_table": "accounts",
+        "references_column": "id"
+      }
+    ]
+  }
+}

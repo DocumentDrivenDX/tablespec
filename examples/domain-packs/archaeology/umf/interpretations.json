@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "table_name": "interpretations",
+  "description": "Synthetic interpretations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations id; synthetic reference scenario."
+    },
+    {
+      "name": "context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations context_id; synthetic reference scenario."
+    },
+    {
+      "name": "phase",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations phase; synthetic reference scenario."
+    },
+    {
+      "name": "earliest",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored interpretations earliest; synthetic reference scenario."
+    },
+    {
+      "name": "latest",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored interpretations latest; synthetic reference scenario."
+    },
+    {
+      "name": "calendar",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations calendar; synthetic reference scenario."
+    },
+    {
+      "name": "author",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations author; synthetic reference scenario."
+    },
+    {
+      "name": "evidence",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations evidence; synthetic reference scenario."
+    },
+    {
+      "name": "basis",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretations basis; synthetic reference scenario."
+    },
+    {
+      "name": "supersedes_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored interpretations supersedes_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      },
+      {
+        "column": "supersedes_id",
+        "references_table": "interpretations",
+        "references_column": "id"
+      }
+    ]
+  }
+}

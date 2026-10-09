@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "observations",
+  "description": "Synthetic observations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations id; synthetic reference scenario."
+    },
+    {
+      "name": "context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations context_id; synthetic reference scenario."
+    },
+    {
+      "name": "property",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations property; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations value; synthetic reference scenario."
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations unit; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      }
+    ]
+  }
+}

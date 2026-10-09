@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "dependencies",
+  "description": "Synthetic dependencies; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored dependencies id; synthetic reference scenario."
+    },
+    {
+      "name": "predecessor_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored dependencies predecessor_id; synthetic reference scenario."
+    },
+    {
+      "name": "successor_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored dependencies successor_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "predecessor_id",
+        "references_table": "activities",
+        "references_column": "id"
+      },
+      {
+        "column": "successor_id",
+        "references_table": "activities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

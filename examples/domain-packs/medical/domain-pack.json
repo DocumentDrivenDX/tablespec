@@ -1,0 +1,1136 @@
+{
+  "id": "medical",
+  "version": "1.0.0",
+  "description": "Official HL7 FHIR R4 example corpus and loss-preserving tabular projections. External rows only; no synthetic fallback or clinical simulation claim.",
+  "domain_types": {
+    "fhir_resource_key": {
+      "description": "ResourceType/native-id, scoped to the pinned HL7 R4 corpus"
+    },
+    "fhir_temporal_literal": {
+      "description": "Original FHIR temporal spelling, including partial dates and timezone offsets"
+    },
+    "exact_decimal_text": {
+      "description": "Source decimal spelling retained without binary-number coercion"
+    }
+  },
+  "schemas": [
+    {
+      "id": "resources",
+      "format": "tablespec",
+      "reference": "umf/resources.json"
+    },
+    {
+      "id": "organizations",
+      "format": "tablespec",
+      "reference": "umf/organizations.json"
+    },
+    {
+      "id": "patients",
+      "format": "tablespec",
+      "reference": "umf/patients.json"
+    },
+    {
+      "id": "practitioners",
+      "format": "tablespec",
+      "reference": "umf/practitioners.json"
+    },
+    {
+      "id": "encounters",
+      "format": "tablespec",
+      "reference": "umf/encounters.json"
+    },
+    {
+      "id": "observations",
+      "format": "tablespec",
+      "reference": "umf/observations.json"
+    },
+    {
+      "id": "medications",
+      "format": "tablespec",
+      "reference": "umf/medications.json"
+    },
+    {
+      "id": "resource_references",
+      "format": "tablespec",
+      "reference": "umf/resource_references.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "sources": {
+    "patient-example": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/patient-example.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7cc6b3817264c22e722b6bc10e494d3441341032f8294db7ccec796ca7a0cf81"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/patient-example.json",
+        "transformations": []
+      }
+    },
+    "patient-example-f001-pieter": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/patient-example-f001-pieter.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "707159ab47ef675765a89e07833f0146c980ef554aaffed08603b5e762a37838"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/patient-example-f001-pieter.json",
+        "transformations": []
+      }
+    },
+    "practitioner-example": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/practitioner-example.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "f7bdedca23fe131d62bbf7efae8c4dca6c691fe1ab78aa55e81b5fea43a88655"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/practitioner-example.json",
+        "transformations": []
+      }
+    },
+    "practitioner-example-f005-al": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/practitioner-example-f005-al.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bea688cbf38ce0e07928cde2b9e4621087d2d2eb4c29b91fe01eaa864713edab"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/practitioner-example-f005-al.json",
+        "transformations": []
+      }
+    },
+    "organization-example-gastro": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/organization-example-gastro.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8116a0f1283be32e20e5b2496467b83b32b1c79b759217c5a1937c11c7e5e2bd"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/organization-example-gastro.json",
+        "transformations": []
+      }
+    },
+    "organization-example-f001-burgers": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/organization-example-f001-burgers.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cec6465ce1513077fc1accfa2abcd049ecd10e7dc37e73e9140bccf17b35da54"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/organization-example-f001-burgers.json",
+        "transformations": []
+      }
+    },
+    "organization-example-f002-burgers-card": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/organization-example-f002-burgers-card.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cefea0ad3875422e835f69df47c52575552e6b4f2051e737575fea5f1e29186e"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/organization-example-f002-burgers-card.json",
+        "transformations": []
+      }
+    },
+    "encounter-example": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/encounter-example.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "6ef7c93b28fa76d3f1f1dcd3e795a8e35c70b5f86ad4659b75f7fc3d93ff0bb5"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/encounter-example.json",
+        "transformations": []
+      }
+    },
+    "observation-example-f001-glucose": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-f001-glucose.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ce9f8dab3efbdfaa8a734e6c738956656cd444a91b823dcf4458eb833edf4a3f"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-f001-glucose.json",
+        "transformations": []
+      }
+    },
+    "observation-example-f002-excess": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-f002-excess.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "9cd95be31d43a6192d29c18b5452a16c512350f2d96d846d4caddcf4156c331a"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-f002-excess.json",
+        "transformations": []
+      }
+    },
+    "observation-example-f003-co2": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-f003-co2.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e6c700b420ef67bb56ac6093d1131304369d5dd886785da7b68af8a54ee67140"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-f003-co2.json",
+        "transformations": []
+      }
+    },
+    "observation-example-f004-erythrocyte": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-f004-erythrocyte.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4c9308712bc8d3b40e47686387ad0f31c02a75c0667d49e9e44b019caf9e4799"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-f004-erythrocyte.json",
+        "transformations": []
+      }
+    },
+    "observation-example-f005-hemoglobin": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-f005-hemoglobin.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "626d6cefa749e4fff6bcc6edf85d51606aa2f25db75f8268e0e734faaf8e904a"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-f005-hemoglobin.json",
+        "transformations": []
+      }
+    },
+    "observation-example-body-height": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-body-height.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "03fc509c667179aa31a781d0d3a5f278cf459a95ba8a20811376e8b80995a824"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-body-height.json",
+        "transformations": []
+      }
+    },
+    "observation-example-heart-rate": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-heart-rate.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d87f95a9cd9b8595b875ae22c38ad73f6d93f1d60d6ee3daf05d9708de1194d3"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-heart-rate.json",
+        "transformations": []
+      }
+    },
+    "observation-example-respiratory-rate": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/observation-example-respiratory-rate.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "34e17df17d4510fe8424c5e1ac9431766838747171718cab8226cfcd5a9920d9"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/observation-example-respiratory-rate.json",
+        "transformations": []
+      }
+    },
+    "medicationexample1": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "sources/medicationexample1.json",
+      "format": "fhir-r4-json",
+      "revision": "4.0.1",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7e4840d907254db22a6aa9bce22f1c962a94a7d21cb658ac00f491af8cb37e31"
+      },
+      "license": {
+        "id": "CC0-1.0",
+        "reference": "https://hl7.org/fhir/R4/license.html",
+        "redistribution": "allowed",
+        "attribution": "HL7 International, FHIR R4 4.0.1 official example; third-party LOINC/UCUM notices in licenses/NOTICE.txt",
+        "notices": [
+          "Illustrative example, not clinical advice or a validated longitudinal simulation.",
+          "HL7 and FHIR are registered trademarks of Health Level Seven International; use does not constitute endorsement."
+        ]
+      },
+      "provenance": {
+        "publisher": "HL7 International",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://hl7.org/fhir/R4/medicationexample1.json",
+        "transformations": []
+      }
+    },
+    "csv_resources": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/resources.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b52e08436fa98b7e0a78a69777196d70c86ff560b78ecaf127961dc3e851d58c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_organizations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/organizations.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ad25193bf1d73737fbfa22c80cbf92bd4905ec0e8f5185b30822e44e1aa12c4f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_patients": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/patients.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "f9850c74b803c9a9cbb61b9beb463697da73172c05d934bdec0057a10099fac8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_practitioners": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/practitioners.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "5230332e9ffda03877dd98207471cee08105d422eda9317d19fa22b9fb7d05ab"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_encounters": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/encounters.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4b84065bff25911d3f8b40610f652dc24c06ec3563de0adb7200680ca93f556d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_observations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/observations.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "de68ab0b1dd3d8ee8568fd12e84caac5afe955927ae0c2a650793e0e75c4dc16"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_medications": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/medications.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "5ba6bb3af8d3d7d8b65052fb071fda4e485805dd89d13bde995129db97d4a9d9"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "csv_resource_references": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/resource_references.csv",
+      "format": "csv",
+      "revision": "medical-1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d859681af3e620581795b805a1c0cd4ea1a5042d81613d9826eda4492fa90306"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "reference": "licenses/NOTICE.txt",
+        "notices": [
+          "Derivative tabular projection; original HL7 resources remain unmodified."
+        ]
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "source_ids": [
+          "patient-example",
+          "patient-example-f001-pieter",
+          "practitioner-example",
+          "practitioner-example-f005-al",
+          "organization-example-gastro",
+          "organization-example-f001-burgers",
+          "organization-example-f002-burgers-card",
+          "encounter-example",
+          "observation-example-f001-glucose",
+          "observation-example-f002-excess",
+          "observation-example-f003-co2",
+          "observation-example-f004-erythrocyte",
+          "observation-example-f005-hemoglobin",
+          "observation-example-body-height",
+          "observation-example-heart-rate",
+          "observation-example-respiratory-rate",
+          "medicationexample1"
+        ],
+        "transformations": [
+          "Explicit selected-column projection; complete original resource bytes in resources.resource_json. Decimal and partial date/time values retained as strings. Unresolved references recorded without fabricating targets."
+        ]
+      }
+    },
+    "notices": {
+      "kind": "external",
+      "data_kind": "unknown",
+      "reference": "licenses/NOTICE.txt",
+      "format": "text",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "52b89f1d6f81600eb5b6ee87d1fe054a7b2de072f7762789f72d104e0cbd35b2"
+      },
+      "license": {
+        "redistribution": "allowed"
+      },
+      "provenance": {
+        "publisher": "UMF project"
+      }
+    },
+    "cms_blue_button": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "https://bluebutton.cms.gov/api-documentation/explore-the-api/",
+      "format": "publisher-page",
+      "license": {
+        "redistribution": "unknown",
+        "notices": [
+          "Reference only; redistribution is not cleared and no source bytes are bundled."
+        ]
+      },
+      "provenance": {
+        "publisher": "Centers for Medicare & Medicaid Services"
+      }
+    },
+    "cms_synpuf": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "https://www.cms.gov/data-research/statistics-trends-and-reports/medicare-claims-synthetic-public-use-files",
+      "format": "publisher-page",
+      "license": {
+        "redistribution": "unknown",
+        "notices": [
+          "Reference only; redistribution is not cleared and no source bytes are bundled."
+        ]
+      },
+      "provenance": {
+        "publisher": "Centers for Medicare & Medicaid Services"
+      }
+    },
+    "loinc_short_notice": {
+      "kind": "external",
+      "data_kind": "unknown",
+      "reference": "licenses/LOINC_short_license.txt",
+      "format": "text",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cc1aad47fa2c13f4206daeb92dde51a95dca0850029b76bfabdfc997bd6c4985"
+      },
+      "license": {
+        "id": "LicenseRef-LOINC",
+        "reference": "https://loinc.org/license",
+        "redistribution": "allowed",
+        "attribution": "Regenstrief Institute, Inc. and the LOINC Committee; required Section 10 notice"
+      },
+      "provenance": {
+        "publisher": "Regenstrief Institute, Inc.",
+        "retrieved_at": "2026-10-08",
+        "upstream_url": "https://loinc.org/license",
+        "transformations": [
+          "Required short notice reproduced without changing its text."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "resources",
+      "source_id": "csv_resources",
+      "role": "rows"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "patient-example",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "patient-example-f001-pieter",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "practitioner-example",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "practitioner-example-f005-al",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "organization-example-gastro",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "organization-example-f001-burgers",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "organization-example-f002-burgers-card",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "encounter-example",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-f001-glucose",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-f002-excess",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-f003-co2",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-f004-erythrocyte",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-f005-hemoglobin",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-body-height",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-heart-rate",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "observation-example-respiratory-rate",
+      "role": "reference"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "medicationexample1",
+      "role": "reference"
+    },
+    {
+      "schema_id": "organizations",
+      "source_id": "csv_organizations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "patients",
+      "source_id": "csv_patients",
+      "role": "rows"
+    },
+    {
+      "schema_id": "practitioners",
+      "source_id": "csv_practitioners",
+      "role": "rows"
+    },
+    {
+      "schema_id": "encounters",
+      "source_id": "csv_encounters",
+      "role": "rows"
+    },
+    {
+      "schema_id": "observations",
+      "source_id": "csv_observations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "medications",
+      "source_id": "csv_medications",
+      "role": "rows"
+    },
+    {
+      "schema_id": "resource_references",
+      "source_id": "csv_resource_references",
+      "role": "rows"
+    }
+  ],
+  "csv_conventions": {
+    "encoding": "UTF-8",
+    "null_value": "\\N",
+    "header": true,
+    "quote": "\""
+  },
+  "fixture_counts": {
+    "resources": 17,
+    "organizations": 3,
+    "patients": 2,
+    "practitioners": 2,
+    "encounters": 1,
+    "observations": 8,
+    "medications": 1,
+    "resource_references": 17
+  },
+  "qualification": {
+    "native_format": "FHIR R4 4.0.1",
+    "subset": "17 selected resources; scalar observation quantities; locally resolved resource references",
+    "clinical_representativeness": "not established",
+    "source_bundle_validity": "not claimed; the corpus is not packaged or validated as a FHIR Bundle"
+  },
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "resources",
+        "organizations",
+        "patients",
+        "practitioners",
+        "encounters",
+        "observations",
+        "medications",
+        "resource_references"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "fixed",
+    "include_sources": [
+      "patient-example",
+      "patient-example-f001-pieter",
+      "practitioner-example",
+      "practitioner-example-f005-al",
+      "organization-example-gastro",
+      "organization-example-f001-burgers",
+      "organization-example-f002-burgers-card",
+      "encounter-example",
+      "observation-example-f001-glucose",
+      "observation-example-f002-excess",
+      "observation-example-f003-co2",
+      "observation-example-f004-erythrocyte",
+      "observation-example-f005-hemoglobin",
+      "observation-example-body-height",
+      "observation-example-heart-rate",
+      "observation-example-respiratory-rate",
+      "medicationexample1",
+      "csv_resources",
+      "csv_organizations",
+      "csv_patients",
+      "csv_practitioners",
+      "csv_encounters",
+      "csv_observations",
+      "csv_medications",
+      "csv_resource_references",
+      "notices",
+      "loinc_short_notice"
+    ],
+    "qualification": "Delivered tabular behavior unchanged. Graph schema candidate only; no graph storage acceptance."
+  }
+}

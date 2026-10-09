@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "units",
+  "description": "Synthetic units; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored units id; synthetic reference scenario."
+    },
+    {
+      "name": "building_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored units building_id; synthetic reference scenario."
+    },
+    {
+      "name": "unit_label",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored units unit_label; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "building_id",
+        "references_table": "buildings",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "table_name": "profiles",
+  "description": "Synthetic profiles; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored profiles id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored profiles name; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

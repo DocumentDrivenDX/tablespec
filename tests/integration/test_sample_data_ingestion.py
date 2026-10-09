@@ -6,6 +6,7 @@ separately because that engine does not implement them.
 """
 
 from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
 
@@ -52,10 +53,18 @@ class ArrowSink:
                         value = date.fromisoformat(str(value))
                     elif value is not None and field.dataType.typeName() == "timestamp":
                         value = datetime.fromisoformat(str(value.toInstant()))
+                    if value is not None and field.dataType.typeName() == "decimal":
+                        value = Decimal(str(value))
                     values.append(value)
                 result.append(values)
             return result
-        return [list(row.values()) for row in frame.toArrow().to_pylist()]
+        table = frame.toArrow()
+        return [
+            list(row)
+            for row in zip(
+                *(column.to_pylist() for column in table.columns), strict=True
+            )
+        ]
 
 
 @pytest.fixture(scope="module", params=["sail", "spark"])
@@ -180,3 +189,120 @@ def test_csv_zip_ingestion_and_readback(ingestion_sink, tmp_path):
             sink.execute(f"DROP SCHEMA {target} CASCADE")
         finally:
             data.close()
+
+
+def test_official_medical_csv_load_readback_and_replacement(ingestion_sink, tmp_path):
+    from tablespec.sample_data.ingest import ImportedDataset
+    from tests.unit.test_medical_sample_data import EXAMPLE
+
+    sink, target = ingestion_sink
+    data = ImportedDataset(tmp_path / "medical.sqlite", EXAMPLE / "domain-pack.json")
+    try:
+        expected = {
+            row["resource_key"]: row["resource_json"]
+            for batch in data.batches("resources")
+            for row in batch
+        }
+        for _ in range(2):
+            load_dataset(data, target, sink, batch_size=3)
+            verify_loaded(data.specs, data.counts, target, sink)
+            assert (
+                dict(
+                    sink.query(
+                        f"SELECT resource_key,resource_json FROM {target}.resources"
+                    )
+                )
+                == expected
+            )
+            assert sink.query(
+                f"SELECT value_decimal,effective_start FROM {target}.observations WHERE resource_key='Observation/body-height'"
+            ) == [["66.899999999999991", "1999-07-02"]]
+    finally:
+        data.close()
+
+
+@pytest.mark.parametrize(
+    "pack_name",
+    [
+        "commerce",
+        "supply-chain",
+        "cybersecurity",
+        "manufacturing",
+        "payments",
+        "education",
+        "transit",
+        "real-estate",
+        "energy",
+        "hr",
+        "martech",
+        "construction",
+        "ecology",
+        "archaeology",
+    ],
+)
+def test_domain_catalog_native_queries_and_replacement(
+    ingestion_sink, tmp_path, pack_name
+):
+    """Native engine subset, independent domain questions and repeated replacement.
+    @covers US-063-AC6 @covers US-064-AC6 @covers US-065-AC6 @covers US-066-AC6
+    @covers US-067-AC6 @covers US-068-AC6 @covers US-069-AC6 @covers US-070-AC6
+    @covers US-071-AC6 @covers US-072-AC6 @covers US-073-AC6 @covers US-074-AC6
+    @covers US-075-AC6 @covers US-076-AC6
+    """
+    import json
+    import re
+    from decimal import Decimal
+    from tablespec.sample_data.ingest import ImportedDataset
+
+    root = Path(__file__).parents[2]
+    reviewed = json.loads(
+        (root / "tests/fixtures/domain-packs/reviewed-checks.json").read_text()
+    )[pack_name]
+    data = ImportedDataset(
+        tmp_path / "catalog.sqlite",
+        root / "examples/domain-packs" / pack_name / "domain-pack.json",
+    )
+    sink, namespace = ingestion_sink
+    target = namespace + "_" + pack_name.replace("-", "_")
+    try:
+        sink.execute(f"CREATE SCHEMA {target}")
+        for _ in range(2):
+            load_dataset(data, target, sink, batch_size=17)
+            verify_loaded(data.specs, data.counts, target, sink, False)
+        assert data.source_metadata["scenario_checks"] == reviewed["checks"]
+        for check in reviewed["checks"]:
+            query = re.sub(
+                r"\b("
+                + "|".join(
+                    re.escape(n) for n in sorted(data.specs, key=len, reverse=True)
+                )
+                + r")\b",
+                lambda m: target + "." + m.group(0),
+                check["sql"],
+            )
+
+            def normalized(value):
+                if isinstance(value, (float, Decimal)):
+                    return Decimal(str(value))
+                return value
+
+            actual = [[normalized(value) for value in row] for row in sink.query(query)]
+            expected = [
+                [normalized(value) for value in row] for row in check["expected"]
+            ]
+            assert actual == expected, check["id"]
+        for name, spec in data.specs.items():
+            columns = [c["name"] for c in spec["columns"]]
+            actual = sink.query(
+                f"SELECT {','.join(columns)} FROM {target}.{name} ORDER BY id"
+            )
+            expected = [
+                [row[c] for c in columns]
+                for batch in data.batches(name)
+                for row in batch
+            ]
+            expected.sort(key=lambda row: row[0])
+            assert actual == expected, name
+    finally:
+        data.close()
+        sink.execute(f"DROP SCHEMA {target} CASCADE")

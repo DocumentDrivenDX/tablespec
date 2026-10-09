@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "table_name": "occurrences",
+  "description": "Synthetic occurrences; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored occurrences id; synthetic reference scenario."
+    },
+    {
+      "name": "event_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored occurrences event_id; synthetic reference scenario."
+    },
+    {
+      "name": "identification_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored occurrences identification_id; synthetic reference scenario."
+    },
+    {
+      "name": "effort_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored occurrences effort_id; synthetic reference scenario."
+    },
+    {
+      "name": "count",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored occurrences count; synthetic reference scenario."
+    },
+    {
+      "name": "detection",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored occurrences detection; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "event_id",
+        "references_table": "sampling_events",
+        "references_column": "id"
+      },
+      {
+        "column": "identification_id",
+        "references_table": "identifications",
+        "references_column": "id"
+      },
+      {
+        "column": "effort_id",
+        "references_table": "effort",
+        "references_column": "id"
+      }
+    ]
+  }
+}

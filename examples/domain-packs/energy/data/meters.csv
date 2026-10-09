@@ -1,0 +1,3 @@
+"id","asset_id","name","valid_from","valid_to"
+"M1","A2","Old meter","2026-01-01","2026-01-15"
+"M2","A2","Replacement meter","2026-01-16","2026-01-30"

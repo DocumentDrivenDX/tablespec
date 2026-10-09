@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "academic_terms",
+  "description": "Synthetic academic_terms; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored academic_terms id; synthetic reference scenario."
+    },
+    {
+      "name": "starts",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored academic_terms starts; synthetic reference scenario."
+    },
+    {
+      "name": "ends",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored academic_terms ends; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

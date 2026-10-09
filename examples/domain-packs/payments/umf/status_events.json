@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "status_events",
+  "description": "Synthetic status_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored status_events id; synthetic reference scenario."
+    },
+    {
+      "name": "payment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored status_events payment_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored status_events status; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored status_events event_time; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "payment_id",
+        "references_table": "payment_instructions",
+        "references_column": "id"
+      }
+    ]
+  }
+}

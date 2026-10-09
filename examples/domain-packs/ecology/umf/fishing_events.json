@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "table_name": "fishing_events",
+  "description": "Synthetic fishing_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fishing_events id; synthetic reference scenario."
+    },
+    {
+      "name": "site_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fishing_events site_id; synthetic reference scenario."
+    },
+    {
+      "name": "effort",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored fishing_events effort; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "effort_unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fishing_events effort_unit; synthetic reference scenario."
+    },
+    {
+      "name": "catch_count",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored fishing_events catch_count; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "site_id",
+        "references_table": "monitoring_sites",
+        "references_column": "id"
+      }
+    ]
+  }
+}

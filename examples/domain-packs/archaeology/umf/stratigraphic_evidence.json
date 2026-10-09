@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "stratigraphic_evidence",
+  "description": "Synthetic stratigraphic_evidence; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_evidence id; synthetic reference scenario."
+    },
+    {
+      "name": "assertion_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_evidence assertion_id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_evidence asset_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "assertion_id",
+        "references_table": "stratigraphic_assertions",
+        "references_column": "id"
+      },
+      {
+        "column": "asset_id",
+        "references_table": "assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

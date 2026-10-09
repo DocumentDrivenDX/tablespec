@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "table_name": "touchpoints",
+  "description": "Synthetic touchpoints; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored touchpoints id; synthetic reference scenario."
+    },
+    {
+      "name": "profile_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored touchpoints profile_id; synthetic reference scenario."
+    },
+    {
+      "name": "campaign_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored touchpoints campaign_id; synthetic reference scenario."
+    },
+    {
+      "name": "channel_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored touchpoints channel_id; synthetic reference scenario."
+    },
+    {
+      "name": "event_day",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored touchpoints event_day; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "profile_id",
+        "references_table": "profiles",
+        "references_column": "id"
+      },
+      {
+        "column": "campaign_id",
+        "references_table": "campaigns",
+        "references_column": "id"
+      },
+      {
+        "column": "channel_id",
+        "references_table": "channels",
+        "references_column": "id"
+      }
+    ]
+  }
+}

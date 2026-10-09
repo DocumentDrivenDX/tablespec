@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "table_name": "conversions",
+  "description": "Synthetic conversions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored conversions id; synthetic reference scenario."
+    },
+    {
+      "name": "profile_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored conversions profile_id; synthetic reference scenario."
+    },
+    {
+      "name": "event_day",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored conversions event_day; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored conversions amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored conversions currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "profile_id",
+        "references_table": "profiles",
+        "references_column": "id"
+      }
+    ]
+  }
+}

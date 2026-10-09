@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "leases",
+  "description": "Synthetic leases; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored leases id; synthetic reference scenario."
+    },
+    {
+      "name": "unit_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored leases unit_id; synthetic reference scenario."
+    },
+    {
+      "name": "party_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored leases party_id; synthetic reference scenario."
+    },
+    {
+      "name": "starts",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored leases starts; synthetic reference scenario."
+    },
+    {
+      "name": "ends",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored leases ends; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "unit_id",
+        "references_table": "units",
+        "references_column": "id"
+      },
+      {
+        "column": "party_id",
+        "references_table": "parties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

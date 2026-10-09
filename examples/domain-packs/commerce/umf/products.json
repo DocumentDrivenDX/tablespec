@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "products",
+  "description": "Synthetic products; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored products id; synthetic reference scenario."
+    },
+    {
+      "name": "supplier_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored products supplier_id; synthetic reference scenario."
+    },
+    {
+      "name": "sku",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored products sku; synthetic reference scenario."
+    },
+    {
+      "name": "unit_price",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored products unit_price; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "supplier_id",
+        "references_table": "suppliers",
+        "references_column": "id"
+      }
+    ]
+  }
+}

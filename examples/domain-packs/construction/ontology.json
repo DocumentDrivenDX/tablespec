@@ -1,0 +1,1836 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:construction",
+  "title": "construction ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:construction:",
+      "elements": [
+        {
+          "id": "projects",
+          "kind": "record",
+          "name": "projects",
+          "title": "projects",
+          "description": "Synthetic projects; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "projects.id"
+            },
+            {
+              "module": "domain",
+              "element": "projects.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "projects.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "projects.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored projects id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "projects.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored projects name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "parties",
+          "kind": "record",
+          "name": "parties",
+          "title": "parties",
+          "description": "Synthetic parties; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "parties.id"
+            },
+            {
+              "module": "domain",
+              "element": "parties.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "parties.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "parties.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored parties id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "parties.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored parties name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contracts",
+          "kind": "record",
+          "name": "contracts",
+          "title": "contracts",
+          "description": "Synthetic contracts; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "contracts.id"
+            },
+            {
+              "module": "domain",
+              "element": "contracts.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "contracts.party_id"
+            },
+            {
+              "module": "domain",
+              "element": "contracts.amount"
+            },
+            {
+              "module": "domain",
+              "element": "contracts.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "contracts.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "contracts.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contracts id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contracts.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contracts project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contracts.party_id",
+          "name": "party_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contracts party_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contracts.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contracts amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "contracts.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contracts currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "locations",
+          "kind": "record",
+          "name": "locations",
+          "title": "locations",
+          "description": "Synthetic locations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "locations.id"
+            },
+            {
+              "module": "domain",
+              "element": "locations.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "locations.grid"
+            },
+            {
+              "module": "domain",
+              "element": "locations.datum"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "locations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "locations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored locations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "locations.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored locations project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "locations.grid",
+          "name": "grid",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored locations grid; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "locations.datum",
+          "name": "datum",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored locations datum; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets",
+          "kind": "record",
+          "name": "assets",
+          "title": "assets",
+          "description": "Synthetic assets; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "assets.id"
+            },
+            {
+              "module": "domain",
+              "element": "assets.location_id"
+            },
+            {
+              "module": "domain",
+              "element": "assets.asset_kind"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "assets.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "assets.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.location_id",
+          "name": "location_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets location_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.asset_kind",
+          "name": "asset_kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets asset_kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_packages",
+          "kind": "record",
+          "name": "work_packages",
+          "title": "work_packages",
+          "description": "Synthetic work_packages; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "work_packages.id"
+            },
+            {
+              "module": "domain",
+              "element": "work_packages.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "work_packages.name"
+            },
+            {
+              "module": "domain",
+              "element": "work_packages.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "work_packages.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "work_packages.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_packages id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_packages.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_packages project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_packages.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_packages name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_packages.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_packages status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "activities",
+          "kind": "record",
+          "name": "activities",
+          "title": "activities",
+          "description": "Synthetic activities; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "activities.id"
+            },
+            {
+              "module": "domain",
+              "element": "activities.work_package_id"
+            },
+            {
+              "module": "domain",
+              "element": "activities.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "activities.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "activities.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored activities id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "activities.work_package_id",
+          "name": "work_package_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored activities work_package_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "activities.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored activities name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "dependencies",
+          "kind": "record",
+          "name": "dependencies",
+          "title": "dependencies",
+          "description": "Synthetic dependencies; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "dependencies.id"
+            },
+            {
+              "module": "domain",
+              "element": "dependencies.predecessor_id"
+            },
+            {
+              "module": "domain",
+              "element": "dependencies.successor_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "dependencies.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "dependencies.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored dependencies id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "dependencies.predecessor_id",
+          "name": "predecessor_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored dependencies predecessor_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "dependencies.successor_id",
+          "name": "successor_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored dependencies successor_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "resources",
+          "kind": "record",
+          "name": "resources",
+          "title": "resources",
+          "description": "Synthetic resources; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "resources.id"
+            },
+            {
+              "module": "domain",
+              "element": "resources.activity_id"
+            },
+            {
+              "module": "domain",
+              "element": "resources.quantity"
+            },
+            {
+              "module": "domain",
+              "element": "resources.unit"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "resources.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "resources.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored resources id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "resources.activity_id",
+          "name": "activity_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored resources activity_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "resources.quantity",
+          "name": "quantity",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored resources quantity; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "resources.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored resources unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "cost_items",
+          "kind": "record",
+          "name": "cost_items",
+          "title": "cost_items",
+          "description": "Synthetic cost_items; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "cost_items.id"
+            },
+            {
+              "module": "domain",
+              "element": "cost_items.contract_id"
+            },
+            {
+              "module": "domain",
+              "element": "cost_items.activity_id"
+            },
+            {
+              "module": "domain",
+              "element": "cost_items.amount"
+            },
+            {
+              "module": "domain",
+              "element": "cost_items.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "cost_items.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "cost_items.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored cost_items id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "cost_items.contract_id",
+          "name": "contract_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored cost_items contract_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "cost_items.activity_id",
+          "name": "activity_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored cost_items activity_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "cost_items.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored cost_items amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "cost_items.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored cost_items currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "change_orders",
+          "kind": "record",
+          "name": "change_orders",
+          "title": "change_orders",
+          "description": "Synthetic change_orders; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "change_orders.id"
+            },
+            {
+              "module": "domain",
+              "element": "change_orders.contract_id"
+            },
+            {
+              "module": "domain",
+              "element": "change_orders.status"
+            },
+            {
+              "module": "domain",
+              "element": "change_orders.amount"
+            },
+            {
+              "module": "domain",
+              "element": "change_orders.downstream_package_id"
+            },
+            {
+              "module": "domain",
+              "element": "change_orders.rfi_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "change_orders.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "change_orders.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored change_orders id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "change_orders.contract_id",
+          "name": "contract_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored change_orders contract_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "change_orders.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored change_orders status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "change_orders.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored change_orders amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "change_orders.downstream_package_id",
+          "name": "downstream_package_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored change_orders downstream_package_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "change_orders.rfi_id",
+          "name": "rfi_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored change_orders rfi_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "rfis",
+          "kind": "record",
+          "name": "rfis",
+          "title": "rfis",
+          "description": "Synthetic rfis; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "rfis.id"
+            },
+            {
+              "module": "domain",
+              "element": "rfis.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "rfis.question"
+            },
+            {
+              "module": "domain",
+              "element": "rfis.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "rfis.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "rfis.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored rfis id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "rfis.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored rfis asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "rfis.question",
+          "name": "question",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored rfis question; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "rfis.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored rfis status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections",
+          "kind": "record",
+          "name": "inspections",
+          "title": "inspections",
+          "description": "Synthetic inspections; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "inspections.id"
+            },
+            {
+              "module": "domain",
+              "element": "inspections.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "inspections.result"
+            },
+            {
+              "module": "domain",
+              "element": "inspections.method"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "inspections.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "inspections.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections.result",
+          "name": "result",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections result; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections.method",
+          "name": "method",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections method; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "submittals",
+          "kind": "record",
+          "name": "submittals",
+          "title": "submittals",
+          "description": "Synthetic submittals; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "submittals.id"
+            },
+            {
+              "module": "domain",
+              "element": "submittals.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "submittals.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "submittals.status"
+            },
+            {
+              "module": "domain",
+              "element": "submittals.revision"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "submittals.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "submittals.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored submittals id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "submittals.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored submittals project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "submittals.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored submittals asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "submittals.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored submittals status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "submittals.revision",
+          "name": "revision",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored submittals revision; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "bim_references",
+          "kind": "record",
+          "name": "bim_references",
+          "title": "bim_references",
+          "description": "Synthetic bim_references; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "bim_references.id"
+            },
+            {
+              "module": "domain",
+              "element": "bim_references.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "bim_references.publisher"
+            },
+            {
+              "module": "domain",
+              "element": "bim_references.model_revision"
+            },
+            {
+              "module": "domain",
+              "element": "bim_references.native_object_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "bim_references.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "bim_references.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored bim_references id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "bim_references.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored bim_references asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "bim_references.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored bim_references publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "bim_references.model_revision",
+          "name": "model_revision",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored bim_references model_revision; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "bim_references.native_object_id",
+          "name": "native_object_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored bim_references native_object_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "documents",
+          "kind": "record",
+          "name": "documents",
+          "title": "documents",
+          "description": "Synthetic documents; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "documents.id"
+            },
+            {
+              "module": "domain",
+              "element": "documents.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "documents.document_kind"
+            },
+            {
+              "module": "domain",
+              "element": "documents.reference"
+            },
+            {
+              "module": "domain",
+              "element": "documents.availability"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "documents.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "documents.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored documents id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "documents.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored documents project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "documents.document_kind",
+          "name": "document_kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored documents document_kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "documents.reference",
+          "name": "reference",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored documents reference; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "documents.availability",
+          "name": "availability",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored documents availability; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "contracts.project_id",
+          "name": "contracts.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "contracts"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "contracts.party_id",
+          "name": "contracts.party_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "contracts"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "parties",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "locations.project_id",
+          "name": "locations.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "locations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "assets.location_id",
+          "name": "assets.location_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "assets"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "locations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "work_packages.project_id",
+          "name": "work_packages.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "work_packages"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "activities.work_package_id",
+          "name": "activities.work_package_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "activities"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "work_packages",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "dependencies.predecessor_id",
+          "name": "dependencies.predecessor_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "dependencies"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "activities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "dependencies.successor_id",
+          "name": "dependencies.successor_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "dependencies"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "activities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "resources.activity_id",
+          "name": "resources.activity_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "resources"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "activities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "cost_items.contract_id",
+          "name": "cost_items.contract_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "cost_items"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contracts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "cost_items.activity_id",
+          "name": "cost_items.activity_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "cost_items"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "activities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "change_orders.contract_id",
+          "name": "change_orders.contract_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "change_orders"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contracts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "change_orders.downstream_package_id",
+          "name": "change_orders.downstream_package_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "change_orders"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "work_packages",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "change_orders.rfi_id",
+          "name": "change_orders.rfi_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "change_orders"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "rfis",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "rfis.asset_id",
+          "name": "rfis.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "rfis"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "inspections.asset_id",
+          "name": "inspections.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "inspections"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "submittals.project_id",
+          "name": "submittals.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "submittals"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "submittals.asset_id",
+          "name": "submittals.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "submittals"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "bim_references.asset_id",
+          "name": "bim_references.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "bim_references"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "documents.project_id",
+          "name": "documents.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "documents"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "routes",
+  "description": "Synthetic routes; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored routes id; synthetic reference scenario."
+    },
+    {
+      "name": "agency_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored routes agency_id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored routes name; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "agency_id",
+        "references_table": "agencies",
+        "references_column": "id"
+      }
+    ]
+  }
+}

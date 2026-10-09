@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "interval_readings",
+  "description": "Synthetic interval_readings; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_readings id; synthetic reference scenario."
+    },
+    {
+      "name": "channel_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_readings channel_id; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_readings event_time; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "DECIMAL",
+      "nullable": true,
+      "description": "Authored interval_readings value; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "channel_id",
+        "references_table": "channels",
+        "references_column": "id"
+      }
+    ]
+  }
+}

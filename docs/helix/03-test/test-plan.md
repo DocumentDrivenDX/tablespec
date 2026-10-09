@@ -308,3 +308,14 @@ stale-view refusal, explicit unsupported-property refusal and no numeric loss.
 a directly authored document and native compiler artifact comparisons. Synthetic
 DuckDB rows qualify one integer/decimal/string ingest subset; they do not establish
 Spark, Databricks, every core property or full end-to-end pipeline equivalence.
+
+### Official medical fixtures in the shared sample-data path
+
+US-013-AC12 uses `tests/unit/test_medical_sample_data.py` for deterministic
+archives, original source bytes, exact numeric/time literals, provenance mapping,
+rights/checksum refusal and injected orphan/unique/null/path failures.
+US-013-AC13 extends `tests/integration/test_sample_data_ingestion.py` using its
+existing Sail/Spark fixture and shared loader/readback checks. Sail comment refresh
+limitations retain the existing qualification; the Spark leg executes comments.
+The legal generator/archive regressions remain part of the same gate. No remote
+workspace execution is implied by local engine or offline CLI evidence.

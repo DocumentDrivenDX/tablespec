@@ -1,0 +1,428 @@
+{
+  "id": "hr",
+  "version": "1.0.0",
+  "description": "hr synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_organizations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/organizations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cbf5b21b6324cf4baa72b0b7c6a8d0ad63f92fcc2e4c77f79a19c1184bc7020a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_organizational_units": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/organizational_units.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e559070b0fd26a93a099f216c290a69b2d367a03e726aaf99f8c0f289449c1d5"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_positions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/positions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e48964afcef9d7494b13ea53b7f43a6b9db171565228c9be5de895cf511348e9"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_candidates": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/candidates.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "6ffabb73866ea5559ffd9251f0f42282dc7f9bcc3d2f922034dffa3b2a554ae2"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_applications": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/applications.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "18f87bec6b249a4e2986fa9d8f20ac70d49c746e091aad8c78624f1b9790a46b"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_interviews": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/interviews.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1787ea97deac75fee46d11f53defc6c7e68688f2b282ca1e635168d76568d8c8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_offers": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/offers.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8a794bbd9fed2b39bb6daa0dceeab8d505de9da6c78900283093dc4bc828a586"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_employment_relationships": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/employment_relationships.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8de34e14d9d8cf11e0b0556d866d359c62bfe3b3583e5f1160ee4917d964199c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_reporting_relationships": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/reporting_relationships.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "87e16d8d085bb05e709ab98ae839abc621c54ee08fb8ad34e4af1f61c8b6efea"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "organizations",
+      "source_id": "template_organizations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "organizational_units",
+      "source_id": "template_organizational_units",
+      "role": "rows"
+    },
+    {
+      "schema_id": "positions",
+      "source_id": "template_positions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "candidates",
+      "source_id": "template_candidates",
+      "role": "rows"
+    },
+    {
+      "schema_id": "applications",
+      "source_id": "template_applications",
+      "role": "rows"
+    },
+    {
+      "schema_id": "interviews",
+      "source_id": "template_interviews",
+      "role": "rows"
+    },
+    {
+      "schema_id": "offers",
+      "source_id": "template_offers",
+      "role": "rows"
+    },
+    {
+      "schema_id": "employment_relationships",
+      "source_id": "template_employment_relationships",
+      "role": "rows"
+    },
+    {
+      "schema_id": "reporting_relationships",
+      "source_id": "template_reporting_relationships",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "organizations",
+      "format": "tablespec",
+      "reference": "umf/organizations.json"
+    },
+    {
+      "id": "organizational_units",
+      "format": "tablespec",
+      "reference": "umf/organizational_units.json"
+    },
+    {
+      "id": "positions",
+      "format": "tablespec",
+      "reference": "umf/positions.json"
+    },
+    {
+      "id": "candidates",
+      "format": "tablespec",
+      "reference": "umf/candidates.json"
+    },
+    {
+      "id": "applications",
+      "format": "tablespec",
+      "reference": "umf/applications.json"
+    },
+    {
+      "id": "interviews",
+      "format": "tablespec",
+      "reference": "umf/interviews.json"
+    },
+    {
+      "id": "offers",
+      "format": "tablespec",
+      "reference": "umf/offers.json"
+    },
+    {
+      "id": "employment_relationships",
+      "format": "tablespec",
+      "reference": "umf/employment_relationships.json"
+    },
+    {
+      "id": "reporting_relationships",
+      "format": "tablespec",
+      "reference": "umf/reporting_relationships.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "organizations",
+        "organizational_units",
+        "positions",
+        "candidates",
+        "applications",
+        "interviews",
+        "offers",
+        "employment_relationships",
+        "reporting_relationships"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "organizations": [
+        "id"
+      ],
+      "organizational_units": [
+        "id",
+        "organization_id"
+      ],
+      "positions": [
+        "id",
+        "unit_id"
+      ],
+      "candidates": [
+        "id"
+      ],
+      "applications": [
+        "id",
+        "candidate_id",
+        "position_id"
+      ],
+      "interviews": [
+        "id",
+        "application_id"
+      ],
+      "offers": [
+        "id",
+        "application_id"
+      ],
+      "employment_relationships": [
+        "id",
+        "candidate_id",
+        "position_id"
+      ],
+      "reporting_relationships": [
+        "id",
+        "employee_id",
+        "manager_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "two-applications",
+      "question": "Two applications yield one offer and employment relationship",
+      "sql": "SELECT c.id,COUNT(DISTINCT a.id),COUNT(DISTINCT o.id),COUNT(DISTINCT e.id) FROM candidates c JOIN applications a ON a.candidate_id=c.id LEFT JOIN offers o ON o.application_id=a.id LEFT JOIN employment_relationships e ON e.candidate_id=c.id GROUP BY c.id",
+      "expected": [
+        [
+          "C1",
+          2,
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "historical",
+      "question": "Reporting relation is excluded before its valid period",
+      "sql": "SELECT id FROM reporting_relationships WHERE valid_from<='2026-03-01' AND valid_to>='2026-03-01'",
+      "expected": []
+    },
+    {
+      "id": "candidate",
+      "question": "Accepted application does not replace employment identity",
+      "sql": "SELECT a.id,e.id FROM applications a JOIN employment_relationships e ON e.candidate_id=a.candidate_id AND e.position_id=a.position_id",
+      "expected": [
+        [
+          "A1",
+          "E1"
+        ]
+      ]
+    },
+    {
+      "id": "cycle",
+      "question": "A self-management assertion remains a visible error",
+      "sql": "SELECT id FROM reporting_relationships WHERE employee_id=manager_id",
+      "expected": [
+        [
+          "RR1"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "organizations": 1,
+    "organizational_units": 1,
+    "positions": 2,
+    "candidates": 1,
+    "applications": 2,
+    "interviews": 1,
+    "offers": 1,
+    "employment_relationships": 1,
+    "reporting_relationships": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

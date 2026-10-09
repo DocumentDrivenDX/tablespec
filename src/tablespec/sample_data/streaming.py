@@ -2,6 +2,7 @@
 
 from collections.abc import Iterator
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 import math
 import json
 from pathlib import Path
@@ -77,6 +78,19 @@ def plan_counts(
     return counts
 
 
+def _decimal_canonical(value: Decimal) -> Decimal:
+    """Exact numeric identity for spool keys, without context rounding."""
+    if value == 0:
+        return Decimal(0)
+    parts = value.as_tuple()
+    digits = list(parts.digits)
+    exponent = int(parts.exponent)
+    while digits[-1] == 0:
+        digits.pop()
+        exponent += 1
+    return Decimal((parts.sign, tuple(digits), exponent))
+
+
 class GeneratedDataset:
     """Temporary SQLite spool; memory use is bounded by row/batch size.
 
@@ -99,9 +113,70 @@ class GeneratedDataset:
         self.db.execute(
             "CREATE TABLE unique_values (tbl TEXT, cols TEXT, val TEXT, UNIQUE(tbl,cols,val))"
         )
+        self.source_metadata: dict[str, Any] | None = None
+        self.source_artifacts: dict[str, Path] = {}
+        self.schema_artifacts: dict[str, Path] = {}
+        self.artifact_hashes: dict[str, str] = {}
+        self.run_metadata: dict[str, Any] | None = None
         self.specs = specs
         self.counts = counts
         self.config = config
+        if config.domain_pack_path is not None:
+            from tablespec.umf_loader import UMFLoader
+            from .domains import read_domain_pack
+            from .ingest import local_artifact
+            import hashlib
+
+            source_pack = read_domain_pack(config.domain_pack_path)
+            if "execution_profile" in source_pack:
+                from .ingest import validate_profile
+
+                validate_profile(source_pack)
+                if source_pack["execution_profile"]["mode"] != "fixed":
+                    self.db.close()
+                    raise ValueError("Scenario replay requires the replay consumer")
+                selected_targets = set(
+                    source_pack["execution_profile"]["targets"].get("tabular", [])
+                )
+                root = config.domain_pack_path.resolve().parent
+                try:
+                    for schema in source_pack.get("schemas", []):
+                        artifact = local_artifact(root, schema["reference"])
+                        if artifact.stat().st_size > 10 * 1024 * 1024:
+                            raise ValueError("Schema artifact exceeds byte budget")
+                        if (
+                            schema["format"] == "tablespec"
+                            and schema["id"] in selected_targets
+                        ):
+                            native = (
+                                UMFLoader()
+                                .load(artifact)
+                                .model_dump(mode="json", exclude_none=True)
+                            )
+                            if (
+                                schema["id"] not in specs
+                                or native != specs[schema["id"]]
+                            ):
+                                raise ValueError(
+                                    "Generation schema differs from domain-pack schema"
+                                )
+                        self.schema_artifacts[schema["reference"]] = artifact
+                        self.artifact_hashes[str(artifact)] = hashlib.sha256(
+                            artifact.read_bytes()
+                        ).hexdigest()
+                    if (
+                        sum(p.stat().st_size for p in self.schema_artifacts.values())
+                        > 100 * 1024 * 1024
+                    ):
+                        raise ValueError("Schema artifacts exceed aggregate budget")
+                    selected = selected_targets
+                    if set(specs) != selected:
+                        raise ValueError(
+                            "Generation table inventory differs from domain pack"
+                        )
+                except BaseException:
+                    self.db.close()
+                    raise
         self.rng = random.Random(config.random_seed)
         pack = get_run_domain_pack(config)
         self.generators = pack.generators(config)
@@ -231,33 +306,7 @@ class GeneratedDataset:
         self, name: str, spec: dict[str, Any], fks: list[dict[str, Any]]
     ) -> None:
         columns = [col for col in spec["columns"] if not col.get("internal")]
-        rules = expectation_dicts_from_umf_data(spec)
-        supported = {
-            "expect_column_values_to_not_be_null",
-            "expect_column_values_to_be_unique",
-            "expect_compound_columns_to_be_unique",
-            "expect_column_values_to_be_in_set",
-            "expect_column_values_to_be_between",
-            "expect_column_values_to_match_regex",
-            "expect_column_values_to_be_of_type",
-        }
-        for rule in rules:
-            if rule["type"] not in supported:
-                raise ValueError(f"Unsupported sample constraint: {rule['type']}")
-        unique = list(spec.get("unique_constraints") or [])
-        if spec.get("primary_key"):
-            unique.append(spec["primary_key"])
-        unique.extend(
-            [c["name"]]
-            for c in columns
-            if c.get("key_type") in ("primary", "unique", "foreign_one_to_one")
-        )
-        for rule in rules:
-            if rule["type"] == "expect_column_values_to_be_unique":
-                unique.append([rule["kwargs"]["column"]])
-            if rule["type"] == "expect_compound_columns_to_be_unique":
-                unique.append(rule["kwargs"]["column_list"])
-        unique = [list(cols) for cols in dict.fromkeys(tuple(cols) for cols in unique)]
+        unique, rules = self._constraints(spec, columns)
         one_to_one = {
             c["name"] for c in columns if c.get("key_type") == "foreign_one_to_one"
         }
@@ -369,6 +418,40 @@ class GeneratedDataset:
         }
 
     @staticmethod
+    def _constraints(
+        spec: dict[str, Any], columns: list[dict[str, Any]]
+    ) -> tuple[list[list[str]], list[dict[str, Any]]]:
+        """Share supported constraint admission between generated and supplied rows."""
+        rules = expectation_dicts_from_umf_data(spec)
+        supported = {
+            "expect_column_values_to_not_be_null",
+            "expect_column_values_to_be_unique",
+            "expect_compound_columns_to_be_unique",
+            "expect_column_values_to_be_in_set",
+            "expect_column_values_to_be_between",
+            "expect_column_values_to_match_regex",
+            "expect_column_values_to_be_of_type",
+        }
+        for rule in rules:
+            if rule["type"] not in supported:
+                raise ValueError(f"Unsupported sample constraint: {rule['type']}")
+        unique = list(spec.get("unique_constraints") or [])
+        if spec.get("primary_key"):
+            unique.append(spec["primary_key"])
+        unique.extend(
+            [c["name"]]
+            for c in columns
+            if c.get("key_type") in ("primary", "unique", "foreign_one_to_one")
+        )
+        for rule in rules:
+            if rule["type"] == "expect_column_values_to_be_unique":
+                unique.append([rule["kwargs"]["column"]])
+            if rule["type"] == "expect_compound_columns_to_be_unique":
+                unique.append(rule["kwargs"]["column_list"])
+        unique = [list(cols) for cols in dict.fromkeys(tuple(cols) for cols in unique)]
+        return unique, rules
+
+    @staticmethod
     def _bound(value: Any, col: dict[str, Any], strict: bool, direction: int) -> Any:
         """Convert exclusive bounds to the next representable generated value."""
         if value is None or not strict:
@@ -417,19 +500,19 @@ class GeneratedDataset:
                 ):
                     raise ValueError(f"Integer type violation: {name}.{col['name']}")
                 if dtype in ("DECIMAL", "FLOAT", "DOUBLE") and (
-                    not isinstance(value, (int, float)) or isinstance(value, bool)
+                    not isinstance(value, (int, float, Decimal))
+                    or isinstance(value, bool)
                 ):
                     raise ValueError(f"Numeric type violation: {name}.{col['name']}")
                 if dtype == "BOOLEAN" and not isinstance(value, bool):
                     raise ValueError(f"Boolean type violation: {name}.{col['name']}")
                 if dtype == "DECIMAL" and col.get("precision"):
-                    from decimal import Decimal
-
                     decimal = Decimal(str(value))
                     scale = col.get("scale") or 0
-                    if abs(decimal) >= Decimal(10) ** (
-                        col["precision"] - scale
-                    ) or decimal != decimal.quantize(Decimal(10) ** -scale):
+                    if (
+                        decimal.copy_abs() >= Decimal(10) ** (col["precision"] - scale)
+                        or int(_decimal_canonical(decimal).as_tuple().exponent) < -scale
+                    ):
                         raise ValueError(
                             f"Decimal precision/scale violation: {name}.{col['name']}"
                         )
@@ -442,13 +525,18 @@ class GeneratedDataset:
             if length and isinstance(value, str) and len(value) > length:
                 raise ValueError(f"Length constraint violation: {name}.{col['name']}")
         for cols in unique:
-            values = [row[c] for c in cols]
+            values = [
+                str(_decimal_canonical(row[c]))
+                if isinstance(row[c], Decimal)
+                else row[c]
+                for c in cols
+            ]
             if any(v is None for v in values):
                 continue
             try:
                 self.db.execute(
                     "INSERT INTO unique_values VALUES (?,?,?)",
-                    (name, json.dumps(cols), json.dumps(values)),
+                    (name, json.dumps(cols), json.dumps(values, default=str)),
                 )
             except sqlite3.IntegrityError as exc:
                 raise ValueError(
@@ -462,9 +550,19 @@ class GeneratedDataset:
             if kind == "expect_column_values_to_not_be_null":
                 valid = value is not None
             elif value is not None and kind == "expect_column_values_to_be_in_set":
-                valid = value in kw["value_set"]
+                valid = value in [
+                    Decimal(str(item))
+                    if isinstance(value, Decimal)
+                    and isinstance(item, (int, float))
+                    and not isinstance(item, bool)
+                    else item
+                    for item in kw["value_set"]
+                ]
             elif value is not None and kind == "expect_column_values_to_be_between":
                 minimum, maximum = kw.get("min_value"), kw.get("max_value")
+                if isinstance(value, Decimal):
+                    minimum = Decimal(str(minimum)) if minimum is not None else None
+                    maximum = Decimal(str(maximum)) if maximum is not None else None
                 valid = (
                     minimum is None
                     or (value > minimum if kw.get("strict_min") else value >= minimum)
@@ -481,11 +579,11 @@ class GeneratedDataset:
                     "INT": isinstance(value, int) and not isinstance(value, bool),
                     "LONG": isinstance(value, int) and not isinstance(value, bool),
                     "BOOLEAN": isinstance(value, bool),
-                    "DECIMAL": isinstance(value, (int, float))
+                    "DECIMAL": isinstance(value, (int, float, Decimal))
                     and not isinstance(value, bool),
-                    "FLOAT": isinstance(value, (int, float))
+                    "FLOAT": isinstance(value, (int, float, Decimal))
                     and not isinstance(value, bool),
-                    "DOUBLE": isinstance(value, (int, float))
+                    "DOUBLE": isinstance(value, (int, float, Decimal))
                     and not isinstance(value, bool),
                     "DATE": isinstance(value, str)
                     and bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", value)),

@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "items",
+  "description": "Synthetic items; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored items id; synthetic reference scenario."
+    },
+    {
+      "name": "lot_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored items lot_id; synthetic reference scenario."
+    },
+    {
+      "name": "serial",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored items serial; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "lot_id",
+        "references_table": "lots",
+        "references_column": "id"
+      }
+    ]
+  }
+}

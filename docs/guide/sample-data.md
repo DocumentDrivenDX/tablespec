@@ -351,3 +351,21 @@ Sail and Spark tests ingest those typed rows into Delta and verify the results.
 This avoids Sail's current native CSV reader coercion of quoted empty strings to
 NULL. Retrieval, arbitrary native-format conversion and mixed-source merge rules
 need explicit adapters; no remote reference is downloaded by pack tooling.
+
+### Official pinned CSV fixtures
+
+The medical pack uses the same domain-pack contract and dataset pipeline as the
+legal pack. Import its external rows with:
+
+```sh
+tablespec sample-data ingest --pack examples/medical/domain-pack.json --output /tmp/medical.zip
+tablespec sample-data ingest --pack examples/medical/domain-pack.json --target samples.medical --dry-run
+```
+
+`ingest` requires local, checksum-pinned CSV bindings and explicit redistribution
+permission. It validates types, nullability, uniqueness and foreign keys before
+using the shared archive or loader. Source artifacts are preserved under `inputs/`
+and mapped in the archive manifest, alongside normalized `data/` CSV. Remote
+references remain metadata; missing or invalid sources are never fabricated.
+The medical snapshot preserves original FHIR examples and clinical literals;
+its notices document HL7, LOINC and UCUM terms. CMS sources remain reference-only.

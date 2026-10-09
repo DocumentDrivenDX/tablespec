@@ -43,6 +43,9 @@ This story covers the generate sample data from umf slice in the parent feature.
 - [ ] **US-013-AC10** — Given typed documents, narratives and sample invoice windows, issue labels match clauses, hours/rates reconcile exactly, invoice totals equal period sums, and parent coverage/skew meet tested bounds.
 - [ ] **US-013-AC11** — Given an offline Files API port, explicit bulk loading uploads bounded CSV chunks, COPY loads staging, then overwrites targets and cleans files; verify-only issues reads and fails on mismatched counts or integrity checks.
 
+- [ ] **US-013-AC12** — Given the official medical pack, explicit ingestion retains source bytes, exact clinical literals and source-to-archive provenance; changed bytes, uncleared redistribution rights and invalid rows fail before export or sink writes.
+- [ ] **US-013-AC13** — Given verified medical fixtures, the shared local Sail and Spark loaders publish repeatable replacements and independent readback checks confirm counts, foreign keys and original resource content.
+
 ## Edge Cases
 
 - **foreign keys must stay referentially consistent**: foreign keys must stay referentially consistent

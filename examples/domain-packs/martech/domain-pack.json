@@ -1,0 +1,570 @@
+{
+  "id": "martech",
+  "version": "1.0.0",
+  "description": "martech synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_profiles": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/profiles.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "25c9ef87426c2152f7e45283a63d83dd1b1559de8be55ef0d4bc3660e9c2328b"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_source_identities": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/source_identities.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7f0f5c7f6f94aa79dc6f79bb831a4c3bfdc63f2a5974779f043bf2b7514d1924"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_campaigns": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/campaigns.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7099db80dd8f0206da966a4628edbbf0e8ebeca0729f6c33edcbf519e2a096b2"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_channels": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/channels.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "af5084cc7042247442676df703978f07227fa82038c6cc9652609ef9f8e924e7"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_consents": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/consents.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "93a4dc931869854171a9151d8addd6bd502d875061c8e2820e57f3fd706e6c28"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_sessions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/sessions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "eaac4f5860bab4fba94ba24cafa94ea89456b9b318991e749a47e2cd90463766"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_identity_assertions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/identity_assertions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "11efc56dd024d0f643a0b117ccfcf5a3298c66c381cd4efb2f0a38a55603c7bb"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_touchpoints": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/touchpoints.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "81fb9cf5b9db874af11d0ba3dd0665dd52d6f516f0f6c5aa69a4f7ac66d03160"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_consent_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/consent_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c9269209d6a0c1352c3bd1c8be47108f5ff531024b2457ea6b76603c4650d85a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_conversions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/conversions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "efa7ca7262ce1401a84bf50b236bd2999ae1d6f5a9b7317c359c5d58d3277478"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_attribution_rules": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/attribution_rules.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "77ec941684343c3cece0fb600d6020cd5966fa95e825817f574427c9cf15b8e7"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_attributions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/attributions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "df4469e036dedd660f3f91077023ab5d5d42bdb1f41b6da3f51c01d2a0da3c4c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "profiles",
+      "source_id": "template_profiles",
+      "role": "rows"
+    },
+    {
+      "schema_id": "source_identities",
+      "source_id": "template_source_identities",
+      "role": "rows"
+    },
+    {
+      "schema_id": "campaigns",
+      "source_id": "template_campaigns",
+      "role": "rows"
+    },
+    {
+      "schema_id": "channels",
+      "source_id": "template_channels",
+      "role": "rows"
+    },
+    {
+      "schema_id": "consents",
+      "source_id": "template_consents",
+      "role": "rows"
+    },
+    {
+      "schema_id": "sessions",
+      "source_id": "template_sessions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "identity_assertions",
+      "source_id": "template_identity_assertions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "touchpoints",
+      "source_id": "template_touchpoints",
+      "role": "rows"
+    },
+    {
+      "schema_id": "consent_events",
+      "source_id": "template_consent_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "conversions",
+      "source_id": "template_conversions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "attribution_rules",
+      "source_id": "template_attribution_rules",
+      "role": "rows"
+    },
+    {
+      "schema_id": "attributions",
+      "source_id": "template_attributions",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "profiles",
+      "format": "tablespec",
+      "reference": "umf/profiles.json"
+    },
+    {
+      "id": "source_identities",
+      "format": "tablespec",
+      "reference": "umf/source_identities.json"
+    },
+    {
+      "id": "campaigns",
+      "format": "tablespec",
+      "reference": "umf/campaigns.json"
+    },
+    {
+      "id": "channels",
+      "format": "tablespec",
+      "reference": "umf/channels.json"
+    },
+    {
+      "id": "consents",
+      "format": "tablespec",
+      "reference": "umf/consents.json"
+    },
+    {
+      "id": "sessions",
+      "format": "tablespec",
+      "reference": "umf/sessions.json"
+    },
+    {
+      "id": "identity_assertions",
+      "format": "tablespec",
+      "reference": "umf/identity_assertions.json"
+    },
+    {
+      "id": "touchpoints",
+      "format": "tablespec",
+      "reference": "umf/touchpoints.json"
+    },
+    {
+      "id": "consent_events",
+      "format": "tablespec",
+      "reference": "umf/consent_events.json"
+    },
+    {
+      "id": "conversions",
+      "format": "tablespec",
+      "reference": "umf/conversions.json"
+    },
+    {
+      "id": "attribution_rules",
+      "format": "tablespec",
+      "reference": "umf/attribution_rules.json"
+    },
+    {
+      "id": "attributions",
+      "format": "tablespec",
+      "reference": "umf/attributions.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "profiles",
+        "source_identities",
+        "campaigns",
+        "channels",
+        "consents",
+        "sessions",
+        "identity_assertions",
+        "touchpoints",
+        "consent_events",
+        "conversions",
+        "attribution_rules",
+        "attributions"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "profiles": [
+        "id"
+      ],
+      "source_identities": [
+        "id",
+        "profile_id"
+      ],
+      "campaigns": [
+        "id"
+      ],
+      "channels": [
+        "id"
+      ],
+      "consents": [
+        "id",
+        "profile_id",
+        "channel_id",
+        "source_identity_id"
+      ],
+      "sessions": [
+        "id",
+        "profile_id",
+        "source_identity_id"
+      ],
+      "identity_assertions": [
+        "id",
+        "left_id",
+        "right_id"
+      ],
+      "touchpoints": [
+        "id",
+        "profile_id",
+        "campaign_id",
+        "channel_id"
+      ],
+      "consent_events": [
+        "id",
+        "consent_id"
+      ],
+      "conversions": [
+        "id",
+        "profile_id"
+      ],
+      "attribution_rules": [
+        "id"
+      ],
+      "attributions": [
+        "id",
+        "conversion_id",
+        "touchpoint_id",
+        "rule_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "last-touch",
+      "question": "Attribution selects the latest eligible preceding touch",
+      "sql": "SELECT a.id,t.id FROM attributions a JOIN conversions c ON c.id=a.conversion_id JOIN touchpoints t ON t.id=a.touchpoint_id JOIN attribution_rules r ON r.id=a.rule_id LEFT JOIN touchpoints x ON x.profile_id=c.profile_id AND x.event_day>t.event_day AND x.event_day<=c.event_day AND c.event_day-x.event_day<=r.window_days WHERE t.event_day<=c.event_day AND c.event_day-t.event_day<=r.window_days AND x.id IS NULL",
+      "expected": [
+        [
+          "A1",
+          "T2"
+        ]
+      ]
+    },
+    {
+      "id": "withdrawal",
+      "question": "Two campaign touches precede purpose withdrawal and later conversion",
+      "sql": "SELECT p.id,COUNT(DISTINCT t.id),e.purpose,e.status FROM profiles p JOIN touchpoints t ON t.profile_id=p.id JOIN consents c ON c.profile_id=p.id JOIN consent_events e ON e.consent_id=c.id JOIN conversions v ON v.profile_id=p.id WHERE v.event_day>5 GROUP BY p.id,e.purpose,e.status",
+      "expected": [
+        [
+          "P1",
+          2,
+          "campaign-email",
+          "withdrawn"
+        ]
+      ]
+    },
+    {
+      "id": "consent-origin",
+      "question": "Consent purpose links to source identity, session and attributed merge evidence",
+      "sql": "SELECT c.purpose,i.publisher,a.status FROM consents c JOIN source_identities i ON i.id=c.source_identity_id JOIN sessions s ON s.source_identity_id=i.id JOIN identity_assertions a ON a.left_id=i.id",
+      "expected": [
+        [
+          "campaign-email",
+          "channel-a",
+          "asserted"
+        ]
+      ]
+    },
+    {
+      "id": "window",
+      "question": "Find conversions outside the selected window",
+      "sql": "SELECT DISTINCT c.id FROM conversions c JOIN touchpoints t ON t.profile_id=c.profile_id JOIN attribution_rules r WHERE c.event_day-t.event_day>r.window_days",
+      "expected": [
+        [
+          "CV2"
+        ]
+      ]
+    },
+    {
+      "id": "unattributed",
+      "question": "Outside-window conversion stays unattributed",
+      "sql": "SELECT conversion_id FROM attributions WHERE touchpoint_id IS NULL",
+      "expected": [
+        [
+          "CV2"
+        ]
+      ]
+    },
+    {
+      "id": "consent",
+      "question": "Consent includes channel and validity interval",
+      "sql": "SELECT channel_id,status,valid_to FROM consents",
+      "expected": [
+        [
+          "CH1",
+          "granted",
+          "2026-01-05"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "profiles": 1,
+    "source_identities": 2,
+    "campaigns": 1,
+    "channels": 1,
+    "consents": 1,
+    "sessions": 1,
+    "identity_assertions": 1,
+    "touchpoints": 2,
+    "consent_events": 1,
+    "conversions": 2,
+    "attribution_rules": 1,
+    "attributions": 2
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

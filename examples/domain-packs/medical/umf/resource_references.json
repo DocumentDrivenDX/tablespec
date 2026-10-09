@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "table_name": "resource_references",
+  "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+  "columns": [
+    {
+      "name": "reference_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "reference id"
+    },
+    {
+      "name": "source_resource_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "source resource key"
+    },
+    {
+      "name": "json_pointer",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "json pointer"
+    },
+    {
+      "name": "native_reference",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "native reference"
+    },
+    {
+      "name": "target_resource_key",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "target resource key"
+    },
+    {
+      "name": "resolution",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "resolution"
+    }
+  ],
+  "primary_key": [
+    "reference_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "source_resource_key",
+        "references_table": "resources",
+        "references_column": "resource_key"
+      },
+      {
+        "column": "target_resource_key",
+        "references_table": "resources",
+        "references_column": "resource_key"
+      }
+    ]
+  }
+}

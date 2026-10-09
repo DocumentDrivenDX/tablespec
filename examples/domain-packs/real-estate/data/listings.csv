@@ -1,0 +1,3 @@
+"id","property_id","status","valid_from","valid_to","asking_price","currency"
+"L1","PR1","withdrawn","2026-01-01","2026-01-15","100000.00","USD"
+"L2","PR1","sold","2026-01-16","2026-02-02","100000.00","USD"

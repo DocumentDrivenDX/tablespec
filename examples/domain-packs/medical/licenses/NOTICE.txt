@@ -1,0 +1,28 @@
+Medical sample pack 1.0.0 — source and terminology notices
+
+HL7 FHIR R4 4.0.1 official examples: copyright HL7 International, CC0-1.0.
+https://hl7.org/fhir/R4/license.html
+https://creativecommons.org/publicdomain/zero/1.0/
+HL7 and FHIR are registered trademarks of Health Level Seven International;
+their use does not constitute endorsement. CSV files are UMF project derivatives.
+Original JSON resources are unchanged. Examples are illustrative, not clinical
+advice or a population-representative longitudinal patient simulation.
+
+This material contains content from LOINC (http://loinc.org). LOINC is copyright
+© Regenstrief Institute, Inc. and the Logical Observation Identifiers Names and
+Codes (LOINC) Committee and is available at no cost under the license at
+http://loinc.org/license. LOINC® is a registered United States trademark of
+Regenstrief Institute, Inc.
+LOINC codes and displays are unchanged. Redistribution is subject to:
+https://loinc.org/license/
+No LOINC terminology table or community mappings are distributed here.
+
+UCUM unit identifiers are unchanged; no terminology specification is modified.
+Copyright 1999-2024 Regenstrief Institute, Inc. All rights reserved.
+UCUM License Version 1.1: https://ucum.org/license
+Provided AS IS, without warranties. Source values and interpretation labels are
+retained exactly, even when clinically surprising; no inferred conversion occurs.
+
+This curated subset excludes SNOMED CT, CPT, CDT, DICOM and proprietary RxNorm
+source content. CMS Blue Button and DE-SynPUF remain references only pending
+archive-specific redistribution clearance; no CMS sample rows are bundled.

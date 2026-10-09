@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "invoices",
+  "description": "Synthetic invoices; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored invoices id; synthetic reference scenario."
+    },
+    {
+      "name": "order_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored invoices order_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored invoices amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored invoices currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "order_id",
+        "references_table": "orders",
+        "references_column": "id"
+      }
+    ]
+  }
+}

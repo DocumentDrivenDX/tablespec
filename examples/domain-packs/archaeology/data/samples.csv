@@ -1,0 +1,3 @@
+"id","context_id","material","parent_id"
+"SA1","C1","sediment","\N"
+"SA2","C1","fauna","SA1"

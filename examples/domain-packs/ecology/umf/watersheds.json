@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "table_name": "watersheds",
+  "description": "Synthetic watersheds; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored watersheds id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored watersheds name; synthetic reference scenario."
+    },
+    {
+      "name": "geometry",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored watersheds geometry; synthetic reference scenario."
+    },
+    {
+      "name": "crs",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored watersheds crs; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

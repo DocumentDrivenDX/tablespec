@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "catchments",
+  "description": "Synthetic catchments; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored catchments id; synthetic reference scenario."
+    },
+    {
+      "name": "watershed_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored catchments watershed_id; synthetic reference scenario."
+    },
+    {
+      "name": "area",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored catchments area; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "area_unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored catchments area_unit; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "watershed_id",
+        "references_table": "watersheds",
+        "references_column": "id"
+      }
+    ]
+  }
+}

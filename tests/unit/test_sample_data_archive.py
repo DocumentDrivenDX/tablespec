@@ -119,3 +119,32 @@ def test_csv_reader_refuses_floating_point_overflow(tmp_path):
     spec = {"columns": [{"name": "value", "data_type": "DOUBLE"}]}
     with pytest.raises(ValueError, match="declared type"):
         list(read_csv_rows(path, spec))
+
+
+def test_explicit_pack_refuses_custom_generation_schema(tmp_path):
+    """Independent --umf input cannot be silently replaced by pack schemas."""
+    from copy import deepcopy
+    from tablespec.sample_data.config import GenerationConfig
+    from tablespec.sample_data.engine import SampleDataGenerator
+    from tablespec.sample_data.streaming import GeneratedDataset
+
+    pack = EXAMPLE.parent / "domain-pack.json"
+    config = GenerationConfig(domain="legal", domain_pack_path=pack)
+    specs = SampleDataGenerator(EXAMPLE, tmp_path, config).load_umf_files(strict=True)
+    customized = deepcopy(specs)
+    customized["clients"]["columns"][0]["description"] = "Caller supplied description"
+    with pytest.raises(ValueError, match="Generation schema differs"):
+        GeneratedDataset(
+            tmp_path / "custom.sqlite", customized, dict.fromkeys(specs, 0), config
+        )
+    data = GeneratedDataset(
+        tmp_path / "exact.sqlite", specs, dict.fromkeys(specs, 0), config
+    )
+    try:
+        data.generate()
+        data.specs["clients"]["columns"][0]["description"] = "Changed after admission"
+        with pytest.raises(ValueError, match="Generation schema differs"):
+            export_csv_zip(data, tmp_path / "output.zip")
+        assert not (tmp_path / "output.zip").exists()
+    finally:
+        data.close()

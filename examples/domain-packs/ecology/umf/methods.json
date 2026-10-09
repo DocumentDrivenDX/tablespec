@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "table_name": "methods",
+  "description": "Synthetic methods; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored methods id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored methods name; synthetic reference scenario."
+    },
+    {
+      "name": "matrix",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored methods matrix; synthetic reference scenario."
+    },
+    {
+      "name": "fraction",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored methods fraction; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

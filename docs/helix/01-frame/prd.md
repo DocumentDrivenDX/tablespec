@@ -263,7 +263,7 @@ edits; do not renumber on edit.
 
 **FR-12** requirement family.
 
-- **FR-12.1** — Selectable domain-specific sample data from UMF specifications, retaining healthcare as the default
+- **FR-12.1** — Selectable domain-specific sample data from UMF specifications, retaining healthcare as the default and supporting explicit, checksum-pinned published sample fixtures through the shared pipeline
 - **FR-12.2** — Constraint-aware generation (value sets, regex patterns, date formats)
 - **FR-12.3** — Foreign key relationship graph for referential integrity
 - **FR-12.4** — Domain type-aware generators (SSN, NPI, phone, state codes)

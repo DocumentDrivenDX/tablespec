@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "trips",
+  "description": "Synthetic trips; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored trips id; synthetic reference scenario."
+    },
+    {
+      "name": "route_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored trips route_id; synthetic reference scenario."
+    },
+    {
+      "name": "calendar_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored trips calendar_id; synthetic reference scenario."
+    },
+    {
+      "name": "service_date",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored trips service_date; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "route_id",
+        "references_table": "routes",
+        "references_column": "id"
+      },
+      {
+        "column": "calendar_id",
+        "references_table": "service_calendars",
+        "references_column": "id"
+      }
+    ]
+  }
+}

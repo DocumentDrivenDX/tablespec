@@ -1,0 +1,4534 @@
+{
+  "commerce": {
+    "tables": [
+      {
+        "name": "customers",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "C1",
+            "Synthetic café"
+          ]
+        ]
+      },
+      {
+        "name": "suppliers",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "S1",
+            "Synthetic supply"
+          ]
+        ]
+      },
+      {
+        "name": "products",
+        "fields": [
+          "id",
+          "supplier_id@suppliers",
+          "sku",
+          "unit_price:DECIMAL"
+        ],
+        "rows": [
+          [
+            "P1",
+            "S1",
+            "SKU1",
+            "12.50"
+          ]
+        ]
+      },
+      {
+        "name": "orders",
+        "fields": [
+          "id",
+          "customer_id@customers",
+          "ordered_at",
+          "status"
+        ],
+        "rows": [
+          [
+            "O1",
+            "C1",
+            "2026-01-01T12:00:00Z",
+            "open"
+          ]
+        ]
+      },
+      {
+        "name": "order_lines",
+        "fields": [
+          "id",
+          "order_id@orders",
+          "product_id@products",
+          "quantity:INTEGER"
+        ],
+        "rows": [
+          [
+            "L1",
+            "O1",
+            "P1",
+            10
+          ]
+        ]
+      },
+      {
+        "name": "fulfillments",
+        "fields": [
+          "id",
+          "line_id@order_lines",
+          "quantity:INTEGER"
+        ],
+        "rows": [
+          [
+            "F1",
+            "L1",
+            6
+          ],
+          [
+            "F2",
+            "L1",
+            11
+          ]
+        ]
+      },
+      {
+        "name": "invoices",
+        "fields": [
+          "id",
+          "order_id@orders",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "I1",
+            "O1",
+            "125.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "payments",
+        "fields": [
+          "id",
+          "invoice_id@invoices",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "PAY1",
+            "I1",
+            "125.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "returns",
+        "fields": [
+          "id",
+          "line_id@order_lines",
+          "quantity:INTEGER"
+        ],
+        "rows": [
+          [
+            "R1",
+            "L1",
+            2
+          ]
+        ]
+      },
+      {
+        "name": "refunds",
+        "fields": [
+          "id",
+          "return_id@returns",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "RF1",
+            "R1",
+            "25.00",
+            "USD"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "partial-return",
+        "question": "Partial shipment and return preserve remaining inventory",
+        "sql": "SELECT f.quantity,r.quantity,l.quantity-f.quantity+r.quantity FROM order_lines l JOIN fulfillments f ON f.line_id=l.id JOIN returns r ON r.line_id=l.id WHERE f.quantity<l.quantity",
+        "expected": [
+          [
+            6,
+            2,
+            6
+          ]
+        ]
+      },
+      {
+        "id": "fulfillment",
+        "question": "Find over-fulfilled lines without repairing source quantities",
+        "sql": "SELECT f.id FROM fulfillments f JOIN order_lines l ON f.line_id=l.id WHERE f.quantity>l.quantity ORDER BY f.id",
+        "expected": [
+          [
+            "F2"
+          ]
+        ]
+      },
+      {
+        "id": "settlement",
+        "question": "Compare exact payment, invoice and refund amounts",
+        "sql": "SELECT p.id FROM payments p JOIN invoices i ON p.invoice_id=i.id WHERE p.amount=i.amount AND p.currency=i.currency",
+        "expected": [
+          [
+            "PAY1"
+          ]
+        ]
+      },
+      {
+        "id": "refund",
+        "question": "Return and refund use the original product price",
+        "sql": "SELECT r.id FROM refunds r JOIN returns x ON x.id=r.return_id JOIN order_lines l ON l.id=x.line_id JOIN products p ON p.id=l.product_id WHERE r.amount=x.quantity*p.unit_price",
+        "expected": [
+          [
+            "RF1"
+          ]
+        ]
+      }
+    ]
+  },
+  "supply-chain": {
+    "tables": [
+      {
+        "name": "organizations",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "O1",
+            "Synthetic carrier"
+          ]
+        ]
+      },
+      {
+        "name": "facilities",
+        "fields": [
+          "id",
+          "organization_id@organizations",
+          "name"
+        ],
+        "rows": [
+          [
+            "F1",
+            "O1",
+            "Depot"
+          ]
+        ]
+      },
+      {
+        "name": "products",
+        "fields": [
+          "id",
+          "sku"
+        ],
+        "rows": [
+          [
+            "P1",
+            "SKU1"
+          ]
+        ]
+      },
+      {
+        "name": "lots",
+        "fields": [
+          "id",
+          "product_id@products",
+          "lot_code"
+        ],
+        "rows": [
+          [
+            "L1",
+            "P1",
+            "LOT1"
+          ]
+        ]
+      },
+      {
+        "name": "items",
+        "fields": [
+          "id",
+          "lot_id@lots",
+          "serial"
+        ],
+        "rows": [
+          [
+            "I1",
+            "L1",
+            "SER1"
+          ],
+          [
+            "I2",
+            "L1",
+            "SER2"
+          ]
+        ]
+      },
+      {
+        "name": "containers",
+        "fields": [
+          "id",
+          "parent_id?@containers",
+          "kind"
+        ],
+        "rows": [
+          [
+            "C1",
+            null,
+            "pallet"
+          ],
+          [
+            "C2",
+            "C1",
+            "case"
+          ],
+          [
+            "C3",
+            null,
+            "case"
+          ]
+        ]
+      },
+      {
+        "name": "shipments",
+        "fields": [
+          "id",
+          "container_id@containers",
+          "facility_id@facilities",
+          "status"
+        ],
+        "rows": [
+          [
+            "S1",
+            "C1",
+            "F1",
+            "received"
+          ],
+          [
+            "S2",
+            "C3",
+            "F1",
+            "received"
+          ]
+        ]
+      },
+      {
+        "name": "source_events",
+        "fields": [
+          "id",
+          "publisher",
+          "native_id"
+        ],
+        "rows": [
+          [
+            "SOURCE1",
+            "synthetic-carrier",
+            "SOURCE1"
+          ]
+        ]
+      },
+      {
+        "name": "events",
+        "fields": [
+          "id",
+          "shipment_id@shipments",
+          "upstream_event_id@source_events",
+          "event_time",
+          "action"
+        ],
+        "rows": [
+          [
+            "E1",
+            "S1",
+            "SOURCE1",
+            "2026-01-01T10:00Z",
+            "receive"
+          ],
+          [
+            "E2",
+            "S1",
+            "SOURCE1",
+            "2026-01-01T10:00Z",
+            "receive"
+          ]
+        ]
+      },
+      {
+        "name": "sensor_readings",
+        "fields": [
+          "id",
+          "container_id@containers",
+          "value:DECIMAL",
+          "unit",
+          "method",
+          "upper_limit:DECIMAL"
+        ],
+        "rows": [
+          [
+            "M1",
+            "C2",
+            "4.00",
+            "Cel",
+            "probe",
+            "8.00"
+          ],
+          [
+            "M2",
+            "C3",
+            "17.00",
+            "Cel",
+            "probe",
+            "8.00"
+          ]
+        ]
+      },
+      {
+        "name": "containment",
+        "fields": [
+          "id",
+          "item_id@items",
+          "container_id@containers"
+        ],
+        "rows": [
+          [
+            "A1",
+            "I1",
+            "C2"
+          ],
+          [
+            "A2",
+            "I2",
+            "C3"
+          ]
+        ]
+      },
+      {
+        "name": "shipment_items",
+        "fields": [
+          "id",
+          "shipment_id@shipments",
+          "item_id@items"
+        ],
+        "rows": [
+          [
+            "SI1",
+            "S1",
+            "I1"
+          ],
+          [
+            "SI2",
+            "S2",
+            "I2"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "split-excursion",
+        "question": "A split lot reaches two shipments and exposes temperature excursion",
+        "sql": "SELECT l.lot_code,COUNT(DISTINCT s.id) FROM lots l JOIN items i ON i.lot_id=l.id JOIN shipment_items x ON x.item_id=i.id JOIN shipments s ON s.id=x.shipment_id GROUP BY l.lot_code",
+        "expected": [
+          [
+            "LOT1",
+            2
+          ]
+        ]
+      },
+      {
+        "id": "excursion",
+        "question": "Compare temperature against explicit upper limit",
+        "sql": "SELECT id,value,unit FROM sensor_readings WHERE value>upper_limit",
+        "expected": [
+          [
+            "M2",
+            17,
+            "Cel"
+          ]
+        ]
+      },
+      {
+        "id": "replay",
+        "question": "Expose duplicate upstream event identity",
+        "sql": "SELECT upstream_event_id,COUNT(*) FROM events GROUP BY upstream_event_id HAVING COUNT(*)>1",
+        "expected": [
+          [
+            "SOURCE1",
+            2
+          ]
+        ]
+      },
+      {
+        "id": "lineage",
+        "question": "Trace serialized item through lot and nested container",
+        "sql": "SELECT i.serial,l.lot_code,p.sku,c.parent_id FROM items i JOIN lots l ON l.id=i.lot_id JOIN products p ON p.id=l.product_id JOIN containment a ON a.item_id=i.id JOIN containers c ON c.id=a.container_id",
+        "expected": [
+          [
+            "SER1",
+            "LOT1",
+            "SKU1",
+            "C1"
+          ],
+          [
+            "SER2",
+            "LOT1",
+            "SKU1",
+            null
+          ]
+        ]
+      },
+      {
+        "id": "sensor",
+        "question": "Keep method and temperature unit with measurements",
+        "sql": "SELECT DISTINCT unit,method FROM sensor_readings",
+        "expected": [
+          [
+            "Cel",
+            "probe"
+          ]
+        ]
+      }
+    ]
+  },
+  "cybersecurity": {
+    "tables": [
+      {
+        "name": "identities",
+        "fields": [
+          "id",
+          "publisher",
+          "native_id"
+        ],
+        "rows": [
+          [
+            "I1",
+            "vendor-a",
+            "same"
+          ],
+          [
+            "I2",
+            "vendor-b",
+            "same"
+          ]
+        ]
+      },
+      {
+        "name": "accounts",
+        "fields": [
+          "id",
+          "identity_id@identities",
+          "name"
+        ],
+        "rows": [
+          [
+            "A1",
+            "I1",
+            "Synthetic account"
+          ]
+        ]
+      },
+      {
+        "name": "devices",
+        "fields": [
+          "id",
+          "publisher",
+          "native_id"
+        ],
+        "rows": [
+          [
+            "D1",
+            "vendor-a",
+            "device"
+          ],
+          [
+            "D2",
+            "vendor-b",
+            "device"
+          ]
+        ]
+      },
+      {
+        "name": "sessions",
+        "fields": [
+          "id",
+          "account_id@accounts",
+          "device_id@devices",
+          "started_at"
+        ],
+        "rows": [
+          [
+            "S1",
+            "A1",
+            "D1",
+            "2026-01-01T10:00Z"
+          ],
+          [
+            "S2",
+            "A1",
+            "D2",
+            "2026-01-01T10:06Z"
+          ]
+        ]
+      },
+      {
+        "name": "scenarios",
+        "fields": [
+          "id",
+          "label"
+        ],
+        "rows": [
+          [
+            "SC1",
+            "five failures then success from new device"
+          ]
+        ]
+      },
+      {
+        "name": "authentication_events",
+        "fields": [
+          "id",
+          "session_id@sessions",
+          "scenario_id@scenarios",
+          "outcome",
+          "event_time"
+        ],
+        "rows": [
+          [
+            "E1",
+            "S1",
+            "SC1",
+            "failure",
+            "2026-01-01T10:01Z"
+          ],
+          [
+            "E2",
+            "S1",
+            "SC1",
+            "failure",
+            "2026-01-01T10:02Z"
+          ],
+          [
+            "E3",
+            "S1",
+            "SC1",
+            "failure",
+            "2026-01-01T10:03Z"
+          ],
+          [
+            "E4",
+            "S1",
+            "SC1",
+            "failure",
+            "2026-01-01T10:04Z"
+          ],
+          [
+            "E5",
+            "S1",
+            "SC1",
+            "failure",
+            "2026-01-01T10:05Z"
+          ],
+          [
+            "E6",
+            "S2",
+            "SC1",
+            "success",
+            "2026-01-01T10:06Z"
+          ]
+        ]
+      },
+      {
+        "name": "network_activity",
+        "fields": [
+          "id",
+          "session_id@sessions",
+          "destination",
+          "bytes:INTEGER"
+        ],
+        "rows": [
+          [
+            "N1",
+            "S1",
+            "example.invalid",
+            1024
+          ]
+        ]
+      },
+      {
+        "name": "findings",
+        "fields": [
+          "id",
+          "device_id@devices",
+          "evidence_id@authentication_events",
+          "severity"
+        ],
+        "rows": [
+          [
+            "F1",
+            "D1",
+            "E1",
+            "medium"
+          ]
+        ]
+      },
+      {
+        "name": "incidents",
+        "fields": [
+          "id",
+          "status"
+        ],
+        "rows": [
+          [
+            "IN1",
+            "review"
+          ]
+        ]
+      },
+      {
+        "name": "event_incident_links",
+        "fields": [
+          "id",
+          "event_id@authentication_events",
+          "incident_id@incidents"
+        ],
+        "rows": [
+          [
+            "X1",
+            "E1",
+            "IN1"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "failed-then-success",
+        "question": "Five failures precede success from another device",
+        "sql": "SELECT COUNT(*),s.device_id FROM authentication_events f JOIN sessions fs ON fs.id=f.session_id JOIN authentication_events e ON e.outcome='success' JOIN sessions s ON s.id=e.session_id WHERE f.outcome='failure' AND f.event_time<e.event_time AND fs.device_id<>s.device_id GROUP BY s.device_id",
+        "expected": [
+          [
+            5,
+            "D2"
+          ]
+        ]
+      },
+      {
+        "id": "collision",
+        "question": "Same native device ID remains two publisher-qualified identities",
+        "sql": "SELECT native_id,COUNT(DISTINCT publisher) FROM devices GROUP BY native_id",
+        "expected": [
+          [
+            "device",
+            2
+          ]
+        ]
+      },
+      {
+        "id": "evidence",
+        "question": "Trace finding to account and failure evidence",
+        "sql": "SELECT f.id,a.id,e.outcome FROM findings f JOIN authentication_events e ON e.id=f.evidence_id JOIN sessions s ON s.id=e.session_id JOIN accounts a ON a.id=s.account_id",
+        "expected": [
+          [
+            "F1",
+            "A1",
+            "failure"
+          ]
+        ]
+      },
+      {
+        "id": "association",
+        "question": "Event-to-incident link is attributable data",
+        "sql": "SELECT event_id,incident_id FROM event_incident_links",
+        "expected": [
+          [
+            "E1",
+            "IN1"
+          ]
+        ]
+      }
+    ]
+  },
+  "manufacturing": {
+    "tables": [
+      {
+        "name": "facilities",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "F1",
+            "Synthetic plant"
+          ]
+        ]
+      },
+      {
+        "name": "machines",
+        "fields": [
+          "id",
+          "facility_id@facilities",
+          "name"
+        ],
+        "rows": [
+          [
+            "M1",
+            "F1",
+            "Press"
+          ]
+        ]
+      },
+      {
+        "name": "components",
+        "fields": [
+          "id",
+          "machine_id@machines",
+          "parent_id?@components",
+          "name"
+        ],
+        "rows": [
+          [
+            "C1",
+            "M1",
+            null,
+            "Drive"
+          ],
+          [
+            "C2",
+            "M1",
+            "C1",
+            "Bearing"
+          ]
+        ]
+      },
+      {
+        "name": "work_orders",
+        "fields": [
+          "id",
+          "machine_id@machines",
+          "status"
+        ],
+        "rows": [
+          [
+            "W1",
+            "M1",
+            "complete"
+          ]
+        ]
+      },
+      {
+        "name": "material_lots",
+        "fields": [
+          "id",
+          "material"
+        ],
+        "rows": [
+          [
+            "L1",
+            "steel"
+          ]
+        ]
+      },
+      {
+        "name": "production_runs",
+        "fields": [
+          "id",
+          "work_order_id@work_orders",
+          "lot_id@material_lots",
+          "started_at"
+        ],
+        "rows": [
+          [
+            "R1",
+            "W1",
+            "L1",
+            "2026-01-01T10:00Z"
+          ],
+          [
+            "R2",
+            "W1",
+            "L1",
+            "2026-01-01T12:00Z"
+          ]
+        ]
+      },
+      {
+        "name": "observations",
+        "fields": [
+          "id",
+          "component_id@components",
+          "value:DECIMAL",
+          "unit",
+          "observed_at"
+        ],
+        "rows": [
+          [
+            "O1",
+            "C2",
+            "20.00",
+            "Cel",
+            "2026-01-01T10:01Z"
+          ],
+          [
+            "O2",
+            "C2",
+            "68.00",
+            "degF",
+            "2026-01-01T10:02Z"
+          ],
+          [
+            "O3",
+            "C2",
+            "90.00",
+            "Cel",
+            "2026-01-01T10:03Z"
+          ]
+        ]
+      },
+      {
+        "name": "alarms",
+        "fields": [
+          "id",
+          "observation_id@observations",
+          "condition"
+        ],
+        "rows": [
+          [
+            "A1",
+            "O2",
+            "unit-change"
+          ],
+          [
+            "A2",
+            "O3",
+            "high-temperature"
+          ]
+        ]
+      },
+      {
+        "name": "inspections",
+        "fields": [
+          "id",
+          "run_id@production_runs",
+          "method",
+          "result"
+        ],
+        "rows": [
+          [
+            "I1",
+            "R1",
+            "visual",
+            "pass"
+          ]
+        ]
+      },
+      {
+        "name": "maintenance_events",
+        "fields": [
+          "id",
+          "component_id@components",
+          "work_order_id@work_orders",
+          "action",
+          "alarm_id@alarms",
+          "occurred_at",
+          "resumed_run_id@production_runs"
+        ],
+        "rows": [
+          [
+            "ME1",
+            "C2",
+            "W1",
+            "replace",
+            "A2",
+            "2026-01-01T11:00Z",
+            "R2"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "resume",
+        "question": "Temperature alarm precedes maintenance and resumed run",
+        "sql": "SELECT a.condition,m.action,r.id FROM alarms a JOIN observations o ON o.id=a.observation_id JOIN maintenance_events m ON m.alarm_id=a.id JOIN production_runs r ON r.id=m.resumed_run_id WHERE o.observed_at<m.occurred_at AND m.occurred_at<r.started_at",
+        "expected": [
+          [
+            "high-temperature",
+            "replace",
+            "R2"
+          ]
+        ]
+      },
+      {
+        "id": "unit-change",
+        "question": "Do not concatenate unlabeled sensor units",
+        "sql": "SELECT component_id,COUNT(DISTINCT unit) FROM observations GROUP BY component_id HAVING COUNT(DISTINCT unit)>1",
+        "expected": [
+          [
+            "C2",
+            2
+          ]
+        ]
+      },
+      {
+        "id": "lineage",
+        "question": "Trace run through work order and material lot",
+        "sql": "SELECT r.id,l.material,w.status FROM production_runs r JOIN work_orders w ON w.id=r.work_order_id JOIN material_lots l ON l.id=r.lot_id",
+        "expected": [
+          [
+            "R1",
+            "steel",
+            "complete"
+          ],
+          [
+            "R2",
+            "steel",
+            "complete"
+          ]
+        ]
+      },
+      {
+        "id": "maintenance",
+        "question": "Replacement identifies the actual component",
+        "sql": "SELECT c.name,m.action FROM maintenance_events m JOIN components c ON c.id=m.component_id",
+        "expected": [
+          [
+            "Bearing",
+            "replace"
+          ]
+        ]
+      }
+    ]
+  },
+  "payments": {
+    "tables": [
+      {
+        "name": "parties",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic payer"
+          ]
+        ]
+      },
+      {
+        "name": "accounts",
+        "fields": [
+          "id",
+          "party_id@parties",
+          "currency"
+        ],
+        "rows": [
+          [
+            "A1",
+            "P1",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "payment_instructions",
+        "fields": [
+          "id",
+          "account_id@accounts",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "PI1",
+            "A1",
+            "100.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "status_events",
+        "fields": [
+          "id",
+          "payment_id@payment_instructions",
+          "status",
+          "event_time"
+        ],
+        "rows": [
+          [
+            "E1",
+            "PI1",
+            "accepted",
+            "2026-01-01T10:00Z"
+          ]
+        ]
+      },
+      {
+        "name": "settlements",
+        "fields": [
+          "id",
+          "payment_id@payment_instructions",
+          "amount:DECIMAL",
+          "settled_at"
+        ],
+        "rows": [
+          [
+            "S1",
+            "PI1",
+            "100.00",
+            "2026-01-02"
+          ]
+        ]
+      },
+      {
+        "name": "returns",
+        "fields": [
+          "id",
+          "payment_id@payment_instructions",
+          "amount:DECIMAL",
+          "currency",
+          "reason"
+        ],
+        "rows": [
+          [
+            "R1",
+            "PI1",
+            "25.00",
+            "USD",
+            "illustrative-return"
+          ]
+        ]
+      },
+      {
+        "name": "statements",
+        "fields": [
+          "id",
+          "account_id@accounts",
+          "period_start",
+          "period_end"
+        ],
+        "rows": [
+          [
+            "ST1",
+            "A1",
+            "2026-01-01",
+            "2026-01-31"
+          ]
+        ]
+      },
+      {
+        "name": "journals",
+        "fields": [
+          "id",
+          "native_id"
+        ],
+        "rows": [
+          [
+            "J1",
+            "J1"
+          ],
+          [
+            "J2",
+            "J2"
+          ]
+        ]
+      },
+      {
+        "name": "ledger_entries",
+        "fields": [
+          "id",
+          "journal@journals",
+          "account_id@accounts",
+          "side",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "L1",
+            "J1",
+            "A1",
+            "debit",
+            "10.00",
+            "USD"
+          ],
+          [
+            "L2",
+            "J1",
+            "A1",
+            "credit",
+            "10.00",
+            "USD"
+          ],
+          [
+            "L3",
+            "J2",
+            "A1",
+            "debit",
+            "10.00",
+            "USD"
+          ],
+          [
+            "L4",
+            "J2",
+            "A1",
+            "credit",
+            "9.99",
+            "USD"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "net-settlement",
+        "question": "100.00 settlement less 25.00 return leaves 75.00",
+        "sql": "SELECT s.amount,r.amount,s.amount-r.amount FROM settlements s JOIN returns r ON r.payment_id=s.payment_id AND r.currency='USD'",
+        "expected": [
+          [
+            100,
+            25,
+            75
+          ]
+        ]
+      },
+      {
+        "id": "balance",
+        "question": "Find unbalanced journals without rounding into balance",
+        "sql": "SELECT journal FROM ledger_entries GROUP BY journal,currency HAVING SUM(CASE WHEN side='debit' THEN amount ELSE -amount END)<>0 ORDER BY journal",
+        "expected": [
+          [
+            "J2"
+          ]
+        ]
+      },
+      {
+        "id": "settled",
+        "question": "A status event is distinct from settlement evidence",
+        "sql": "SELECT p.id,e.status,s.amount FROM payment_instructions p JOIN status_events e ON e.payment_id=p.id JOIN settlements s ON s.payment_id=p.id",
+        "expected": [
+          [
+            "PI1",
+            "accepted",
+            100
+          ]
+        ]
+      },
+      {
+        "id": "currency",
+        "question": "Journal amounts remain qualified by currency",
+        "sql": "SELECT DISTINCT currency FROM ledger_entries",
+        "expected": [
+          [
+            "USD"
+          ]
+        ]
+      }
+    ]
+  },
+  "education": {
+    "tables": [
+      {
+        "name": "institutions",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "I1",
+            "Synthetic school"
+          ]
+        ]
+      },
+      {
+        "name": "people",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic learner"
+          ]
+        ]
+      },
+      {
+        "name": "courses",
+        "fields": [
+          "id",
+          "institution_id@institutions",
+          "code"
+        ],
+        "rows": [
+          [
+            "C1",
+            "I1",
+            "COURSE1"
+          ]
+        ]
+      },
+      {
+        "name": "academic_terms",
+        "fields": [
+          "id",
+          "starts",
+          "ends"
+        ],
+        "rows": [
+          [
+            "T1",
+            "2026-01-01",
+            "2026-04-30"
+          ]
+        ]
+      },
+      {
+        "name": "course_offerings",
+        "fields": [
+          "id",
+          "course_id@courses",
+          "term_id@academic_terms"
+        ],
+        "rows": [
+          [
+            "O1",
+            "C1",
+            "T1"
+          ],
+          [
+            "O2",
+            "C1",
+            "T1"
+          ]
+        ]
+      },
+      {
+        "name": "enrollments",
+        "fields": [
+          "id",
+          "person_id@people",
+          "offering_id@course_offerings"
+        ],
+        "rows": [
+          [
+            "E1",
+            "P1",
+            "O1"
+          ]
+        ]
+      },
+      {
+        "name": "assessments",
+        "fields": [
+          "id",
+          "offering_id@course_offerings",
+          "name"
+        ],
+        "rows": [
+          [
+            "A1",
+            "O1",
+            "Exam"
+          ],
+          [
+            "A2",
+            "O2",
+            "Exam"
+          ],
+          [
+            "A3",
+            "O1",
+            "Essay"
+          ]
+        ]
+      },
+      {
+        "name": "results",
+        "fields": [
+          "id",
+          "enrollment_id@enrollments",
+          "assessment_id@assessments",
+          "score:DECIMAL"
+        ],
+        "rows": [
+          [
+            "R1",
+            "E1",
+            "A1",
+            "80.00"
+          ],
+          [
+            "R2",
+            "E1",
+            "A2",
+            "90.00"
+          ]
+        ]
+      },
+      {
+        "name": "prerequisites",
+        "fields": [
+          "id",
+          "course_id@courses",
+          "prerequisite_id@courses"
+        ],
+        "rows": [
+          [
+            "PR1",
+            "C1",
+            "C1"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "missing-result",
+        "question": "An assessment without result remains missing",
+        "sql": "SELECT a.id FROM enrollments e JOIN assessments a ON a.offering_id=e.offering_id LEFT JOIN results r ON r.enrollment_id=e.id AND r.assessment_id=a.id WHERE r.id IS NULL",
+        "expected": [
+          [
+            "A3"
+          ]
+        ]
+      },
+      {
+        "id": "offering",
+        "question": "Expose a result for another offering",
+        "sql": "SELECT r.id FROM results r JOIN enrollments e ON e.id=r.enrollment_id JOIN assessments a ON a.id=r.assessment_id WHERE e.offering_id<>a.offering_id",
+        "expected": [
+          [
+            "R2"
+          ]
+        ]
+      },
+      {
+        "id": "valid-result",
+        "question": "The valid result stays attached to the right offering",
+        "sql": "SELECT r.id FROM results r JOIN enrollments e ON e.id=r.enrollment_id JOIN assessments a ON a.id=r.assessment_id WHERE e.offering_id=a.offering_id",
+        "expected": [
+          [
+            "R1"
+          ]
+        ]
+      },
+      {
+        "id": "prerequisite",
+        "question": "Self-prerequisite remains an explicit contradiction",
+        "sql": "SELECT id FROM prerequisites WHERE course_id=prerequisite_id",
+        "expected": [
+          [
+            "PR1"
+          ]
+        ]
+      }
+    ]
+  },
+  "transit": {
+    "tables": [
+      {
+        "name": "agencies",
+        "fields": [
+          "id",
+          "name",
+          "timezone"
+        ],
+        "rows": [
+          [
+            "A1",
+            "Synthetic transit",
+            "America/New_York"
+          ]
+        ]
+      },
+      {
+        "name": "routes",
+        "fields": [
+          "id",
+          "agency_id@agencies",
+          "name"
+        ],
+        "rows": [
+          [
+            "R1",
+            "A1",
+            "River route"
+          ]
+        ]
+      },
+      {
+        "name": "stops",
+        "fields": [
+          "id",
+          "name",
+          "latitude:DECIMAL",
+          "longitude:DECIMAL"
+        ],
+        "rows": [
+          [
+            "S1",
+            "Depot",
+            "40.00",
+            "-75.00"
+          ]
+        ]
+      },
+      {
+        "name": "service_calendars",
+        "fields": [
+          "id",
+          "start_date",
+          "end_date"
+        ],
+        "rows": [
+          [
+            "CAL1",
+            "2026-01-01",
+            "2026-01-31"
+          ]
+        ]
+      },
+      {
+        "name": "calendar_exceptions",
+        "fields": [
+          "id",
+          "calendar_id@service_calendars",
+          "service_date",
+          "exception_type"
+        ],
+        "rows": [
+          [
+            "X1",
+            "CAL1",
+            "2026-01-02",
+            "removed"
+          ]
+        ]
+      },
+      {
+        "name": "trips",
+        "fields": [
+          "id",
+          "route_id@routes",
+          "calendar_id@service_calendars",
+          "service_date"
+        ],
+        "rows": [
+          [
+            "T1",
+            "R1",
+            "CAL1",
+            "2026-01-09"
+          ],
+          [
+            "T2",
+            "R1",
+            "CAL1",
+            "2026-01-02"
+          ]
+        ]
+      },
+      {
+        "name": "stop_times",
+        "fields": [
+          "id",
+          "trip_id@trips",
+          "stop_id@stops",
+          "sequence:INTEGER",
+          "arrival"
+        ],
+        "rows": [
+          [
+            "ST1",
+            "T1",
+            "S1",
+            1,
+            "25:10:00"
+          ]
+        ]
+      },
+      {
+        "name": "realtime_observations",
+        "fields": [
+          "id",
+          "trip_id@trips",
+          "observed_at",
+          "delay_seconds:INTEGER"
+        ],
+        "rows": [
+          [
+            "O1",
+            "T1",
+            "2026-01-10T01:12:00-05:00",
+            120
+          ]
+        ]
+      },
+      {
+        "name": "alerts",
+        "fields": [
+          "id",
+          "route_id@routes",
+          "message"
+        ],
+        "rows": [
+          [
+            "AL1",
+            "R1",
+            "Synthetic diversion"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "active-service",
+        "question": "Canceled date does not cancel another service day",
+        "sql": "SELECT t.id,t.service_date FROM trips t LEFT JOIN calendar_exceptions x ON x.calendar_id=t.calendar_id AND x.service_date=t.service_date AND x.exception_type='removed' WHERE x.id IS NULL",
+        "expected": [
+          [
+            "T1",
+            "2026-01-09"
+          ]
+        ]
+      },
+      {
+        "id": "service-day",
+        "question": "Delayed post-midnight arrival retains original service date",
+        "sql": "SELECT t.service_date,s.arrival,o.observed_at,o.delay_seconds FROM trips t JOIN stop_times s ON s.trip_id=t.id JOIN realtime_observations o ON o.trip_id=t.id",
+        "expected": [
+          [
+            "2026-01-09",
+            "25:10:00",
+            "2026-01-10T01:12:00-05:00",
+            120
+          ]
+        ]
+      },
+      {
+        "id": "cancellation",
+        "question": "Canceled service date is not active",
+        "sql": "SELECT t.id,x.service_date FROM trips t JOIN calendar_exceptions x ON x.calendar_id=t.calendar_id AND x.service_date=t.service_date WHERE x.exception_type='removed'",
+        "expected": [
+          [
+            "T2",
+            "2026-01-02"
+          ]
+        ]
+      },
+      {
+        "id": "extended-time",
+        "question": "Service-day times beyond midnight retain native spelling",
+        "sql": "SELECT arrival FROM stop_times",
+        "expected": [
+          [
+            "25:10:00"
+          ]
+        ]
+      },
+      {
+        "id": "realtime",
+        "question": "Observed delay is distinct from scheduled time",
+        "sql": "SELECT delay_seconds FROM realtime_observations",
+        "expected": [
+          [
+            120
+          ]
+        ]
+      }
+    ]
+  },
+  "real-estate": {
+    "tables": [
+      {
+        "name": "parties",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic owner"
+          ]
+        ]
+      },
+      {
+        "name": "parcels",
+        "fields": [
+          "id",
+          "native_code",
+          "geometry_crs"
+        ],
+        "rows": [
+          [
+            "PA1",
+            "PARCEL1",
+            "local-grid"
+          ]
+        ]
+      },
+      {
+        "name": "properties",
+        "fields": [
+          "id",
+          "parcel_id@parcels",
+          "address"
+        ],
+        "rows": [
+          [
+            "PR1",
+            "PA1",
+            "Synthetic address"
+          ]
+        ]
+      },
+      {
+        "name": "buildings",
+        "fields": [
+          "id",
+          "property_id@properties",
+          "floor_area:DECIMAL",
+          "area_unit"
+        ],
+        "rows": [
+          [
+            "B1",
+            "PR1",
+            "100.00",
+            "m2"
+          ]
+        ]
+      },
+      {
+        "name": "units",
+        "fields": [
+          "id",
+          "building_id@buildings",
+          "unit_label"
+        ],
+        "rows": [
+          [
+            "U1",
+            "B1",
+            "A"
+          ]
+        ]
+      },
+      {
+        "name": "listings",
+        "fields": [
+          "id",
+          "property_id@properties",
+          "status",
+          "valid_from",
+          "valid_to",
+          "asking_price:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "L1",
+            "PR1",
+            "withdrawn",
+            "2026-01-01",
+            "2026-01-15",
+            "100000.00",
+            "USD"
+          ],
+          [
+            "L2",
+            "PR1",
+            "sold",
+            "2026-01-16",
+            "2026-02-02",
+            "100000.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "listing_events",
+        "fields": [
+          "id",
+          "listing_id@listings",
+          "event_time",
+          "status",
+          "previous_price?:DECIMAL",
+          "price?:DECIMAL"
+        ],
+        "rows": [
+          [
+            "E1",
+            "L1",
+            "2026-01-15",
+            "withdrawn",
+            null,
+            null
+          ],
+          [
+            "E2",
+            "L1",
+            "2026-01-05",
+            "price-change",
+            "100000.00",
+            "95000.00"
+          ]
+        ]
+      },
+      {
+        "name": "transactions",
+        "fields": [
+          "id",
+          "listing_id@listings",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "T1",
+            "L2",
+            "100000.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "leases",
+        "fields": [
+          "id",
+          "unit_id@units",
+          "party_id@parties",
+          "starts",
+          "ends"
+        ],
+        "rows": [
+          [
+            "LE1",
+            "U1",
+            "P1",
+            "2026-01-01",
+            "2026-12-31"
+          ]
+        ]
+      },
+      {
+        "name": "offices",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "OF1",
+            "Synthetic brokerage"
+          ]
+        ]
+      },
+      {
+        "name": "agents",
+        "fields": [
+          "id",
+          "party_id@parties",
+          "office_id@offices",
+          "native_member_id"
+        ],
+        "rows": [
+          [
+            "AG1",
+            "P1",
+            "OF1",
+            "MEMBER1"
+          ]
+        ]
+      },
+      {
+        "name": "listing_agents",
+        "fields": [
+          "id",
+          "listing_id@listings",
+          "agent_id@agents"
+        ],
+        "rows": [
+          [
+            "LA1",
+            "L1",
+            "AG1"
+          ],
+          [
+            "LA2",
+            "L2",
+            "AG1"
+          ]
+        ]
+      },
+      {
+        "name": "media",
+        "fields": [
+          "id",
+          "property_id@properties",
+          "reference",
+          "availability"
+        ],
+        "rows": [
+          [
+            "M1",
+            "PR1",
+            "https://example.invalid/property-photo",
+            "external"
+          ]
+        ]
+      },
+      {
+        "name": "maintenance_requests",
+        "fields": [
+          "id",
+          "unit_id@units",
+          "party_id@parties",
+          "status"
+        ],
+        "rows": [
+          [
+            "MR1",
+            "U1",
+            "P1",
+            "open"
+          ]
+        ]
+      },
+      {
+        "name": "valuations",
+        "fields": [
+          "id",
+          "property_id@properties",
+          "amount:DECIMAL",
+          "currency",
+          "basis"
+        ],
+        "rows": [
+          [
+            "V1",
+            "PR1",
+            "110000.00",
+            "USD",
+            "synthetic-assessment"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "listing-history",
+        "question": "Sequential listings and price change retain one property",
+        "sql": "SELECT a.property_id,e.previous_price,e.price FROM listings a JOIN listings b ON b.property_id=a.property_id AND a.valid_to<b.valid_from JOIN listing_events e ON e.listing_id=a.id WHERE e.status='price-change'",
+        "expected": [
+          [
+            "PR1",
+            100000,
+            95000
+          ]
+        ]
+      },
+      {
+        "id": "operations",
+        "question": "Brokerage, listing media and unit maintenance retain actual identities",
+        "sql": "SELECT a.native_member_id,o.name,m.availability,r.status FROM listing_agents x JOIN agents a ON a.id=x.agent_id JOIN offices o ON o.id=a.office_id JOIN listings l ON l.id=x.listing_id JOIN media m ON m.property_id=l.property_id JOIN buildings b ON b.property_id=l.property_id JOIN units u ON u.building_id=b.id JOIN maintenance_requests r ON r.unit_id=u.id WHERE l.status='withdrawn'",
+        "expected": [
+          [
+            "MEMBER1",
+            "Synthetic brokerage",
+            "external",
+            "open"
+          ]
+        ]
+      },
+      {
+        "id": "withdrawn",
+        "question": "Withdrawn listing has no inferred sale",
+        "sql": "SELECT l.id FROM listings l LEFT JOIN transactions t ON t.listing_id=l.id WHERE l.status='withdrawn' AND t.id IS NULL",
+        "expected": [
+          [
+            "L1"
+          ]
+        ]
+      },
+      {
+        "id": "distinction",
+        "question": "Parcel, property, building and unit retain distinct identities",
+        "sql": "SELECT p.id,pr.id,b.id,u.id FROM parcels p JOIN properties pr ON pr.parcel_id=p.id JOIN buildings b ON b.property_id=pr.id JOIN units u ON u.building_id=b.id",
+        "expected": [
+          [
+            "PA1",
+            "PR1",
+            "B1",
+            "U1"
+          ]
+        ]
+      },
+      {
+        "id": "valuation",
+        "question": "Valuation does not become transaction price",
+        "sql": "SELECT v.amount,t.amount FROM valuations v JOIN listings l ON l.property_id=v.property_id JOIN transactions t ON t.listing_id=l.id",
+        "expected": [
+          [
+            110000,
+            100000
+          ]
+        ]
+      }
+    ]
+  },
+  "energy": {
+    "tables": [
+      {
+        "name": "sites",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "S1",
+            "Synthetic substation"
+          ]
+        ]
+      },
+      {
+        "name": "utility_assets",
+        "fields": [
+          "id",
+          "site_id@sites",
+          "parent_id?@utility_assets",
+          "kind"
+        ],
+        "rows": [
+          [
+            "A1",
+            "S1",
+            null,
+            "transformer"
+          ],
+          [
+            "A2",
+            "S1",
+            "A1",
+            "feeder"
+          ]
+        ]
+      },
+      {
+        "name": "meters",
+        "fields": [
+          "id",
+          "asset_id@utility_assets",
+          "name",
+          "valid_from",
+          "valid_to"
+        ],
+        "rows": [
+          [
+            "M1",
+            "A2",
+            "Old meter",
+            "2026-01-01",
+            "2026-01-15"
+          ],
+          [
+            "M2",
+            "A2",
+            "Replacement meter",
+            "2026-01-16",
+            "2026-01-30"
+          ]
+        ]
+      },
+      {
+        "name": "channels",
+        "fields": [
+          "id",
+          "meter_id@meters",
+          "property",
+          "unit",
+          "reading_kind"
+        ],
+        "rows": [
+          [
+            "C1",
+            "M1",
+            "energy",
+            "kW.h",
+            "cumulative"
+          ],
+          [
+            "C2",
+            "M2",
+            "energy",
+            "kW.h",
+            "cumulative"
+          ]
+        ]
+      },
+      {
+        "name": "interval_readings",
+        "fields": [
+          "id",
+          "channel_id@channels",
+          "event_time",
+          "value?:DECIMAL"
+        ],
+        "rows": [
+          [
+            "R1",
+            "C1",
+            "2026-01-01T10:00Z",
+            "100.00"
+          ],
+          [
+            "R2",
+            "C1",
+            "2026-01-01T11:00Z",
+            "5.00"
+          ],
+          [
+            "D2",
+            "C1",
+            "2026-01-02T10:00Z",
+            "2.00"
+          ],
+          [
+            "D3",
+            "C1",
+            "2026-01-03T10:00Z",
+            "3.00"
+          ],
+          [
+            "D4",
+            "C1",
+            "2026-01-04T10:00Z",
+            "4.00"
+          ],
+          [
+            "D5",
+            "C1",
+            "2026-01-05T10:00Z",
+            "5.00"
+          ],
+          [
+            "D6",
+            "C1",
+            "2026-01-06T10:00Z",
+            "6.00"
+          ],
+          [
+            "D7",
+            "C1",
+            "2026-01-07T10:00Z",
+            "7.00"
+          ],
+          [
+            "D8",
+            "C1",
+            "2026-01-08T10:00Z",
+            "8.00"
+          ],
+          [
+            "D9",
+            "C1",
+            "2026-01-09T10:00Z",
+            "9.00"
+          ],
+          [
+            "D10",
+            "C1",
+            "2026-01-10T10:00Z",
+            "10.00"
+          ],
+          [
+            "D11",
+            "C1",
+            "2026-01-11T10:00Z",
+            "11.00"
+          ],
+          [
+            "D12",
+            "C1",
+            "2026-01-12T10:00Z",
+            "12.00"
+          ],
+          [
+            "D13",
+            "C1",
+            "2026-01-13T10:00Z",
+            "13.00"
+          ],
+          [
+            "D14",
+            "C1",
+            "2026-01-14T10:00Z",
+            "14.00"
+          ],
+          [
+            "D15",
+            "C1",
+            "2026-01-15T10:00Z",
+            "15.00"
+          ],
+          [
+            "D16",
+            "C2",
+            "2026-01-16T10:00Z",
+            "16.00"
+          ],
+          [
+            "D17",
+            "C2",
+            "2026-01-17T10:00Z",
+            "17.00"
+          ],
+          [
+            "D18",
+            "C2",
+            "2026-01-18T10:00Z",
+            "18.00"
+          ],
+          [
+            "D19",
+            "C2",
+            "2026-01-19T10:00Z",
+            "19.00"
+          ],
+          [
+            "D20",
+            "C2",
+            "2026-01-20T10:00Z",
+            null
+          ],
+          [
+            "D21",
+            "C2",
+            "2026-01-21T10:00Z",
+            "21.00"
+          ],
+          [
+            "D22",
+            "C2",
+            "2026-01-22T10:00Z",
+            "22.00"
+          ],
+          [
+            "D23",
+            "C2",
+            "2026-01-23T10:00Z",
+            "23.00"
+          ],
+          [
+            "D24",
+            "C2",
+            "2026-01-24T10:00Z",
+            "24.00"
+          ],
+          [
+            "D25",
+            "C2",
+            "2026-01-25T10:00Z",
+            "25.00"
+          ],
+          [
+            "D26",
+            "C2",
+            "2026-01-26T10:00Z",
+            "26.00"
+          ],
+          [
+            "D27",
+            "C2",
+            "2026-01-27T10:00Z",
+            "27.00"
+          ],
+          [
+            "D28",
+            "C2",
+            "2026-01-28T10:00Z",
+            "28.00"
+          ],
+          [
+            "D29",
+            "C2",
+            "2026-01-29T10:00Z",
+            "29.00"
+          ],
+          [
+            "D30",
+            "C2",
+            "2026-01-30T10:00Z",
+            "30.00"
+          ]
+        ]
+      },
+      {
+        "name": "interval_gaps",
+        "fields": [
+          "id",
+          "reading_id@interval_readings",
+          "outage_id@outages",
+          "reason"
+        ],
+        "rows": [
+          [
+            "G1",
+            "D20",
+            "O1",
+            "outage"
+          ]
+        ]
+      },
+      {
+        "name": "tariffs",
+        "fields": [
+          "id",
+          "unit",
+          "price:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "T1",
+            "kW.h",
+            "0.20",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "outages",
+        "fields": [
+          "id",
+          "asset_id@utility_assets",
+          "starts",
+          "ends"
+        ],
+        "rows": [
+          [
+            "O1",
+            "A2",
+            "2026-01-20T00:00Z",
+            "2026-01-20T23:59Z"
+          ]
+        ]
+      },
+      {
+        "name": "service_relationships",
+        "fields": [
+          "id",
+          "site_id@sites",
+          "tariff_id@tariffs",
+          "valid_from",
+          "valid_to?"
+        ],
+        "rows": [
+          [
+            "SR1",
+            "S1",
+            "T1",
+            "2026-01-01",
+            null
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "replacement-gap",
+        "question": "A 30-day series retains meter replacement and outage-labeled gaps",
+        "sql": "SELECT m.name,g.reason,r.event_time FROM interval_gaps g JOIN interval_readings r ON r.id=g.reading_id JOIN channels c ON c.id=r.channel_id JOIN meters m ON m.id=c.meter_id JOIN outages o ON o.id=g.outage_id WHERE r.value IS NULL AND r.event_time>=m.valid_from AND r.event_time<=m.valid_to",
+        "expected": [
+          [
+            "Replacement meter",
+            "outage",
+            "2026-01-20T10:00Z"
+          ]
+        ]
+      },
+      {
+        "id": "reset",
+        "question": "Cumulative register decrease is exposed",
+        "sql": "SELECT b.id FROM interval_readings a JOIN interval_readings b ON a.channel_id=b.channel_id AND a.event_time<b.event_time WHERE b.value<a.value AND a.id='R1' AND b.id='R2'",
+        "expected": [
+          [
+            "R2"
+          ]
+        ]
+      },
+      {
+        "id": "unit",
+        "question": "Cumulative reading kind and energy unit remain explicit",
+        "sql": "SELECT DISTINCT reading_kind,unit FROM channels",
+        "expected": [
+          [
+            "cumulative",
+            "kW.h"
+          ]
+        ]
+      },
+      {
+        "id": "topology",
+        "question": "Feeder retains parent asset and outage",
+        "sql": "SELECT a.id,a.parent_id,o.id FROM utility_assets a JOIN outages o ON o.asset_id=a.id",
+        "expected": [
+          [
+            "A2",
+            "A1",
+            "O1"
+          ]
+        ]
+      }
+    ]
+  },
+  "hr": {
+    "tables": [
+      {
+        "name": "organizations",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "O1",
+            "Synthetic employer"
+          ]
+        ]
+      },
+      {
+        "name": "organizational_units",
+        "fields": [
+          "id",
+          "organization_id@organizations",
+          "name"
+        ],
+        "rows": [
+          [
+            "U1",
+            "O1",
+            "Research"
+          ]
+        ]
+      },
+      {
+        "name": "positions",
+        "fields": [
+          "id",
+          "unit_id@organizational_units",
+          "title"
+        ],
+        "rows": [
+          [
+            "P1",
+            "U1",
+            "Analyst"
+          ],
+          [
+            "P2",
+            "U1",
+            "Engineer"
+          ]
+        ]
+      },
+      {
+        "name": "candidates",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "C1",
+            "Synthetic candidate"
+          ]
+        ]
+      },
+      {
+        "name": "applications",
+        "fields": [
+          "id",
+          "candidate_id@candidates",
+          "position_id@positions",
+          "status"
+        ],
+        "rows": [
+          [
+            "A1",
+            "C1",
+            "P1",
+            "accepted"
+          ],
+          [
+            "A2",
+            "C1",
+            "P2",
+            "declined"
+          ]
+        ]
+      },
+      {
+        "name": "interviews",
+        "fields": [
+          "id",
+          "application_id@applications",
+          "starts",
+          "result"
+        ],
+        "rows": [
+          [
+            "I1",
+            "A1",
+            "2026-01-01T10:00Z",
+            "pass"
+          ]
+        ]
+      },
+      {
+        "name": "offers",
+        "fields": [
+          "id",
+          "application_id@applications",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "OF1",
+            "A1",
+            "50000.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "employment_relationships",
+        "fields": [
+          "id",
+          "candidate_id@candidates",
+          "position_id@positions",
+          "valid_from",
+          "valid_to"
+        ],
+        "rows": [
+          [
+            "E1",
+            "C1",
+            "P1",
+            "2026-02-01",
+            "2026-12-31"
+          ]
+        ]
+      },
+      {
+        "name": "reporting_relationships",
+        "fields": [
+          "id",
+          "employee_id@employment_relationships",
+          "manager_id@employment_relationships",
+          "valid_from",
+          "valid_to"
+        ],
+        "rows": [
+          [
+            "RR1",
+            "E1",
+            "E1",
+            "2026-06-01",
+            "2026-12-31"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "two-applications",
+        "question": "Two applications yield one offer and employment relationship",
+        "sql": "SELECT c.id,COUNT(DISTINCT a.id),COUNT(DISTINCT o.id),COUNT(DISTINCT e.id) FROM candidates c JOIN applications a ON a.candidate_id=c.id LEFT JOIN offers o ON o.application_id=a.id LEFT JOIN employment_relationships e ON e.candidate_id=c.id GROUP BY c.id",
+        "expected": [
+          [
+            "C1",
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "id": "historical",
+        "question": "Reporting relation is excluded before its valid period",
+        "sql": "SELECT id FROM reporting_relationships WHERE valid_from<='2026-03-01' AND valid_to>='2026-03-01'",
+        "expected": []
+      },
+      {
+        "id": "candidate",
+        "question": "Accepted application does not replace employment identity",
+        "sql": "SELECT a.id,e.id FROM applications a JOIN employment_relationships e ON e.candidate_id=a.candidate_id AND e.position_id=a.position_id",
+        "expected": [
+          [
+            "A1",
+            "E1"
+          ]
+        ]
+      },
+      {
+        "id": "cycle",
+        "question": "A self-management assertion remains a visible error",
+        "sql": "SELECT id FROM reporting_relationships WHERE employee_id=manager_id",
+        "expected": [
+          [
+            "RR1"
+          ]
+        ]
+      }
+    ]
+  },
+  "martech": {
+    "tables": [
+      {
+        "name": "profiles",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic profile"
+          ]
+        ]
+      },
+      {
+        "name": "source_identities",
+        "fields": [
+          "id",
+          "profile_id@profiles",
+          "publisher",
+          "native_id"
+        ],
+        "rows": [
+          [
+            "SI1",
+            "P1",
+            "channel-a",
+            "same"
+          ],
+          [
+            "SI2",
+            "P1",
+            "channel-b",
+            "same"
+          ]
+        ]
+      },
+      {
+        "name": "campaigns",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "C1",
+            "Synthetic campaign"
+          ]
+        ]
+      },
+      {
+        "name": "channels",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "CH1",
+            "email"
+          ]
+        ]
+      },
+      {
+        "name": "consents",
+        "fields": [
+          "id",
+          "profile_id@profiles",
+          "channel_id@channels",
+          "status",
+          "valid_from",
+          "valid_to",
+          "purpose",
+          "source_identity_id@source_identities"
+        ],
+        "rows": [
+          [
+            "CO1",
+            "P1",
+            "CH1",
+            "granted",
+            "2026-01-01",
+            "2026-01-05",
+            "campaign-email",
+            "SI1"
+          ]
+        ]
+      },
+      {
+        "name": "sessions",
+        "fields": [
+          "id",
+          "profile_id@profiles",
+          "source_identity_id@source_identities",
+          "started_at"
+        ],
+        "rows": [
+          [
+            "SE1",
+            "P1",
+            "SI1",
+            "2026-01-01T10:00Z"
+          ]
+        ]
+      },
+      {
+        "name": "identity_assertions",
+        "fields": [
+          "id",
+          "left_id@source_identities",
+          "right_id@source_identities",
+          "evidence",
+          "status"
+        ],
+        "rows": [
+          [
+            "IA1",
+            "SI1",
+            "SI2",
+            "synthetic user confirmation",
+            "asserted"
+          ]
+        ]
+      },
+      {
+        "name": "touchpoints",
+        "fields": [
+          "id",
+          "profile_id@profiles",
+          "campaign_id@campaigns",
+          "channel_id@channels",
+          "event_day:INTEGER"
+        ],
+        "rows": [
+          [
+            "T1",
+            "P1",
+            "C1",
+            "CH1",
+            1
+          ],
+          [
+            "T2",
+            "P1",
+            "C1",
+            "CH1",
+            2
+          ]
+        ]
+      },
+      {
+        "name": "consent_events",
+        "fields": [
+          "id",
+          "consent_id@consents",
+          "status",
+          "event_time",
+          "purpose"
+        ],
+        "rows": [
+          [
+            "CE1",
+            "CO1",
+            "withdrawn",
+            "2026-01-05",
+            "campaign-email"
+          ]
+        ]
+      },
+      {
+        "name": "conversions",
+        "fields": [
+          "id",
+          "profile_id@profiles",
+          "event_day:INTEGER",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "CV1",
+            "P1",
+            3,
+            "10.00",
+            "USD"
+          ],
+          [
+            "CV2",
+            "P1",
+            20,
+            "20.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "attribution_rules",
+        "fields": [
+          "id",
+          "window_days:INTEGER",
+          "algorithm"
+        ],
+        "rows": [
+          [
+            "AR1",
+            7,
+            "illustrative-last-touch"
+          ]
+        ]
+      },
+      {
+        "name": "attributions",
+        "fields": [
+          "id",
+          "conversion_id@conversions",
+          "touchpoint_id?@touchpoints",
+          "rule_id@attribution_rules"
+        ],
+        "rows": [
+          [
+            "A1",
+            "CV1",
+            "T2",
+            "AR1"
+          ],
+          [
+            "A2",
+            "CV2",
+            null,
+            "AR1"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "last-touch",
+        "question": "Attribution selects the latest eligible preceding touch",
+        "sql": "SELECT a.id,t.id FROM attributions a JOIN conversions c ON c.id=a.conversion_id JOIN touchpoints t ON t.id=a.touchpoint_id JOIN attribution_rules r ON r.id=a.rule_id LEFT JOIN touchpoints x ON x.profile_id=c.profile_id AND x.event_day>t.event_day AND x.event_day<=c.event_day AND c.event_day-x.event_day<=r.window_days WHERE t.event_day<=c.event_day AND c.event_day-t.event_day<=r.window_days AND x.id IS NULL",
+        "expected": [
+          [
+            "A1",
+            "T2"
+          ]
+        ]
+      },
+      {
+        "id": "withdrawal",
+        "question": "Two campaign touches precede purpose withdrawal and later conversion",
+        "sql": "SELECT p.id,COUNT(DISTINCT t.id),e.purpose,e.status FROM profiles p JOIN touchpoints t ON t.profile_id=p.id JOIN consents c ON c.profile_id=p.id JOIN consent_events e ON e.consent_id=c.id JOIN conversions v ON v.profile_id=p.id WHERE v.event_day>5 GROUP BY p.id,e.purpose,e.status",
+        "expected": [
+          [
+            "P1",
+            2,
+            "campaign-email",
+            "withdrawn"
+          ]
+        ]
+      },
+      {
+        "id": "consent-origin",
+        "question": "Consent purpose links to source identity, session and attributed merge evidence",
+        "sql": "SELECT c.purpose,i.publisher,a.status FROM consents c JOIN source_identities i ON i.id=c.source_identity_id JOIN sessions s ON s.source_identity_id=i.id JOIN identity_assertions a ON a.left_id=i.id",
+        "expected": [
+          [
+            "campaign-email",
+            "channel-a",
+            "asserted"
+          ]
+        ]
+      },
+      {
+        "id": "window",
+        "question": "Find conversions outside the selected window",
+        "sql": "SELECT DISTINCT c.id FROM conversions c JOIN touchpoints t ON t.profile_id=c.profile_id JOIN attribution_rules r WHERE c.event_day-t.event_day>r.window_days",
+        "expected": [
+          [
+            "CV2"
+          ]
+        ]
+      },
+      {
+        "id": "unattributed",
+        "question": "Outside-window conversion stays unattributed",
+        "sql": "SELECT conversion_id FROM attributions WHERE touchpoint_id IS NULL",
+        "expected": [
+          [
+            "CV2"
+          ]
+        ]
+      },
+      {
+        "id": "consent",
+        "question": "Consent includes channel and validity interval",
+        "sql": "SELECT channel_id,status,valid_to FROM consents",
+        "expected": [
+          [
+            "CH1",
+            "granted",
+            "2026-01-05"
+          ]
+        ]
+      }
+    ]
+  },
+  "construction": {
+    "tables": [
+      {
+        "name": "projects",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic project"
+          ]
+        ]
+      },
+      {
+        "name": "parties",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "PA1",
+            "Synthetic contractor"
+          ]
+        ]
+      },
+      {
+        "name": "contracts",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "party_id@parties",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "C1",
+            "P1",
+            "PA1",
+            "1000.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "locations",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "grid",
+          "datum"
+        ],
+        "rows": [
+          [
+            "L1",
+            "P1",
+            "local-grid",
+            "site-datum"
+          ]
+        ]
+      },
+      {
+        "name": "assets",
+        "fields": [
+          "id",
+          "location_id@locations",
+          "asset_kind"
+        ],
+        "rows": [
+          [
+            "A1",
+            "L1",
+            "beam"
+          ]
+        ]
+      },
+      {
+        "name": "work_packages",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "name",
+          "status"
+        ],
+        "rows": [
+          [
+            "W1",
+            "P1",
+            "Frame",
+            "delayed"
+          ],
+          [
+            "W2",
+            "P1",
+            "Finish",
+            "blocked"
+          ]
+        ]
+      },
+      {
+        "name": "activities",
+        "fields": [
+          "id",
+          "work_package_id@work_packages",
+          "name"
+        ],
+        "rows": [
+          [
+            "AC1",
+            "W1",
+            "Install"
+          ],
+          [
+            "AC2",
+            "W2",
+            "Inspect"
+          ]
+        ]
+      },
+      {
+        "name": "dependencies",
+        "fields": [
+          "id",
+          "predecessor_id@activities",
+          "successor_id@activities"
+        ],
+        "rows": [
+          [
+            "D1",
+            "AC1",
+            "AC2"
+          ],
+          [
+            "D2",
+            "AC2",
+            "AC1"
+          ]
+        ]
+      },
+      {
+        "name": "resources",
+        "fields": [
+          "id",
+          "activity_id@activities",
+          "quantity:DECIMAL",
+          "unit"
+        ],
+        "rows": [
+          [
+            "R1",
+            "AC1",
+            "2.00",
+            "person-hour"
+          ]
+        ]
+      },
+      {
+        "name": "cost_items",
+        "fields": [
+          "id",
+          "contract_id@contracts",
+          "activity_id@activities",
+          "amount:DECIMAL",
+          "currency"
+        ],
+        "rows": [
+          [
+            "CI1",
+            "C1",
+            "AC1",
+            "100.00",
+            "USD"
+          ]
+        ]
+      },
+      {
+        "name": "change_orders",
+        "fields": [
+          "id",
+          "contract_id@contracts",
+          "status",
+          "amount:DECIMAL",
+          "downstream_package_id@work_packages",
+          "rfi_id@rfis"
+        ],
+        "rows": [
+          [
+            "CH1",
+            "C1",
+            "proposed",
+            "50.00",
+            "W2",
+            "RFI1"
+          ],
+          [
+            "CH2",
+            "C1",
+            "approved",
+            "75.00",
+            "W2",
+            "RFI1"
+          ]
+        ]
+      },
+      {
+        "name": "rfis",
+        "fields": [
+          "id",
+          "asset_id@assets",
+          "question",
+          "status"
+        ],
+        "rows": [
+          [
+            "RFI1",
+            "A1",
+            "Synthetic connection detail",
+            "open"
+          ]
+        ]
+      },
+      {
+        "name": "inspections",
+        "fields": [
+          "id",
+          "asset_id@assets",
+          "result",
+          "method"
+        ],
+        "rows": [
+          [
+            "IN1",
+            "A1",
+            "pass",
+            "visual"
+          ]
+        ]
+      },
+      {
+        "name": "submittals",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "asset_id@assets",
+          "status",
+          "revision"
+        ],
+        "rows": [
+          [
+            "SUB1",
+            "P1",
+            "A1",
+            "approved",
+            "r1"
+          ]
+        ]
+      },
+      {
+        "name": "bim_references",
+        "fields": [
+          "id",
+          "asset_id@assets",
+          "publisher",
+          "model_revision",
+          "native_object_id"
+        ],
+        "rows": [
+          [
+            "BIM1",
+            "A1",
+            "synthetic-model",
+            "r1",
+            "beam-001"
+          ]
+        ]
+      },
+      {
+        "name": "documents",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "document_kind",
+          "reference",
+          "availability"
+        ],
+        "rows": [
+          [
+            "DOC1",
+            "P1",
+            "plan",
+            "assets/plan.svg",
+            "included"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "downstream-change",
+        "question": "Delay and RFI retain approved downstream change",
+        "sql": "SELECT w.status,x.status,d.name FROM work_packages w JOIN activities a ON a.work_package_id=w.id JOIN dependencies dep ON dep.predecessor_id=a.id JOIN activities b ON b.id=dep.successor_id JOIN work_packages d ON d.id=b.work_package_id JOIN change_orders x ON x.downstream_package_id=d.id JOIN rfis r ON r.id=x.rfi_id WHERE w.status='delayed' AND x.status='approved'",
+        "expected": [
+          [
+            "delayed",
+            "approved",
+            "Finish"
+          ]
+        ]
+      },
+      {
+        "id": "bim-submittal",
+        "question": "Approved submittal identifies model revision and physical asset",
+        "sql": "SELECT s.status,s.revision,b.model_revision,b.native_object_id FROM submittals s JOIN bim_references b ON b.asset_id=s.asset_id",
+        "expected": [
+          [
+            "approved",
+            "r1",
+            "r1",
+            "beam-001"
+          ]
+        ]
+      },
+      {
+        "id": "cycle",
+        "question": "Expose directed schedule cycle without deleting dependency",
+        "sql": "SELECT a.id,b.id FROM dependencies a JOIN dependencies b ON a.predecessor_id=b.successor_id AND a.successor_id=b.predecessor_id WHERE a.id<b.id",
+        "expected": [
+          [
+            "D1",
+            "D2"
+          ]
+        ]
+      },
+      {
+        "id": "change",
+        "question": "Proposed change stays separate from contract baseline",
+        "sql": "SELECT c.amount,x.amount,x.status FROM contracts c JOIN change_orders x ON x.contract_id=c.id ORDER BY x.id",
+        "expected": [
+          [
+            1000,
+            50,
+            "proposed"
+          ],
+          [
+            1000,
+            75,
+            "approved"
+          ]
+        ]
+      },
+      {
+        "id": "evidence",
+        "question": "Inspection and RFI refer to same physical asset",
+        "sql": "SELECT i.asset_id,r.status FROM inspections i JOIN rfis r ON r.asset_id=i.asset_id",
+        "expected": [
+          [
+            "A1",
+            "open"
+          ]
+        ]
+      }
+    ]
+  },
+  "ecology": {
+    "tables": [
+      {
+        "name": "watersheds",
+        "fields": [
+          "id",
+          "name",
+          "geometry",
+          "crs"
+        ],
+        "rows": [
+          [
+            "W1",
+            "Synthetic watershed",
+            "POLYGON((0 0,2 0,2 2,0 0))",
+            "synthetic-local-grid"
+          ]
+        ]
+      },
+      {
+        "name": "catchments",
+        "fields": [
+          "id",
+          "watershed_id@watersheds",
+          "area:DECIMAL",
+          "area_unit"
+        ],
+        "rows": [
+          [
+            "C1",
+            "W1",
+            "1.00",
+            "km2"
+          ]
+        ]
+      },
+      {
+        "name": "reaches",
+        "fields": [
+          "id",
+          "catchment_id@catchments",
+          "native_framework"
+        ],
+        "rows": [
+          [
+            "R1",
+            "C1",
+            "synthetic-network"
+          ],
+          [
+            "R2",
+            "C1",
+            "synthetic-network"
+          ]
+        ]
+      },
+      {
+        "name": "network_links",
+        "fields": [
+          "id",
+          "upstream_id@reaches",
+          "downstream_id@reaches"
+        ],
+        "rows": [
+          [
+            "NL1",
+            "R1",
+            "R2"
+          ]
+        ]
+      },
+      {
+        "name": "monitoring_sites",
+        "fields": [
+          "id",
+          "reach_id@reaches",
+          "native_id",
+          "publisher"
+        ],
+        "rows": [
+          [
+            "S1",
+            "R1",
+            "SITE1",
+            "synthetic"
+          ],
+          [
+            "S2",
+            "R2",
+            "SITE2",
+            "synthetic"
+          ]
+        ]
+      },
+      {
+        "name": "projects",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic watershed study"
+          ]
+        ]
+      },
+      {
+        "name": "methods",
+        "fields": [
+          "id",
+          "name",
+          "matrix",
+          "fraction"
+        ],
+        "rows": [
+          [
+            "M1",
+            "Synthetic filtered assay",
+            "water",
+            "dissolved"
+          ],
+          [
+            "M2",
+            "Synthetic probe",
+            "water",
+            "in-situ"
+          ],
+          [
+            "M3",
+            "Synthetic kick-net",
+            "benthos",
+            "whole"
+          ]
+        ]
+      },
+      {
+        "name": "observed_properties",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "OP1",
+            "nitrate"
+          ],
+          [
+            "OP2",
+            "temperature"
+          ],
+          [
+            "OP3",
+            "dissolved-oxygen"
+          ]
+        ]
+      },
+      {
+        "name": "sampling_events",
+        "fields": [
+          "id",
+          "site_id@monitoring_sites",
+          "project_id@projects",
+          "method_id@methods",
+          "event_time"
+        ],
+        "rows": [
+          [
+            "E1",
+            "S1",
+            "P1",
+            "M1",
+            "2026-01-01T10:00Z"
+          ],
+          [
+            "E2",
+            "S2",
+            "P1",
+            "M1",
+            "2026-01-01T10:00Z"
+          ],
+          [
+            "E3",
+            "S1",
+            "P1",
+            "M2",
+            "2026-01-01T10:00Z"
+          ],
+          [
+            "E4",
+            "S2",
+            "P1",
+            "M2",
+            "2026-01-01T10:00Z"
+          ],
+          [
+            "E5",
+            "S1",
+            "P1",
+            "M3",
+            "2026-01-01T10:00Z"
+          ]
+        ]
+      },
+      {
+        "name": "samples",
+        "fields": [
+          "id",
+          "event_id@sampling_events",
+          "matrix"
+        ],
+        "rows": [
+          [
+            "SA1",
+            "E1",
+            "water"
+          ],
+          [
+            "SA2",
+            "E2",
+            "water"
+          ],
+          [
+            "SA3",
+            "E3",
+            "water"
+          ],
+          [
+            "SA4",
+            "E4",
+            "water"
+          ]
+        ]
+      },
+      {
+        "name": "observations",
+        "fields": [
+          "id",
+          "sample_id@samples",
+          "property_id@observed_properties",
+          "value?:DECIMAL",
+          "threshold?:DECIMAL",
+          "unit",
+          "result_kind",
+          "qualifier"
+        ],
+        "rows": [
+          [
+            "O1",
+            "SA1",
+            "OP1",
+            "1.20",
+            null,
+            "mg/L",
+            "measured",
+            "accepted"
+          ],
+          [
+            "O2",
+            "SA1",
+            "OP1",
+            null,
+            "0.10",
+            "mg/L",
+            "censored",
+            "below-detection"
+          ],
+          [
+            "O3",
+            "SA3",
+            "OP2",
+            "18.00",
+            null,
+            "Cel",
+            "measured",
+            "accepted"
+          ],
+          [
+            "O4",
+            "SA3",
+            "OP3",
+            "8.00",
+            null,
+            "mg/L",
+            "measured",
+            "accepted"
+          ],
+          [
+            "O5",
+            "SA4",
+            "OP2",
+            "19.00",
+            null,
+            "Cel",
+            "measured",
+            "accepted"
+          ],
+          [
+            "O6",
+            "SA4",
+            "OP3",
+            "7.50",
+            null,
+            "mg/L",
+            "measured",
+            "accepted"
+          ]
+        ]
+      },
+      {
+        "name": "taxa",
+        "fields": [
+          "id",
+          "name",
+          "rank",
+          "concept_version"
+        ],
+        "rows": [
+          [
+            "T1",
+            "Synthetic mayfly",
+            "family",
+            "fixture-1"
+          ]
+        ]
+      },
+      {
+        "name": "identifications",
+        "fields": [
+          "id",
+          "taxon_id@taxa",
+          "confidence",
+          "life_stage"
+        ],
+        "rows": [
+          [
+            "ID1",
+            "T1",
+            "family-only",
+            "larva"
+          ]
+        ]
+      },
+      {
+        "name": "effort",
+        "fields": [
+          "id",
+          "event_id@sampling_events",
+          "amount?:DECIMAL",
+          "unit",
+          "method"
+        ],
+        "rows": [
+          [
+            "EF1",
+            "E5",
+            "1.00",
+            "m2",
+            "benthic"
+          ],
+          [
+            "EF2",
+            "E5",
+            null,
+            "unknown",
+            "sighting"
+          ]
+        ]
+      },
+      {
+        "name": "occurrences",
+        "fields": [
+          "id",
+          "event_id@sampling_events",
+          "identification_id@identifications",
+          "effort_id@effort",
+          "count:INTEGER",
+          "detection"
+        ],
+        "rows": [
+          [
+            "OC1",
+            "E5",
+            "ID1",
+            "EF1",
+            3,
+            "detected"
+          ],
+          [
+            "OC2",
+            "E5",
+            "ID1",
+            "EF1",
+            0,
+            "not-detected"
+          ],
+          [
+            "OC3",
+            "E5",
+            "ID1",
+            "EF2",
+            1,
+            "detected"
+          ]
+        ]
+      },
+      {
+        "name": "habitat_metrics",
+        "fields": [
+          "id",
+          "catchment_id@catchments",
+          "value:DECIMAL",
+          "unit",
+          "basis",
+          "algorithm"
+        ],
+        "rows": [
+          [
+            "HM1",
+            "C1",
+            "10.00",
+            "percent",
+            "local-catchment",
+            "fixture-landcover-1"
+          ]
+        ]
+      },
+      {
+        "name": "management_interventions",
+        "fields": [
+          "id",
+          "reach_id@reaches",
+          "action",
+          "event_time"
+        ],
+        "rows": [
+          [
+            "MI1",
+            "R2",
+            "synthetic-restoration",
+            "2026-01-02"
+          ]
+        ]
+      },
+      {
+        "name": "fishing_events",
+        "fields": [
+          "id",
+          "site_id@monitoring_sites",
+          "effort:DECIMAL",
+          "effort_unit",
+          "catch_count:INTEGER"
+        ],
+        "rows": [
+          [
+            "FE1",
+            "S2",
+            "2.00",
+            "angler-hour",
+            1
+          ]
+        ]
+      },
+      {
+        "name": "site_matches",
+        "fields": [
+          "id",
+          "site_id@monitoring_sites",
+          "candidate_native_id",
+          "evidence",
+          "resolution"
+        ],
+        "rows": [
+          [
+            "SM1",
+            "S1",
+            "nearby-site",
+            "coordinate-proximity-only",
+            "unresolved"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "effort-event",
+        "question": "Occurrence and sampling effort share actual survey event",
+        "sql": "SELECT o.id FROM occurrences o JOIN effort e ON e.id=o.effort_id WHERE e.event_id<>o.event_id",
+        "expected": []
+      },
+      {
+        "id": "connected-measurements",
+        "question": "Two connected reaches retain temperature and dissolved oxygen with probe methods",
+        "sql": "SELECT p.name,COUNT(DISTINCT r.id) FROM observations o JOIN observed_properties p ON p.id=o.property_id JOIN samples s ON s.id=o.sample_id JOIN sampling_events e ON e.id=s.event_id JOIN monitoring_sites ms ON ms.id=e.site_id JOIN reaches r ON r.id=ms.reach_id JOIN methods m ON m.id=e.method_id WHERE p.name IN ('temperature','dissolved-oxygen') AND m.fraction='in-situ' GROUP BY p.name ORDER BY p.name",
+        "expected": [
+          [
+            "dissolved-oxygen",
+            2
+          ],
+          [
+            "temperature",
+            2
+          ]
+        ]
+      },
+      {
+        "id": "censor",
+        "question": "Below-detection nitrate is not zero",
+        "sql": "SELECT id,threshold,qualifier FROM observations WHERE result_kind='censored' AND value IS NULL",
+        "expected": [
+          [
+            "O2",
+            0.1,
+            "below-detection"
+          ]
+        ]
+      },
+      {
+        "id": "match",
+        "question": "Coordinate-only match stays unresolved",
+        "sql": "SELECT id FROM site_matches WHERE resolution='unresolved'",
+        "expected": [
+          [
+            "SM1"
+          ]
+        ]
+      },
+      {
+        "id": "effort",
+        "question": "Exclude effort-unknown detection from quantitative comparison",
+        "sql": "SELECT o.id FROM occurrences o JOIN effort e ON e.id=o.effort_id WHERE e.amount IS NULL",
+        "expected": [
+          [
+            "OC3"
+          ]
+        ]
+      },
+      {
+        "id": "zero",
+        "question": "Known-effort non-detection is distinct from missing occurrence",
+        "sql": "SELECT o.id FROM occurrences o JOIN effort e ON e.id=o.effort_id WHERE o.count=0 AND o.detection='not-detected' AND e.amount IS NOT NULL",
+        "expected": [
+          [
+            "OC2"
+          ]
+        ]
+      },
+      {
+        "id": "network",
+        "question": "Reach linkage preserves upstream direction",
+        "sql": "SELECT upstream_id,downstream_id FROM network_links",
+        "expected": [
+          [
+            "R1",
+            "R2"
+          ]
+        ]
+      },
+      {
+        "id": "comparability",
+        "question": "Matrix, fraction and taxonomy rank are retained",
+        "sql": "SELECT DISTINCT m.matrix,m.fraction,t.rank FROM occurrences o JOIN sampling_events e ON e.id=o.event_id JOIN methods m ON m.id=e.method_id JOIN identifications i ON i.id=o.identification_id JOIN taxa t ON t.id=i.taxon_id",
+        "expected": [
+          [
+            "benthos",
+            "whole",
+            "family"
+          ]
+        ]
+      },
+      {
+        "id": "fishing",
+        "question": "Catch effort does not become scientific survey effort",
+        "sql": "SELECT effort_unit FROM fishing_events",
+        "expected": [
+          [
+            "angler-hour"
+          ]
+        ]
+      }
+    ]
+  },
+  "archaeology": {
+    "tables": [
+      {
+        "name": "projects",
+        "fields": [
+          "id",
+          "name"
+        ],
+        "rows": [
+          [
+            "P1",
+            "Synthetic excavation; not Madaba Plains records"
+          ]
+        ]
+      },
+      {
+        "name": "sites",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "name"
+        ],
+        "rows": [
+          [
+            "S1",
+            "P1",
+            "Synthetic tell"
+          ]
+        ]
+      },
+      {
+        "name": "seasons",
+        "fields": [
+          "id",
+          "site_id@sites",
+          "excavation_year:INTEGER"
+        ],
+        "rows": [
+          [
+            "SE1",
+            "S1",
+            2026
+          ]
+        ]
+      },
+      {
+        "name": "areas",
+        "fields": [
+          "id",
+          "season_id@seasons",
+          "native_code"
+        ],
+        "rows": [
+          [
+            "A1",
+            "SE1",
+            "Field A"
+          ]
+        ]
+      },
+      {
+        "name": "squares",
+        "fields": [
+          "id",
+          "area_id@areas",
+          "native_code",
+          "grid",
+          "datum"
+        ],
+        "rows": [
+          [
+            "SQ1",
+            "A1",
+            "1",
+            "local-excavation-grid",
+            "local-datum"
+          ]
+        ]
+      },
+      {
+        "name": "contexts",
+        "fields": [
+          "id",
+          "square_id@squares",
+          "native_locus",
+          "material"
+        ],
+        "rows": [
+          [
+            "C1",
+            "SQ1",
+            "1",
+            "soil"
+          ],
+          [
+            "C2",
+            "SQ1",
+            "2",
+            "fill"
+          ]
+        ]
+      },
+      {
+        "name": "excavation_activities",
+        "fields": [
+          "id",
+          "context_id@contexts",
+          "recorded_at",
+          "action"
+        ],
+        "rows": [
+          [
+            "EA1",
+            "C1",
+            "2026-01-01",
+            "excavate"
+          ]
+        ]
+      },
+      {
+        "name": "stratigraphic_assertions",
+        "fields": [
+          "id",
+          "source_context_id@contexts",
+          "target_context_id@contexts",
+          "relation",
+          "author",
+          "evidence",
+          "status"
+        ],
+        "rows": [
+          [
+            "ST1",
+            "C1",
+            "C2",
+            "above",
+            "Synthetic analyst",
+            "field-sheet-1",
+            "observed"
+          ],
+          [
+            "ST2",
+            "C2",
+            "C1",
+            "above",
+            "Synthetic analyst",
+            "field-sheet-2",
+            "disputed"
+          ]
+        ]
+      },
+      {
+        "name": "find_lots",
+        "fields": [
+          "id",
+          "context_id@contexts",
+          "basket_code"
+        ],
+        "rows": [
+          [
+            "FL1",
+            "C1",
+            "B1"
+          ]
+        ]
+      },
+      {
+        "name": "objects",
+        "fields": [
+          "id",
+          "lot_id@find_lots",
+          "material",
+          "object_kind"
+        ],
+        "rows": [
+          [
+            "O1",
+            "FL1",
+            "pottery",
+            "fragment"
+          ]
+        ]
+      },
+      {
+        "name": "samples",
+        "fields": [
+          "id",
+          "context_id@contexts",
+          "material",
+          "parent_id?@samples"
+        ],
+        "rows": [
+          [
+            "SA1",
+            "C1",
+            "sediment",
+            null
+          ],
+          [
+            "SA2",
+            "C1",
+            "fauna",
+            "SA1"
+          ]
+        ]
+      },
+      {
+        "name": "analyses",
+        "fields": [
+          "id",
+          "sample_id@samples",
+          "method",
+          "analyst"
+        ],
+        "rows": [
+          [
+            "AN1",
+            "SA1",
+            "sieve",
+            "Synthetic analyst"
+          ],
+          [
+            "AN2",
+            "SA2",
+            "visual-fauna",
+            "Synthetic analyst"
+          ]
+        ]
+      },
+      {
+        "name": "pottery_results",
+        "fields": [
+          "id",
+          "object_id@objects",
+          "form",
+          "fabric",
+          "sherd_count:INTEGER",
+          "estimated_vessels:INTEGER",
+          "weight:DECIMAL",
+          "unit"
+        ],
+        "rows": [
+          [
+            "PR1",
+            "O1",
+            "bowl",
+            "synthetic-fabric",
+            3,
+            1,
+            "20.00",
+            "g"
+          ]
+        ]
+      },
+      {
+        "name": "soil_results",
+        "fields": [
+          "id",
+          "analysis_id@analyses",
+          "property",
+          "value:DECIMAL",
+          "unit",
+          "preparation"
+        ],
+        "rows": [
+          [
+            "SR1",
+            "AN1",
+            "sand_fraction",
+            "40.00",
+            "percent",
+            "dry-sieve"
+          ]
+        ]
+      },
+      {
+        "name": "fauna_results",
+        "fields": [
+          "id",
+          "analysis_id@analyses",
+          "taxon",
+          "element",
+          "nisp:INTEGER",
+          "mni:INTEGER",
+          "method"
+        ],
+        "rows": [
+          [
+            "FR1",
+            "AN2",
+            "synthetic-ungulate",
+            "bone",
+            5,
+            2,
+            "paired-elements"
+          ]
+        ]
+      },
+      {
+        "name": "observations",
+        "fields": [
+          "id",
+          "context_id@contexts",
+          "property",
+          "value",
+          "unit"
+        ],
+        "rows": [
+          [
+            "OB1",
+            "C1",
+            "depth",
+            "1.20",
+            "m"
+          ]
+        ]
+      },
+      {
+        "name": "interpretations",
+        "fields": [
+          "id",
+          "context_id@contexts",
+          "phase",
+          "earliest:INTEGER",
+          "latest:INTEGER",
+          "calendar",
+          "author",
+          "evidence",
+          "basis",
+          "supersedes_id?@interpretations"
+        ],
+        "rows": [
+          [
+            "IT1",
+            "C1",
+            "phase-a",
+            -800,
+            -700,
+            "proleptic-year-label",
+            "Author A",
+            "PR1",
+            "pottery typology",
+            null
+          ],
+          [
+            "IT2",
+            "C1",
+            "phase-b",
+            -750,
+            -650,
+            "proleptic-year-label",
+            "Author B",
+            "FR1",
+            "fauna assemblage",
+            "IT1"
+          ]
+        ]
+      },
+      {
+        "name": "assets",
+        "fields": [
+          "id",
+          "kind",
+          "reference",
+          "availability",
+          "caption",
+          "scale",
+          "orientation",
+          "source_id?",
+          "revision?",
+          "sha256?"
+        ],
+        "rows": [
+          [
+            "AS1",
+            "field-report",
+            "assets/report.txt",
+            "included",
+            "Synthetic field report",
+            "not-applicable",
+            "not-applicable",
+            "asset_report_txt",
+            "1.0.0",
+            "197b6ad719c4b4af78ebecd1f97148e0662367d1cbaba25d37646bcccd6b4842"
+          ],
+          [
+            "AS2",
+            "photo",
+            "assets/photo.svg",
+            "included",
+            "Synthetic illustration, not a photograph",
+            "not-applicable",
+            "north",
+            "asset_photo_svg",
+            "1.0.0",
+            "abb051a6748c1c8e630d42907d0e45856dd7d0112f18dbb94cdc836885e4a290"
+          ],
+          [
+            "AS3",
+            "map",
+            "assets/map.svg",
+            "included",
+            "Synthetic map",
+            "1:100",
+            "north",
+            "asset_map_svg",
+            "1.0.0",
+            "f8c9edabbef94948863c787f236c85700f74cfca43f321e57bd48f5837c1a73a"
+          ],
+          [
+            "AS4",
+            "square-drawing",
+            "assets/square.svg",
+            "included",
+            "Synthetic square plan",
+            "1:20",
+            "north",
+            "asset_square_svg",
+            "1.0.0",
+            "0b9240d4c6db480425dd004aa6b978221357917b2a69a1dcff601a88df59335f"
+          ],
+          [
+            "AS5",
+            "object-drawing",
+            "assets/object.svg",
+            "included",
+            "Synthetic object drawing",
+            "1:1",
+            "not-georeferenced",
+            "asset_object_svg",
+            "1.0.0",
+            "f760b9b0d93e54f2785d956e32c4977bd5aadcec56bc07ce4fee42fd9d6840f9"
+          ],
+          [
+            "AS6",
+            "section-drawing",
+            "https://example.invalid/section",
+            "external",
+            "Reference-only missing section",
+            "unknown",
+            "unknown",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      {
+        "name": "asset_subjects",
+        "fields": [
+          "id",
+          "asset_id@assets",
+          "context_id?@contexts",
+          "object_id?@objects",
+          "region"
+        ],
+        "rows": [
+          [
+            "AX4",
+            "AS1",
+            "C1",
+            null,
+            "whole"
+          ],
+          [
+            "AX5",
+            "AS2",
+            "C1",
+            null,
+            "whole"
+          ],
+          [
+            "AX6",
+            "AS3",
+            "C1",
+            null,
+            "whole"
+          ],
+          [
+            "AX1",
+            "AS4",
+            "C1",
+            null,
+            "whole"
+          ],
+          [
+            "AX2",
+            "AS4",
+            "C2",
+            null,
+            "whole"
+          ],
+          [
+            "AX3",
+            "AS5",
+            null,
+            "O1",
+            "figure-1"
+          ]
+        ]
+      },
+      {
+        "name": "interpretation_evidence",
+        "fields": [
+          "id",
+          "interpretation_id@interpretations",
+          "pottery_result_id?@pottery_results",
+          "fauna_result_id?@fauna_results"
+        ],
+        "rows": [
+          [
+            "IE1",
+            "IT1",
+            "PR1",
+            null
+          ],
+          [
+            "IE2",
+            "IT2",
+            null,
+            "FR1"
+          ]
+        ]
+      },
+      {
+        "name": "stratigraphic_evidence",
+        "fields": [
+          "id",
+          "assertion_id@stratigraphic_assertions",
+          "asset_id@assets"
+        ],
+        "rows": [
+          [
+            "SEV1",
+            "ST1",
+            "AS1"
+          ],
+          [
+            "SEV2",
+            "ST2",
+            "AS1"
+          ]
+        ]
+      },
+      {
+        "name": "provenance",
+        "fields": [
+          "id",
+          "project_id@projects",
+          "native_subject_id",
+          "publisher",
+          "native_reference",
+          "transformation"
+        ],
+        "rows": [
+          [
+            "PV1",
+            "P1",
+            "P1",
+            "UMF synthetic fixture",
+            "fixture-only",
+            "authored; no MPP rows"
+          ]
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "cycle",
+        "question": "Keep contradictory stratigraphic assertions visible",
+        "sql": "SELECT a.id,b.id FROM stratigraphic_assertions a JOIN stratigraphic_assertions b ON a.source_context_id=b.target_context_id AND a.target_context_id=b.source_context_id WHERE a.id<b.id",
+        "expected": [
+          [
+            "ST1",
+            "ST2"
+          ]
+        ]
+      },
+      {
+        "id": "dating",
+        "question": "Overlapping interpretations keep both authors and evidence",
+        "sql": "SELECT a.author,b.author FROM interpretations a JOIN interpretations b ON a.context_id=b.context_id AND a.id<b.id WHERE a.earliest<=b.latest AND b.earliest<=a.latest",
+        "expected": [
+          [
+            "Author A",
+            "Author B"
+          ]
+        ]
+      },
+      {
+        "id": "media",
+        "question": "One square drawing depicts two contexts",
+        "sql": "SELECT asset_id,COUNT(DISTINCT context_id) FROM asset_subjects GROUP BY asset_id HAVING COUNT(DISTINCT context_id)>1",
+        "expected": [
+          [
+            "AS4",
+            2
+          ]
+        ]
+      },
+      {
+        "id": "missing-media",
+        "question": "External assets are not falsely included",
+        "sql": "SELECT id FROM assets WHERE availability='external'",
+        "expected": [
+          [
+            "AS6"
+          ]
+        ]
+      },
+      {
+        "id": "specialists",
+        "question": "NISP, MNI, sherds and vessels keep distinct denominators",
+        "sql": "SELECT f.nisp,f.mni,p.sherd_count,p.estimated_vessels FROM fauna_results f JOIN analyses a ON a.id=f.analysis_id JOIN samples s ON s.id=a.sample_id JOIN find_lots l ON l.context_id=s.context_id JOIN objects o ON o.lot_id=l.id JOIN pottery_results p ON p.object_id=o.id",
+        "expected": [
+          [
+            5,
+            2,
+            3,
+            1
+          ]
+        ]
+      },
+      {
+        "id": "lineage",
+        "question": "Find-to-context chain is retained",
+        "sql": "SELECT o.id,c.native_locus FROM objects o JOIN find_lots l ON l.id=o.lot_id JOIN contexts c ON c.id=l.context_id",
+        "expected": [
+          [
+            "O1",
+            "1"
+          ]
+        ]
+      },
+      {
+        "id": "evidence-links",
+        "question": "Interpretations retain resolved specialist evidence alongside native source literals",
+        "sql": "SELECT i.author,p.form,f.taxon FROM interpretations i JOIN interpretation_evidence e ON e.interpretation_id=i.id LEFT JOIN pottery_results p ON p.id=e.pottery_result_id LEFT JOIN fauna_results f ON f.id=e.fauna_result_id ORDER BY i.id",
+        "expected": [
+          [
+            "Author A",
+            "bowl",
+            null
+          ],
+          [
+            "Author B",
+            null,
+            "synthetic-ungulate"
+          ]
+        ]
+      },
+      {
+        "id": "sample",
+        "question": "Subsample lineage and soil preparation remain explicit",
+        "sql": "SELECT s.parent_id,r.preparation FROM samples s JOIN analyses a ON a.sample_id=s.parent_id JOIN soil_results r ON r.analysis_id=a.id WHERE s.parent_id IS NOT NULL",
+        "expected": [
+          [
+            "SA1",
+            "dry-sieve"
+          ]
+        ]
+      }
+    ]
+  }
+}

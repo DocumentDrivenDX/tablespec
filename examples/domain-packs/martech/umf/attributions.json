@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "table_name": "attributions",
+  "description": "Synthetic attributions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored attributions id; synthetic reference scenario."
+    },
+    {
+      "name": "conversion_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored attributions conversion_id; synthetic reference scenario."
+    },
+    {
+      "name": "touchpoint_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored attributions touchpoint_id; synthetic reference scenario."
+    },
+    {
+      "name": "rule_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored attributions rule_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "conversion_id",
+        "references_table": "conversions",
+        "references_column": "id"
+      },
+      {
+        "column": "touchpoint_id",
+        "references_table": "touchpoints",
+        "references_column": "id"
+      },
+      {
+        "column": "rule_id",
+        "references_table": "attribution_rules",
+        "references_column": "id"
+      }
+    ]
+  }
+}

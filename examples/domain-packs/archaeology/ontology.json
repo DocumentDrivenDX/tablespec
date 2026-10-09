@@ -1,0 +1,2826 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:archaeology",
+  "title": "archaeology ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:archaeology:",
+      "elements": [
+        {
+          "id": "projects",
+          "kind": "record",
+          "name": "projects",
+          "title": "projects",
+          "description": "Synthetic projects; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "projects.id"
+            },
+            {
+              "module": "domain",
+              "element": "projects.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "projects.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "projects.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored projects id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "projects.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored projects name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sites",
+          "kind": "record",
+          "name": "sites",
+          "title": "sites",
+          "description": "Synthetic sites; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "sites.id"
+            },
+            {
+              "module": "domain",
+              "element": "sites.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "sites.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "sites.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "sites.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sites id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sites.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sites project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sites.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sites name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "seasons",
+          "kind": "record",
+          "name": "seasons",
+          "title": "seasons",
+          "description": "Synthetic seasons; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "seasons.id"
+            },
+            {
+              "module": "domain",
+              "element": "seasons.site_id"
+            },
+            {
+              "module": "domain",
+              "element": "seasons.excavation_year"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "seasons.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "seasons.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored seasons id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "seasons.site_id",
+          "name": "site_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored seasons site_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "seasons.excavation_year",
+          "name": "excavation_year",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored seasons excavation_year; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "areas",
+          "kind": "record",
+          "name": "areas",
+          "title": "areas",
+          "description": "Synthetic areas; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "areas.id"
+            },
+            {
+              "module": "domain",
+              "element": "areas.season_id"
+            },
+            {
+              "module": "domain",
+              "element": "areas.native_code"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "areas.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "areas.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored areas id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "areas.season_id",
+          "name": "season_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored areas season_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "areas.native_code",
+          "name": "native_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored areas native_code; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "squares",
+          "kind": "record",
+          "name": "squares",
+          "title": "squares",
+          "description": "Synthetic squares; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "squares.id"
+            },
+            {
+              "module": "domain",
+              "element": "squares.area_id"
+            },
+            {
+              "module": "domain",
+              "element": "squares.native_code"
+            },
+            {
+              "module": "domain",
+              "element": "squares.grid"
+            },
+            {
+              "module": "domain",
+              "element": "squares.datum"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "squares.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "squares.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored squares id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "squares.area_id",
+          "name": "area_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored squares area_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "squares.native_code",
+          "name": "native_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored squares native_code; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "squares.grid",
+          "name": "grid",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored squares grid; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "squares.datum",
+          "name": "datum",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored squares datum; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contexts",
+          "kind": "record",
+          "name": "contexts",
+          "title": "contexts",
+          "description": "Synthetic contexts; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "contexts.id"
+            },
+            {
+              "module": "domain",
+              "element": "contexts.square_id"
+            },
+            {
+              "module": "domain",
+              "element": "contexts.native_locus"
+            },
+            {
+              "module": "domain",
+              "element": "contexts.material"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "contexts.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "contexts.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contexts id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contexts.square_id",
+          "name": "square_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contexts square_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contexts.native_locus",
+          "name": "native_locus",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contexts native_locus; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "contexts.material",
+          "name": "material",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored contexts material; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "excavation_activities",
+          "kind": "record",
+          "name": "excavation_activities",
+          "title": "excavation_activities",
+          "description": "Synthetic excavation_activities; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "excavation_activities.id"
+            },
+            {
+              "module": "domain",
+              "element": "excavation_activities.context_id"
+            },
+            {
+              "module": "domain",
+              "element": "excavation_activities.recorded_at"
+            },
+            {
+              "module": "domain",
+              "element": "excavation_activities.action"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "excavation_activities.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "excavation_activities.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored excavation_activities id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "excavation_activities.context_id",
+          "name": "context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored excavation_activities context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "excavation_activities.recorded_at",
+          "name": "recorded_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored excavation_activities recorded_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "excavation_activities.action",
+          "name": "action",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored excavation_activities action; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions",
+          "kind": "record",
+          "name": "stratigraphic_assertions",
+          "title": "stratigraphic_assertions",
+          "description": "Synthetic stratigraphic_assertions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.id"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.source_context_id"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.target_context_id"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.relation"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.author"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.evidence"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "stratigraphic_assertions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.source_context_id",
+          "name": "source_context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions source_context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.target_context_id",
+          "name": "target_context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions target_context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.relation",
+          "name": "relation",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions relation; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.author",
+          "name": "author",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions author; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.evidence",
+          "name": "evidence",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions evidence; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_assertions.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_assertions status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "find_lots",
+          "kind": "record",
+          "name": "find_lots",
+          "title": "find_lots",
+          "description": "Synthetic find_lots; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "find_lots.id"
+            },
+            {
+              "module": "domain",
+              "element": "find_lots.context_id"
+            },
+            {
+              "module": "domain",
+              "element": "find_lots.basket_code"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "find_lots.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "find_lots.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored find_lots id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "find_lots.context_id",
+          "name": "context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored find_lots context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "find_lots.basket_code",
+          "name": "basket_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored find_lots basket_code; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "objects",
+          "kind": "record",
+          "name": "objects",
+          "title": "objects",
+          "description": "Synthetic objects; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "objects.id"
+            },
+            {
+              "module": "domain",
+              "element": "objects.lot_id"
+            },
+            {
+              "module": "domain",
+              "element": "objects.material"
+            },
+            {
+              "module": "domain",
+              "element": "objects.object_kind"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "objects.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "objects.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored objects id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "objects.lot_id",
+          "name": "lot_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored objects lot_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "objects.material",
+          "name": "material",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored objects material; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "objects.object_kind",
+          "name": "object_kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored objects object_kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples",
+          "kind": "record",
+          "name": "samples",
+          "title": "samples",
+          "description": "Synthetic samples; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "samples.id"
+            },
+            {
+              "module": "domain",
+              "element": "samples.context_id"
+            },
+            {
+              "module": "domain",
+              "element": "samples.material"
+            },
+            {
+              "module": "domain",
+              "element": "samples.parent_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "samples.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "samples.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored samples id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples.context_id",
+          "name": "context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored samples context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples.material",
+          "name": "material",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored samples material; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples.parent_id",
+          "name": "parent_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored samples parent_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "analyses",
+          "kind": "record",
+          "name": "analyses",
+          "title": "analyses",
+          "description": "Synthetic analyses; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "analyses.id"
+            },
+            {
+              "module": "domain",
+              "element": "analyses.sample_id"
+            },
+            {
+              "module": "domain",
+              "element": "analyses.method"
+            },
+            {
+              "module": "domain",
+              "element": "analyses.analyst"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "analyses.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "analyses.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored analyses id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "analyses.sample_id",
+          "name": "sample_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored analyses sample_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "analyses.method",
+          "name": "method",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored analyses method; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "analyses.analyst",
+          "name": "analyst",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored analyses analyst; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results",
+          "kind": "record",
+          "name": "pottery_results",
+          "title": "pottery_results",
+          "description": "Synthetic pottery_results; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "pottery_results.id"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.object_id"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.form"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.fabric"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.sherd_count"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.estimated_vessels"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.weight"
+            },
+            {
+              "module": "domain",
+              "element": "pottery_results.unit"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "pottery_results.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.object_id",
+          "name": "object_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results object_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.form",
+          "name": "form",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results form; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.fabric",
+          "name": "fabric",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results fabric; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.sherd_count",
+          "name": "sherd_count",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results sherd_count; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.estimated_vessels",
+          "name": "estimated_vessels",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results estimated_vessels; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "pottery_results.weight",
+          "name": "weight",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results weight; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "pottery_results.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored pottery_results unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "soil_results",
+          "kind": "record",
+          "name": "soil_results",
+          "title": "soil_results",
+          "description": "Synthetic soil_results; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "soil_results.id"
+            },
+            {
+              "module": "domain",
+              "element": "soil_results.analysis_id"
+            },
+            {
+              "module": "domain",
+              "element": "soil_results.property"
+            },
+            {
+              "module": "domain",
+              "element": "soil_results.value"
+            },
+            {
+              "module": "domain",
+              "element": "soil_results.unit"
+            },
+            {
+              "module": "domain",
+              "element": "soil_results.preparation"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "soil_results.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "soil_results.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored soil_results id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "soil_results.analysis_id",
+          "name": "analysis_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored soil_results analysis_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "soil_results.property",
+          "name": "property",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored soil_results property; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "soil_results.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored soil_results value; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "soil_results.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored soil_results unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "soil_results.preparation",
+          "name": "preparation",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored soil_results preparation; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results",
+          "kind": "record",
+          "name": "fauna_results",
+          "title": "fauna_results",
+          "description": "Synthetic fauna_results; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "fauna_results.id"
+            },
+            {
+              "module": "domain",
+              "element": "fauna_results.analysis_id"
+            },
+            {
+              "module": "domain",
+              "element": "fauna_results.taxon"
+            },
+            {
+              "module": "domain",
+              "element": "fauna_results.element"
+            },
+            {
+              "module": "domain",
+              "element": "fauna_results.nisp"
+            },
+            {
+              "module": "domain",
+              "element": "fauna_results.mni"
+            },
+            {
+              "module": "domain",
+              "element": "fauna_results.method"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "fauna_results.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.analysis_id",
+          "name": "analysis_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results analysis_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.taxon",
+          "name": "taxon",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results taxon; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.element",
+          "name": "element",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results element; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.nisp",
+          "name": "nisp",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results nisp; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.mni",
+          "name": "mni",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results mni; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fauna_results.method",
+          "name": "method",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fauna_results method; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations",
+          "kind": "record",
+          "name": "observations",
+          "title": "observations",
+          "description": "Synthetic observations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "observations.id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.context_id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.property"
+            },
+            {
+              "module": "domain",
+              "element": "observations.value"
+            },
+            {
+              "module": "domain",
+              "element": "observations.unit"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "observations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "observations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.context_id",
+          "name": "context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.property",
+          "name": "property",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations property; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations value; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations",
+          "kind": "record",
+          "name": "interpretations",
+          "title": "interpretations",
+          "description": "Synthetic interpretations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "interpretations.id"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.context_id"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.phase"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.earliest"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.latest"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.calendar"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.author"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.evidence"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.basis"
+            },
+            {
+              "module": "domain",
+              "element": "interpretations.supersedes_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "interpretations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.context_id",
+          "name": "context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.phase",
+          "name": "phase",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations phase; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.earliest",
+          "name": "earliest",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations earliest; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.latest",
+          "name": "latest",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations latest; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.calendar",
+          "name": "calendar",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations calendar; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.author",
+          "name": "author",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations author; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.evidence",
+          "name": "evidence",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations evidence; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.basis",
+          "name": "basis",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretations basis; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretations.supersedes_id",
+          "name": "supersedes_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored interpretations supersedes_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets",
+          "kind": "record",
+          "name": "assets",
+          "title": "assets",
+          "description": "Synthetic assets; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "assets.id"
+            },
+            {
+              "module": "domain",
+              "element": "assets.kind"
+            },
+            {
+              "module": "domain",
+              "element": "assets.reference"
+            },
+            {
+              "module": "domain",
+              "element": "assets.availability"
+            },
+            {
+              "module": "domain",
+              "element": "assets.caption"
+            },
+            {
+              "module": "domain",
+              "element": "assets.scale"
+            },
+            {
+              "module": "domain",
+              "element": "assets.orientation"
+            },
+            {
+              "module": "domain",
+              "element": "assets.source_id"
+            },
+            {
+              "module": "domain",
+              "element": "assets.revision"
+            },
+            {
+              "module": "domain",
+              "element": "assets.sha256"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "assets.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "assets.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.kind",
+          "name": "kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.reference",
+          "name": "reference",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets reference; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.availability",
+          "name": "availability",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets availability; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.caption",
+          "name": "caption",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets caption; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.scale",
+          "name": "scale",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets scale; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.orientation",
+          "name": "orientation",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assets orientation; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.source_id",
+          "name": "source_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored assets source_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.revision",
+          "name": "revision",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored assets revision; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assets.sha256",
+          "name": "sha256",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored assets sha256; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "asset_subjects",
+          "kind": "record",
+          "name": "asset_subjects",
+          "title": "asset_subjects",
+          "description": "Synthetic asset_subjects; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "asset_subjects.id"
+            },
+            {
+              "module": "domain",
+              "element": "asset_subjects.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "asset_subjects.context_id"
+            },
+            {
+              "module": "domain",
+              "element": "asset_subjects.object_id"
+            },
+            {
+              "module": "domain",
+              "element": "asset_subjects.region"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "asset_subjects.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "asset_subjects.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored asset_subjects id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "asset_subjects.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored asset_subjects asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "asset_subjects.context_id",
+          "name": "context_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored asset_subjects context_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "asset_subjects.object_id",
+          "name": "object_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored asset_subjects object_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "asset_subjects.region",
+          "name": "region",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored asset_subjects region; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretation_evidence",
+          "kind": "record",
+          "name": "interpretation_evidence",
+          "title": "interpretation_evidence",
+          "description": "Synthetic interpretation_evidence; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "interpretation_evidence.id"
+            },
+            {
+              "module": "domain",
+              "element": "interpretation_evidence.interpretation_id"
+            },
+            {
+              "module": "domain",
+              "element": "interpretation_evidence.pottery_result_id"
+            },
+            {
+              "module": "domain",
+              "element": "interpretation_evidence.fauna_result_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "interpretation_evidence.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "interpretation_evidence.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretation_evidence id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretation_evidence.interpretation_id",
+          "name": "interpretation_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interpretation_evidence interpretation_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretation_evidence.pottery_result_id",
+          "name": "pottery_result_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored interpretation_evidence pottery_result_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interpretation_evidence.fauna_result_id",
+          "name": "fauna_result_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored interpretation_evidence fauna_result_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_evidence",
+          "kind": "record",
+          "name": "stratigraphic_evidence",
+          "title": "stratigraphic_evidence",
+          "description": "Synthetic stratigraphic_evidence; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_evidence.id"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_evidence.assertion_id"
+            },
+            {
+              "module": "domain",
+              "element": "stratigraphic_evidence.asset_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "stratigraphic_evidence.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_evidence.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_evidence id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_evidence.assertion_id",
+          "name": "assertion_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_evidence assertion_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stratigraphic_evidence.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stratigraphic_evidence asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "provenance",
+          "kind": "record",
+          "name": "provenance",
+          "title": "provenance",
+          "description": "Synthetic provenance; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "provenance.id"
+            },
+            {
+              "module": "domain",
+              "element": "provenance.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "provenance.native_subject_id"
+            },
+            {
+              "module": "domain",
+              "element": "provenance.publisher"
+            },
+            {
+              "module": "domain",
+              "element": "provenance.native_reference"
+            },
+            {
+              "module": "domain",
+              "element": "provenance.transformation"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "provenance.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "provenance.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored provenance id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "provenance.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored provenance project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "provenance.native_subject_id",
+          "name": "native_subject_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored provenance native_subject_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "provenance.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored provenance publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "provenance.native_reference",
+          "name": "native_reference",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored provenance native_reference; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "provenance.transformation",
+          "name": "transformation",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored provenance transformation; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "sites.project_id",
+          "name": "sites.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sites"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "seasons.site_id",
+          "name": "seasons.site_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "seasons"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sites",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "areas.season_id",
+          "name": "areas.season_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "areas"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "seasons",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "squares.area_id",
+          "name": "squares.area_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "squares"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "areas",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "contexts.square_id",
+          "name": "contexts.square_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "contexts"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "squares",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "excavation_activities.context_id",
+          "name": "excavation_activities.context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "excavation_activities"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "stratigraphic_assertions.source_context_id",
+          "name": "stratigraphic_assertions.source_context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "stratigraphic_assertions.target_context_id",
+          "name": "stratigraphic_assertions.target_context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "find_lots.context_id",
+          "name": "find_lots.context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "find_lots"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "objects.lot_id",
+          "name": "objects.lot_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "objects"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "find_lots",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "samples.context_id",
+          "name": "samples.context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "samples"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "samples.parent_id",
+          "name": "samples.parent_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "samples"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "samples",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "analyses.sample_id",
+          "name": "analyses.sample_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "analyses"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "samples",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "pottery_results.object_id",
+          "name": "pottery_results.object_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "pottery_results"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "objects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "soil_results.analysis_id",
+          "name": "soil_results.analysis_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "soil_results"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "analyses",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "fauna_results.analysis_id",
+          "name": "fauna_results.analysis_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "fauna_results"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "analyses",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "observations.context_id",
+          "name": "observations.context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interpretations.context_id",
+          "name": "interpretations.context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interpretations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interpretations.supersedes_id",
+          "name": "interpretations.supersedes_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interpretations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "interpretations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "asset_subjects.asset_id",
+          "name": "asset_subjects.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "asset_subjects"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "asset_subjects.context_id",
+          "name": "asset_subjects.context_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "asset_subjects"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "contexts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "asset_subjects.object_id",
+          "name": "asset_subjects.object_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "asset_subjects"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "objects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interpretation_evidence.interpretation_id",
+          "name": "interpretation_evidence.interpretation_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interpretation_evidence"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "interpretations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interpretation_evidence.pottery_result_id",
+          "name": "interpretation_evidence.pottery_result_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interpretation_evidence"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "pottery_results",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interpretation_evidence.fauna_result_id",
+          "name": "interpretation_evidence.fauna_result_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interpretation_evidence"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "fauna_results",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "stratigraphic_evidence.assertion_id",
+          "name": "stratigraphic_evidence.assertion_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_evidence"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_assertions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "stratigraphic_evidence.asset_id",
+          "name": "stratigraphic_evidence.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "stratigraphic_evidence"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "provenance.project_id",
+          "name": "provenance.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "provenance"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

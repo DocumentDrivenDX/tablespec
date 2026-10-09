@@ -1,0 +1,978 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:cybersecurity",
+  "title": "cybersecurity ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:cybersecurity:",
+      "elements": [
+        {
+          "id": "identities",
+          "kind": "record",
+          "name": "identities",
+          "title": "identities",
+          "description": "Synthetic identities; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "identities.id"
+            },
+            {
+              "module": "domain",
+              "element": "identities.publisher"
+            },
+            {
+              "module": "domain",
+              "element": "identities.native_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "identities.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "identities.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identities id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identities.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identities publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identities.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identities native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "accounts",
+          "kind": "record",
+          "name": "accounts",
+          "title": "accounts",
+          "description": "Synthetic accounts; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "accounts.id"
+            },
+            {
+              "module": "domain",
+              "element": "accounts.identity_id"
+            },
+            {
+              "module": "domain",
+              "element": "accounts.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "accounts.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "accounts.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored accounts id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "accounts.identity_id",
+          "name": "identity_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored accounts identity_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "accounts.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored accounts name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "devices",
+          "kind": "record",
+          "name": "devices",
+          "title": "devices",
+          "description": "Synthetic devices; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "devices.id"
+            },
+            {
+              "module": "domain",
+              "element": "devices.publisher"
+            },
+            {
+              "module": "domain",
+              "element": "devices.native_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "devices.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "devices.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored devices id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "devices.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored devices publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "devices.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored devices native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions",
+          "kind": "record",
+          "name": "sessions",
+          "title": "sessions",
+          "description": "Synthetic sessions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "sessions.id"
+            },
+            {
+              "module": "domain",
+              "element": "sessions.account_id"
+            },
+            {
+              "module": "domain",
+              "element": "sessions.device_id"
+            },
+            {
+              "module": "domain",
+              "element": "sessions.started_at"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "sessions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "sessions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions.account_id",
+          "name": "account_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions account_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions.device_id",
+          "name": "device_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions device_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions.started_at",
+          "name": "started_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions started_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "scenarios",
+          "kind": "record",
+          "name": "scenarios",
+          "title": "scenarios",
+          "description": "Synthetic scenarios; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "scenarios.id"
+            },
+            {
+              "module": "domain",
+              "element": "scenarios.label"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "scenarios.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "scenarios.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored scenarios id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "scenarios.label",
+          "name": "label",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored scenarios label; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "authentication_events",
+          "kind": "record",
+          "name": "authentication_events",
+          "title": "authentication_events",
+          "description": "Synthetic authentication_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "authentication_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "authentication_events.session_id"
+            },
+            {
+              "module": "domain",
+              "element": "authentication_events.scenario_id"
+            },
+            {
+              "module": "domain",
+              "element": "authentication_events.outcome"
+            },
+            {
+              "module": "domain",
+              "element": "authentication_events.event_time"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "authentication_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "authentication_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored authentication_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "authentication_events.session_id",
+          "name": "session_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored authentication_events session_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "authentication_events.scenario_id",
+          "name": "scenario_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored authentication_events scenario_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "authentication_events.outcome",
+          "name": "outcome",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored authentication_events outcome; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "authentication_events.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored authentication_events event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_activity",
+          "kind": "record",
+          "name": "network_activity",
+          "title": "network_activity",
+          "description": "Synthetic network_activity; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "network_activity.id"
+            },
+            {
+              "module": "domain",
+              "element": "network_activity.session_id"
+            },
+            {
+              "module": "domain",
+              "element": "network_activity.destination"
+            },
+            {
+              "module": "domain",
+              "element": "network_activity.bytes"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "network_activity.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "network_activity.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_activity id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_activity.session_id",
+          "name": "session_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_activity session_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_activity.destination",
+          "name": "destination",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_activity destination; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_activity.bytes",
+          "name": "bytes",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_activity bytes; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "findings",
+          "kind": "record",
+          "name": "findings",
+          "title": "findings",
+          "description": "Synthetic findings; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "findings.id"
+            },
+            {
+              "module": "domain",
+              "element": "findings.device_id"
+            },
+            {
+              "module": "domain",
+              "element": "findings.evidence_id"
+            },
+            {
+              "module": "domain",
+              "element": "findings.severity"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "findings.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "findings.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored findings id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "findings.device_id",
+          "name": "device_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored findings device_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "findings.evidence_id",
+          "name": "evidence_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored findings evidence_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "findings.severity",
+          "name": "severity",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored findings severity; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "incidents",
+          "kind": "record",
+          "name": "incidents",
+          "title": "incidents",
+          "description": "Synthetic incidents; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "incidents.id"
+            },
+            {
+              "module": "domain",
+              "element": "incidents.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "incidents.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "incidents.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored incidents id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "incidents.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored incidents status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "event_incident_links",
+          "kind": "record",
+          "name": "event_incident_links",
+          "title": "event_incident_links",
+          "description": "Synthetic event_incident_links; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "event_incident_links.id"
+            },
+            {
+              "module": "domain",
+              "element": "event_incident_links.event_id"
+            },
+            {
+              "module": "domain",
+              "element": "event_incident_links.incident_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "event_incident_links.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "event_incident_links.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored event_incident_links id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "event_incident_links.event_id",
+          "name": "event_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored event_incident_links event_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "event_incident_links.incident_id",
+          "name": "incident_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored event_incident_links incident_id; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "accounts.identity_id",
+          "name": "accounts.identity_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "accounts"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "identities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sessions.account_id",
+          "name": "sessions.account_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sessions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "accounts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sessions.device_id",
+          "name": "sessions.device_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sessions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "devices",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "authentication_events.session_id",
+          "name": "authentication_events.session_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "authentication_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sessions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "authentication_events.scenario_id",
+          "name": "authentication_events.scenario_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "authentication_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "scenarios",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "network_activity.session_id",
+          "name": "network_activity.session_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "network_activity"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sessions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "findings.device_id",
+          "name": "findings.device_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "findings"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "devices",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "findings.evidence_id",
+          "name": "findings.evidence_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "findings"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "authentication_events",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "event_incident_links.event_id",
+          "name": "event_incident_links.event_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "event_incident_links"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "authentication_events",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "event_incident_links.incident_id",
+          "name": "event_incident_links.incident_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "event_incident_links"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "incidents",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}
