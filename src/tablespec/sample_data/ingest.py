@@ -16,6 +16,81 @@ from .sink import identifier
 from .streaming import GeneratedDataset, _decimal_canonical
 
 
+def validate_profile(metadata: dict[str, Any]) -> None:
+    """Admission for the exact trusted execution subset of CONTRACT-053."""
+    profile = metadata["execution_profile"]
+    allowed = {
+        "version",
+        "targets",
+        "mode",
+        "scales",
+        "identity_columns",
+        "include_sources",
+        "qualification",
+    }
+    if (
+        not isinstance(profile, dict)
+        or set(profile) - allowed
+        or profile.get("version") != "1.0.0"
+    ):
+        raise ValueError("Unsupported execution profile")
+    if profile.get("mode") not in {"fixed", "scenario-replay"} or not isinstance(
+        profile.get("qualification"), str
+    ):
+        raise ValueError("Unsupported execution mode or qualification")
+    schemas = {entry["id"]: entry for entry in metadata.get("schemas", [])}
+    targets = profile.get("targets")
+    if (
+        not isinstance(targets, dict)
+        or not targets
+        or set(targets) - {"tabular", "graph"}
+    ):
+        raise ValueError("Unsupported schema target")
+    for target, selected in targets.items():
+        if (
+            not isinstance(selected, list)
+            or not selected
+            or any(not isinstance(n, str) for n in selected)
+            or len(selected) != len(set(selected))
+        ):
+            raise ValueError("Invalid target schema selection")
+        for name in selected:
+            if name not in schemas or schemas[name]["format"] != (
+                "tablespec" if target == "tabular" else "umf"
+            ):
+                raise ValueError("Target schema format or identity mismatch")
+    included = profile.get("include_sources")
+    if (
+        not isinstance(included, list)
+        or any(not isinstance(n, str) for n in included)
+        or len(included) != len(set(included))
+        or any(name not in metadata.get("sources", {}) for name in included)
+    ):
+        raise ValueError("Unresolved source inclusion")
+    if profile["mode"] == "scenario-replay":
+        scales, identities = profile.get("scales"), profile.get("identity_columns")
+        if (
+            not isinstance(scales, dict)
+            or not scales
+            or any(type(n) is not int or not 1 <= n <= 10000 for n in scales.values())
+        ):
+            raise ValueError("Invalid scenario scale")
+        selected = targets.get("tabular", [])
+        if (
+            not isinstance(identities, dict)
+            or set(identities) != set(selected)
+            or any(
+                not isinstance(cols, list)
+                or not cols
+                or any(not isinstance(c, str) for c in cols)
+                or len(cols) != len(set(cols))
+                or any(not isinstance(c, str) or not c for c in cols)
+                for cols in identities.values()
+            )
+        ):
+            raise ValueError("Invalid identity column mapping")
+
+
 def local_artifact(root: Path, reference: str) -> Path:
     """Resolve local files only; reject traversal, remote URLs and escaping symlinks."""
     relative = Path(reference)
@@ -55,8 +130,19 @@ class ImportedDataset(GeneratedDataset):
     def __init__(self, path: Path, pack_path: Path) -> None:
         metadata = read_domain_pack(pack_path)
         root = pack_path.resolve().parent
+        profile = metadata.get("execution_profile")
+        if profile is not None:
+            validate_profile(metadata)
+        selected = profile["targets"]["tabular"] if profile else None
         specs = {}
+        schema_artifacts = {}
         for schema in metadata.get("schemas", []):
+            artifact = local_artifact(root, schema["reference"])
+            if artifact.stat().st_size > 10 * 1024 * 1024:
+                raise ValueError("Schema exceeds byte budget")
+            schema_artifacts[schema["reference"]] = artifact
+            if selected is not None and schema["id"] not in selected:
+                continue
             if schema["format"] != "tablespec":
                 raise ValueError("CSV ingestion supports TableSpec schemas only")
             identifier(schema["id"])
@@ -75,7 +161,9 @@ class ImportedDataset(GeneratedDataset):
             raise ValueError("No tabular schemas declared")
         row_sources: dict[str, Path] = {}
         for binding in metadata.get("source_bindings", []):
-            if binding["role"] != "rows":
+            if binding["role"] != "rows" or (
+                selected is not None and binding["schema_id"] not in selected
+            ):
                 continue
             name = binding["schema_id"]
             source = metadata["sources"][binding["source_id"]]
@@ -90,13 +178,37 @@ class ImportedDataset(GeneratedDataset):
         self.config.domain = metadata["id"]
         self.source_metadata = metadata
         self.row_sources = row_sources
+        self.schema_artifacts = schema_artifacts
+        self.artifact_hashes = {
+            str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in schema_artifacts.values()
+        }
         try:
-            for source in metadata["sources"].values():
+            mandatory = {
+                b["source_id"]
+                for b in metadata.get("source_bindings", [])
+                if b["role"] == "rows" and b["schema_id"] in specs
+            }
+            included = (
+                set(profile["include_sources"]) | mandatory
+                if profile
+                else set(metadata["sources"])
+            )
+            total_bytes = sum(p.stat().st_size for p in schema_artifacts.values())
+            for source_id in sorted(included):
+                source = metadata["sources"][source_id]
                 reference = source.get("reference", "")
                 if ":" in reference or not reference:
                     continue
                 artifact = checked_source(root, source)
+                total_bytes += artifact.stat().st_size
+                if (
+                    artifact.stat().st_size > 10 * 1024 * 1024
+                    or total_bytes > 100 * 1024 * 1024
+                ):
+                    raise ValueError("Included sources exceed byte budget")
                 self.source_artifacts[reference] = artifact
+                self.artifact_hashes[str(artifact)] = source["checksum"]["value"]
             self._ingest()
         except BaseException:
             self.close()
@@ -142,6 +254,8 @@ class ImportedDataset(GeneratedDataset):
                     (name, index, json.dumps(normalized, default=str)),
                 )
                 count += 1
+                if count + sum(self.counts.values()) > 100000:
+                    raise ValueError("Template rows exceed budget")
             self.counts[name] = count
             self.report[name] = {
                 "row_count": count,
@@ -149,6 +263,11 @@ class ImportedDataset(GeneratedDataset):
                 "null_violations": 0,
                 "uniqueness_violations": 0,
             }
+        self.verify_foreign_keys()
+        self.db.commit()
+        self.verified = True
+
+    def verify_foreign_keys(self) -> None:
         # Check all parents after ingest, supporting cyclic/self-referential data.
         # json_extract compares typed values without loading parent key pools.
         for name, spec in self.specs.items():
@@ -171,5 +290,3 @@ class ImportedDataset(GeneratedDataset):
                 ).fetchone()[0]
                 if orphans:
                     raise ValueError(f"CSV foreign-key orphan: {name}.{fk['column']}")
-        self.db.commit()
-        self.verified = True

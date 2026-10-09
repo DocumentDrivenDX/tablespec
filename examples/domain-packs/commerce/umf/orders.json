@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "orders",
+  "description": "Synthetic orders; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored orders id; synthetic reference scenario."
+    },
+    {
+      "name": "customer_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored orders customer_id; synthetic reference scenario."
+    },
+    {
+      "name": "ordered_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored orders ordered_at; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored orders status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "customer_id",
+        "references_table": "customers",
+        "references_column": "id"
+      }
+    ]
+  }
+}

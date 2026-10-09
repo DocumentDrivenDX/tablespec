@@ -1,0 +1,3 @@
+"id","meter_id","property","unit","reading_kind"
+"C1","M1","energy","kW.h","cumulative"
+"C2","M2","energy","kW.h","cumulative"

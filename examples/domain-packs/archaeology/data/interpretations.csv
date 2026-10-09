@@ -1,0 +1,3 @@
+"id","context_id","phase","earliest","latest","calendar","author","evidence","basis","supersedes_id"
+"IT1","C1","phase-a","-800","-700","proleptic-year-label","Author A","PR1","pottery typology","\N"
+"IT2","C1","phase-b","-750","-650","proleptic-year-label","Author B","FR1","fauna assemblage","IT1"

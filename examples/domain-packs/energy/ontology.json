@@ -1,0 +1,1019 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:energy",
+  "title": "energy ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:energy:",
+      "elements": [
+        {
+          "id": "sites",
+          "kind": "record",
+          "name": "sites",
+          "title": "sites",
+          "description": "Synthetic sites; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "sites.id"
+            },
+            {
+              "module": "domain",
+              "element": "sites.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "sites.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "sites.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sites id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sites.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sites name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "utility_assets",
+          "kind": "record",
+          "name": "utility_assets",
+          "title": "utility_assets",
+          "description": "Synthetic utility_assets; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "utility_assets.id"
+            },
+            {
+              "module": "domain",
+              "element": "utility_assets.site_id"
+            },
+            {
+              "module": "domain",
+              "element": "utility_assets.parent_id"
+            },
+            {
+              "module": "domain",
+              "element": "utility_assets.kind"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "utility_assets.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "utility_assets.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored utility_assets id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "utility_assets.site_id",
+          "name": "site_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored utility_assets site_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "utility_assets.parent_id",
+          "name": "parent_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored utility_assets parent_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "utility_assets.kind",
+          "name": "kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored utility_assets kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "meters",
+          "kind": "record",
+          "name": "meters",
+          "title": "meters",
+          "description": "Synthetic meters; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "meters.id"
+            },
+            {
+              "module": "domain",
+              "element": "meters.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "meters.name"
+            },
+            {
+              "module": "domain",
+              "element": "meters.valid_from"
+            },
+            {
+              "module": "domain",
+              "element": "meters.valid_to"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "meters.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "meters.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored meters id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "meters.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored meters asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "meters.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored meters name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "meters.valid_from",
+          "name": "valid_from",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored meters valid_from; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "meters.valid_to",
+          "name": "valid_to",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored meters valid_to; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels",
+          "kind": "record",
+          "name": "channels",
+          "title": "channels",
+          "description": "Synthetic channels; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "channels.id"
+            },
+            {
+              "module": "domain",
+              "element": "channels.meter_id"
+            },
+            {
+              "module": "domain",
+              "element": "channels.property"
+            },
+            {
+              "module": "domain",
+              "element": "channels.unit"
+            },
+            {
+              "module": "domain",
+              "element": "channels.reading_kind"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "channels.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "channels.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels.meter_id",
+          "name": "meter_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels meter_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels.property",
+          "name": "property",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels property; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels.reading_kind",
+          "name": "reading_kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels reading_kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_readings",
+          "kind": "record",
+          "name": "interval_readings",
+          "title": "interval_readings",
+          "description": "Synthetic interval_readings; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "interval_readings.id"
+            },
+            {
+              "module": "domain",
+              "element": "interval_readings.channel_id"
+            },
+            {
+              "module": "domain",
+              "element": "interval_readings.event_time"
+            },
+            {
+              "module": "domain",
+              "element": "interval_readings.value"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "interval_readings.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "interval_readings.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_readings id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_readings.channel_id",
+          "name": "channel_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_readings channel_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_readings.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_readings event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_readings.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored interval_readings value; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "interval_gaps",
+          "kind": "record",
+          "name": "interval_gaps",
+          "title": "interval_gaps",
+          "description": "Synthetic interval_gaps; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "interval_gaps.id"
+            },
+            {
+              "module": "domain",
+              "element": "interval_gaps.reading_id"
+            },
+            {
+              "module": "domain",
+              "element": "interval_gaps.outage_id"
+            },
+            {
+              "module": "domain",
+              "element": "interval_gaps.reason"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "interval_gaps.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "interval_gaps.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_gaps id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_gaps.reading_id",
+          "name": "reading_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_gaps reading_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_gaps.outage_id",
+          "name": "outage_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_gaps outage_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interval_gaps.reason",
+          "name": "reason",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interval_gaps reason; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "tariffs",
+          "kind": "record",
+          "name": "tariffs",
+          "title": "tariffs",
+          "description": "Synthetic tariffs; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "tariffs.id"
+            },
+            {
+              "module": "domain",
+              "element": "tariffs.unit"
+            },
+            {
+              "module": "domain",
+              "element": "tariffs.price"
+            },
+            {
+              "module": "domain",
+              "element": "tariffs.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "tariffs.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "tariffs.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored tariffs id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "tariffs.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored tariffs unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "tariffs.price",
+          "name": "price",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored tariffs price; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "tariffs.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored tariffs currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "outages",
+          "kind": "record",
+          "name": "outages",
+          "title": "outages",
+          "description": "Synthetic outages; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "outages.id"
+            },
+            {
+              "module": "domain",
+              "element": "outages.asset_id"
+            },
+            {
+              "module": "domain",
+              "element": "outages.starts"
+            },
+            {
+              "module": "domain",
+              "element": "outages.ends"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "outages.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "outages.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored outages id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "outages.asset_id",
+          "name": "asset_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored outages asset_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "outages.starts",
+          "name": "starts",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored outages starts; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "outages.ends",
+          "name": "ends",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored outages ends; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_relationships",
+          "kind": "record",
+          "name": "service_relationships",
+          "title": "service_relationships",
+          "description": "Synthetic service_relationships; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "service_relationships.id"
+            },
+            {
+              "module": "domain",
+              "element": "service_relationships.site_id"
+            },
+            {
+              "module": "domain",
+              "element": "service_relationships.tariff_id"
+            },
+            {
+              "module": "domain",
+              "element": "service_relationships.valid_from"
+            },
+            {
+              "module": "domain",
+              "element": "service_relationships.valid_to"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "service_relationships.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "service_relationships.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_relationships id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_relationships.site_id",
+          "name": "site_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_relationships site_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_relationships.tariff_id",
+          "name": "tariff_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_relationships tariff_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_relationships.valid_from",
+          "name": "valid_from",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_relationships valid_from; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_relationships.valid_to",
+          "name": "valid_to",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored service_relationships valid_to; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "utility_assets.site_id",
+          "name": "utility_assets.site_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "utility_assets"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sites",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "utility_assets.parent_id",
+          "name": "utility_assets.parent_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "utility_assets"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "utility_assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "meters.asset_id",
+          "name": "meters.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "meters"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "utility_assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "channels.meter_id",
+          "name": "channels.meter_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "channels"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "meters",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interval_readings.channel_id",
+          "name": "interval_readings.channel_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interval_readings"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "channels",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interval_gaps.reading_id",
+          "name": "interval_gaps.reading_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interval_gaps"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "interval_readings",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interval_gaps.outage_id",
+          "name": "interval_gaps.outage_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interval_gaps"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "outages",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "outages.asset_id",
+          "name": "outages.asset_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "outages"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "utility_assets",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "service_relationships.site_id",
+          "name": "service_relationships.site_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "service_relationships"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sites",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "service_relationships.tariff_id",
+          "name": "service_relationships.tariff_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "service_relationships"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "tariffs",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "table_name": "pottery_results",
+  "description": "Synthetic pottery_results; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored pottery_results id; synthetic reference scenario."
+    },
+    {
+      "name": "object_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored pottery_results object_id; synthetic reference scenario."
+    },
+    {
+      "name": "form",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored pottery_results form; synthetic reference scenario."
+    },
+    {
+      "name": "fabric",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored pottery_results fabric; synthetic reference scenario."
+    },
+    {
+      "name": "sherd_count",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored pottery_results sherd_count; synthetic reference scenario."
+    },
+    {
+      "name": "estimated_vessels",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored pottery_results estimated_vessels; synthetic reference scenario."
+    },
+    {
+      "name": "weight",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored pottery_results weight; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored pottery_results unit; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "object_id",
+        "references_table": "objects",
+        "references_column": "id"
+      }
+    ]
+  }
+}

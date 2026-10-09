@@ -23,9 +23,12 @@ PACK = EXAMPLE.parent / "domain-pack.json"
 
 
 def test_portable_pack_runs_and_preserves_unknown_metadata(tmp_path):
+    import shutil
+
+    shutil.copytree(PACK.parent, tmp_path / "pack")
     source = json.loads(PACK.read_text())
     source["future"] = {"retained": True}
-    path = tmp_path / "pack.json"
+    path = tmp_path / "pack" / "domain-pack.json"
     path.write_text(json.dumps(source))
     config = GenerationConfig(domain="legal", domain_pack_path=path)
     before = get_domain_pack("legal")

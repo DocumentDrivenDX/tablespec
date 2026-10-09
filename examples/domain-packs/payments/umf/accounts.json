@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "accounts",
+  "description": "Synthetic accounts; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored accounts id; synthetic reference scenario."
+    },
+    {
+      "name": "party_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored accounts party_id; synthetic reference scenario."
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored accounts currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "party_id",
+        "references_table": "parties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

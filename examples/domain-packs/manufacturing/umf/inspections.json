@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "inspections",
+  "description": "Synthetic inspections; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored inspections id; synthetic reference scenario."
+    },
+    {
+      "name": "run_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored inspections run_id; synthetic reference scenario."
+    },
+    {
+      "name": "method",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored inspections method; synthetic reference scenario."
+    },
+    {
+      "name": "result",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored inspections result; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "run_id",
+        "references_table": "production_runs",
+        "references_column": "id"
+      }
+    ]
+  }
+}

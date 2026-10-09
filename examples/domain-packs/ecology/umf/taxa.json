@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "table_name": "taxa",
+  "description": "Synthetic taxa; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored taxa id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored taxa name; synthetic reference scenario."
+    },
+    {
+      "name": "rank",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored taxa rank; synthetic reference scenario."
+    },
+    {
+      "name": "concept_version",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored taxa concept_version; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

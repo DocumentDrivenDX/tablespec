@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "matter_teams",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "matter_team_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter team id"
+    },
+    {
+      "name": "matter_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter id"
+    },
+    {
+      "name": "timekeeper_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated timekeeper id"
+    }
+  ],
+  "primary_key": [
+    "matter_team_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "matter_id",
+        "references_table": "matters",
+        "references_column": "matter_id"
+      },
+      {
+        "column": "timekeeper_id",
+        "references_table": "timekeepers",
+        "references_column": "timekeeper_id"
+      }
+    ]
+  },
+  "unique_constraints": [
+    [
+      "matter_id",
+      "timekeeper_id"
+    ]
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "table_name": "tariffs",
+  "description": "Synthetic tariffs; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored tariffs id; synthetic reference scenario."
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored tariffs unit; synthetic reference scenario."
+    },
+    {
+      "name": "price",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored tariffs price; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored tariffs currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "version": "1.0",
+  "table_name": "time_entries",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "time_entry_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated time entry id"
+    },
+    {
+      "name": "matter_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter id"
+    },
+    {
+      "name": "timekeeper_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated timekeeper id"
+    },
+    {
+      "name": "entry_date",
+      "data_type": "DATE",
+      "nullable": false,
+      "description": "Fabricated entry date"
+    },
+    {
+      "name": "utbms_task_code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated utbms task code",
+      "domain_type": "utbms_task_code"
+    },
+    {
+      "name": "utbms_activity_code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated utbms activity code",
+      "domain_type": "utbms_activity_code"
+    },
+    {
+      "name": "block_billed",
+      "data_type": "BOOLEAN",
+      "nullable": false,
+      "description": "Fabricated block billed"
+    },
+    {
+      "name": "billing_narrative",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated billing narrative",
+      "domain_type": "billing_narrative"
+    },
+    {
+      "name": "billing_rate",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Fabricated billing rate",
+      "domain_type": "billing_rate",
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "hours",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Synthetic duration, 0.1 to 8 hours",
+      "precision": 4,
+      "scale": 1
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Hours multiplied by billing rate",
+      "precision": 12,
+      "scale": 2
+    },
+    {
+      "name": "vague_entry",
+      "data_type": "BOOLEAN",
+      "nullable": false,
+      "description": "Ground truth: deliberately vague narrative"
+    }
+  ],
+  "primary_key": [
+    "time_entry_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "matter_id",
+        "references_table": "matters",
+        "references_column": "matter_id"
+      },
+      {
+        "column": "timekeeper_id",
+        "references_table": "timekeepers",
+        "references_column": "timekeeper_id"
+      }
+    ]
+  }
+}

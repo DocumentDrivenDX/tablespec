@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "table_name": "listing_events",
+  "description": "Synthetic listing_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_events id; synthetic reference scenario."
+    },
+    {
+      "name": "listing_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_events listing_id; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_events event_time; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_events status; synthetic reference scenario."
+    },
+    {
+      "name": "previous_price",
+      "data_type": "DECIMAL",
+      "nullable": true,
+      "description": "Authored listing_events previous_price; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "price",
+      "data_type": "DECIMAL",
+      "nullable": true,
+      "description": "Authored listing_events price; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "listing_id",
+        "references_table": "listings",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "interval_gaps",
+  "description": "Synthetic interval_gaps; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_gaps id; synthetic reference scenario."
+    },
+    {
+      "name": "reading_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_gaps reading_id; synthetic reference scenario."
+    },
+    {
+      "name": "outage_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_gaps outage_id; synthetic reference scenario."
+    },
+    {
+      "name": "reason",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interval_gaps reason; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "reading_id",
+        "references_table": "interval_readings",
+        "references_column": "id"
+      },
+      {
+        "column": "outage_id",
+        "references_table": "outages",
+        "references_column": "id"
+      }
+    ]
+  }
+}

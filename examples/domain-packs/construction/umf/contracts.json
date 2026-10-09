@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "table_name": "contracts",
+  "description": "Synthetic contracts; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contracts id; synthetic reference scenario."
+    },
+    {
+      "name": "project_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contracts project_id; synthetic reference scenario."
+    },
+    {
+      "name": "party_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contracts party_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored contracts amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contracts currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "project_id",
+        "references_table": "projects",
+        "references_column": "id"
+      },
+      {
+        "column": "party_id",
+        "references_table": "parties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

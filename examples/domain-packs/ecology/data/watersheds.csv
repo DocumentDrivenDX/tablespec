@@ -1,0 +1,2 @@
+"id","name","geometry","crs"
+"W1","Synthetic watershed","POLYGON((0 0,2 0,2 2,0 0))","synthetic-local-grid"

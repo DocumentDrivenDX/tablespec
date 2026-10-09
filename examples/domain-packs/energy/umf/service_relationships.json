@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "service_relationships",
+  "description": "Synthetic service_relationships; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_relationships id; synthetic reference scenario."
+    },
+    {
+      "name": "site_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_relationships site_id; synthetic reference scenario."
+    },
+    {
+      "name": "tariff_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_relationships tariff_id; synthetic reference scenario."
+    },
+    {
+      "name": "valid_from",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_relationships valid_from; synthetic reference scenario."
+    },
+    {
+      "name": "valid_to",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored service_relationships valid_to; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "site_id",
+        "references_table": "sites",
+        "references_column": "id"
+      },
+      {
+        "column": "tariff_id",
+        "references_table": "tariffs",
+        "references_column": "id"
+      }
+    ]
+  }
+}

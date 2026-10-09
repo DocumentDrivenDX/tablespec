@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "analyses",
+  "description": "Synthetic analyses; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored analyses id; synthetic reference scenario."
+    },
+    {
+      "name": "sample_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored analyses sample_id; synthetic reference scenario."
+    },
+    {
+      "name": "method",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored analyses method; synthetic reference scenario."
+    },
+    {
+      "name": "analyst",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored analyses analyst; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "sample_id",
+        "references_table": "samples",
+        "references_column": "id"
+      }
+    ]
+  }
+}

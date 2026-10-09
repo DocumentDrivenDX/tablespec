@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "management_interventions",
+  "description": "Synthetic management_interventions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored management_interventions id; synthetic reference scenario."
+    },
+    {
+      "name": "reach_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored management_interventions reach_id; synthetic reference scenario."
+    },
+    {
+      "name": "action",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored management_interventions action; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored management_interventions event_time; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "reach_id",
+        "references_table": "reaches",
+        "references_column": "id"
+      }
+    ]
+  }
+}

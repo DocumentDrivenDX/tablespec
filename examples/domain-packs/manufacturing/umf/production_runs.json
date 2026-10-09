@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "production_runs",
+  "description": "Synthetic production_runs; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored production_runs id; synthetic reference scenario."
+    },
+    {
+      "name": "work_order_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored production_runs work_order_id; synthetic reference scenario."
+    },
+    {
+      "name": "lot_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored production_runs lot_id; synthetic reference scenario."
+    },
+    {
+      "name": "started_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored production_runs started_at; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "work_order_id",
+        "references_table": "work_orders",
+        "references_column": "id"
+      },
+      {
+        "column": "lot_id",
+        "references_table": "material_lots",
+        "references_column": "id"
+      }
+    ]
+  }
+}

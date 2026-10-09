@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "monitoring_sites",
+  "description": "Synthetic monitoring_sites; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored monitoring_sites id; synthetic reference scenario."
+    },
+    {
+      "name": "reach_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored monitoring_sites reach_id; synthetic reference scenario."
+    },
+    {
+      "name": "native_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored monitoring_sites native_id; synthetic reference scenario."
+    },
+    {
+      "name": "publisher",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored monitoring_sites publisher; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "reach_id",
+        "references_table": "reaches",
+        "references_column": "id"
+      }
+    ]
+  }
+}

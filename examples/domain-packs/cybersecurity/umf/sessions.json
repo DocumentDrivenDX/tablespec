@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "sessions",
+  "description": "Synthetic sessions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sessions id; synthetic reference scenario."
+    },
+    {
+      "name": "account_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sessions account_id; synthetic reference scenario."
+    },
+    {
+      "name": "device_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sessions device_id; synthetic reference scenario."
+    },
+    {
+      "name": "started_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sessions started_at; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "account_id",
+        "references_table": "accounts",
+        "references_column": "id"
+      },
+      {
+        "column": "device_id",
+        "references_table": "devices",
+        "references_column": "id"
+      }
+    ]
+  }
+}

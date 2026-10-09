@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "prerequisites",
+  "description": "Synthetic prerequisites; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored prerequisites id; synthetic reference scenario."
+    },
+    {
+      "name": "course_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored prerequisites course_id; synthetic reference scenario."
+    },
+    {
+      "name": "prerequisite_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored prerequisites prerequisite_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "course_id",
+        "references_table": "courses",
+        "references_column": "id"
+      },
+      {
+        "column": "prerequisite_id",
+        "references_table": "courses",
+        "references_column": "id"
+      }
+    ]
+  }
+}

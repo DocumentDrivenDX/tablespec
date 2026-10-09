@@ -1,0 +1,909 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:transit",
+  "title": "transit ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:transit:",
+      "elements": [
+        {
+          "id": "agencies",
+          "kind": "record",
+          "name": "agencies",
+          "title": "agencies",
+          "description": "Synthetic agencies; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "agencies.id"
+            },
+            {
+              "module": "domain",
+              "element": "agencies.name"
+            },
+            {
+              "module": "domain",
+              "element": "agencies.timezone"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "agencies.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "agencies.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored agencies id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "agencies.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored agencies name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "agencies.timezone",
+          "name": "timezone",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored agencies timezone; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "routes",
+          "kind": "record",
+          "name": "routes",
+          "title": "routes",
+          "description": "Synthetic routes; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "routes.id"
+            },
+            {
+              "module": "domain",
+              "element": "routes.agency_id"
+            },
+            {
+              "module": "domain",
+              "element": "routes.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "routes.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "routes.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored routes id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "routes.agency_id",
+          "name": "agency_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored routes agency_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "routes.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored routes name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stops",
+          "kind": "record",
+          "name": "stops",
+          "title": "stops",
+          "description": "Synthetic stops; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "stops.id"
+            },
+            {
+              "module": "domain",
+              "element": "stops.name"
+            },
+            {
+              "module": "domain",
+              "element": "stops.latitude"
+            },
+            {
+              "module": "domain",
+              "element": "stops.longitude"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "stops.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "stops.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stops id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stops.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stops name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stops.latitude",
+          "name": "latitude",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stops latitude; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "stops.longitude",
+          "name": "longitude",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stops longitude; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "service_calendars",
+          "kind": "record",
+          "name": "service_calendars",
+          "title": "service_calendars",
+          "description": "Synthetic service_calendars; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "service_calendars.id"
+            },
+            {
+              "module": "domain",
+              "element": "service_calendars.start_date"
+            },
+            {
+              "module": "domain",
+              "element": "service_calendars.end_date"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "service_calendars.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "service_calendars.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_calendars id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_calendars.start_date",
+          "name": "start_date",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_calendars start_date; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "service_calendars.end_date",
+          "name": "end_date",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored service_calendars end_date; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "calendar_exceptions",
+          "kind": "record",
+          "name": "calendar_exceptions",
+          "title": "calendar_exceptions",
+          "description": "Synthetic calendar_exceptions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "calendar_exceptions.id"
+            },
+            {
+              "module": "domain",
+              "element": "calendar_exceptions.calendar_id"
+            },
+            {
+              "module": "domain",
+              "element": "calendar_exceptions.service_date"
+            },
+            {
+              "module": "domain",
+              "element": "calendar_exceptions.exception_type"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "calendar_exceptions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "calendar_exceptions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored calendar_exceptions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "calendar_exceptions.calendar_id",
+          "name": "calendar_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored calendar_exceptions calendar_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "calendar_exceptions.service_date",
+          "name": "service_date",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored calendar_exceptions service_date; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "calendar_exceptions.exception_type",
+          "name": "exception_type",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored calendar_exceptions exception_type; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "trips",
+          "kind": "record",
+          "name": "trips",
+          "title": "trips",
+          "description": "Synthetic trips; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "trips.id"
+            },
+            {
+              "module": "domain",
+              "element": "trips.route_id"
+            },
+            {
+              "module": "domain",
+              "element": "trips.calendar_id"
+            },
+            {
+              "module": "domain",
+              "element": "trips.service_date"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "trips.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "trips.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored trips id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "trips.route_id",
+          "name": "route_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored trips route_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "trips.calendar_id",
+          "name": "calendar_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored trips calendar_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "trips.service_date",
+          "name": "service_date",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored trips service_date; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stop_times",
+          "kind": "record",
+          "name": "stop_times",
+          "title": "stop_times",
+          "description": "Synthetic stop_times; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "stop_times.id"
+            },
+            {
+              "module": "domain",
+              "element": "stop_times.trip_id"
+            },
+            {
+              "module": "domain",
+              "element": "stop_times.stop_id"
+            },
+            {
+              "module": "domain",
+              "element": "stop_times.sequence"
+            },
+            {
+              "module": "domain",
+              "element": "stop_times.arrival"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "stop_times.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "stop_times.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stop_times id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stop_times.trip_id",
+          "name": "trip_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stop_times trip_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stop_times.stop_id",
+          "name": "stop_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stop_times stop_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stop_times.sequence",
+          "name": "sequence",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stop_times sequence; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "stop_times.arrival",
+          "name": "arrival",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored stop_times arrival; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "realtime_observations",
+          "kind": "record",
+          "name": "realtime_observations",
+          "title": "realtime_observations",
+          "description": "Synthetic realtime_observations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "realtime_observations.id"
+            },
+            {
+              "module": "domain",
+              "element": "realtime_observations.trip_id"
+            },
+            {
+              "module": "domain",
+              "element": "realtime_observations.observed_at"
+            },
+            {
+              "module": "domain",
+              "element": "realtime_observations.delay_seconds"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "realtime_observations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "realtime_observations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored realtime_observations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "realtime_observations.trip_id",
+          "name": "trip_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored realtime_observations trip_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "realtime_observations.observed_at",
+          "name": "observed_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored realtime_observations observed_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "realtime_observations.delay_seconds",
+          "name": "delay_seconds",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored realtime_observations delay_seconds; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "alerts",
+          "kind": "record",
+          "name": "alerts",
+          "title": "alerts",
+          "description": "Synthetic alerts; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "alerts.id"
+            },
+            {
+              "module": "domain",
+              "element": "alerts.route_id"
+            },
+            {
+              "module": "domain",
+              "element": "alerts.message"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "alerts.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "alerts.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored alerts id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "alerts.route_id",
+          "name": "route_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored alerts route_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "alerts.message",
+          "name": "message",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored alerts message; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "routes.agency_id",
+          "name": "routes.agency_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "routes"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "agencies",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "calendar_exceptions.calendar_id",
+          "name": "calendar_exceptions.calendar_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "calendar_exceptions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "service_calendars",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "trips.route_id",
+          "name": "trips.route_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "trips"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "routes",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "trips.calendar_id",
+          "name": "trips.calendar_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "trips"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "service_calendars",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "stop_times.trip_id",
+          "name": "stop_times.trip_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "stop_times"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "trips",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "stop_times.stop_id",
+          "name": "stop_times.stop_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "stop_times"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "stops",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "realtime_observations.trip_id",
+          "name": "realtime_observations.trip_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "realtime_observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "trips",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "alerts.route_id",
+          "name": "alerts.route_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "alerts"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "routes",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

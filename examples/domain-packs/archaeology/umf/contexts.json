@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "contexts",
+  "description": "Synthetic contexts; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contexts id; synthetic reference scenario."
+    },
+    {
+      "name": "square_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contexts square_id; synthetic reference scenario."
+    },
+    {
+      "name": "native_locus",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contexts native_locus; synthetic reference scenario."
+    },
+    {
+      "name": "material",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored contexts material; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "square_id",
+        "references_table": "squares",
+        "references_column": "id"
+      }
+    ]
+  }
+}

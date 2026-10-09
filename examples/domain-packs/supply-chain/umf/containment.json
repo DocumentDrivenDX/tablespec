@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "containment",
+  "description": "Synthetic containment; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored containment id; synthetic reference scenario."
+    },
+    {
+      "name": "item_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored containment item_id; synthetic reference scenario."
+    },
+    {
+      "name": "container_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored containment container_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "item_id",
+        "references_table": "items",
+        "references_column": "id"
+      },
+      {
+        "column": "container_id",
+        "references_table": "containers",
+        "references_column": "id"
+      }
+    ]
+  }
+}

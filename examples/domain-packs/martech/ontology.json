@@ -1,0 +1,1414 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:martech",
+  "title": "martech ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:martech:",
+      "elements": [
+        {
+          "id": "profiles",
+          "kind": "record",
+          "name": "profiles",
+          "title": "profiles",
+          "description": "Synthetic profiles; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "profiles.id"
+            },
+            {
+              "module": "domain",
+              "element": "profiles.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "profiles.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "profiles.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored profiles id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "profiles.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored profiles name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_identities",
+          "kind": "record",
+          "name": "source_identities",
+          "title": "source_identities",
+          "description": "Synthetic source_identities; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "source_identities.id"
+            },
+            {
+              "module": "domain",
+              "element": "source_identities.profile_id"
+            },
+            {
+              "module": "domain",
+              "element": "source_identities.publisher"
+            },
+            {
+              "module": "domain",
+              "element": "source_identities.native_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "source_identities.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "source_identities.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_identities id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_identities.profile_id",
+          "name": "profile_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_identities profile_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_identities.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_identities publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_identities.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_identities native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "campaigns",
+          "kind": "record",
+          "name": "campaigns",
+          "title": "campaigns",
+          "description": "Synthetic campaigns; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "campaigns.id"
+            },
+            {
+              "module": "domain",
+              "element": "campaigns.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "campaigns.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "campaigns.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored campaigns id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "campaigns.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored campaigns name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels",
+          "kind": "record",
+          "name": "channels",
+          "title": "channels",
+          "description": "Synthetic channels; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "channels.id"
+            },
+            {
+              "module": "domain",
+              "element": "channels.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "channels.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "channels.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "channels.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored channels name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents",
+          "kind": "record",
+          "name": "consents",
+          "title": "consents",
+          "description": "Synthetic consents; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "consents.id"
+            },
+            {
+              "module": "domain",
+              "element": "consents.profile_id"
+            },
+            {
+              "module": "domain",
+              "element": "consents.channel_id"
+            },
+            {
+              "module": "domain",
+              "element": "consents.status"
+            },
+            {
+              "module": "domain",
+              "element": "consents.valid_from"
+            },
+            {
+              "module": "domain",
+              "element": "consents.valid_to"
+            },
+            {
+              "module": "domain",
+              "element": "consents.purpose"
+            },
+            {
+              "module": "domain",
+              "element": "consents.source_identity_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "consents.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "consents.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.profile_id",
+          "name": "profile_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents profile_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.channel_id",
+          "name": "channel_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents channel_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.valid_from",
+          "name": "valid_from",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents valid_from; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.valid_to",
+          "name": "valid_to",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents valid_to; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.purpose",
+          "name": "purpose",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents purpose; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consents.source_identity_id",
+          "name": "source_identity_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consents source_identity_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions",
+          "kind": "record",
+          "name": "sessions",
+          "title": "sessions",
+          "description": "Synthetic sessions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "sessions.id"
+            },
+            {
+              "module": "domain",
+              "element": "sessions.profile_id"
+            },
+            {
+              "module": "domain",
+              "element": "sessions.source_identity_id"
+            },
+            {
+              "module": "domain",
+              "element": "sessions.started_at"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "sessions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "sessions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions.profile_id",
+          "name": "profile_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions profile_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions.source_identity_id",
+          "name": "source_identity_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions source_identity_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sessions.started_at",
+          "name": "started_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sessions started_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identity_assertions",
+          "kind": "record",
+          "name": "identity_assertions",
+          "title": "identity_assertions",
+          "description": "Synthetic identity_assertions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "identity_assertions.id"
+            },
+            {
+              "module": "domain",
+              "element": "identity_assertions.left_id"
+            },
+            {
+              "module": "domain",
+              "element": "identity_assertions.right_id"
+            },
+            {
+              "module": "domain",
+              "element": "identity_assertions.evidence"
+            },
+            {
+              "module": "domain",
+              "element": "identity_assertions.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "identity_assertions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "identity_assertions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identity_assertions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identity_assertions.left_id",
+          "name": "left_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identity_assertions left_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identity_assertions.right_id",
+          "name": "right_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identity_assertions right_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identity_assertions.evidence",
+          "name": "evidence",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identity_assertions evidence; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identity_assertions.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identity_assertions status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "touchpoints",
+          "kind": "record",
+          "name": "touchpoints",
+          "title": "touchpoints",
+          "description": "Synthetic touchpoints; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "touchpoints.id"
+            },
+            {
+              "module": "domain",
+              "element": "touchpoints.profile_id"
+            },
+            {
+              "module": "domain",
+              "element": "touchpoints.campaign_id"
+            },
+            {
+              "module": "domain",
+              "element": "touchpoints.channel_id"
+            },
+            {
+              "module": "domain",
+              "element": "touchpoints.event_day"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "touchpoints.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "touchpoints.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored touchpoints id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "touchpoints.profile_id",
+          "name": "profile_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored touchpoints profile_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "touchpoints.campaign_id",
+          "name": "campaign_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored touchpoints campaign_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "touchpoints.channel_id",
+          "name": "channel_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored touchpoints channel_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "touchpoints.event_day",
+          "name": "event_day",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored touchpoints event_day; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consent_events",
+          "kind": "record",
+          "name": "consent_events",
+          "title": "consent_events",
+          "description": "Synthetic consent_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "consent_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "consent_events.consent_id"
+            },
+            {
+              "module": "domain",
+              "element": "consent_events.status"
+            },
+            {
+              "module": "domain",
+              "element": "consent_events.event_time"
+            },
+            {
+              "module": "domain",
+              "element": "consent_events.purpose"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "consent_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "consent_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consent_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consent_events.consent_id",
+          "name": "consent_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consent_events consent_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consent_events.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consent_events status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consent_events.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consent_events event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "consent_events.purpose",
+          "name": "purpose",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored consent_events purpose; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "conversions",
+          "kind": "record",
+          "name": "conversions",
+          "title": "conversions",
+          "description": "Synthetic conversions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "conversions.id"
+            },
+            {
+              "module": "domain",
+              "element": "conversions.profile_id"
+            },
+            {
+              "module": "domain",
+              "element": "conversions.event_day"
+            },
+            {
+              "module": "domain",
+              "element": "conversions.amount"
+            },
+            {
+              "module": "domain",
+              "element": "conversions.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "conversions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "conversions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored conversions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "conversions.profile_id",
+          "name": "profile_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored conversions profile_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "conversions.event_day",
+          "name": "event_day",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored conversions event_day; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "conversions.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored conversions amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "conversions.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored conversions currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attribution_rules",
+          "kind": "record",
+          "name": "attribution_rules",
+          "title": "attribution_rules",
+          "description": "Synthetic attribution_rules; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "attribution_rules.id"
+            },
+            {
+              "module": "domain",
+              "element": "attribution_rules.window_days"
+            },
+            {
+              "module": "domain",
+              "element": "attribution_rules.algorithm"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "attribution_rules.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "attribution_rules.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored attribution_rules id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attribution_rules.window_days",
+          "name": "window_days",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored attribution_rules window_days; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attribution_rules.algorithm",
+          "name": "algorithm",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored attribution_rules algorithm; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attributions",
+          "kind": "record",
+          "name": "attributions",
+          "title": "attributions",
+          "description": "Synthetic attributions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "attributions.id"
+            },
+            {
+              "module": "domain",
+              "element": "attributions.conversion_id"
+            },
+            {
+              "module": "domain",
+              "element": "attributions.touchpoint_id"
+            },
+            {
+              "module": "domain",
+              "element": "attributions.rule_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "attributions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "attributions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored attributions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attributions.conversion_id",
+          "name": "conversion_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored attributions conversion_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attributions.touchpoint_id",
+          "name": "touchpoint_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored attributions touchpoint_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "attributions.rule_id",
+          "name": "rule_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored attributions rule_id; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "source_identities.profile_id",
+          "name": "source_identities.profile_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "source_identities"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "profiles",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "consents.profile_id",
+          "name": "consents.profile_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "consents"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "profiles",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "consents.channel_id",
+          "name": "consents.channel_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "consents"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "channels",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "consents.source_identity_id",
+          "name": "consents.source_identity_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "consents"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "source_identities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sessions.profile_id",
+          "name": "sessions.profile_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sessions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "profiles",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sessions.source_identity_id",
+          "name": "sessions.source_identity_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sessions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "source_identities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "identity_assertions.left_id",
+          "name": "identity_assertions.left_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "identity_assertions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "source_identities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "identity_assertions.right_id",
+          "name": "identity_assertions.right_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "identity_assertions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "source_identities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "touchpoints.profile_id",
+          "name": "touchpoints.profile_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "touchpoints"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "profiles",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "touchpoints.campaign_id",
+          "name": "touchpoints.campaign_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "touchpoints"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "campaigns",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "touchpoints.channel_id",
+          "name": "touchpoints.channel_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "touchpoints"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "channels",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "consent_events.consent_id",
+          "name": "consent_events.consent_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "consent_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "consents",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "conversions.profile_id",
+          "name": "conversions.profile_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "conversions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "profiles",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "attributions.conversion_id",
+          "name": "attributions.conversion_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "attributions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "conversions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "attributions.touchpoint_id",
+          "name": "attributions.touchpoint_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "attributions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "touchpoints",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "attributions.rule_id",
+          "name": "attributions.rule_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "attributions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "attribution_rules",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

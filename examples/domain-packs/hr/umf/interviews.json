@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "interviews",
+  "description": "Synthetic interviews; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interviews id; synthetic reference scenario."
+    },
+    {
+      "name": "application_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interviews application_id; synthetic reference scenario."
+    },
+    {
+      "name": "starts",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interviews starts; synthetic reference scenario."
+    },
+    {
+      "name": "result",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interviews result; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "application_id",
+        "references_table": "applications",
+        "references_column": "id"
+      }
+    ]
+  }
+}

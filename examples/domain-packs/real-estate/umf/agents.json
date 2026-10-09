@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "agents",
+  "description": "Synthetic agents; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agents id; synthetic reference scenario."
+    },
+    {
+      "name": "party_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agents party_id; synthetic reference scenario."
+    },
+    {
+      "name": "office_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agents office_id; synthetic reference scenario."
+    },
+    {
+      "name": "native_member_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agents native_member_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "party_id",
+        "references_table": "parties",
+        "references_column": "id"
+      },
+      {
+        "column": "office_id",
+        "references_table": "offices",
+        "references_column": "id"
+      }
+    ]
+  }
+}

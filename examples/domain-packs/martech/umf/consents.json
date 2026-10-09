@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "table_name": "consents",
+  "description": "Synthetic consents; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents id; synthetic reference scenario."
+    },
+    {
+      "name": "profile_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents profile_id; synthetic reference scenario."
+    },
+    {
+      "name": "channel_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents channel_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents status; synthetic reference scenario."
+    },
+    {
+      "name": "valid_from",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents valid_from; synthetic reference scenario."
+    },
+    {
+      "name": "valid_to",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents valid_to; synthetic reference scenario."
+    },
+    {
+      "name": "purpose",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents purpose; synthetic reference scenario."
+    },
+    {
+      "name": "source_identity_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consents source_identity_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "profile_id",
+        "references_table": "profiles",
+        "references_column": "id"
+      },
+      {
+        "column": "channel_id",
+        "references_table": "channels",
+        "references_column": "id"
+      },
+      {
+        "column": "source_identity_id",
+        "references_table": "source_identities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

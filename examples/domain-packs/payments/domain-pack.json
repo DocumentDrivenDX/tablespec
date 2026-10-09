@@ -1,0 +1,430 @@
+{
+  "id": "payments",
+  "version": "1.0.0",
+  "description": "payments synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_parties": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/parties.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "80cd6c80e25af3677242dd0b6dce1df7c736104c0ff44ba80661898008608199"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_accounts": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/accounts.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d9e0c93e6611cf6da64f060179adf0f11629eb4b5d4c5321ee73943fab772078"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_payment_instructions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/payment_instructions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c21ea674819445ff3dab2532ddb63569c767c61c21826374b7a11aa180c9f428"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_status_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/status_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "78d0154a46a9acbb8c648f0113dcf3e00769994f3784619d4ecf9ed91594ea01"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_settlements": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/settlements.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "a706855b0e718b6d3688d84f33951682b03fc194c99608378004565b8b7a7635"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_returns": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/returns.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1ecc0c30793e2abba233199a8d93ad1e21e338564fe26581c4726dfbe5f85b49"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_statements": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/statements.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "f4cacb0d8b050a7ae61197f84616f6f42f313d5d11751e08707011c99b2e3731"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_journals": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/journals.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "682ee3439a6b95011e9dd6f6a2d5cdcff54eb184ff36203e03b8a24038a4757e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_ledger_entries": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/ledger_entries.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4d000fbcc454dec8d83156cc1f03b6ae08aeb8cbc4439d09cc03e41f9016257b"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "parties",
+      "source_id": "template_parties",
+      "role": "rows"
+    },
+    {
+      "schema_id": "accounts",
+      "source_id": "template_accounts",
+      "role": "rows"
+    },
+    {
+      "schema_id": "payment_instructions",
+      "source_id": "template_payment_instructions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "status_events",
+      "source_id": "template_status_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "settlements",
+      "source_id": "template_settlements",
+      "role": "rows"
+    },
+    {
+      "schema_id": "returns",
+      "source_id": "template_returns",
+      "role": "rows"
+    },
+    {
+      "schema_id": "statements",
+      "source_id": "template_statements",
+      "role": "rows"
+    },
+    {
+      "schema_id": "journals",
+      "source_id": "template_journals",
+      "role": "rows"
+    },
+    {
+      "schema_id": "ledger_entries",
+      "source_id": "template_ledger_entries",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "parties",
+      "format": "tablespec",
+      "reference": "umf/parties.json"
+    },
+    {
+      "id": "accounts",
+      "format": "tablespec",
+      "reference": "umf/accounts.json"
+    },
+    {
+      "id": "payment_instructions",
+      "format": "tablespec",
+      "reference": "umf/payment_instructions.json"
+    },
+    {
+      "id": "status_events",
+      "format": "tablespec",
+      "reference": "umf/status_events.json"
+    },
+    {
+      "id": "settlements",
+      "format": "tablespec",
+      "reference": "umf/settlements.json"
+    },
+    {
+      "id": "returns",
+      "format": "tablespec",
+      "reference": "umf/returns.json"
+    },
+    {
+      "id": "statements",
+      "format": "tablespec",
+      "reference": "umf/statements.json"
+    },
+    {
+      "id": "journals",
+      "format": "tablespec",
+      "reference": "umf/journals.json"
+    },
+    {
+      "id": "ledger_entries",
+      "format": "tablespec",
+      "reference": "umf/ledger_entries.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "parties",
+        "accounts",
+        "payment_instructions",
+        "status_events",
+        "settlements",
+        "returns",
+        "statements",
+        "journals",
+        "ledger_entries"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "parties": [
+        "id"
+      ],
+      "accounts": [
+        "id",
+        "party_id"
+      ],
+      "payment_instructions": [
+        "id",
+        "account_id"
+      ],
+      "status_events": [
+        "id",
+        "payment_id"
+      ],
+      "settlements": [
+        "id",
+        "payment_id"
+      ],
+      "returns": [
+        "id",
+        "payment_id"
+      ],
+      "statements": [
+        "id",
+        "account_id"
+      ],
+      "journals": [
+        "id"
+      ],
+      "ledger_entries": [
+        "id",
+        "journal",
+        "account_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "net-settlement",
+      "question": "100.00 settlement less 25.00 return leaves 75.00",
+      "sql": "SELECT s.amount,r.amount,s.amount-r.amount FROM settlements s JOIN returns r ON r.payment_id=s.payment_id AND r.currency='USD'",
+      "expected": [
+        [
+          100,
+          25,
+          75
+        ]
+      ]
+    },
+    {
+      "id": "balance",
+      "question": "Find unbalanced journals without rounding into balance",
+      "sql": "SELECT journal FROM ledger_entries GROUP BY journal,currency HAVING SUM(CASE WHEN side='debit' THEN amount ELSE -amount END)<>0 ORDER BY journal",
+      "expected": [
+        [
+          "J2"
+        ]
+      ]
+    },
+    {
+      "id": "settled",
+      "question": "A status event is distinct from settlement evidence",
+      "sql": "SELECT p.id,e.status,s.amount FROM payment_instructions p JOIN status_events e ON e.payment_id=p.id JOIN settlements s ON s.payment_id=p.id",
+      "expected": [
+        [
+          "PI1",
+          "accepted",
+          100
+        ]
+      ]
+    },
+    {
+      "id": "currency",
+      "question": "Journal amounts remain qualified by currency",
+      "sql": "SELECT DISTINCT currency FROM ledger_entries",
+      "expected": [
+        [
+          "USD"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "parties": 1,
+    "accounts": 1,
+    "payment_instructions": 1,
+    "status_events": 1,
+    "settlements": 1,
+    "returns": 1,
+    "statements": 1,
+    "journals": 2,
+    "ledger_entries": 4
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

@@ -1,0 +1,1162 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:legal",
+  "title": "legal ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:legal:",
+      "elements": [
+        {
+          "id": "clients",
+          "kind": "record",
+          "name": "clients",
+          "title": "clients",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "clients.client_id"
+            },
+            {
+              "module": "domain",
+              "element": "clients.client_name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "clients.client_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "clients.client_id",
+          "name": "client_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated client id",
+          "extensions": {}
+        },
+        {
+          "id": "clients.client_name",
+          "name": "client_name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated client name",
+          "extensions": {}
+        },
+        {
+          "id": "documents",
+          "kind": "record",
+          "name": "documents",
+          "title": "documents",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "documents.document_id"
+            },
+            {
+              "module": "domain",
+              "element": "documents.matter_id"
+            },
+            {
+              "module": "domain",
+              "element": "documents.document_type"
+            },
+            {
+              "module": "domain",
+              "element": "documents.document_title"
+            },
+            {
+              "module": "domain",
+              "element": "documents.document_body"
+            },
+            {
+              "module": "domain",
+              "element": "documents.nda_issues"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "documents.document_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "documents.document_id",
+          "name": "document_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated document id",
+          "extensions": {}
+        },
+        {
+          "id": "documents.matter_id",
+          "name": "matter_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter id",
+          "extensions": {}
+        },
+        {
+          "id": "documents.document_type",
+          "name": "document_type",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated document type",
+          "extensions": {}
+        },
+        {
+          "id": "documents.document_title",
+          "name": "document_title",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated document title",
+          "extensions": {}
+        },
+        {
+          "id": "documents.document_body",
+          "name": "document_body",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated document body",
+          "extensions": {}
+        },
+        {
+          "id": "documents.nda_issues",
+          "name": "nda_issues",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Ground truth: long_term, residuals, missing_governing_law, or empty",
+          "extensions": {}
+        },
+        {
+          "id": "ethical_walls",
+          "kind": "record",
+          "name": "ethical_walls",
+          "title": "ethical_walls",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "ethical_walls.ethical_wall_id"
+            },
+            {
+              "module": "domain",
+              "element": "ethical_walls.matter_id"
+            },
+            {
+              "module": "domain",
+              "element": "ethical_walls.timekeeper_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "ethical_walls.ethical_wall_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "ethical_walls.ethical_wall_id",
+          "name": "ethical_wall_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated ethical wall id",
+          "extensions": {}
+        },
+        {
+          "id": "ethical_walls.matter_id",
+          "name": "matter_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter id",
+          "extensions": {}
+        },
+        {
+          "id": "ethical_walls.timekeeper_id",
+          "name": "timekeeper_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated timekeeper id",
+          "extensions": {}
+        },
+        {
+          "id": "invoices",
+          "kind": "record",
+          "name": "invoices",
+          "title": "invoices",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "invoices.invoice_id"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.matter_id"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.invoice_number"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.invoice_status"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.client_id"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.invoice_date"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.period_start"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.period_end"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.total_amount"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "invoices.invoice_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "invoices.invoice_id",
+          "name": "invoice_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated invoice id",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.matter_id",
+          "name": "matter_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter id",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.invoice_number",
+          "name": "invoice_number",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated invoice number",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.invoice_status",
+          "name": "invoice_status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated invoice status",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.client_id",
+          "name": "client_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Referenced matter client",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.invoice_date",
+          "name": "invoice_date",
+          "kind": "field",
+          "scalarType": "date",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Synthetic issue date",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.period_start",
+          "name": "period_start",
+          "kind": "field",
+          "scalarType": "date",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Inclusive sample billing window start",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.period_end",
+          "name": "period_end",
+          "kind": "field",
+          "scalarType": "date",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Inclusive sample billing window end",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.total_amount",
+          "name": "total_amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Exact sum of matter entry amounts within this sample window; windows may overlap",
+          "extensions": {},
+          "facets": {
+            "precision": 14,
+            "scale": 2
+          }
+        },
+        {
+          "id": "matter_teams",
+          "kind": "record",
+          "name": "matter_teams",
+          "title": "matter_teams",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "matter_teams.matter_team_id"
+            },
+            {
+              "module": "domain",
+              "element": "matter_teams.matter_id"
+            },
+            {
+              "module": "domain",
+              "element": "matter_teams.timekeeper_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "matter_teams.matter_team_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "matter_teams.matter_team_id",
+          "name": "matter_team_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter team id",
+          "extensions": {}
+        },
+        {
+          "id": "matter_teams.matter_id",
+          "name": "matter_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter id",
+          "extensions": {}
+        },
+        {
+          "id": "matter_teams.timekeeper_id",
+          "name": "timekeeper_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated timekeeper id",
+          "extensions": {}
+        },
+        {
+          "id": "matters",
+          "kind": "record",
+          "name": "matters",
+          "title": "matters",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "matters.matter_id"
+            },
+            {
+              "module": "domain",
+              "element": "matters.client_id"
+            },
+            {
+              "module": "domain",
+              "element": "matters.matter_number"
+            },
+            {
+              "module": "domain",
+              "element": "matters.matter_title"
+            },
+            {
+              "module": "domain",
+              "element": "matters.practice_area"
+            },
+            {
+              "module": "domain",
+              "element": "matters.open_date"
+            },
+            {
+              "module": "domain",
+              "element": "matters.close_date"
+            },
+            {
+              "module": "domain",
+              "element": "matters.jurisdiction"
+            },
+            {
+              "module": "domain",
+              "element": "matters.court"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "matters.matter_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "matters.matter_id",
+          "name": "matter_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter id",
+          "extensions": {}
+        },
+        {
+          "id": "matters.client_id",
+          "name": "client_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated client id",
+          "extensions": {}
+        },
+        {
+          "id": "matters.matter_number",
+          "name": "matter_number",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter number",
+          "extensions": {}
+        },
+        {
+          "id": "matters.matter_title",
+          "name": "matter_title",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter title",
+          "extensions": {}
+        },
+        {
+          "id": "matters.practice_area",
+          "name": "practice_area",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated practice area",
+          "extensions": {}
+        },
+        {
+          "id": "matters.open_date",
+          "name": "open_date",
+          "kind": "field",
+          "scalarType": "date",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated open date",
+          "extensions": {}
+        },
+        {
+          "id": "matters.close_date",
+          "name": "close_date",
+          "kind": "field",
+          "scalarType": "date",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Fabricated close date",
+          "extensions": {}
+        },
+        {
+          "id": "matters.jurisdiction",
+          "name": "jurisdiction",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated jurisdiction",
+          "extensions": {}
+        },
+        {
+          "id": "matters.court",
+          "name": "court",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated court",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries",
+          "kind": "record",
+          "name": "time_entries",
+          "title": "time_entries",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "time_entries.time_entry_id"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.matter_id"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.timekeeper_id"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.entry_date"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.utbms_task_code"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.utbms_activity_code"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.block_billed"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.billing_narrative"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.billing_rate"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.hours"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.amount"
+            },
+            {
+              "module": "domain",
+              "element": "time_entries.vague_entry"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "time_entries.time_entry_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.time_entry_id",
+          "name": "time_entry_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated time entry id",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.matter_id",
+          "name": "matter_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated matter id",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.timekeeper_id",
+          "name": "timekeeper_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated timekeeper id",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.entry_date",
+          "name": "entry_date",
+          "kind": "field",
+          "scalarType": "date",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated entry date",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.utbms_task_code",
+          "name": "utbms_task_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated utbms task code",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.utbms_activity_code",
+          "name": "utbms_activity_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated utbms activity code",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.block_billed",
+          "name": "block_billed",
+          "kind": "field",
+          "scalarType": "boolean",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated block billed",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.billing_narrative",
+          "name": "billing_narrative",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated billing narrative",
+          "extensions": {}
+        },
+        {
+          "id": "time_entries.billing_rate",
+          "name": "billing_rate",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated billing rate",
+          "extensions": {},
+          "facets": {
+            "precision": 10,
+            "scale": 2
+          }
+        },
+        {
+          "id": "time_entries.hours",
+          "name": "hours",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Synthetic duration, 0.1 to 8 hours",
+          "extensions": {},
+          "facets": {
+            "precision": 4,
+            "scale": 1
+          }
+        },
+        {
+          "id": "time_entries.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Hours multiplied by billing rate",
+          "extensions": {},
+          "facets": {
+            "precision": 12,
+            "scale": 2
+          }
+        },
+        {
+          "id": "time_entries.vague_entry",
+          "name": "vague_entry",
+          "kind": "field",
+          "scalarType": "boolean",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Ground truth: deliberately vague narrative",
+          "extensions": {}
+        },
+        {
+          "id": "timekeepers",
+          "kind": "record",
+          "name": "timekeepers",
+          "title": "timekeepers",
+          "description": "Fabricated demonstration only; no real firm records.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "timekeepers.timekeeper_id"
+            },
+            {
+              "module": "domain",
+              "element": "timekeepers.timekeeper_name"
+            },
+            {
+              "module": "domain",
+              "element": "timekeepers.timekeeper_level"
+            },
+            {
+              "module": "domain",
+              "element": "timekeepers.billing_rate"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "timekeepers.timekeeper_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "timekeepers.timekeeper_id",
+          "name": "timekeeper_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated timekeeper id",
+          "extensions": {}
+        },
+        {
+          "id": "timekeepers.timekeeper_name",
+          "name": "timekeeper_name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated timekeeper name",
+          "extensions": {}
+        },
+        {
+          "id": "timekeepers.timekeeper_level",
+          "name": "timekeeper_level",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated timekeeper level",
+          "extensions": {}
+        },
+        {
+          "id": "timekeepers.billing_rate",
+          "name": "billing_rate",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Fabricated billing rate",
+          "extensions": {},
+          "facets": {
+            "precision": 10,
+            "scale": 2
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "id": "documents.matter_id",
+          "name": "documents.matter_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "documents"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "matters",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "ethical_walls.matter_id",
+          "name": "ethical_walls.matter_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "ethical_walls"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "matters",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "ethical_walls.timekeeper_id",
+          "name": "ethical_walls.timekeeper_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "ethical_walls"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "timekeepers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "invoices.matter_id",
+          "name": "invoices.matter_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "invoices"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "matters",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "invoices.client_id",
+          "name": "invoices.client_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "invoices"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "clients",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "matter_teams.matter_id",
+          "name": "matter_teams.matter_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "matter_teams"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "matters",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "matter_teams.timekeeper_id",
+          "name": "matter_teams.timekeeper_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "matter_teams"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "timekeepers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "matters.client_id",
+          "name": "matters.client_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "matters"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "clients",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "time_entries.matter_id",
+          "name": "time_entries.matter_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "time_entries"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "matters",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "time_entries.timekeeper_id",
+          "name": "time_entries.timekeeper_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "time_entries"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "timekeepers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

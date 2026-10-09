@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "consent_events",
+  "description": "Synthetic consent_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consent_events id; synthetic reference scenario."
+    },
+    {
+      "name": "consent_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consent_events consent_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consent_events status; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consent_events event_time; synthetic reference scenario."
+    },
+    {
+      "name": "purpose",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored consent_events purpose; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "consent_id",
+        "references_table": "consents",
+        "references_column": "id"
+      }
+    ]
+  }
+}

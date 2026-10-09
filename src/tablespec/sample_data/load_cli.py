@@ -318,3 +318,29 @@ def ingest(
     except (ValueError, ImportError, RuntimeError, OSError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
+
+
+@app.command("replay")
+def replay(
+    pack: Path = typer.Option(..., "--domain-pack", exists=True, dir_okay=False),
+    output: Path = typer.Option(..., "--output", dir_okay=False),
+    scale: str = typer.Option("small", "--scale"),
+    seed: int = typer.Option(42, "--seed"),
+) -> None:
+    """Expand authored fabricated scenario components; no population simulation."""
+    from .archive import export_csv_zip
+    from .replay import ReplayDataset
+
+    try:
+        if output.suffix.lower() != ".zip":
+            raise ValueError("Output must have a .zip suffix")
+        with TemporaryDirectory(prefix="tablespec-replay-") as temp:
+            data = ReplayDataset(Path(temp) / "rows.sqlite", pack, scale, seed)
+            try:
+                export_csv_zip(data, output)
+                typer.echo(json.dumps(data.run_metadata, sort_keys=True))
+            finally:
+                data.close()
+    except (ValueError, ImportError, RuntimeError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc

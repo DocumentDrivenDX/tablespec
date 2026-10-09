@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "locations",
+  "description": "Synthetic locations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored locations id; synthetic reference scenario."
+    },
+    {
+      "name": "project_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored locations project_id; synthetic reference scenario."
+    },
+    {
+      "name": "grid",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored locations grid; synthetic reference scenario."
+    },
+    {
+      "name": "datum",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored locations datum; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "project_id",
+        "references_table": "projects",
+        "references_column": "id"
+      }
+    ]
+  }
+}

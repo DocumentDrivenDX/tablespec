@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "table_name": "cost_items",
+  "description": "Synthetic cost_items; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored cost_items id; synthetic reference scenario."
+    },
+    {
+      "name": "contract_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored cost_items contract_id; synthetic reference scenario."
+    },
+    {
+      "name": "activity_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored cost_items activity_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored cost_items amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored cost_items currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "contract_id",
+        "references_table": "contracts",
+        "references_column": "id"
+      },
+      {
+        "column": "activity_id",
+        "references_table": "activities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

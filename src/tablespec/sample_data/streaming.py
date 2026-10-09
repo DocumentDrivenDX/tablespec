@@ -115,9 +115,68 @@ class GeneratedDataset:
         )
         self.source_metadata: dict[str, Any] | None = None
         self.source_artifacts: dict[str, Path] = {}
+        self.schema_artifacts: dict[str, Path] = {}
+        self.artifact_hashes: dict[str, str] = {}
+        self.run_metadata: dict[str, Any] | None = None
         self.specs = specs
         self.counts = counts
         self.config = config
+        if config.domain_pack_path is not None:
+            from tablespec.umf_loader import UMFLoader
+            from .domains import read_domain_pack
+            from .ingest import local_artifact
+            import hashlib
+
+            source_pack = read_domain_pack(config.domain_pack_path)
+            if "execution_profile" in source_pack:
+                from .ingest import validate_profile
+
+                validate_profile(source_pack)
+                if source_pack["execution_profile"]["mode"] != "fixed":
+                    self.db.close()
+                    raise ValueError("Scenario replay requires the replay consumer")
+                selected_targets = set(
+                    source_pack["execution_profile"]["targets"].get("tabular", [])
+                )
+                root = config.domain_pack_path.resolve().parent
+                try:
+                    for schema in source_pack.get("schemas", []):
+                        artifact = local_artifact(root, schema["reference"])
+                        if artifact.stat().st_size > 10 * 1024 * 1024:
+                            raise ValueError("Schema artifact exceeds byte budget")
+                        if (
+                            schema["format"] == "tablespec"
+                            and schema["id"] in selected_targets
+                        ):
+                            native = (
+                                UMFLoader()
+                                .load(artifact)
+                                .model_dump(mode="json", exclude_none=True)
+                            )
+                            if (
+                                schema["id"] not in specs
+                                or native != specs[schema["id"]]
+                            ):
+                                raise ValueError(
+                                    "Generation schema differs from domain-pack schema"
+                                )
+                        self.schema_artifacts[schema["reference"]] = artifact
+                        self.artifact_hashes[str(artifact)] = hashlib.sha256(
+                            artifact.read_bytes()
+                        ).hexdigest()
+                    if (
+                        sum(p.stat().st_size for p in self.schema_artifacts.values())
+                        > 100 * 1024 * 1024
+                    ):
+                        raise ValueError("Schema artifacts exceed aggregate budget")
+                    selected = selected_targets
+                    if set(specs) != selected:
+                        raise ValueError(
+                            "Generation table inventory differs from domain pack"
+                        )
+                except BaseException:
+                    self.db.close()
+                    raise
         self.rng = random.Random(config.random_seed)
         pack = get_run_domain_pack(config)
         self.generators = pack.generators(config)

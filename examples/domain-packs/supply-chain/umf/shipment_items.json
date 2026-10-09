@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "shipment_items",
+  "description": "Synthetic shipment_items; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipment_items id; synthetic reference scenario."
+    },
+    {
+      "name": "shipment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipment_items shipment_id; synthetic reference scenario."
+    },
+    {
+      "name": "item_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipment_items item_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "shipment_id",
+        "references_table": "shipments",
+        "references_column": "id"
+      },
+      {
+        "column": "item_id",
+        "references_table": "items",
+        "references_column": "id"
+      }
+    ]
+  }
+}

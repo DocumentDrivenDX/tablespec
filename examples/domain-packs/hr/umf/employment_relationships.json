@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "employment_relationships",
+  "description": "Synthetic employment_relationships; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored employment_relationships id; synthetic reference scenario."
+    },
+    {
+      "name": "candidate_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored employment_relationships candidate_id; synthetic reference scenario."
+    },
+    {
+      "name": "position_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored employment_relationships position_id; synthetic reference scenario."
+    },
+    {
+      "name": "valid_from",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored employment_relationships valid_from; synthetic reference scenario."
+    },
+    {
+      "name": "valid_to",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored employment_relationships valid_to; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "candidate_id",
+        "references_table": "candidates",
+        "references_column": "id"
+      },
+      {
+        "column": "position_id",
+        "references_table": "positions",
+        "references_column": "id"
+      }
+    ]
+  }
+}

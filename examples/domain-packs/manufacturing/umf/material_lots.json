@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "table_name": "material_lots",
+  "description": "Synthetic material_lots; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored material_lots id; synthetic reference scenario."
+    },
+    {
+      "name": "material",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored material_lots material; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

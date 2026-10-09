@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "bim_references",
+  "description": "Synthetic bim_references; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored bim_references id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored bim_references asset_id; synthetic reference scenario."
+    },
+    {
+      "name": "publisher",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored bim_references publisher; synthetic reference scenario."
+    },
+    {
+      "name": "model_revision",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored bim_references model_revision; synthetic reference scenario."
+    },
+    {
+      "name": "native_object_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored bim_references native_object_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "asset_id",
+        "references_table": "assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

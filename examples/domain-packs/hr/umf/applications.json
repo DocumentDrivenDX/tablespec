@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "applications",
+  "description": "Synthetic applications; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored applications id; synthetic reference scenario."
+    },
+    {
+      "name": "candidate_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored applications candidate_id; synthetic reference scenario."
+    },
+    {
+      "name": "position_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored applications position_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored applications status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "candidate_id",
+        "references_table": "candidates",
+        "references_column": "id"
+      },
+      {
+        "column": "position_id",
+        "references_table": "positions",
+        "references_column": "id"
+      }
+    ]
+  }
+}

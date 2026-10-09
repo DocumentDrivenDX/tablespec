@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "table_name": "provenance",
+  "description": "Synthetic provenance; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored provenance id; synthetic reference scenario."
+    },
+    {
+      "name": "project_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored provenance project_id; synthetic reference scenario."
+    },
+    {
+      "name": "native_subject_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored provenance native_subject_id; synthetic reference scenario."
+    },
+    {
+      "name": "publisher",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored provenance publisher; synthetic reference scenario."
+    },
+    {
+      "name": "native_reference",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored provenance native_reference; synthetic reference scenario."
+    },
+    {
+      "name": "transformation",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored provenance transformation; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "project_id",
+        "references_table": "projects",
+        "references_column": "id"
+      }
+    ]
+  }
+}

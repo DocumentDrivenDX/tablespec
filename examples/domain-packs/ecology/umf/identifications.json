@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "identifications",
+  "description": "Synthetic identifications; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identifications id; synthetic reference scenario."
+    },
+    {
+      "name": "taxon_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identifications taxon_id; synthetic reference scenario."
+    },
+    {
+      "name": "confidence",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identifications confidence; synthetic reference scenario."
+    },
+    {
+      "name": "life_stage",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identifications life_stage; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "taxon_id",
+        "references_table": "taxa",
+        "references_column": "id"
+      }
+    ]
+  }
+}

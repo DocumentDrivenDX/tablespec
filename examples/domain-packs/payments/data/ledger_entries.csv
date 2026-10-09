@@ -1,0 +1,5 @@
+"id","journal","account_id","side","amount","currency"
+"L1","J1","A1","debit","10.00","USD"
+"L2","J1","A1","credit","10.00","USD"
+"L3","J2","A1","debit","10.00","USD"
+"L4","J2","A1","credit","9.99","USD"

@@ -1,0 +1,3 @@
+"id","machine_id","parent_id","name"
+"C1","M1","\N","Drive"
+"C2","M1","C1","Bearing"

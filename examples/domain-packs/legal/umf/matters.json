@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "table_name": "matters",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "matter_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter id"
+    },
+    {
+      "name": "client_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated client id"
+    },
+    {
+      "name": "matter_number",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated matter number",
+      "domain_type": "matter_number"
+    },
+    {
+      "name": "matter_title",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated matter title",
+      "domain_type": "matter_title"
+    },
+    {
+      "name": "practice_area",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated practice area",
+      "domain_type": "practice_area"
+    },
+    {
+      "name": "open_date",
+      "data_type": "DATE",
+      "nullable": false,
+      "description": "Fabricated open date"
+    },
+    {
+      "name": "close_date",
+      "data_type": "DATE",
+      "nullable": true,
+      "description": "Fabricated close date"
+    },
+    {
+      "name": "jurisdiction",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated jurisdiction",
+      "domain_type": "jurisdiction"
+    },
+    {
+      "name": "court",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated court",
+      "domain_type": "court"
+    }
+  ],
+  "primary_key": [
+    "matter_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "client_id",
+        "references_table": "clients",
+        "references_column": "client_id"
+      }
+    ]
+  }
+}

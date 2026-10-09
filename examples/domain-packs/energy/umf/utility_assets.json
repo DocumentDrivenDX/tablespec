@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "utility_assets",
+  "description": "Synthetic utility_assets; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored utility_assets id; synthetic reference scenario."
+    },
+    {
+      "name": "site_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored utility_assets site_id; synthetic reference scenario."
+    },
+    {
+      "name": "parent_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored utility_assets parent_id; synthetic reference scenario."
+    },
+    {
+      "name": "kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored utility_assets kind; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "site_id",
+        "references_table": "sites",
+        "references_column": "id"
+      },
+      {
+        "column": "parent_id",
+        "references_table": "utility_assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

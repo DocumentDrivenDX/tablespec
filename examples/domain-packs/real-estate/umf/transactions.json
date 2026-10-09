@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "transactions",
+  "description": "Synthetic transactions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored transactions id; synthetic reference scenario."
+    },
+    {
+      "name": "listing_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored transactions listing_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored transactions amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored transactions currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "listing_id",
+        "references_table": "listings",
+        "references_column": "id"
+      }
+    ]
+  }
+}

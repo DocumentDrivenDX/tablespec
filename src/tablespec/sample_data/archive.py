@@ -1,6 +1,7 @@
 """Portable, deterministic CSV sample packs; generation remains disk backed."""
 
 import csv
+import hashlib
 from collections.abc import Iterator
 from datetime import date, datetime
 from decimal import Decimal
@@ -73,6 +74,23 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
     meaning. Empty strings remain empty strings. ZIP metadata has a fixed date
     and permissions so identical inputs produce identical archive bytes.
     """
+    if dataset.config.domain_pack_path is not None and dataset.schema_artifacts:
+        from tablespec.umf_loader import UMFLoader
+        from .domains import read_domain_pack
+
+        source_pack = read_domain_pack(dataset.config.domain_pack_path)
+        for schema in source_pack.get("schemas", []):
+            if schema["format"] == "tablespec" and schema["id"] in dataset.specs:
+                artifact = dataset.schema_artifacts[schema["reference"]]
+                native = (
+                    UMFLoader()
+                    .load(artifact)
+                    .model_dump(mode="json", exclude_none=True)
+                )
+                if native != dataset.specs.get(schema["id"]):
+                    raise ValueError(
+                        "Generation schema differs from admitted domain-pack schema"
+                    )
     if not dataset.verified or set(dataset.report) != set(dataset.specs):
         raise ValueError("Dataset must pass verification before export")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -92,6 +110,19 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
                     entry(name), json.dumps(value, sort_keys=True, indent=2)
                 )
 
+            def copy_admitted(path, target):
+                digest = hashlib.sha256()
+                total = 0
+                with path.open("rb") as source:
+                    while chunk := source.read(1024 * 1024):
+                        total += len(chunk)
+                        if total > 10 * 1024 * 1024:
+                            raise ValueError("Artifact exceeds byte budget")
+                        digest.update(chunk)
+                        target.write(chunk)
+                if digest.hexdigest() != dataset.artifact_hashes.get(str(path)):
+                    raise ValueError("Admitted artifact changed before publication")
+
             pack_metadata = dataset.source_metadata
             if pack_metadata is None:
                 pack_metadata = get_run_domain_pack(dataset.config).metadata
@@ -103,8 +134,9 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
                     "domain": dataset.config.domain,
                     "seed": dataset.config.random_seed
                     if dataset.source_metadata is None
-                    else None,
-                    "origin": "external"
+                    else (dataset.run_metadata or {}).get("seed"),
+                    "run": dataset.run_metadata,
+                    "origin": (dataset.run_metadata or {}).get("origin", "external")
                     if dataset.source_metadata is not None
                     else "synthetic",
                     "encoding": "UTF-8",
@@ -117,6 +149,7 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
                         schema["reference"]: f"schemas/{schema['id']}.json"
                         for schema in (pack_metadata or {}).get("schemas", [])
                         if schema["id"] in dataset.specs
+                        or schema["reference"] in dataset.schema_artifacts
                     },
                     "source_artifacts": {
                         name: f"inputs/{name}"
@@ -132,17 +165,32 @@ def export_csv_zip(dataset: GeneratedDataset, output: Path) -> None:
             if pack_metadata is not None:
                 metadata("domain-pack.json", pack_metadata)
             for name, path in sorted(dataset.source_artifacts.items()):
-                with (
-                    path.open("rb") as source,
-                    archive.open(entry(f"inputs/{name}"), "w") as target,
-                ):
-                    from shutil import copyfileobj
-
-                    copyfileobj(source, target, length=1024 * 1024)
+                with archive.open(entry(f"inputs/{name}"), "w") as target:
+                    copy_admitted(path, target)
+            for schema in (pack_metadata or {}).get("schemas", []):
+                reference = schema["reference"]
+                if reference in dataset.schema_artifacts:
+                    identifier(schema["id"])
+                    with archive.open(
+                        entry(f"schemas/{schema['id']}.json"), "w"
+                    ) as target:
+                        copy_admitted(dataset.schema_artifacts[reference], target)
             for name in sorted(dataset.specs):
                 identifier(name)  # Also prevents path traversal in ZIP members.
                 spec = dataset.specs[name]
-                metadata(f"schemas/{name}.json", spec)
+                declared = next(
+                    (
+                        s
+                        for s in (pack_metadata or {}).get("schemas", [])
+                        if s["id"] == name
+                    ),
+                    None,
+                )
+                if (
+                    declared is None
+                    or declared["reference"] not in dataset.schema_artifacts
+                ):
+                    metadata(f"schemas/{name}.json", spec)
                 columns = [c["name"] for c in spec["columns"] if not c.get("internal")]
                 with archive.open(
                     entry(f"data/{name}.csv"), "w", force_zip64=True

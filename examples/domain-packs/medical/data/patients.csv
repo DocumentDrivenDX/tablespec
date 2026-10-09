@@ -1,0 +1,3 @@
+"resource_key","active","gender","birth_date","organization_key","names_json"
+"Patient/example","true","male","1974-12-25","Organization/1","[{""use"":""official"",""family"":""Chalmers"",""given"":[""Peter"",""James""]},{""use"":""usual"",""given"":[""Jim""]},{""use"":""maiden"",""family"":""Windsor"",""given"":[""Peter"",""James""],""period"":{""end"":""2002""}}]"
+"Patient/f001","true","male","1944-11-17","Organization/f001","[{""use"":""usual"",""family"":""van de Heuvel"",""given"":[""Pieter""],""suffix"":[""MSc""]}]"

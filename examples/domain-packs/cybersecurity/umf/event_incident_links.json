@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "event_incident_links",
+  "description": "Synthetic event_incident_links; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored event_incident_links id; synthetic reference scenario."
+    },
+    {
+      "name": "event_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored event_incident_links event_id; synthetic reference scenario."
+    },
+    {
+      "name": "incident_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored event_incident_links incident_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "event_id",
+        "references_table": "authentication_events",
+        "references_column": "id"
+      },
+      {
+        "column": "incident_id",
+        "references_table": "incidents",
+        "references_column": "id"
+      }
+    ]
+  }
+}

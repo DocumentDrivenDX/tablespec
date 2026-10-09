@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "facilities",
+  "description": "Synthetic facilities; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored facilities id; synthetic reference scenario."
+    },
+    {
+      "name": "organization_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored facilities organization_id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored facilities name; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "organization_id",
+        "references_table": "organizations",
+        "references_column": "id"
+      }
+    ]
+  }
+}

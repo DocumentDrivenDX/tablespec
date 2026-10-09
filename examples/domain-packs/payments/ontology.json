@@ -1,0 +1,931 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:payments",
+  "title": "payments ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:payments:",
+      "elements": [
+        {
+          "id": "parties",
+          "kind": "record",
+          "name": "parties",
+          "title": "parties",
+          "description": "Synthetic parties; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "parties.id"
+            },
+            {
+              "module": "domain",
+              "element": "parties.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "parties.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "parties.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored parties id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "parties.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored parties name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "accounts",
+          "kind": "record",
+          "name": "accounts",
+          "title": "accounts",
+          "description": "Synthetic accounts; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "accounts.id"
+            },
+            {
+              "module": "domain",
+              "element": "accounts.party_id"
+            },
+            {
+              "module": "domain",
+              "element": "accounts.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "accounts.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "accounts.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored accounts id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "accounts.party_id",
+          "name": "party_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored accounts party_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "accounts.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored accounts currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "payment_instructions",
+          "kind": "record",
+          "name": "payment_instructions",
+          "title": "payment_instructions",
+          "description": "Synthetic payment_instructions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "payment_instructions.id"
+            },
+            {
+              "module": "domain",
+              "element": "payment_instructions.account_id"
+            },
+            {
+              "module": "domain",
+              "element": "payment_instructions.amount"
+            },
+            {
+              "module": "domain",
+              "element": "payment_instructions.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "payment_instructions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "payment_instructions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payment_instructions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "payment_instructions.account_id",
+          "name": "account_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payment_instructions account_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "payment_instructions.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payment_instructions amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "payment_instructions.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payment_instructions currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "status_events",
+          "kind": "record",
+          "name": "status_events",
+          "title": "status_events",
+          "description": "Synthetic status_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "status_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "status_events.payment_id"
+            },
+            {
+              "module": "domain",
+              "element": "status_events.status"
+            },
+            {
+              "module": "domain",
+              "element": "status_events.event_time"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "status_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "status_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored status_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "status_events.payment_id",
+          "name": "payment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored status_events payment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "status_events.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored status_events status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "status_events.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored status_events event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "settlements",
+          "kind": "record",
+          "name": "settlements",
+          "title": "settlements",
+          "description": "Synthetic settlements; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "settlements.id"
+            },
+            {
+              "module": "domain",
+              "element": "settlements.payment_id"
+            },
+            {
+              "module": "domain",
+              "element": "settlements.amount"
+            },
+            {
+              "module": "domain",
+              "element": "settlements.settled_at"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "settlements.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "settlements.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored settlements id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "settlements.payment_id",
+          "name": "payment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored settlements payment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "settlements.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored settlements amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "settlements.settled_at",
+          "name": "settled_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored settlements settled_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns",
+          "kind": "record",
+          "name": "returns",
+          "title": "returns",
+          "description": "Synthetic returns; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "returns.id"
+            },
+            {
+              "module": "domain",
+              "element": "returns.payment_id"
+            },
+            {
+              "module": "domain",
+              "element": "returns.amount"
+            },
+            {
+              "module": "domain",
+              "element": "returns.currency"
+            },
+            {
+              "module": "domain",
+              "element": "returns.reason"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "returns.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "returns.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns.payment_id",
+          "name": "payment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns payment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "returns.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns.reason",
+          "name": "reason",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns reason; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "statements",
+          "kind": "record",
+          "name": "statements",
+          "title": "statements",
+          "description": "Synthetic statements; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "statements.id"
+            },
+            {
+              "module": "domain",
+              "element": "statements.account_id"
+            },
+            {
+              "module": "domain",
+              "element": "statements.period_start"
+            },
+            {
+              "module": "domain",
+              "element": "statements.period_end"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "statements.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "statements.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored statements id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "statements.account_id",
+          "name": "account_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored statements account_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "statements.period_start",
+          "name": "period_start",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored statements period_start; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "statements.period_end",
+          "name": "period_end",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored statements period_end; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "journals",
+          "kind": "record",
+          "name": "journals",
+          "title": "journals",
+          "description": "Synthetic journals; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "journals.id"
+            },
+            {
+              "module": "domain",
+              "element": "journals.native_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "journals.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "journals.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored journals id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "journals.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored journals native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "ledger_entries",
+          "kind": "record",
+          "name": "ledger_entries",
+          "title": "ledger_entries",
+          "description": "Synthetic ledger_entries; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "ledger_entries.id"
+            },
+            {
+              "module": "domain",
+              "element": "ledger_entries.journal"
+            },
+            {
+              "module": "domain",
+              "element": "ledger_entries.account_id"
+            },
+            {
+              "module": "domain",
+              "element": "ledger_entries.side"
+            },
+            {
+              "module": "domain",
+              "element": "ledger_entries.amount"
+            },
+            {
+              "module": "domain",
+              "element": "ledger_entries.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "ledger_entries.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "ledger_entries.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored ledger_entries id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "ledger_entries.journal",
+          "name": "journal",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored ledger_entries journal; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "ledger_entries.account_id",
+          "name": "account_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored ledger_entries account_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "ledger_entries.side",
+          "name": "side",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored ledger_entries side; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "ledger_entries.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored ledger_entries amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "ledger_entries.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored ledger_entries currency; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "accounts.party_id",
+          "name": "accounts.party_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "accounts"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "parties",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "payment_instructions.account_id",
+          "name": "payment_instructions.account_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "payment_instructions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "accounts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "status_events.payment_id",
+          "name": "status_events.payment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "status_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "payment_instructions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "settlements.payment_id",
+          "name": "settlements.payment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "settlements"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "payment_instructions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "returns.payment_id",
+          "name": "returns.payment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "returns"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "payment_instructions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "statements.account_id",
+          "name": "statements.account_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "statements"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "accounts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "ledger_entries.journal",
+          "name": "ledger_entries.journal",
+          "source": [
+            {
+              "module": "domain",
+              "element": "ledger_entries"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "journals",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "ledger_entries.account_id",
+          "name": "ledger_entries.account_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "ledger_entries"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "accounts",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

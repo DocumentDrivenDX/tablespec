@@ -1,0 +1,7 @@
+"id","kind","reference","availability","caption","scale","orientation","source_id","revision","sha256"
+"AS1","field-report","assets/report.txt","included","Synthetic field report","not-applicable","not-applicable","asset_report_txt","1.0.0","197b6ad719c4b4af78ebecd1f97148e0662367d1cbaba25d37646bcccd6b4842"
+"AS2","photo","assets/photo.svg","included","Synthetic illustration, not a photograph","not-applicable","north","asset_photo_svg","1.0.0","abb051a6748c1c8e630d42907d0e45856dd7d0112f18dbb94cdc836885e4a290"
+"AS3","map","assets/map.svg","included","Synthetic map","1:100","north","asset_map_svg","1.0.0","f8c9edabbef94948863c787f236c85700f74cfca43f321e57bd48f5837c1a73a"
+"AS4","square-drawing","assets/square.svg","included","Synthetic square plan","1:20","north","asset_square_svg","1.0.0","0b9240d4c6db480425dd004aa6b978221357917b2a69a1dcff601a88df59335f"
+"AS5","object-drawing","assets/object.svg","included","Synthetic object drawing","1:1","not-georeferenced","asset_object_svg","1.0.0","f760b9b0d93e54f2785d956e32c4977bd5aadcec56bc07ce4fee42fd9d6840f9"
+"AS6","section-drawing","https://example.invalid/section","external","Reference-only missing section","unknown","unknown","\N","\N","\N"
