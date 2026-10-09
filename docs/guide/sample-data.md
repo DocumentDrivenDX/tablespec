@@ -421,7 +421,7 @@ notebook's no-Spark/no-write preflight, exact 383-page CSV text preservation,
 seed-independent observed rows, tampered-source refusal and retained graph schema
 artifacts. Ruff formatting/lint and scoped Pyright pass. The built wheel contains
 mixed assembly, CLI flags and source-policy admission. Independent local Sail
-0.6.6 and classic Spark 4.0.0 / Delta 4.0.0 runs pass all eleven tables loaded
+0.6.6 and classic Spark 4.0.1 / Delta 4.0.0 runs pass all eleven tables loaded
 twice, row/FK/legal audits and exact real multiline-text readback. The isolated
 classic Spark replay uses a controlled `/tmp` directory and completes in 241.09
 seconds. These checks qualify this small corpus and engines, not live Databricks.
