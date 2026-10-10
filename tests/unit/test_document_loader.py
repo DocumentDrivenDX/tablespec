@@ -579,3 +579,40 @@ def test_atomic_pointer_does_not_cleanup_after_success(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "unlink", refuse_unlink)
     atomic_write(tmp_path, "current.json", b"committed")
     assert (tmp_path / "current.json").read_bytes() == b"committed"
+
+
+def test_spark_cli_uses_central_factory_application_name(corpus, monkeypatch):
+    from tablespec.document_loader import cli
+    from types import SimpleNamespace
+
+    collect(corpus)
+    calls = []
+    session = object()
+
+    def factory(app_name):
+        calls.append(app_name)
+        return session
+
+    monkeypatch.setattr("tablespec.spark_factory.create_delta_spark_session", factory)
+
+    def sink(active, target):
+        assert active is session and target == "catalog.schema.documents"
+        return SimpleNamespace(target=target)
+
+    monkeypatch.setattr(cli, "SparkMetadataSink", sink)
+    monkeypatch.setattr(cli, "publish_sources", lambda *a, **k: dict(status="complete"))
+    assert (
+        cli._publish(
+            corpus[2],
+            "catalog.schema.documents",
+            "spark",
+            "merge",
+            "/Volumes/catalog/schema/originals/collection",
+            None,
+            None,
+            None,
+            None,
+        )["status"]
+        == "complete"
+    )
+    assert calls == ["tablespec-document-loader"]

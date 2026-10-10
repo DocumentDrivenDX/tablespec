@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import stat
 from urllib.parse import urlsplit
+from typing import Any, cast
 
 from jsonschema import Draft202012Validator
 from umf.serialization import read_json_value
@@ -19,6 +20,13 @@ MAX_STATE_BYTES = 500 * 1024 * 1024
 
 class LoaderError(ValueError):
     """Closed diagnostic code; never includes source bodies or credentials."""
+
+
+def read_object(raw: bytes, code: str) -> dict[str, Any]:
+    value = read_json_value(raw.decode(), "json")
+    if not isinstance(value, dict):
+        raise LoaderError(code)
+    return cast(dict[str, Any], value)
 
 
 def digest(value: bytes) -> str:
@@ -89,7 +97,7 @@ def verify_release(path: Path) -> dict:
 
 def read_pack(path: Path, release_path: Path | None = None) -> tuple[dict, str]:
     raw = read_bounded(path, 4 * 1024 * 1024)
-    pack = read_json_value(raw.decode(), "json")
+    pack = read_object(raw, "PACK_STRUCTURE")
     if not isinstance(pack, dict):
         raise LoaderError("PACK_STRUCTURE")
     if "preservation" in pack:
@@ -160,7 +168,7 @@ def parse_inventory(raw: bytes, profile: str, rights: str) -> dict:
         "redistribute",
     ):
         raise LoaderError("RUN_CONFIGURATION")
-    inventory = read_json_value(raw.decode(), "json")
+    inventory = read_object(raw, "INVENTORY_STRUCTURE")
     schema = json.loads(read_bounded(CANONICAL / "inventory.schema.json", 1024 * 1024))
     if not Draft202012Validator(schema).is_valid(inventory):
         raise LoaderError("INVENTORY_STRUCTURE")
@@ -200,7 +208,7 @@ def load_publication(root: Path) -> dict:
     raw = contained(root, reference, 100 * 1024 * 1024)
     if digest(raw) != pointer.get("sha256"):
         raise LoaderError("MANIFEST_HASH")
-    manifest = read_json_value(raw.decode(), "json")
+    manifest = read_object(raw, "STATE_STRUCTURE")
     if (
         manifest.get("version") != "1.0.0"
         or manifest.get("projection_version") != "1.0.0"
@@ -216,8 +224,8 @@ def load_publication(root: Path) -> dict:
         "receipt_hash"
     ):
         raise LoaderError("RECEIPT_HASH")
-    receipt = read_json_value(
-        contained(directory, "receipt.json", 10 * 1024 * 1024).decode(), "json"
+    receipt = read_object(
+        contained(directory, "receipt.json", 10 * 1024 * 1024), "RECEIPT_STRUCTURE"
     )
     if (
         receipt.get("status") != "complete"

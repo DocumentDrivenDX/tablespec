@@ -18,6 +18,7 @@ import threading
 import time
 from urllib.parse import urlsplit
 from uuid import uuid4
+from typing import Any, cast
 
 from .core import (
     LoaderError,
@@ -43,6 +44,8 @@ class DownloadError(LoaderError):
 def https_response(url: str, media: str, user_agent: str, timeout: float):
     """HTTP client never follows redirects and never parses a document."""
     target = urlsplit(url)
+    if target.hostname is None:
+        raise DownloadError("SOURCE_URL_POLICY")
     deadline = time.monotonic() + timeout
     connection = http.client.HTTPSConnection(target.hostname, port=443, timeout=timeout)
 
@@ -80,7 +83,7 @@ def https_response(url: str, media: str, user_agent: str, timeout: float):
                 failure = error
         raise failure
 
-    connection._create_connection = connect
+    cast(Any, connection)._create_connection = connect
 
     def expire():
         stream = connection.sock
@@ -106,7 +109,9 @@ def https_response(url: str, media: str, user_agent: str, timeout: float):
         )
         client_socket = connection.sock
         response = connection.getresponse()
-        response.set_deadline_timeout = client_socket.settimeout
+        if client_socket is None:
+            raise DownloadError("TRANSPORT", True)
+        cast(Any, response).set_deadline_timeout = client_socket.settimeout
         yield response
     finally:
         timer.cancel()
@@ -344,7 +349,7 @@ def fetch_sources(
     except FileExistsError:
         raise LoaderError("STATE_LOCKED") from None
     run_id = str(uuid4())
-    receipt = dict(
+    receipt: dict[str, Any] = dict(
         operation="umf.document-loader",
         version="1.0.0",
         run_id=run_id,
@@ -391,6 +396,8 @@ def fetch_sources(
                 raise LoaderError("REPLAY_INVENTORY_MISMATCH")
             inventory_raw = committed_raw
             inventory = parse_inventory(inventory_raw, profile, rights)
+        if inventory is None or inventory_raw is None:
+            raise LoaderError("INVENTORY_REQUIRED")
         binding = dict(
             pack_hash=pack_hash,
             pack_id=pack["id"],
@@ -414,6 +421,8 @@ def fetch_sources(
         objects = state / "objects"
         objects.mkdir(exist_ok=True)
         if mode == "replay":
+            if prior is None:
+                raise LoaderError("NO_REPLAY_SNAPSHOT")
             rows = prior["manifest"]["rows"]
             receipt["items"] = [
                 dict(id=r["id"], status="complete", sha256=r["sha256"], attempts=0)

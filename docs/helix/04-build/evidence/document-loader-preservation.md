@@ -35,3 +35,12 @@ requires the user's filers/contact. No Snowflake execution, PREMIS XML, OCFL
 repository or WARC capture claim is made. The prepared development environment
 used umf-core 0.8.0 serialization; released-wheel clean installation against
 umf-core 0.8.1 is a separate release check.
+
+
+Release correction 0.0.9: all 33 loader tests pass and whole-source Pyright reports
+zero errors or warnings. The Spark CLI passes the required application name to
+the central session factory. Astra ultra independently reviewed the corrections
+and verified the loader tests and typing. Both website workflows serialize with
+queued runs preserved, and deployment requires successful release asset upload.
+The published 0.0.8 wheel was installed with --no-deps alongside umf-core 0.8.1
+and published the three court originals offline to DuckDB with exact read-back.

@@ -101,7 +101,9 @@ def _publish(
         root = validate_volume(target, volume)
         from tablespec.spark_factory import create_delta_spark_session
 
-        sink = SparkMetadataSink(create_delta_spark_session(), target)
+        sink = SparkMetadataSink(
+            create_delta_spark_session("tablespec-document-loader"), target
+        )
         return publish_sources(
             fetched,
             sink,

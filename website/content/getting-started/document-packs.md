@@ -5,7 +5,7 @@ weight: 5
 
 # Document loading and preservation
 
-TableSpec 0.0.8 provides native Python loading for UMF court and SEC document
+TableSpec 0.0.9 provides native Python loading for UMF court and SEC document
 packs. Originals stay byte-identical; metadata rows are a separate projection.
 Bun, an additional HTTP client and a PDF library are not required.
 
@@ -42,7 +42,7 @@ from tablespec.spark_factory import create_delta_spark_session
 state = validate_bag(Path('/Volumes/catalog/schema/transfers/handoff'))
 target = 'catalog.schema.documents'
 objects = LocalObjects(validate_volume(target, '/Volumes/catalog/schema/originals/collection'))
-receipt = publish_sources(state, SparkMetadataSink(create_delta_spark_session(), target), objects, mode='merge')
+receipt = publish_sources(state, SparkMetadataSink(create_delta_spark_session("tablespec-document-loader"), target), objects, mode='merge')
 ```
 
 Publication does not access GitHub, SEC or court hosts. The object filesystem

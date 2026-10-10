@@ -268,8 +268,9 @@ def publish_sources(
         for o in manifest["observations"]
         if o["inventory_hash"] == manifest["inventory_hash"]
     }
-    if hasattr(sink, "preflight"):
-        sink.preflight(schema, mode)
+    preflight = getattr(sink, "preflight", None)
+    if preflight is not None:
+        preflight(schema, mode)
     rows, required = [], {}
     for source in manifest["rows"]:
         observation = observations.get(source["id"])

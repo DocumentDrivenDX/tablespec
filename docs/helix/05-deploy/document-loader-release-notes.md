@@ -8,14 +8,14 @@ ddx:
       kind: informed_by
 ---
 
-# TableSpec 0.0.8 — native document loading
+# TableSpec 0.0.9 — native document loading
 
 ## Release Scope
 
 Native Python acquisition and offline publication for UMF court/SEC companion
 contract 1.0.0. TableSpec owns the executable runtime. No Bun process or added
 HTTP/PDF library is required. The release wheel and sdist are independently
-checksum-pinnable; plugin manifests advance to 0.0.8.
+checksum-pinnable; plugin manifests advance to 0.0.9.
 
 ## Audience and Channels
 
@@ -69,4 +69,13 @@ loader, publication hashes and closed receipt codes for support.
 
 - [Contract](../02-design/contracts/CONTRACT-002-document-loader-preservation.md)
 - [Execution evidence](../04-build/evidence/document-loader-preservation.md)
-- [Release](https://github.com/DocumentDrivenDX/tablespec/releases/tag/v0.0.8)
+- [Release](https://github.com/DocumentDrivenDX/tablespec/releases/tag/v0.0.9)
+
+
+## Release correction
+
+0.0.9 fixes the required Spark factory application name, type-checks decoded
+JSON objects and runtime adapter seams, and serializes Pages workflows to prevent
+a stale concurrent website build replacing the newly released package index.
+The source collector engine/agent remains0.0.8 under companion contract1.0.0.
+Published0.0.8 artifacts remain immutable.

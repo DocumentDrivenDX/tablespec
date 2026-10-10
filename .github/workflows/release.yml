@@ -11,8 +11,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: pages
   cancel-in-progress: false
+  queue: max
 
 jobs:
   version-guard:
@@ -220,7 +221,7 @@ jobs:
 
   deploy-pages:
     name: Deploy to GitHub Pages
-    needs: build-index
+    needs: [build-index, release]
     runs-on: ubuntu-latest
     permissions:
       pages: write
