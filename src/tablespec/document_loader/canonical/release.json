@@ -1,0 +1,27 @@
+{
+  "id": "umf.document-loader",
+  "version": "1.0.0",
+  "compiler": "Bun 1.3.14",
+  "artifacts": [
+    {
+      "reference": "run.ts",
+      "sha256": "78d174cab9e8ca8a8e23670d920ad51759bbaaa33ce1e03a2f931d0debda1c27"
+    },
+    {
+      "reference": "read-publication.ts",
+      "sha256": "2da3e35038d1b27c34d86b8cc2abe94d10c110ac2df9d573d09af266740fd25b"
+    },
+    {
+      "reference": "inventory.schema.json",
+      "sha256": "a9a1b67bcba686f7b13463867aa7ca19f0a3bc830fecc832eae64e1bc8f6d5ce"
+    },
+    {
+      "reference": "loader.schema.json",
+      "sha256": "b5c7a02960e71ccad8aaff5bbcc7e6e77b047a7fe65bc2e3544bf58c7445236b"
+    },
+    {
+      "reference": "README.md",
+      "sha256": "284f9140e67c8bf6c773a119e9422bf1f439f91ee814a50b45d79cf9098e6380"
+    }
+  ]
+}

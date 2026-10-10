@@ -338,3 +338,17 @@ split export or unsynchronized mutation. Legacy APIs retain existing behavior.
 Native migration maps shared field metadata to core and retains all other
 metadata in independently versioned TableSpec payloads. Exact source archives
 qualify unchanged-file recovery independently from compiler execution.
+
+
+## Document-pack collection and preservation
+
+Owner direction adds a finite-inventory native Python document collector and
+offline publisher, separately from tabular sample generation. TableSpec owns
+acquisition and named Spark/Delta or DuckDB sinks; UMF owns inert declarations
+and source schemas. Original byte revisions remain authoritative. BagIt 1.0
+SHA-256 handoffs, PREMIS 3 semantic event/rights mapping, PROV-O source lineage
+and offline periodic fixity auditing follow CONTRACT-002. No Bun dependency,
+PDF parsing, discovery, generic ETL or inferred redistribution permission is
+introduced. This scoped document publication capability is an exception to the
+earlier general connectivity non-goal. OCFL/WARC and Snowflake remain optional
+separately qualified adapters.

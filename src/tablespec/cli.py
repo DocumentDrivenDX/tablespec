@@ -33,6 +33,7 @@ from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegi
 from tablespec.dialects import CAST_DIALECTS
 from tablespec.umf_loader import UMFFormat, UMFLoader
 from tablespec.sample_data.load_cli import app as sample_data_app
+from tablespec.document_loader.cli import app as document_loader_app
 
 # validator module is not yet ported; commands that depend on it will be
 # registered only when the module is available.
@@ -55,6 +56,7 @@ app = typer.Typer(
 )
 
 app.add_typer(sample_data_app, name="sample-data")
+app.add_typer(document_loader_app, name="document-loader")
 
 console = Console(no_color=bool(os.environ.get("NO_COLOR")))
 _EMIT_DIALECT_HELP = (

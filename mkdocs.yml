@@ -39,6 +39,7 @@ nav:
     - Data Profiling App: guide/data-profiling-app.md
     - Split-Format UMF: guide/split-format.md
     - Sample Data: guide/sample-data.md
+    - Document Loading: guide/document-loader.md
     - Domain Inference: guide/domain-inference.md
     - Change Management: guide/change-management.md
   - API Reference:

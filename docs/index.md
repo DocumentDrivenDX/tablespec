@@ -91,3 +91,11 @@ Learn how to use each feature of tablespec:
 - **[Type Mappings](api/type_mappings.md)** -- Type system conversions
 - **[Great Expectations](api/gx.md)** -- GX integration classes
 - **[CLI](api/cli.md)** -- Command-line interface reference
+
+## Document packs
+
+The [native Python document loader](guide/document-loader.md) fetches finite UMF
+inventories, transfers complete BagIt handoffs, publishes original bytes and
+metadata to DuckDB or an explicitly named Spark/Unity Catalog target, and audits
+SHA-256 fixity offline. PREMIS semantic JSON and PROV-O traceability accompany
+the originals.

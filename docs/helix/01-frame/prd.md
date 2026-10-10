@@ -413,3 +413,17 @@ Shared documents MUST be consumable through the existing compiler path without
 creating a second shared-schema authority. Unknown content survives canonical
 persistence; unsupported execution properties and lossy legacy export refuse.
 Legacy split/JSON APIs remain explicit compatibility surfaces.
+
+
+## Document-pack collection and preservation
+
+Owner direction adds a finite-inventory native Python document collector and
+offline publisher, separately from tabular sample generation. TableSpec owns
+acquisition and named Spark/Delta or DuckDB sinks; UMF owns inert declarations
+and source schemas. Original byte revisions remain authoritative. BagIt 1.0
+SHA-256 handoffs, PREMIS 3 semantic event/rights mapping, PROV-O source lineage
+and offline periodic fixity auditing follow CONTRACT-002. No Bun dependency,
+PDF parsing, discovery, generic ETL or inferred redistribution permission is
+introduced. This scoped document publication capability is an exception to the
+earlier general connectivity non-goal. OCFL/WARC and Snowflake remain optional
+separately qualified adapters.

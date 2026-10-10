@@ -5,7 +5,7 @@ next: /api-reference
 ---
 
 This page is for readers who want command names, inputs, outputs, and exit
-codes. The `tablespec` command line interface (CLI) has 22 commands. Run
+codes. The `tablespec` command line interface (CLI) includes document loading commands. Run
 `tablespec --help` for the live list, or `tablespec COMMAND --help` for one
 command's options.
 
@@ -262,3 +262,10 @@ tablespec apply-response tables/medical_claims/ response.json
 | 0 | Success |
 | 1 | Validation error or command failure |
 | 2 | Usage error (bad arguments or flags) |
+
+## Document packs
+
+`tablespec document-loader` provides native Python `fetch`, `handoff`,
+`verify-handoff`, `publish`, `replay`, `run`, `verify-release` and `audit`.
+See [Document packs and preservation](/getting-started/document-packs/) for
+offline BagIt transfer, dependency pins and explicitly named publication targets.

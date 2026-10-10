@@ -308,3 +308,10 @@ for execution. The initial binding consumes shared names/descriptions/titles/
 aliases and scalar families; other core constraints refuse until their native
 execution mapping is qualified. Native contextual nullability, source declarations,
 keys, relationships and pipeline policies remain TableSpec extension semantics.
+
+### Document packs
+
+Use `tablespec document-loader` for native Python fetch, complete BagIt/SHA-256
+handoff, offline publication and periodic fixity audits. See the
+[document-loader guide](docs/guide/document-loader.md) for DuckDB and named
+Spark/Unity Catalog targets, preservation metadata and qualification limits.
