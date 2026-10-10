@@ -85,3 +85,8 @@ Loper Bright 22-451 and Trump 23-939 from supremecourt.gov, plus the DCD
 redistribution rights and require explicit local-use. Live Python/Bun parity
 checks produced identical original-byte revision hashes; no original PDFs are
 redistributed in this TableSpec fixture.
+
+
+The [0.0.9 release](https://github.com/DocumentDrivenDX/tablespec/releases/tag/v0.0.9)
+includes the wheel, sdist and SHA256SUMS. Its published wheel passed offline
+publication and original-byte read-back for the three documented court fixtures.

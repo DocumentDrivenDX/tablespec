@@ -80,3 +80,19 @@ Loper Bright 22-451 and Trump 23-939 from supremecourt.gov, plus the DCD
 redistribution rights and require explicit local-use. Live Python/Bun parity
 checks produced identical original-byte revision hashes; no original PDFs are
 redistributed in this TableSpec fixture.
+
+
+## Published 0.0.9 artifacts
+
+The [release](https://github.com/DocumentDrivenDX/tablespec/releases/tag/v0.0.9)
+includes SHA256SUMS. Pin these published bytes:
+
+```text
+8258bf0c129dc872e9ba4bd5aedaadd1ea909b34cb4746cfc879acd931a08a0b  tablespec-0.0.9-py3-none-any.whl
+6157b827c4e94175756bac918d78d3ddd27931454b763d6c4aaa8c9b7a006a8c  tablespec-0.0.9.tar.gz
+```
+
+The published wheel was installed with `--no-deps` alongside umf-core 0.8.1
+in a prepared dependency environment. With outbound HTTPS blocked and Bun absent
+from PATH, the court BagIt fixture published three rows and three original objects
+to DuckDB and passed complete read-back. Live Databricks qualification remains pending.

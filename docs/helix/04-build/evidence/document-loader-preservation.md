@@ -44,3 +44,7 @@ and verified the loader tests and typing. Both website workflows serialize with
 queued runs preserved, and deployment requires successful release asset upload.
 The published 0.0.8 wheel was installed with --no-deps alongside umf-core 0.8.1
 and published the three court originals offline to DuckDB with exact read-back.
+
+Published 0.0.9 wheel qualification also passed: --no-deps installation alongside
+umf-core 0.8.1, empty PATH, blocked HTTPS, verified BagIt import, three metadata
+rows and three original objects published/read back through native DuckDB.
