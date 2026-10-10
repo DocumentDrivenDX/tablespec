@@ -97,8 +97,13 @@ def render_top_index_grouped(
     css: str,
     *,
     provenance_sha: str | None = None,
+    domain_map_href: str | None = None,
 ) -> str:
-    """Render the top-level index listing groups with table counts."""
+    """Render the top-level index listing groups with table counts.
+
+    ``domain_map_href`` adds a link to the domain map page when the corpus
+    declares domains (``domain.yaml`` per group).
+    """
     rows: list[str] = []
     for group_name, table_count in sorted(groups):
         rows.append(
@@ -113,6 +118,13 @@ def render_top_index_grouped(
         f"{_chip(f'{len(groups)} groups')}"
         f"{_chip(f'{total_tables} tables')}"
         "</div>",
+    ]
+    if domain_map_href:
+        body_parts.append(
+            f'<p><a href="{escape(domain_map_href)}">Domain map</a> — owners, '
+            "exports, supplier edges, and cross-domain references.</p>"
+        )
+    body_parts += [
         "<h2>Groups</h2>",
         "<table><thead><tr><th>Group</th><th>Tables</th></tr></thead><tbody>",
         *rows,

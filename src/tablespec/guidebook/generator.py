@@ -11,8 +11,10 @@ from datetime import UTC, datetime
 import logging
 from pathlib import Path
 
+from tablespec.domains import discover_domains
 from tablespec.guidebook._styles import CSS
 from tablespec.guidebook.discovery import discover_umfs, load_discovered_umf
+from tablespec.guidebook.domain_map import DOMAIN_MAP_FILENAME, render_domain_map
 from tablespec.guidebook.index_renderer import (
     render_group_index,
     render_top_index_flat,
@@ -67,16 +69,22 @@ def generate(
     # group -> [(table, table_type, description)] for index pages.
     per_group: dict[str, list[tuple[str, str, str | None]]] = {}
 
+    # Domains (domain.yaml per group) supply the glossary that resolves
+    # `term` on table pages, and feed the domain map after the loop.
+    domains = discover_domains(root)
+
     for unit in selected:
         try:
             # Same dispatch discovery used -- split dir / .umf.json / .umf.yaml.
             umf = load_discovered_umf(unit.path)
+            owning = domains.get(unit.group)
             html = render_table_page(
                 umf,
                 reverse_index,
                 group=unit.group,
                 provenance_sha=provenance_sha,
                 generated_at=generated_at,
+                glossary=owning.glossary if owning else None,
             )
         except Exception as exc:
             logger.warning("Failed to render %s/%s: %s", unit.group, unit.table, exc)
@@ -108,11 +116,23 @@ def generate(
         index_path.write_text(index_html, encoding="utf-8")
         written.append(index_path)
 
+    # Domain map: only when the root holds domain.yaml directories.
+    if domains:
+        map_path = output_dir / DOMAIN_MAP_FILENAME
+        map_path.write_text(
+            render_domain_map(domains, CSS, provenance_sha=provenance_sha),
+            encoding="utf-8",
+        )
+        written.append(map_path)
+
     # Top-level index: grouped when groups exist, flat otherwise.
     if has_groups:
         group_counts = [(name, len(rows)) for name, rows in per_group.items() if name]
         top_html = render_top_index_grouped(
-            group_counts, CSS, provenance_sha=provenance_sha
+            group_counts,
+            CSS,
+            provenance_sha=provenance_sha,
+            domain_map_href=DOMAIN_MAP_FILENAME if domains else None,
         )
     else:
         flat_rows = per_group.get("", [])

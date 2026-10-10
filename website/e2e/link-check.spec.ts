@@ -27,6 +27,7 @@ const SEED_PATHS = [
   `${SITE_PREFIX}/concepts/umf/`,
   `${SITE_PREFIX}/concepts/artifacts/`,
   `${SITE_PREFIX}/concepts/validation/`,
+  `${SITE_PREFIX}/concepts/domains/`,
   `${SITE_PREFIX}/cli-reference/`,
   `${SITE_PREFIX}/api-reference/`,
   `${SITE_PREFIX}/demos/`,

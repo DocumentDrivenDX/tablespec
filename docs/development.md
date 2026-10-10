@@ -154,6 +154,8 @@ src/tablespec/
 ├── casting_utils.py             # Type casting utilities
 ├── completeness_validator.py    # Data completeness validation
 ├── dependency_resolver.py       # Module dependency resolution
+├── domains.py                   # Domain (bounded-context) discovery from domain.yaml
+├── domain_validator.py          # Cross-domain rules: exports, suppliers, keys, glossary
 ├── format_utils.py              # Format conversion utilities
 ├── merge.py                     # Table merge with survivorship (requires PySpark)
 ├── relationship_validator.py    # FK relationship validation
