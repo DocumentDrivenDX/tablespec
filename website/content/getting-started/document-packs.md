@@ -90,3 +90,19 @@ redistributed in this TableSpec fixture.
 The [0.0.9 release](https://github.com/DocumentDrivenDX/tablespec/releases/tag/v0.0.9)
 includes the wheel, sdist and SHA256SUMS. Its published wheel passed offline
 publication and original-byte read-back for the three documented court fixtures.
+
+
+## Local Spark qualification
+
+The released TableSpec 0.0.9 and umf-core 0.8.1 wheels passed an independent
+three-court-PDF driver probe on Python 3.12.15, Spark 4.0.1, Delta 4.0.0 and
+Java 21.0.12.1. Checks cover exact acquisition hashes, unchanged refresh, offline
+replay/BagIt/fixity, native Delta replace/read-back, repeated merge and wrong-schema
+refusal preserving valid rows and original objects. Source HTTPS calls were
+blocked in Python during publication; OS-wide network isolation was not tested.
+
+[Evidence and discovery/qualification tools](https://documentdrivendx.github.io/umf/research/README.md)
+are published separately from the wheel. The observed local probe retains
+temporary paths and must not be run unchanged against remote targets. Live
+Databricks serverless, Unity Catalog volume semantics and SEC acquisition remain
+separate pending qualifications. No collector code changed for this evidence.
