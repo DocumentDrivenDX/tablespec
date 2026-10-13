@@ -1,0 +1,46 @@
+version: "1.0"
+table_name: inventory_daily
+description: >-
+  Daily inventory feed (post-cutover generation). Same grain as the legacy feed
+  plus a daily-only licn column; no fee_amount. Carries TWO rows for one grain
+  key (distinct meta_load_dt) so the per-branch dedup-latest window is
+  exercised, and one row whose file_date falls BEFORE the 2026-07-20 cutover and
+  must be dropped by the daily branch row_filter. Source for
+  gold_union_branches.
+columns:
+  - name: arbit_id
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: cpt
+    data_type: VARCHAR
+    nullable:
+      default: false
+  - name: dos
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: false
+  - name: snapshot_date
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: false
+  - name: file_date
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: false
+  - name: charges
+    data_type: INTEGER
+    nullable:
+      default: true
+  - name: licn
+    data_type: VARCHAR
+    nullable:
+      default: true
+  - name: meta_load_dt
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable:
+      default: false

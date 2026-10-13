@@ -17,7 +17,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   build:
@@ -61,6 +62,23 @@ jobs:
         run: |
           npm ci
           hugo --gc --minify
+
+      - name: Install Playwright Chromium
+        working-directory: website
+        run: npm run install:browsers:ci
+
+      # Deploy gate: production-baseURL link crawl + content strings (not visual
+      # snapshots — those run on the Microsite workflow and can drift by fonts).
+      - name: Playwright link crawl and content validation (/tablespec/ base)
+        working-directory: website
+        run: npm run test:links
+        env:
+          CI: true
+
+      # The Hugo test server writes localhost URLs and livereload into public/.
+      - name: Rebuild production output after browser tests
+        working-directory: website
+        run: hugo --gc --minify --cleanDestinationDir
 
       - name: Generate combined Pages artifact
         env:

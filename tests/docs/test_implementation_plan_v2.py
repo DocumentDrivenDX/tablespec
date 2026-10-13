@@ -29,7 +29,9 @@ def _source_inventory() -> set[str]:
 def _documented_inventory(text: str) -> set[str]:
     appendix = text.split("## Appendix: Library Module Map (existing surface)\n", 1)[1]
     appendix = appendix.split("\n## ", 1)[0]
-    table_rows = "\n".join(line for line in appendix.splitlines() if line.startswith("| "))
+    table_rows = "\n".join(
+        line for line in appendix.splitlines() if line.startswith("| ")
+    )
     return set(re.findall(r"`([^`]+)`", table_rows))
 
 
@@ -77,13 +79,11 @@ def test_implementation_plan_v2_links_to_active_tracking() -> None:
 def test_implementation_plan_is_the_live_template() -> None:
     text = LIVE_PLAN.read_text(encoding="utf-8")
 
-    assert "**Version**: 3.0" in text
-    assert (
-        "**Status**: Updated for the committed-artifact compiler + Connect-safe multi-engine runtime"
-        in text
-    )
-    assert "**Last Updated**: 2026-06-12" in text
+    assert "**Version**: 3.1" in text
+    assert "apps/data-profiling/" in text
+    assert "**Last Updated**: 2026-07-22" in text
     assert "implementation-plan-v2.md" in text
+    assert "AR-2026-07-22-desired-state-realignment.md" in text
 
     required_sections = [
         "Scope",

@@ -386,13 +386,17 @@ class DynamicValueGenerator:
             return self._create_integer_generator(column_metadata)
         return self._create_string_generator(column_metadata)
 
-    def _create_sample_based_generator(self, sample_values: list, data_type: str) -> Callable:
+    def _create_sample_based_generator(
+        self, sample_values: list, data_type: str
+    ) -> Callable:
         """Create generator that mimics sample values."""
         import random
 
         def generator():
             # Filter out obvious column names and placeholders
-            valid_samples = [s for s in sample_values if not self._is_column_name_or_placeholder(s)]
+            valid_samples = [
+                s for s in sample_values if not self._is_column_name_or_placeholder(s)
+            ]
 
             if not valid_samples:
                 # Fallback to pattern-based generation
@@ -494,7 +498,9 @@ class DynamicValueGenerator:
             return f"{prefix}{suffix}"
 
         # For other types, generate something reasonable
-        return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+        return "".join(
+            random.choice(string.ascii_letters + string.digits) for _ in range(10)
+        )
 
     def _create_integer_generator(self, metadata: dict[str, Any]) -> Callable:
         """Create integer generator based on metadata."""

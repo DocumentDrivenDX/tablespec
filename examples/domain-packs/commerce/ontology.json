@@ -1,0 +1,981 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:commerce",
+  "title": "commerce ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:commerce:",
+      "elements": [
+        {
+          "id": "customers",
+          "kind": "record",
+          "name": "customers",
+          "title": "customers",
+          "description": "Synthetic customers; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "customers.id"
+            },
+            {
+              "module": "domain",
+              "element": "customers.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "customers.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "customers.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored customers id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "customers.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored customers name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "suppliers",
+          "kind": "record",
+          "name": "suppliers",
+          "title": "suppliers",
+          "description": "Synthetic suppliers; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "suppliers.id"
+            },
+            {
+              "module": "domain",
+              "element": "suppliers.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "suppliers.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "suppliers.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored suppliers id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "suppliers.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored suppliers name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "products",
+          "kind": "record",
+          "name": "products",
+          "title": "products",
+          "description": "Synthetic products; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "products.id"
+            },
+            {
+              "module": "domain",
+              "element": "products.supplier_id"
+            },
+            {
+              "module": "domain",
+              "element": "products.sku"
+            },
+            {
+              "module": "domain",
+              "element": "products.unit_price"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "products.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "products.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored products id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "products.supplier_id",
+          "name": "supplier_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored products supplier_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "products.sku",
+          "name": "sku",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored products sku; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "products.unit_price",
+          "name": "unit_price",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored products unit_price; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "orders",
+          "kind": "record",
+          "name": "orders",
+          "title": "orders",
+          "description": "Synthetic orders; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "orders.id"
+            },
+            {
+              "module": "domain",
+              "element": "orders.customer_id"
+            },
+            {
+              "module": "domain",
+              "element": "orders.ordered_at"
+            },
+            {
+              "module": "domain",
+              "element": "orders.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "orders.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "orders.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored orders id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "orders.customer_id",
+          "name": "customer_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored orders customer_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "orders.ordered_at",
+          "name": "ordered_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored orders ordered_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "orders.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored orders status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "order_lines",
+          "kind": "record",
+          "name": "order_lines",
+          "title": "order_lines",
+          "description": "Synthetic order_lines; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "order_lines.id"
+            },
+            {
+              "module": "domain",
+              "element": "order_lines.order_id"
+            },
+            {
+              "module": "domain",
+              "element": "order_lines.product_id"
+            },
+            {
+              "module": "domain",
+              "element": "order_lines.quantity"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "order_lines.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "order_lines.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored order_lines id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "order_lines.order_id",
+          "name": "order_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored order_lines order_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "order_lines.product_id",
+          "name": "product_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored order_lines product_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "order_lines.quantity",
+          "name": "quantity",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored order_lines quantity; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fulfillments",
+          "kind": "record",
+          "name": "fulfillments",
+          "title": "fulfillments",
+          "description": "Synthetic fulfillments; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "fulfillments.id"
+            },
+            {
+              "module": "domain",
+              "element": "fulfillments.line_id"
+            },
+            {
+              "module": "domain",
+              "element": "fulfillments.quantity"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "fulfillments.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "fulfillments.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fulfillments id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fulfillments.line_id",
+          "name": "line_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fulfillments line_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fulfillments.quantity",
+          "name": "quantity",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fulfillments quantity; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "invoices",
+          "kind": "record",
+          "name": "invoices",
+          "title": "invoices",
+          "description": "Synthetic invoices; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "invoices.id"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.order_id"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.amount"
+            },
+            {
+              "module": "domain",
+              "element": "invoices.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "invoices.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "invoices.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored invoices id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.order_id",
+          "name": "order_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored invoices order_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "invoices.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored invoices amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "invoices.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored invoices currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "payments",
+          "kind": "record",
+          "name": "payments",
+          "title": "payments",
+          "description": "Synthetic payments; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "payments.id"
+            },
+            {
+              "module": "domain",
+              "element": "payments.invoice_id"
+            },
+            {
+              "module": "domain",
+              "element": "payments.amount"
+            },
+            {
+              "module": "domain",
+              "element": "payments.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "payments.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "payments.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payments id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "payments.invoice_id",
+          "name": "invoice_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payments invoice_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "payments.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payments amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "payments.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored payments currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns",
+          "kind": "record",
+          "name": "returns",
+          "title": "returns",
+          "description": "Synthetic returns; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "returns.id"
+            },
+            {
+              "module": "domain",
+              "element": "returns.line_id"
+            },
+            {
+              "module": "domain",
+              "element": "returns.quantity"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "returns.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "returns.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns.line_id",
+          "name": "line_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns line_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "returns.quantity",
+          "name": "quantity",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored returns quantity; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "refunds",
+          "kind": "record",
+          "name": "refunds",
+          "title": "refunds",
+          "description": "Synthetic refunds; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "refunds.id"
+            },
+            {
+              "module": "domain",
+              "element": "refunds.return_id"
+            },
+            {
+              "module": "domain",
+              "element": "refunds.amount"
+            },
+            {
+              "module": "domain",
+              "element": "refunds.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "refunds.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "refunds.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored refunds id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "refunds.return_id",
+          "name": "return_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored refunds return_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "refunds.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored refunds amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "refunds.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored refunds currency; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "products.supplier_id",
+          "name": "products.supplier_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "products"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "suppliers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "orders.customer_id",
+          "name": "orders.customer_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "orders"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "customers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "order_lines.order_id",
+          "name": "order_lines.order_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "order_lines"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "orders",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "order_lines.product_id",
+          "name": "order_lines.product_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "order_lines"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "products",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "fulfillments.line_id",
+          "name": "fulfillments.line_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "fulfillments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "order_lines",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "invoices.order_id",
+          "name": "invoices.order_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "invoices"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "orders",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "payments.invoice_id",
+          "name": "payments.invoice_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "payments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "invoices",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "returns.line_id",
+          "name": "returns.line_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "returns"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "order_lines",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "refunds.return_id",
+          "name": "refunds.return_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "refunds"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "returns",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

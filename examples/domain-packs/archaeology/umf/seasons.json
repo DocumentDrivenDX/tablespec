@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "seasons",
+  "description": "Synthetic seasons; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored seasons id; synthetic reference scenario."
+    },
+    {
+      "name": "site_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored seasons site_id; synthetic reference scenario."
+    },
+    {
+      "name": "excavation_year",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored seasons excavation_year; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "site_id",
+        "references_table": "sites",
+        "references_column": "id"
+      }
+    ]
+  }
+}

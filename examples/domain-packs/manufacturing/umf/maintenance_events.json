@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "table_name": "maintenance_events",
+  "description": "Synthetic maintenance_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events id; synthetic reference scenario."
+    },
+    {
+      "name": "component_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events component_id; synthetic reference scenario."
+    },
+    {
+      "name": "work_order_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events work_order_id; synthetic reference scenario."
+    },
+    {
+      "name": "action",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events action; synthetic reference scenario."
+    },
+    {
+      "name": "alarm_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events alarm_id; synthetic reference scenario."
+    },
+    {
+      "name": "occurred_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events occurred_at; synthetic reference scenario."
+    },
+    {
+      "name": "resumed_run_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored maintenance_events resumed_run_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "component_id",
+        "references_table": "components",
+        "references_column": "id"
+      },
+      {
+        "column": "work_order_id",
+        "references_table": "work_orders",
+        "references_column": "id"
+      },
+      {
+        "column": "alarm_id",
+        "references_table": "alarms",
+        "references_column": "id"
+      },
+      {
+        "column": "resumed_run_id",
+        "references_table": "production_runs",
+        "references_column": "id"
+      }
+    ]
+  }
+}

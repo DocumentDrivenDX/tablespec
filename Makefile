@@ -1,6 +1,9 @@
-.PHONY: help install install-dev install-spark setup-spark spark-env format lint type-check test test-unit test-integration coverage docs docs-serve clean build run
+.PHONY: help install install-dev install-spark setup-spark spark-env format format-check lint type-check test test-unit test-integration coverage docs docs-serve clean build run
 
-TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py')
+# Library + scripts + Databricks app Python. Notebooks under apps/ are
+# Databricks-runtime scripts (display, spark, widgets) and stay out of ruff —
+# same exclusion as .pre-commit-config.yaml's `(^|/)notebooks/` pattern.
+TRACKED_LINT_FILES := $(shell git ls-files -- 'src/**/*.py' 'scripts/**/*.py' 'apps/**/*.py' ':(exclude)apps/**/notebooks/**')
 # Includes the Databricks app's suite (apps/data-profiling/tests), which pytest
 # also picks up via `testpaths` when invoked without explicit paths. That suite is
 # flat, and a `**/` pathspec matches no files there -- keep the single-star glob.
@@ -45,6 +48,9 @@ pre-commit-run: ## Run all pre-commit hooks manually
 format: ## Format code with ruff
 	uv run ruff format .
 
+format-check: ## Fail on unformatted files (same scope as the pre-commit CI gate)
+	uv run ruff format --check .
+
 lint: ## Lint code with ruff
 	uv run ruff check $(TRACKED_LINT_FILES)
 
@@ -80,6 +86,28 @@ docs: ## Build API documentation
 docs-serve: ## Serve API documentation locally
 	uv run mkdocs serve
 
+# Product microsite (Hugo + Playwright)
+website-install: ## Install website npm deps and Chromium for Playwright
+	cd website && npm ci && npm run install:browsers
+
+website-test-content: ## Microsite content/nav/screenshot Playwright suite
+	cd website && npm run test:content
+
+website-test-links: ## Microsite link crawl + content checks under /tablespec/ base
+	cd website && npm run test:links
+
+website-test: ## Full microsite Playwright suite (content + link check)
+	cd website && npm run test:all
+
+app-smoke: ## FR-23 mock-runtime smoke for apps/data-profiling (no workspace)
+	cd apps/data-profiling && PROFILER_RUNTIME=mock \
+		PROFILER_METADATA_CATALOG=main \
+		PROFILER_METADATA_SCHEMA=tablespec_profiler \
+		uv run pytest tests/test_fr23_stack.py tests/test_config.py tests/test_provision.py tests/test_diagnostics.py -q
+
+app-typecheck: ## Scoped pyright on FR-23 app modules (config/provision/diagnostics/smoke)
+	cd apps/data-profiling && uv run pyright
+
 # Development
 clean: ## Remove build artifacts and cache files
 	rm -rf build/ dist/ *.egg-info .pytest_cache/ .coverage htmlcov/ .ruff_cache/
@@ -101,6 +129,6 @@ test-databricks-all: ## Run full test suite on Databricks (skips local-spark-onl
 		--ignore=tests/unit/test_baseline_service.py
 
 # Convenience targets
-check: lint type-check test ## Run all checks (lint, type-check, test)
+check: format-check lint type-check test ## Run all checks (format-check, lint, type-check, test)
 
 all: install-dev format check ## Install, format, and run all checks

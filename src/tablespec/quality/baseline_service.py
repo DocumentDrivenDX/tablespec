@@ -337,7 +337,9 @@ class BaselineService:
             return None
 
         # Capture current checksums
-        current_checksums = self._capture_record_checksums(df, baseline.primary_key_columns)
+        current_checksums = self._capture_record_checksums(
+            df, baseline.primary_key_columns
+        )
         if current_checksums is None:
             return None
 
@@ -352,7 +354,9 @@ class BaselineService:
         common_keys = baseline_keys & current_keys
 
         # Check for modifications in common keys
-        modified_keys = {k for k in common_keys if baseline_checksums[k] != current_checksums[k]}
+        modified_keys = {
+            k for k in common_keys if baseline_checksums[k] != current_checksums[k]
+        }
         unchanged_keys = common_keys - modified_keys
 
         total_baseline = len(baseline_keys)
@@ -363,8 +367,12 @@ class BaselineService:
             removed_count=len(removed_keys),
             modified_count=len(modified_keys),
             unchanged_count=len(unchanged_keys),
-            added_percent=(len(added_keys) / total_current * 100) if total_current > 0 else 0,
-            removed_percent=(len(removed_keys) / total_baseline * 100) if total_baseline > 0 else 0,
+            added_percent=(len(added_keys) / total_current * 100)
+            if total_current > 0
+            else 0,
+            removed_percent=(len(removed_keys) / total_baseline * 100)
+            if total_baseline > 0
+            else 0,
             modified_percent=(len(modified_keys) / total_baseline * 100)
             if total_baseline > 0
             else 0,
@@ -452,7 +460,9 @@ class BaselineService:
             )
 
         except Exception as e:
-            self.logger.warning(f"Could not capture distribution for {column_name}: {e}")
+            self.logger.warning(
+                f"Could not capture distribution for {column_name}: {e}"
+            )
             return None
 
     def _capture_numeric_stats(
@@ -474,8 +484,12 @@ class BaselineService:
 
             return NumericStats(
                 column_name=column_name,
-                min_value=float(stats_row["min_val"]) if stats_row["min_val"] is not None else None,
-                max_value=float(stats_row["max_val"]) if stats_row["max_val"] is not None else None,
+                min_value=float(stats_row["min_val"])
+                if stats_row["min_val"] is not None
+                else None,
+                max_value=float(stats_row["max_val"])
+                if stats_row["max_val"] is not None
+                else None,
                 mean_value=float(stats_row["mean_val"])
                 if stats_row["mean_val"] is not None
                 else None,
@@ -485,7 +499,9 @@ class BaselineService:
             )
 
         except Exception as e:
-            self.logger.warning(f"Could not capture numeric stats for {column_name}: {e}")
+            self.logger.warning(
+                f"Could not capture numeric stats for {column_name}: {e}"
+            )
             return None
 
     def _capture_record_checksums(
@@ -503,7 +519,9 @@ class BaselineService:
             has_meta_checksum = "meta_checksum" in df.columns
 
             # Create PK hash
-            pk_expr = F.concat_ws("|", *[F.col(c).cast("string") for c in primary_key_columns])
+            pk_expr = F.concat_ws(
+                "|", *[F.col(c).cast("string") for c in primary_key_columns]
+            )
             pk_hash_expr = F.sha2(pk_expr, 256)
 
             if has_meta_checksum:
@@ -514,8 +532,12 @@ class BaselineService:
                 )
             else:
                 # Compute hash of all non-meta columns
-                non_meta_cols = [c for c in df.columns if c not in self.EXCLUDED_COLUMNS]
-                row_expr = F.concat_ws("|", *[F.col(c).cast("string") for c in non_meta_cols])
+                non_meta_cols = [
+                    c for c in df.columns if c not in self.EXCLUDED_COLUMNS
+                ]
+                row_expr = F.concat_ws(
+                    "|", *[F.col(c).cast("string") for c in non_meta_cols]
+                )
                 checksum_df = df.select(
                     pk_hash_expr.alias("pk_hash"),
                     F.sha2(row_expr, 256).alias("row_checksum"),

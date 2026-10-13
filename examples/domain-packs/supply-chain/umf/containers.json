@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "containers",
+  "description": "Synthetic containers; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored containers id; synthetic reference scenario."
+    },
+    {
+      "name": "parent_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored containers parent_id; synthetic reference scenario."
+    },
+    {
+      "name": "kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored containers kind; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "parent_id",
+        "references_table": "containers",
+        "references_column": "id"
+      }
+    ]
+  }
+}

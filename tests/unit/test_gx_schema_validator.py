@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,13 +19,17 @@ class TestGenerateMinimalKwargs:
 
     def test_column_pair_expectation(self, validator):
         """Column pair expectations need column_A and column_B."""
-        kwargs = validator._generate_minimal_kwargs("expect_column_pair_values_to_be_equal")
+        kwargs = validator._generate_minimal_kwargs(
+            "expect_column_pair_values_to_be_equal"
+        )
         assert kwargs["column_A"] == "col_a"
         assert kwargs["column_B"] == "col_b"
 
     def test_compound_columns_expectation(self, validator):
         """Compound column expectations need column_list."""
-        kwargs = validator._generate_minimal_kwargs("expect_compound_columns_to_be_unique")
+        kwargs = validator._generate_minimal_kwargs(
+            "expect_compound_columns_to_be_unique"
+        )
         assert kwargs["column_list"] == ["col1", "col2"]
 
     def test_multicolumn_expectation(self, validator):
@@ -60,12 +63,16 @@ class TestGenerateMinimalKwargs:
 
     def test_table_column_count(self, validator):
         """Table column count needs value."""
-        kwargs = validator._generate_minimal_kwargs("expect_table_column_count_to_equal")
+        kwargs = validator._generate_minimal_kwargs(
+            "expect_table_column_count_to_equal"
+        )
         assert kwargs["value"] == 5
 
     def test_table_basic(self, validator):
         """Basic table expectation has no column kwargs."""
-        kwargs = validator._generate_minimal_kwargs("expect_table_row_count_to_be_between")
+        kwargs = validator._generate_minimal_kwargs(
+            "expect_table_row_count_to_be_between"
+        )
         # Should have between kwargs
         assert "min_value" in kwargs
         assert "max_value" in kwargs
@@ -188,9 +195,7 @@ class TestValidateExpectationType:
 
     def test_validates_known_expectation_type(self, validator):
         """Should return True for a valid, known expectation type when GX is available."""
-        is_valid, error = validator.validate_expectation_type(
-            "expect_column_to_exist"
-        )
+        is_valid, error = validator.validate_expectation_type("expect_column_to_exist")
         assert is_valid is True
         assert error is None
 
@@ -252,11 +257,7 @@ class TestGenerateCorrectedSchema:
             "properties": {
                 "expectations": {
                     "items": {
-                        "properties": {
-                            "type": {
-                                "enum": ["type_a", "type_b", "type_c"]
-                            }
-                        }
+                        "properties": {"type": {"enum": ["type_a", "type_b", "type_c"]}}
                     }
                 }
             }
@@ -271,12 +272,16 @@ class TestGenerateCorrectedSchema:
             "invalid": [{"type": "type_b", "error": "not supported"}],
         }
 
-        validator.generate_corrected_schema(schema_path, output_path, validation_results)
+        validator.generate_corrected_schema(
+            schema_path, output_path, validation_results
+        )
 
         with output_path.open() as f:
             corrected = json.load(f)
 
-        enum_types = corrected["properties"]["expectations"]["items"]["properties"]["type"]["enum"]
+        enum_types = corrected["properties"]["expectations"]["items"]["properties"][
+            "type"
+        ]["enum"]
         assert sorted(enum_types) == ["type_a", "type_c"]
 
 

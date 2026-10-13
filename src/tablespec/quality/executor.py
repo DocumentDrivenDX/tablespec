@@ -40,6 +40,7 @@ try:
         is_run_comparison_expectation,
     )
 except ImportError:
+
     def is_run_comparison_expectation(expectation_type: str) -> bool:  # type: ignore[misc]
         """Fallback when run_comparison module is not available."""
         return expectation_type in {
@@ -47,6 +48,7 @@ except ImportError:
             "expect_column_distribution_stable",
             "expect_record_changes_within_limits",
         }
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -119,7 +121,9 @@ class QualityCheckExecutor:
 
             # Suppress GX internal loggers (noisy INFO messages)
             logging.getLogger("great_expectations").setLevel(logging.WARNING)
-            logging.getLogger("great_expectations._docs_decorators").setLevel(logging.WARNING)
+            logging.getLogger("great_expectations._docs_decorators").setLevel(
+                logging.WARNING
+            )
             logging.getLogger("great_expectations.expectations.expectation").setLevel(
                 logging.WARNING
             )
@@ -176,7 +180,8 @@ class QualityCheckExecutor:
             # Convert datetime to unix epoch (meta_load_dt is stored as integer)
             cutoff_epoch = int(since_timestamp.timestamp())
             spark_df = spark_df.filter(
-                F.col("meta_load_dt").isNotNull() & (F.col("meta_load_dt") > F.lit(cutoff_epoch))
+                F.col("meta_load_dt").isNotNull()
+                & (F.col("meta_load_dt") > F.lit(cutoff_epoch))
             )
             validated_records = spark_df.count()
             incremental_mode = True
@@ -228,7 +233,9 @@ class QualityCheckExecutor:
                 "Great Expectations not available - recording skipped quality checks for "
                 f"{table_name}"
             )
-            results = [self._build_unavailable_result(table_name, check) for check in checks]
+            results = [
+                self._build_unavailable_result(table_name, check) for check in checks
+            ]
             score = self._calculate_quality_score(results)
             thresholds = None
             if thresholds_dict:
@@ -354,31 +361,41 @@ class QualityCheckExecutor:
 
         # Build parallel lists: expectations (for GX) and metadata (for result mapping)
         expectations: list[dict[str, Any]] = []
-        check_meta: list[tuple[str, str | None, str, list[str], str, bool, str | None]] = []
+        check_meta: list[
+            tuple[str, str | None, str, list[str], str, bool, str | None]
+        ] = []
 
         for check in checks:
-            expectation_type, kwargs, column_name, check_id, tags = self._extract_check_metadata(check)
+            expectation_type, kwargs, column_name, check_id, tags = (
+                self._extract_check_metadata(check)
+            )
 
             # Enrich kwargs with baseline data for run comparison expectations
             if is_run_comparison_expectation(expectation_type):
-                kwargs = self._enrich_with_baseline(expectation_type, kwargs, column_name)
+                kwargs = self._enrich_with_baseline(
+                    expectation_type, kwargs, column_name
+                )
 
             expectation = check.expectation or {}
             meta = expectation.get("meta", {})
-            expectations.append({
-                "type": expectation_type,
-                "kwargs": kwargs,
-                "meta": meta,
-            })
-            check_meta.append((
-                expectation_type,
-                column_name,
-                check_id,
-                tags,
-                check.severity,
-                check.blocking,
-                check.description,
-            ))
+            expectations.append(
+                {
+                    "type": expectation_type,
+                    "kwargs": kwargs,
+                    "meta": meta,
+                }
+            )
+            check_meta.append(
+                (
+                    expectation_type,
+                    column_name,
+                    check_id,
+                    tags,
+                    check.severity,
+                    check.blocking,
+                    check.description,
+                )
+            )
 
         try:
             suite_result = self.executor.execute_suite(spark_df, expectations)
@@ -402,7 +419,15 @@ class QualityCheckExecutor:
 
         # Map suite results back to QualityCheckResult by position
         results: list[QualityCheckResult] = []
-        for i, (exp_type, col_name, check_id, tags, severity, blocking, description) in enumerate(check_meta):
+        for i, (
+            exp_type,
+            col_name,
+            check_id,
+            tags,
+            severity,
+            blocking,
+            description,
+        ) in enumerate(check_meta):
             if i < len(suite_result.results):
                 er = suite_result.results[i]
                 results.append(
@@ -444,10 +469,14 @@ class QualityCheckExecutor:
     ) -> tuple[str, dict[str, Any], str | None, str, list[str]]:
         """Extract expectation metadata for consistent check identification."""
         expectation = check.expectation
-        expectation_type = expectation.get("expectation_type") or expectation.get("type", "unknown")
+        expectation_type = expectation.get("expectation_type") or expectation.get(
+            "type", "unknown"
+        )
         kwargs = expectation.get("kwargs", {})
         column_name = kwargs.get("column")
-        check_id = f"{expectation_type}_{column_name}" if column_name else expectation_type
+        check_id = (
+            f"{expectation_type}_{column_name}" if column_name else expectation_type
+        )
         tags = list(check.tags)
         return expectation_type, kwargs, column_name, check_id, tags
 
@@ -504,13 +533,19 @@ class QualityCheckExecutor:
                     f"Injected baseline checksums: {len(self.baseline.record_checksums)} records"
                 )
             else:
-                self.logger.debug("No baseline checksums available for record comparison")
+                self.logger.debug(
+                    "No baseline checksums available for record comparison"
+                )
 
         return enriched
 
-    def _build_unavailable_result(self, table_name: str, check: QualityCheck) -> QualityCheckResult:
+    def _build_unavailable_result(
+        self, table_name: str, check: QualityCheck
+    ) -> QualityCheckResult:
         """Return a non-blocking result when GX is unavailable."""
-        expectation_type, _kwargs, column_name, check_id, tags = self._extract_check_metadata(check)
+        expectation_type, _kwargs, column_name, check_id, tags = (
+            self._extract_check_metadata(check)
+        )
         return QualityCheckResult(
             check_id=check_id,
             expectation_type=expectation_type,
@@ -553,7 +588,9 @@ class QualityCheckExecutor:
         msg = f"Unable to resolve pipeline name for UMF path: {umf_path}"
         raise ValueError(msg)
 
-    def _merge_with_defaults(self, configured_checks: list[QualityCheck]) -> list[QualityCheck]:
+    def _merge_with_defaults(
+        self, configured_checks: list[QualityCheck]
+    ) -> list[QualityCheck]:
         """Merge configured checks with default checks.
 
         Default checks (like row count change) are added automatically unless:
@@ -598,7 +635,9 @@ class QualityCheckExecutor:
 
         return merged_checks
 
-    def _calculate_quality_score(self, results: list[QualityCheckResult]) -> QualityScore:
+    def _calculate_quality_score(
+        self, results: list[QualityCheckResult]
+    ) -> QualityScore:
         """Calculate quality metrics from check results.
 
         Args:
@@ -630,8 +669,12 @@ class QualityCheckExecutor:
         critical_failures = sum(
             1 for r in results if not r.success and r.severity in {"critical", "error"}
         )
-        warning_failures = sum(1 for r in results if not r.success and r.severity == "warning")
-        info_failures = sum(1 for r in results if not r.success and r.severity == "info")
+        warning_failures = sum(
+            1 for r in results if not r.success and r.severity == "warning"
+        )
+        info_failures = sum(
+            1 for r in results if not r.success and r.severity == "info"
+        )
 
         blocking_failures = sum(1 for r in results if not r.success and r.blocking)
 
@@ -683,7 +726,11 @@ class QualityCheckExecutor:
         # Check individual blocking rules: block on failed checks that are
         # marked blocking with critical or error severity
         for result in results:
-            if not result.success and result.blocking and result.severity in ("critical", "error"):
+            if (
+                not result.success
+                and result.blocking
+                and result.severity in ("critical", "error")
+            ):
                 self.logger.warning(
                     f"Blocking check failed: {result.check_id} ({result.severity})"
                 )
@@ -717,7 +764,8 @@ class QualityCheckExecutor:
             # Check critical failure rate
             if (
                 thresholds.max_critical_failure_percent is not None
-                and score.critical_failure_rate > thresholds.max_critical_failure_percent
+                and score.critical_failure_rate
+                > thresholds.max_critical_failure_percent
             ):
                 self.logger.warning(
                     f"Critical failure rate ({score.critical_failure_rate:.1f}%) exceeds threshold "

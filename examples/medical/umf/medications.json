@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "table_name": "medications",
+  "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+  "columns": [
+    {
+      "name": "resource_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "resource key"
+    },
+    {
+      "name": "code_text",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "code text"
+    }
+  ],
+  "primary_key": [
+    "resource_key"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "resource_key",
+        "references_table": "resources",
+        "references_column": "resource_key"
+      }
+    ]
+  }
+}

@@ -4,6 +4,12 @@ PySpark-dependent functions are tested by checking they raise ImportError
 when PySpark is unavailable, or skipped if PySpark is present.
 """
 
+# @covers US-043-AC1
+# @covers US-043-AC2
+# @covers US-043-AC3
+# @covers US-043-AC4
+# @covers US-050-AC4
+
 from __future__ import annotations
 
 import pytest

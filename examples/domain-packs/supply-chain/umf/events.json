@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "events",
+  "description": "Synthetic events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored events id; synthetic reference scenario."
+    },
+    {
+      "name": "shipment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored events shipment_id; synthetic reference scenario."
+    },
+    {
+      "name": "upstream_event_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored events upstream_event_id; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored events event_time; synthetic reference scenario."
+    },
+    {
+      "name": "action",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored events action; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "shipment_id",
+        "references_table": "shipments",
+        "references_column": "id"
+      },
+      {
+        "column": "upstream_event_id",
+        "references_table": "source_events",
+        "references_column": "id"
+      }
+    ]
+  }
+}

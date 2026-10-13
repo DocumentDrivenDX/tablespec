@@ -909,7 +909,7 @@ if len(months) < 2:
 
 print(f"\nGenerating Aetna bronze claims — {len(months)} months")
 print(f"Med rows/month: {args.med_rows}   Rx rows/month: {args.rx_rows}")
-print(f"Schema drift: med_claims month-2 gains `telehealth_indicator` column\n")
+print("Schema drift: med_claims month-2 gains `telehealth_indicator` column\n")
 
 for idx, tag in enumerate(months):
     is_month2 = idx > 0

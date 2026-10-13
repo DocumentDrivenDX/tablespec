@@ -14,6 +14,12 @@ every supported expectation type against BOTH a clean dataset (expect
 JAVA_HOME is required. The same operations run on real Databricks serverless.
 """
 
+# @covers US-009-AC1
+# @covers US-009-AC2
+# @covers US-009-AC3
+# @covers US-009-AC4
+# @covers US-009-AC5
+
 from __future__ import annotations
 
 import warnings

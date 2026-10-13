@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "offers",
+  "description": "Synthetic offers; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored offers id; synthetic reference scenario."
+    },
+    {
+      "name": "application_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored offers application_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored offers amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored offers currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "application_id",
+        "references_table": "applications",
+        "references_column": "id"
+      }
+    ]
+  }
+}

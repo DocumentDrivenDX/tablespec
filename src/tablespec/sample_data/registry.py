@@ -5,7 +5,11 @@ import logging
 import random
 from typing import TYPE_CHECKING, Any
 
-from .foreign_keys import DynamicValueGenerator, ForeignKeyPoolManager, RelationshipAnalyzer
+from .foreign_keys import (
+    DynamicValueGenerator,
+    ForeignKeyPoolManager,
+    RelationshipAnalyzer,
+)
 
 if TYPE_CHECKING:
     from tablespec import GXConstraintExtractor
@@ -18,7 +22,9 @@ class KeyRegistry:
     """Manages primary and foreign keys across tables with relationship-driven pools."""
 
     def __init__(
-        self, config: "GenerationConfig", gx_extractor: "GXConstraintExtractor | None" = None
+        self,
+        config: "GenerationConfig",
+        gx_extractor: "GXConstraintExtractor | None" = None,
     ) -> None:
         self.config = config
         self.primary_keys: dict[str, list[str | int | float]] = defaultdict(list)
@@ -75,7 +81,9 @@ class KeyRegistry:
 
         # Step 2: Generate pools for each equivalence group
         for group_id, columns in equivalence_groups.items():
-            self.logger.debug(f"Processing equivalence group '{group_id}' with columns: {columns}")
+            self.logger.debug(
+                f"Processing equivalence group '{group_id}' with columns: {columns}"
+            )
 
             # Find a representative column to get metadata from
             representative_column = self._find_representative_column(columns, umf_files)
@@ -88,7 +96,9 @@ class KeyRegistry:
             # Create generator function for this column type
             # Note: Regex patterns are applied in _generate_column_value during table generation
             # Foreign key pools use sample_values from UMF metadata
-            generator_func = self.value_generator.create_generator(representative_column)
+            generator_func = self.value_generator.create_generator(
+                representative_column
+            )
 
             # Calculate pool size based on unique constraints
             pool_size = None
@@ -101,7 +111,8 @@ class KeyRegistry:
                     max_rows = max(table_row_counts.get(table, 0) for table in tables)
                     pool_size = max_rows
                     constraint_cols = (
-                        columns & self.relationship_analyzer.get_unique_constraint_columns()
+                        columns
+                        & self.relationship_analyzer.get_unique_constraint_columns()
                     )
                     self.logger.info(
                         f"Group '{group_id}' contains unique constraint columns {constraint_cols}, "
@@ -125,7 +136,9 @@ class KeyRegistry:
                 group_id, columns, generator_func, pool_size, seed_values
             )
 
-        self.logger.info(f"Successfully generated {len(equivalence_groups)} foreign key pools")
+        self.logger.info(
+            f"Successfully generated {len(equivalence_groups)} foreign key pools"
+        )
 
     def _find_representative_column(
         self, columns: set[str], umf_files: dict[str, dict]
@@ -160,7 +173,9 @@ class KeyRegistry:
         """Create 80/20 weighted distribution for a pool."""
         high_freq_count = int(pool_size * 0.2)  # Top 20% of keys
         high_weight = self.config.high_frequency_key_ratio / high_freq_count
-        low_weight = (1 - self.config.high_frequency_key_ratio) / (pool_size - high_freq_count)
+        low_weight = (1 - self.config.high_frequency_key_ratio) / (
+            pool_size - high_freq_count
+        )
 
         weights = []
         for i in range(pool_size):
@@ -197,7 +212,9 @@ class KeyRegistry:
                 return key
 
         if mandatory:
-            self.logger.warning(f"No foreign key available for mandatory column '{column_name}'")
+            self.logger.warning(
+                f"No foreign key available for mandatory column '{column_name}'"
+            )
 
         return None
 

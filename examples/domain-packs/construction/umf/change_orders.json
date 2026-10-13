@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "table_name": "change_orders",
+  "description": "Synthetic change_orders; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored change_orders id; synthetic reference scenario."
+    },
+    {
+      "name": "contract_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored change_orders contract_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored change_orders status; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored change_orders amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "downstream_package_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored change_orders downstream_package_id; synthetic reference scenario."
+    },
+    {
+      "name": "rfi_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored change_orders rfi_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "contract_id",
+        "references_table": "contracts",
+        "references_column": "id"
+      },
+      {
+        "column": "downstream_package_id",
+        "references_table": "work_packages",
+        "references_column": "id"
+      },
+      {
+        "column": "rfi_id",
+        "references_table": "rfis",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,669 @@
+{
+  "id": "real-estate",
+  "version": "1.0.0",
+  "description": "real-estate synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_parties": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/parties.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "144889c701552bc9720a050b6a3c82af490e2311abf4ef1655ce01dff6ad36eb"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_parcels": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/parcels.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8620a4236b98f779880a62065b131f66ff6085fc07145135809d65d264f19668"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_properties": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/properties.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "05080afb07f8b6d3ee66210b63630a8c8992968a4fad6610008151e96dac2a33"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_buildings": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/buildings.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "89760632f37f58759a7d14ee6d24dbd118ac1bc93ad9cbac5d456089b095954e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_units": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/units.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1b098fad3fc69749a026e2e173da8b516e3c344395875b3865aec944eb07e7ce"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_listings": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/listings.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1219973beb8ebda5cf1fc08cf74b685155fa55a6f67311df963e25f4035ea268"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_listing_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/listing_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ee698dce6c242c7a9bec29e42c247a227364f3acc264f0592f0dc314c11dc903"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_transactions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/transactions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "a66c4bae2d9a695f95e79940f93c8bec3cf1061e2cb3ad38fdd566f75f72ed4f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_leases": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/leases.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "57749b3c873ebd1b43e813be4bf657c69bffec90aa9b2f778da054bd3f5fc0e6"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_offices": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/offices.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c602f17e805437923641e394b0446f40b091b26db89721bf11b35eb885968307"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_agents": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/agents.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "fc1633218ecd0f3380fb4717068168b98b8e5633ac16daa04bfbf69edcc20f72"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_listing_agents": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/listing_agents.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "63acbf86137c4981d86ce61fa3070cd20d64b115d5bfbef4e596957d229a1759"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_media": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/media.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "928b971c4532df6e6bfc27fefe302da5c329390cc026f7860b9e0ef2685a22b8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_maintenance_requests": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/maintenance_requests.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "fba4c9ff45a30e0b637df84942f223e8d8a28f54f8be6ebdd47fdf9e29554ce8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_valuations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/valuations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4c05996762f6b92e6ff3bea96009f680c10f5663368760562eae84d3a39129a3"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "parties",
+      "source_id": "template_parties",
+      "role": "rows"
+    },
+    {
+      "schema_id": "parcels",
+      "source_id": "template_parcels",
+      "role": "rows"
+    },
+    {
+      "schema_id": "properties",
+      "source_id": "template_properties",
+      "role": "rows"
+    },
+    {
+      "schema_id": "buildings",
+      "source_id": "template_buildings",
+      "role": "rows"
+    },
+    {
+      "schema_id": "units",
+      "source_id": "template_units",
+      "role": "rows"
+    },
+    {
+      "schema_id": "listings",
+      "source_id": "template_listings",
+      "role": "rows"
+    },
+    {
+      "schema_id": "listing_events",
+      "source_id": "template_listing_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "transactions",
+      "source_id": "template_transactions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "leases",
+      "source_id": "template_leases",
+      "role": "rows"
+    },
+    {
+      "schema_id": "offices",
+      "source_id": "template_offices",
+      "role": "rows"
+    },
+    {
+      "schema_id": "agents",
+      "source_id": "template_agents",
+      "role": "rows"
+    },
+    {
+      "schema_id": "listing_agents",
+      "source_id": "template_listing_agents",
+      "role": "rows"
+    },
+    {
+      "schema_id": "media",
+      "source_id": "template_media",
+      "role": "rows"
+    },
+    {
+      "schema_id": "maintenance_requests",
+      "source_id": "template_maintenance_requests",
+      "role": "rows"
+    },
+    {
+      "schema_id": "valuations",
+      "source_id": "template_valuations",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "parties",
+      "format": "tablespec",
+      "reference": "umf/parties.json"
+    },
+    {
+      "id": "parcels",
+      "format": "tablespec",
+      "reference": "umf/parcels.json"
+    },
+    {
+      "id": "properties",
+      "format": "tablespec",
+      "reference": "umf/properties.json"
+    },
+    {
+      "id": "buildings",
+      "format": "tablespec",
+      "reference": "umf/buildings.json"
+    },
+    {
+      "id": "units",
+      "format": "tablespec",
+      "reference": "umf/units.json"
+    },
+    {
+      "id": "listings",
+      "format": "tablespec",
+      "reference": "umf/listings.json"
+    },
+    {
+      "id": "listing_events",
+      "format": "tablespec",
+      "reference": "umf/listing_events.json"
+    },
+    {
+      "id": "transactions",
+      "format": "tablespec",
+      "reference": "umf/transactions.json"
+    },
+    {
+      "id": "leases",
+      "format": "tablespec",
+      "reference": "umf/leases.json"
+    },
+    {
+      "id": "offices",
+      "format": "tablespec",
+      "reference": "umf/offices.json"
+    },
+    {
+      "id": "agents",
+      "format": "tablespec",
+      "reference": "umf/agents.json"
+    },
+    {
+      "id": "listing_agents",
+      "format": "tablespec",
+      "reference": "umf/listing_agents.json"
+    },
+    {
+      "id": "media",
+      "format": "tablespec",
+      "reference": "umf/media.json"
+    },
+    {
+      "id": "maintenance_requests",
+      "format": "tablespec",
+      "reference": "umf/maintenance_requests.json"
+    },
+    {
+      "id": "valuations",
+      "format": "tablespec",
+      "reference": "umf/valuations.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "parties",
+        "parcels",
+        "properties",
+        "buildings",
+        "units",
+        "listings",
+        "listing_events",
+        "transactions",
+        "leases",
+        "offices",
+        "agents",
+        "listing_agents",
+        "media",
+        "maintenance_requests",
+        "valuations"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "parties": [
+        "id"
+      ],
+      "parcels": [
+        "id"
+      ],
+      "properties": [
+        "id",
+        "parcel_id"
+      ],
+      "buildings": [
+        "id",
+        "property_id"
+      ],
+      "units": [
+        "id",
+        "building_id"
+      ],
+      "listings": [
+        "id",
+        "property_id"
+      ],
+      "listing_events": [
+        "id",
+        "listing_id"
+      ],
+      "transactions": [
+        "id",
+        "listing_id"
+      ],
+      "leases": [
+        "id",
+        "unit_id",
+        "party_id"
+      ],
+      "offices": [
+        "id"
+      ],
+      "agents": [
+        "id",
+        "party_id",
+        "office_id"
+      ],
+      "listing_agents": [
+        "id",
+        "listing_id",
+        "agent_id"
+      ],
+      "media": [
+        "id",
+        "property_id"
+      ],
+      "maintenance_requests": [
+        "id",
+        "unit_id",
+        "party_id"
+      ],
+      "valuations": [
+        "id",
+        "property_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "listing-history",
+      "question": "Sequential listings and price change retain one property",
+      "sql": "SELECT a.property_id,e.previous_price,e.price FROM listings a JOIN listings b ON b.property_id=a.property_id AND a.valid_to<b.valid_from JOIN listing_events e ON e.listing_id=a.id WHERE e.status='price-change'",
+      "expected": [
+        [
+          "PR1",
+          100000,
+          95000
+        ]
+      ]
+    },
+    {
+      "id": "operations",
+      "question": "Brokerage, listing media and unit maintenance retain actual identities",
+      "sql": "SELECT a.native_member_id,o.name,m.availability,r.status FROM listing_agents x JOIN agents a ON a.id=x.agent_id JOIN offices o ON o.id=a.office_id JOIN listings l ON l.id=x.listing_id JOIN media m ON m.property_id=l.property_id JOIN buildings b ON b.property_id=l.property_id JOIN units u ON u.building_id=b.id JOIN maintenance_requests r ON r.unit_id=u.id WHERE l.status='withdrawn'",
+      "expected": [
+        [
+          "MEMBER1",
+          "Synthetic brokerage",
+          "external",
+          "open"
+        ]
+      ]
+    },
+    {
+      "id": "withdrawn",
+      "question": "Withdrawn listing has no inferred sale",
+      "sql": "SELECT l.id FROM listings l LEFT JOIN transactions t ON t.listing_id=l.id WHERE l.status='withdrawn' AND t.id IS NULL",
+      "expected": [
+        [
+          "L1"
+        ]
+      ]
+    },
+    {
+      "id": "distinction",
+      "question": "Parcel, property, building and unit retain distinct identities",
+      "sql": "SELECT p.id,pr.id,b.id,u.id FROM parcels p JOIN properties pr ON pr.parcel_id=p.id JOIN buildings b ON b.property_id=pr.id JOIN units u ON u.building_id=b.id",
+      "expected": [
+        [
+          "PA1",
+          "PR1",
+          "B1",
+          "U1"
+        ]
+      ]
+    },
+    {
+      "id": "valuation",
+      "question": "Valuation does not become transaction price",
+      "sql": "SELECT v.amount,t.amount FROM valuations v JOIN listings l ON l.property_id=v.property_id JOIN transactions t ON t.listing_id=l.id",
+      "expected": [
+        [
+          110000,
+          100000
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "parties": 1,
+    "parcels": 1,
+    "properties": 1,
+    "buildings": 1,
+    "units": 1,
+    "listings": 2,
+    "listing_events": 2,
+    "transactions": 1,
+    "leases": 1,
+    "offices": 1,
+    "agents": 1,
+    "listing_agents": 2,
+    "media": 1,
+    "maintenance_requests": 1,
+    "valuations": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

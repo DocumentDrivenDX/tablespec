@@ -1,5 +1,10 @@
 """Unit tests for GXConstraintExtractor regex generator fixes."""
 
+# @covers US-006-AC1
+# @covers US-006-AC2
+# @covers US-006-AC3
+# @covers US-006-AC4
+
 import re
 
 import pytest
@@ -21,8 +26,12 @@ class TestRegexGenerator:
         """Test that non-capturing groups (?:...) work correctly."""
         pattern = r"^(?:\d{3})$"
         value = extractor.generate_value_from_regex(pattern)
-        assert re.match(r"^\d{3}$", value), f"Generated value '{value}' doesn't match pattern"
-        assert "?:" not in value, f"Non-capturing group prefix leaked into value: {value}"
+        assert re.match(r"^\d{3}$", value), (
+            f"Generated value '{value}' doesn't match pattern"
+        )
+        assert "?:" not in value, (
+            f"Non-capturing group prefix leaked into value: {value}"
+        )
 
     def test_alternation_basic(self, extractor):
         """Test that alternation (A|B) chooses one alternative."""
@@ -87,7 +96,9 @@ class TestRegexGenerator:
         """Test nested groups with alternation."""
         pattern = r"^(A(B|C))$"
         value = extractor.generate_value_from_regex(pattern)
-        assert value in ["AB", "AC"], f"Nested alternation should produce AB or AC, got: {value}"
+        assert value in ["AB", "AC"], (
+            f"Nested alternation should produce AB or AC, got: {value}"
+        )
 
     def test_zip_code_patterns(self, extractor):
         """Test various ZIP code patterns that were causing issues."""
@@ -101,7 +112,9 @@ class TestRegexGenerator:
         for pattern in patterns:
             value = extractor.generate_value_from_regex(pattern)
             # Should not contain the problematic ?: prefix
-            assert "?:" not in value, f"Pattern {pattern} generated invalid value: {value}"
+            assert "?:" not in value, (
+                f"Pattern {pattern} generated invalid value: {value}"
+            )
             # Should match the original pattern
             assert re.match(pattern, value), (
                 f"Pattern {pattern} generated non-matching value: {value}"
@@ -168,7 +181,9 @@ class TestRegexGenerator:
         """Ensure character classes still work after our changes."""
         pattern = r"^[A-Z]{2}\d{3}$"
         value = extractor.generate_value_from_regex(pattern)
-        assert re.match(r"^[A-Z]{2}\d{3}$", value), f"Character class pattern failed: {value}"
+        assert re.match(r"^[A-Z]{2}\d{3}$", value), (
+            f"Character class pattern failed: {value}"
+        )
 
 
 class TestLooksLikeColumnName:
@@ -216,7 +231,9 @@ class TestLooksLikeColumnName:
 
         for value in column_names:
             result = extractor._looks_like_column_name(value)
-            assert result is True, f"Column name '{value}' should be filtered as column name"
+            assert result is True, (
+                f"Column name '{value}' should be filtered as column name"
+            )
 
     def test_simple_enums_not_filtered(self, extractor):
         """Test that simple enum values without underscores are not filtered."""
@@ -250,7 +267,9 @@ class TestLooksLikeColumnName:
 
         for value in invalid_values:
             result = extractor._looks_like_column_name(value)
-            assert result is True, f"Empty/whitespace value '{value!r}' should be filtered"
+            assert result is True, (
+                f"Empty/whitespace value '{value!r}' should be filtered"
+            )
 
     def test_exact_pattern_matches_filtered(self, extractor):
         """Test that exact pattern matches from suspicious_patterns are filtered."""
@@ -460,7 +479,9 @@ class TestExtractExamplesFromDescription:
         assert result == ["A", "B", "C"]
 
     def test_example_pattern(self, extractor):
-        result = extractor._extract_examples_from_description("Example: X, Y, Z. More text.")
+        result = extractor._extract_examples_from_description(
+            "Example: X, Y, Z. More text."
+        )
         assert result == ["X", "Y", "Z"]
 
     def test_no_examples(self, extractor):

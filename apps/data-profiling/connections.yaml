@@ -7,6 +7,23 @@
 # When the project moves to a multi-catalog workspace, split this into one
 # native connection per catalog and remove the prefix convention.
 
+# Metadata home — where the app's governance tables and run artifacts live.
+#
+# This is the *registry* tier of the ADR-019 precedence:
+#
+#     deployment environment  >  this block  >  built-in defaults
+#
+# Leave it commented out for a deployment that supplies PROFILER_METADATA_* in
+# its manifest, which is the recommended shape: the address then travels with
+# the deployment instead of with tracked source. Uncomment only for local or
+# mock work where setting environment variables is inconvenient.
+#
+# metadata:
+#   catalog: my_catalog
+#   schema: my_profiler
+#   volume: ab_runs
+#   warehouse_id: "<sql-warehouse-id>"
+
 connections:
   - name: "DEV (single catalog POC)"
     type: native

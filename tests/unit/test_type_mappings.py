@@ -1,5 +1,12 @@
 """Test type mapping utilities."""
 
+# @covers US-004-AC1
+# @covers US-004-AC2
+# @covers US-004-AC3
+# @covers US-004-AC4
+# @covers US-004-AC5
+# @covers US-004-AC6
+
 from __future__ import annotations
 
 import importlib.util
@@ -296,9 +303,17 @@ class TestValidPysparkTypes:
     def test_contains_expected_types(self):
         """Test all expected PySpark types are present."""
         expected = {
-            "StringType", "IntegerType", "LongType", "ShortType", "ByteType",
-            "DecimalType", "FloatType", "DoubleType", "BooleanType",
-            "DateType", "TimestampType",
+            "StringType",
+            "IntegerType",
+            "LongType",
+            "ShortType",
+            "ByteType",
+            "DecimalType",
+            "FloatType",
+            "DoubleType",
+            "BooleanType",
+            "DateType",
+            "TimestampType",
         }
         assert VALID_PYSPARK_TYPES == expected
 

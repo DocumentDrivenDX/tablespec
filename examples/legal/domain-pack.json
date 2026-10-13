@@ -1,0 +1,419 @@
+{
+  "description": "Fabricated tabular legal sample data",
+  "domain_types": {
+    "billing_narrative": {
+      "description": "Fabricated legal sample billing narrative",
+      "detection": {
+        "column_name_patterns": [
+          "^billing_narrative$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_billing_narrative"
+      }
+    },
+    "billing_rate": {
+      "description": "Fabricated legal sample billing rate",
+      "detection": {
+        "column_name_patterns": [
+          "^billing_rate$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_billing_rate"
+      }
+    },
+    "client_name": {
+      "description": "Fabricated legal sample client name",
+      "detection": {
+        "column_name_patterns": [
+          "^client_name$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_client_name"
+      }
+    },
+    "court": {
+      "description": "Fabricated legal sample court",
+      "detection": {
+        "column_name_patterns": [
+          "^court$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_court"
+      }
+    },
+    "document_body": {
+      "description": "Fabricated legal sample document body",
+      "detection": {
+        "column_name_patterns": [
+          "^document_body$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_document_body"
+      }
+    },
+    "document_title": {
+      "description": "Fabricated legal sample document title",
+      "detection": {
+        "column_name_patterns": [
+          "^document_title$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_document_title"
+      }
+    },
+    "document_type": {
+      "description": "Fabricated legal sample document type",
+      "detection": {
+        "column_name_patterns": [
+          "^document_type$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_document_type"
+      }
+    },
+    "invoice_number": {
+      "description": "Fabricated legal sample invoice number",
+      "detection": {
+        "column_name_patterns": [
+          "^invoice_number$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_invoice_number"
+      }
+    },
+    "invoice_status": {
+      "description": "Fabricated legal sample invoice status",
+      "detection": {
+        "column_name_patterns": [
+          "^invoice_status$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_invoice_status"
+      }
+    },
+    "jurisdiction": {
+      "description": "Fabricated legal sample jurisdiction",
+      "detection": {
+        "column_name_patterns": [
+          "^jurisdiction$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_jurisdiction"
+      }
+    },
+    "matter_number": {
+      "description": "Fabricated legal sample matter number",
+      "detection": {
+        "column_name_patterns": [
+          "^matter_number$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_matter_number"
+      }
+    },
+    "matter_title": {
+      "description": "Fabricated legal sample matter title",
+      "detection": {
+        "column_name_patterns": [
+          "^matter_title$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_matter_title"
+      }
+    },
+    "practice_area": {
+      "description": "Fabricated legal sample practice area",
+      "detection": {
+        "column_name_patterns": [
+          "^practice_area$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_practice_area"
+      }
+    },
+    "timekeeper_level": {
+      "description": "Fabricated legal sample timekeeper level",
+      "detection": {
+        "column_name_patterns": [
+          "^timekeeper_level$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_timekeeper_level"
+      }
+    },
+    "timekeeper_name": {
+      "description": "Fabricated legal sample timekeeper name",
+      "detection": {
+        "column_name_patterns": [
+          "^timekeeper_name$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_timekeeper_name"
+      }
+    },
+    "utbms_activity_code": {
+      "description": "Fabricated legal sample utbms activity code",
+      "detection": {
+        "column_name_patterns": [
+          "^utbms_activity_code$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_utbms_activity_code"
+      }
+    },
+    "utbms_task_code": {
+      "description": "Fabricated legal sample utbms task code",
+      "detection": {
+        "column_name_patterns": [
+          "^utbms_task_code$"
+        ]
+      },
+      "sample_generation": {
+        "method": "generate_utbms_task_code"
+      }
+    }
+  },
+  "generator": {
+    "id": "tablespec.legal",
+    "version": "1.0.0"
+  },
+  "id": "legal",
+  "scale_presets": {
+    "demo": {
+      "children": {
+        "documents": {
+          "parent": "matters",
+          "per_parent": 133.3333333333
+        },
+        "ethical_walls": {
+          "parent": "matters",
+          "per_parent": 1
+        },
+        "invoices": {
+          "parent": "matters",
+          "per_parent": 33.3333333333
+        },
+        "matter_teams": {
+          "parent": "matters",
+          "per_parent": 4
+        },
+        "matters": {
+          "parent": "clients",
+          "per_parent": 6
+        },
+        "time_entries": {
+          "parent": "matters",
+          "per_parent": 666.6666666667
+        }
+      },
+      "roots": {
+        "clients": 25,
+        "timekeepers": 40
+      }
+    },
+    "large": {
+      "children": {
+        "documents": {
+          "parent": "matters",
+          "per_parent": 133
+        },
+        "ethical_walls": {
+          "parent": "matters",
+          "per_parent": 1
+        },
+        "invoices": {
+          "parent": "matters",
+          "per_parent": 33
+        },
+        "matter_teams": {
+          "parent": "matters",
+          "per_parent": 4
+        },
+        "matters": {
+          "parent": "clients",
+          "per_parent": 12
+        },
+        "time_entries": {
+          "parent": "matters",
+          "per_parent": 1000
+        }
+      },
+      "roots": {
+        "clients": 250,
+        "timekeepers": 400
+      }
+    },
+    "small": {
+      "children": {
+        "documents": {
+          "parent": "matters",
+          "per_parent": 4
+        },
+        "ethical_walls": {
+          "parent": "matters",
+          "per_parent": 1
+        },
+        "invoices": {
+          "parent": "matters",
+          "per_parent": 2
+        },
+        "matter_teams": {
+          "parent": "matters",
+          "per_parent": 2
+        },
+        "matters": {
+          "parent": "clients",
+          "per_parent": 3
+        },
+        "time_entries": {
+          "parent": "matters",
+          "per_parent": 15
+        }
+      },
+      "roots": {
+        "clients": 3,
+        "timekeepers": 4
+      }
+    }
+  },
+  "schemas": [
+    {
+      "format": "tablespec",
+      "id": "clients",
+      "reference": "umf/clients.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "documents",
+      "reference": "umf/documents.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "ethical_walls",
+      "reference": "umf/ethical_walls.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "invoices",
+      "reference": "umf/invoices.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "matter_teams",
+      "reference": "umf/matter_teams.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "matters",
+      "reference": "umf/matters.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "time_entries",
+      "reference": "umf/time_entries.json"
+    },
+    {
+      "format": "tablespec",
+      "id": "timekeepers",
+      "reference": "umf/timekeepers.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "source_bindings": [
+    {
+      "role": "rows",
+      "schema_id": "clients",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "documents",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "ethical_walls",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "invoices",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "matter_teams",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "matters",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "time_entries",
+      "source_id": "fabricated"
+    },
+    {
+      "role": "rows",
+      "schema_id": "timekeepers",
+      "source_id": "fabricated"
+    }
+  ],
+  "sources": {
+    "fabricated": {
+      "data_kind": "fabricated",
+      "description": "Fabricated tabular records; no real firm or person data",
+      "generator": {
+        "id": "tablespec.legal",
+        "version": "1.0.0"
+      },
+      "kind": "synthetic"
+    }
+  },
+  "version": "1.0.0",
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "clients",
+        "documents",
+        "ethical_walls",
+        "invoices",
+        "matter_teams",
+        "matters",
+        "time_entries",
+        "timekeepers"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "fixed",
+    "include_sources": [
+      "fabricated"
+    ],
+    "qualification": "Delivered tabular behavior unchanged. Graph schema candidate only; no graph storage acceptance."
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "findings",
+  "description": "Synthetic findings; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored findings id; synthetic reference scenario."
+    },
+    {
+      "name": "device_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored findings device_id; synthetic reference scenario."
+    },
+    {
+      "name": "evidence_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored findings evidence_id; synthetic reference scenario."
+    },
+    {
+      "name": "severity",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored findings severity; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "device_id",
+        "references_table": "devices",
+        "references_column": "id"
+      },
+      {
+        "column": "evidence_id",
+        "references_table": "authentication_events",
+        "references_column": "id"
+      }
+    ]
+  }
+}

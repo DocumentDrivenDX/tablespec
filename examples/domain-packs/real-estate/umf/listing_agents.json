@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "listing_agents",
+  "description": "Synthetic listing_agents; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_agents id; synthetic reference scenario."
+    },
+    {
+      "name": "listing_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_agents listing_id; synthetic reference scenario."
+    },
+    {
+      "name": "agent_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listing_agents agent_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "listing_id",
+        "references_table": "listings",
+        "references_column": "id"
+      },
+      {
+        "column": "agent_id",
+        "references_table": "agents",
+        "references_column": "id"
+      }
+    ]
+  }
+}

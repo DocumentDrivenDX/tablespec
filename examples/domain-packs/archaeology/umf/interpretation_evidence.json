@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "table_name": "interpretation_evidence",
+  "description": "Synthetic interpretation_evidence; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretation_evidence id; synthetic reference scenario."
+    },
+    {
+      "name": "interpretation_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored interpretation_evidence interpretation_id; synthetic reference scenario."
+    },
+    {
+      "name": "pottery_result_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored interpretation_evidence pottery_result_id; synthetic reference scenario."
+    },
+    {
+      "name": "fauna_result_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored interpretation_evidence fauna_result_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "interpretation_id",
+        "references_table": "interpretations",
+        "references_column": "id"
+      },
+      {
+        "column": "pottery_result_id",
+        "references_table": "pottery_results",
+        "references_column": "id"
+      },
+      {
+        "column": "fauna_result_id",
+        "references_table": "fauna_results",
+        "references_column": "id"
+      }
+    ]
+  }
+}

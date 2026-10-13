@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "table_name": "stops",
+  "description": "Synthetic stops; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stops id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stops name; synthetic reference scenario."
+    },
+    {
+      "name": "latitude",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored stops latitude; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "longitude",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored stops longitude; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

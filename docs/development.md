@@ -27,6 +27,57 @@ uv run pytest --cov=src/tablespec --cov-report=html
 uv run pytest tests/unit/test_gx_baseline.py
 ```
 
+## Product microsite (Playwright)
+
+The Hugo microsite under `website/` has two Playwright suites:
+
+| Suite | Command | What it proves |
+|-------|---------|----------------|
+| Content | `make website-test-content` | Navigation, screenshots, key page copy (`e2e/microsite.spec.ts`) |
+| Links | `make website-test-links` | Crawl every internal link under production base path `/tablespec/` and check required content (`e2e/link-check.spec.ts`) |
+| Both | `make website-test` | Content then links |
+
+First-time setup (Hugo extended + Node required):
+
+```bash
+make website-install   # npm ci + Chromium
+make website-test      # or: cd website && npm run test:all
+```
+
+From `website/` directly:
+
+```bash
+npm ci
+npm run install:browsers   # local; use install:browsers:ci in CI
+npm run test:content
+npm run test:links
+```
+
+The link suite serves Hugo with `--baseURL http://127.0.0.1:1314/tablespec/` so
+root-absolute hrefs that drop the project path fail the same way they do on
+GitHub Pages. CI runs both suites in `.github/workflows/microsite.yml` and as a
+pre-deploy gate in `publish-microsite.yml`.
+
+### App smoke (no workspace)
+
+```bash
+make app-smoke   # FR-23 mock config/provision/diagnostics stack
+```
+
+### Link convention (do not work around baseURL)
+
+Site lives under `/tablespec/`. Prefer root-absolute site paths in content:
+
+```markdown
+{{< card link="/demos/" title="Demos" >}}
+[Getting Started](/getting-started/)
+```
+
+Shortcodes resolve those through `website/layouts/_partials/utils/site-href.html`
+(Hextra overrides under `website/layouts/`). Do not use `../section/` relative
+card links to paper over missing baseURL handling — fix the shortcode via
+`site-href` instead. See `website/README.md`.
+
 ## Project Structure
 
 ```

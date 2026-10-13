@@ -1,0 +1,428 @@
+{
+  "id": "education",
+  "version": "1.0.0",
+  "description": "education synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_institutions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/institutions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0cb846046d442f86cde64c1bb810c3c596929e42744b245fea7c4da842c7bf65"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_people": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/people.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c0854f50b64b4cbc237eba3d6c206f43809f9ec82c333a4b2ca62ab0dae59c09"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_courses": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/courses.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0ebd91b03f37ffcb27da32167c1b9595fe3d4227b05ae7c15e8789feb3c4b27c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_academic_terms": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/academic_terms.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8d094dee2e48ce3f72b3e7dc23efed25b7c38677707e1e231c201968d38a7bda"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_course_offerings": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/course_offerings.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "89ff59f4e3263ee5a9da987c39805c1a51bc13f9929d406c5bf141f21814d0c1"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_enrollments": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/enrollments.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d7acc4b67a8f1b4eff0699691b302a0108ec3c3f657c556d8d92902537c056c7"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_assessments": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/assessments.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b9a50b667b80f3c08957ee55ad4636ad5b00412f469d3cdca5fde13bec9b4ccd"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_results": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/results.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "896568a767f74237d7c98f72df365e58234402bb891688ba30a5a85a53fa9667"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_prerequisites": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/prerequisites.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d20d49db78c4efc2df068ab5b0493bb16deb194cc84cd6161296a4ca18b0d7ab"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "institutions",
+      "source_id": "template_institutions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "people",
+      "source_id": "template_people",
+      "role": "rows"
+    },
+    {
+      "schema_id": "courses",
+      "source_id": "template_courses",
+      "role": "rows"
+    },
+    {
+      "schema_id": "academic_terms",
+      "source_id": "template_academic_terms",
+      "role": "rows"
+    },
+    {
+      "schema_id": "course_offerings",
+      "source_id": "template_course_offerings",
+      "role": "rows"
+    },
+    {
+      "schema_id": "enrollments",
+      "source_id": "template_enrollments",
+      "role": "rows"
+    },
+    {
+      "schema_id": "assessments",
+      "source_id": "template_assessments",
+      "role": "rows"
+    },
+    {
+      "schema_id": "results",
+      "source_id": "template_results",
+      "role": "rows"
+    },
+    {
+      "schema_id": "prerequisites",
+      "source_id": "template_prerequisites",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "institutions",
+      "format": "tablespec",
+      "reference": "umf/institutions.json"
+    },
+    {
+      "id": "people",
+      "format": "tablespec",
+      "reference": "umf/people.json"
+    },
+    {
+      "id": "courses",
+      "format": "tablespec",
+      "reference": "umf/courses.json"
+    },
+    {
+      "id": "academic_terms",
+      "format": "tablespec",
+      "reference": "umf/academic_terms.json"
+    },
+    {
+      "id": "course_offerings",
+      "format": "tablespec",
+      "reference": "umf/course_offerings.json"
+    },
+    {
+      "id": "enrollments",
+      "format": "tablespec",
+      "reference": "umf/enrollments.json"
+    },
+    {
+      "id": "assessments",
+      "format": "tablespec",
+      "reference": "umf/assessments.json"
+    },
+    {
+      "id": "results",
+      "format": "tablespec",
+      "reference": "umf/results.json"
+    },
+    {
+      "id": "prerequisites",
+      "format": "tablespec",
+      "reference": "umf/prerequisites.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "institutions",
+        "people",
+        "courses",
+        "academic_terms",
+        "course_offerings",
+        "enrollments",
+        "assessments",
+        "results",
+        "prerequisites"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "institutions": [
+        "id"
+      ],
+      "people": [
+        "id"
+      ],
+      "courses": [
+        "id",
+        "institution_id"
+      ],
+      "academic_terms": [
+        "id"
+      ],
+      "course_offerings": [
+        "id",
+        "course_id",
+        "term_id"
+      ],
+      "enrollments": [
+        "id",
+        "person_id",
+        "offering_id"
+      ],
+      "assessments": [
+        "id",
+        "offering_id"
+      ],
+      "results": [
+        "id",
+        "enrollment_id",
+        "assessment_id"
+      ],
+      "prerequisites": [
+        "id",
+        "course_id",
+        "prerequisite_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "missing-result",
+      "question": "An assessment without result remains missing",
+      "sql": "SELECT a.id FROM enrollments e JOIN assessments a ON a.offering_id=e.offering_id LEFT JOIN results r ON r.enrollment_id=e.id AND r.assessment_id=a.id WHERE r.id IS NULL",
+      "expected": [
+        [
+          "A3"
+        ]
+      ]
+    },
+    {
+      "id": "offering",
+      "question": "Expose a result for another offering",
+      "sql": "SELECT r.id FROM results r JOIN enrollments e ON e.id=r.enrollment_id JOIN assessments a ON a.id=r.assessment_id WHERE e.offering_id<>a.offering_id",
+      "expected": [
+        [
+          "R2"
+        ]
+      ]
+    },
+    {
+      "id": "valid-result",
+      "question": "The valid result stays attached to the right offering",
+      "sql": "SELECT r.id FROM results r JOIN enrollments e ON e.id=r.enrollment_id JOIN assessments a ON a.id=r.assessment_id WHERE e.offering_id=a.offering_id",
+      "expected": [
+        [
+          "R1"
+        ]
+      ]
+    },
+    {
+      "id": "prerequisite",
+      "question": "Self-prerequisite remains an explicit contradiction",
+      "sql": "SELECT id FROM prerequisites WHERE course_id=prerequisite_id",
+      "expected": [
+        [
+          "PR1"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "institutions": 1,
+    "people": 1,
+    "courses": 1,
+    "academic_terms": 1,
+    "course_offerings": 2,
+    "enrollments": 1,
+    "assessments": 3,
+    "results": 2,
+    "prerequisites": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

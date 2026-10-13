@@ -122,7 +122,10 @@ def _length_expr_for_column(df: DataFrame, column: str) -> Any:
     col = _bcol(df, column)
     if isinstance(data_type, ArrayType):
         return F.size(col)
-    if isinstance(data_type, (BinaryType, StringType)) or data_type.simpleString() == "string":
+    if (
+        isinstance(data_type, (BinaryType, StringType))
+        or data_type.simpleString() == "string"
+    ):
         return F.length(col)
     return F.length(col.cast("string"))
 

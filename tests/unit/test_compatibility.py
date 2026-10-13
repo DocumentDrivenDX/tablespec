@@ -498,3 +498,29 @@ class TestSharedStrategyProperties:
         assert report.is_backward_compatible
         assert report.is_forward_compatible
         assert len(report.issues) == 0
+
+
+class TestBooleanNullable:
+    """Plain boolean nullable is handled without crashing and detects tightening."""
+
+    def test_bool_tightening_is_breaking(self):
+        old = _umf([_col("x", "VARCHAR", nullable=True)])
+        new = _umf([_col("x", "VARCHAR", nullable=False)])
+        report = check_compatibility(old, new)
+        assert not report.is_backward_compatible
+        tightened = _issues_by_change(report, "nullable_tightened")
+        assert len(tightened) == 1
+
+    def test_bool_relaxation_is_safe(self):
+        old = _umf([_col("x", "VARCHAR", nullable=False)])
+        new = _umf([_col("x", "VARCHAR", nullable=True)])
+        report = check_compatibility(old, new)
+        assert report.is_backward_compatible
+
+    def test_adding_nullable_bool_column_is_info(self):
+        old = _umf([_col("id", "INTEGER", length=None)])
+        new = _umf(
+            [_col("id", "INTEGER", length=None), _col("x", "VARCHAR", nullable=True)]
+        )
+        report = check_compatibility(old, new)
+        assert report.is_backward_compatible

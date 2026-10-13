@@ -1,3 +1,7 @@
+# @covers US-017-AC1
+# @covers US-017-AC2
+# @covers US-017-AC3
+# @covers US-017-AC4
 # @covers US-033-AC1
 """Tests for domain type system improvements: abbreviation expansion,
 structured inference results, regex validation, and Excel registry sync.

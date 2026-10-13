@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "meters",
+  "description": "Synthetic meters; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored meters id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored meters asset_id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored meters name; synthetic reference scenario."
+    },
+    {
+      "name": "valid_from",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored meters valid_from; synthetic reference scenario."
+    },
+    {
+      "name": "valid_to",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored meters valid_to; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "asset_id",
+        "references_table": "utility_assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

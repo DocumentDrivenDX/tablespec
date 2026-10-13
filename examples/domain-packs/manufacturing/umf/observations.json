@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "table_name": "observations",
+  "description": "Synthetic observations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations id; synthetic reference scenario."
+    },
+    {
+      "name": "component_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations component_id; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored observations value; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations unit; synthetic reference scenario."
+    },
+    {
+      "name": "observed_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations observed_at; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "component_id",
+        "references_table": "components",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+"resource_key","patient_key","status","class_system","class_code"
+"Encounter/example","Patient/example","in-progress","http://terminology.hl7.org/CodeSystem/v3-ActCode","IMP"

@@ -1,5 +1,7 @@
 """Tests for the guidebook table-page renderer — derivation-rule display."""
 
+# @covers US-046-AC3
+
 from __future__ import annotations
 
 from tablespec.guidebook.renderer import render_table_page

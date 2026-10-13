@@ -1,0 +1,70 @@
+{
+  "version": "1.0",
+  "table_name": "assets",
+  "description": "Synthetic assets; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets id; synthetic reference scenario."
+    },
+    {
+      "name": "kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets kind; synthetic reference scenario."
+    },
+    {
+      "name": "reference",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets reference; synthetic reference scenario."
+    },
+    {
+      "name": "availability",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets availability; synthetic reference scenario."
+    },
+    {
+      "name": "caption",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets caption; synthetic reference scenario."
+    },
+    {
+      "name": "scale",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets scale; synthetic reference scenario."
+    },
+    {
+      "name": "orientation",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored assets orientation; synthetic reference scenario."
+    },
+    {
+      "name": "source_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored assets source_id; synthetic reference scenario."
+    },
+    {
+      "name": "revision",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored assets revision; synthetic reference scenario."
+    },
+    {
+      "name": "sha256",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored assets sha256; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

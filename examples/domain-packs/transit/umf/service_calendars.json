@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "service_calendars",
+  "description": "Synthetic service_calendars; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_calendars id; synthetic reference scenario."
+    },
+    {
+      "name": "start_date",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_calendars start_date; synthetic reference scenario."
+    },
+    {
+      "name": "end_date",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored service_calendars end_date; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

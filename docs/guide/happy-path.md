@@ -25,16 +25,19 @@ Current boundary notes:
   typed columns, validation criteria, relationships, aliases, keys, raw-to-ingest
   SQL, validation suites, and manifest entries.
 - Ingested is still source-preserving bronze, not silver. Cross-source
-  conformance, survivorship, entity resolution, enrichment, and dimensional
-  modeling remain downstream responsibilities.
+  conformance, survivorship, and derived gold tables are declared in their own
+  UMF specs and compiled as gold plans by the same step, never folded into
+  ingestion.
 - Databricks-facing compile UX accepts `dialect="databricks"` for the
   Spark-family SQL emitted by tablespec; internal emitters may normalize to
   `spark` when the rendered SQL is identical.
-  The active bead trail is `tablespec-ed74497c` and child beads
-  `tablespec-0b146671`, `tablespec-171e409c`, and `tablespec-0fb0d1c2`.
 - Production runs consume the committed artifact tree and installed packages,
   not source-time orchestration. See the deployment checklist for the release
   boundary.
+- One-shot facades: `bootstrap_from_tables` (Path A, Spark) and
+  `bootstrap_from_specs` (Path B, no Spark) are public first-class entry
+  points — see [bootstrap.md](bootstrap.md). Path B is also on the CLI:
+  `tablespec bootstrap <specs...> -o <dir> [--dialect duckdb|spark|databricks]`.
 
 ## 1. Generate UMF from existing Spark or Databricks tables
 
@@ -63,16 +66,22 @@ If you do not need the intermediate `UMF` list, the convenience wrapper
 `bootstrap_from_tables(...)` reflects, profiles, compiles, and returns the
 manifest in one call.
 
-For authored specs, use the Path B loader instead:
+For authored specs, use the Path B loader or one-shot facade:
 
 ```python
 from tablespec.e2e import umfs_from_specs
+from tablespec import bootstrap_from_specs
 
 umfs = umfs_from_specs([
     "tables/member/table.yaml",
     "tables/claims/table.yaml",
 ])
+# or compile in one call (no Spark):
+# artifacts = bootstrap_from_specs([...], out_dir="...")
 ```
+
+JDBC databases use the same compile contract after discovery — see
+[jdbc-onboarding.md](jdbc-onboarding.md) and the Northwind demo/tests.
 
 ## 2. Generate sample data from the UMF or spec inputs
 
@@ -197,6 +206,11 @@ plan_sql = generate_sql_plan(
 The same UMF set also feeds the dbt DAG and LDP emitters, so the derived table
 stays aligned with the rest of the pipeline.
 
+Beyond simple joins, the plan generator supports base/final filters, UNION
+branch generation across source tables (with per-branch filters, literals, and
+window dedup), and alternative join paths — see
+[SQL Plan Generation](sql-plans.md).
+
 ## 6. Generate Spark, LDP, and dbt pipeline artifacts
 
 `compile_umfs(...)` is the current orchestration seam. It persists the ingest
@@ -219,8 +233,8 @@ print(artifacts.manifest_path)
 ```
 
 The ingested outputs are the source-semantic bronze completion point. They make
-source meaning explicit without claiming to solve silver-layer conformance or
-entity-resolution concerns.
+source meaning explicit. Silver-layer conformance and survivorship are declared
+in separate specs and compiled as gold plans by the same orchestrator.
 
 If you only need one backend family, call the emitters directly:
 

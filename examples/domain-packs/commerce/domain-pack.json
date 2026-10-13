@@ -1,0 +1,465 @@
+{
+  "id": "commerce",
+  "version": "1.0.0",
+  "description": "commerce synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_customers": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/customers.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "56efc5b9eacf47b8fdf794309785cc62b05f54565ed17ab7f02a23c759dfd28c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_suppliers": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/suppliers.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "625888093e3ec19b18c326d84d47eba0f29e77f92c801eda80c63a39301088fb"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_products": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/products.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1d2e0659ee22e0764a1c41a4329f994653e5be61df90306c923035ba6c3cc43f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_orders": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/orders.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "88d2bff67d45213af32917b943e2f58a194e56406cb9a22e5121dd1ba1be25ef"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_order_lines": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/order_lines.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "47cecd72bd1a4389e577b1b590f0cc266b77fd3ce2433853fd8c2f97986cc33e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_fulfillments": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/fulfillments.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cce5d98ad2efe9436d01b0d1ff24efa198bb46e920a4c80deed356719f65250d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_invoices": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/invoices.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1aa19948a765e19e7a7805c6cd47ea996abb5cf4249da92f9570368b07ebf919"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_payments": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/payments.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e107ebf5015a0e57696578f147e0100634e7c77ba7ee9d70f37ecf6f3e6c5321"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_returns": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/returns.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "3a2cae4b5271c8f2f834cc7c7e9efe0514a846b61e708349064c3f33ab143ed4"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_refunds": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/refunds.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "36ed1bd1673f17a3a949d926e3155cf573b7f1ae86f16215a70a1a89a8cb8333"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "customers",
+      "source_id": "template_customers",
+      "role": "rows"
+    },
+    {
+      "schema_id": "suppliers",
+      "source_id": "template_suppliers",
+      "role": "rows"
+    },
+    {
+      "schema_id": "products",
+      "source_id": "template_products",
+      "role": "rows"
+    },
+    {
+      "schema_id": "orders",
+      "source_id": "template_orders",
+      "role": "rows"
+    },
+    {
+      "schema_id": "order_lines",
+      "source_id": "template_order_lines",
+      "role": "rows"
+    },
+    {
+      "schema_id": "fulfillments",
+      "source_id": "template_fulfillments",
+      "role": "rows"
+    },
+    {
+      "schema_id": "invoices",
+      "source_id": "template_invoices",
+      "role": "rows"
+    },
+    {
+      "schema_id": "payments",
+      "source_id": "template_payments",
+      "role": "rows"
+    },
+    {
+      "schema_id": "returns",
+      "source_id": "template_returns",
+      "role": "rows"
+    },
+    {
+      "schema_id": "refunds",
+      "source_id": "template_refunds",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "customers",
+      "format": "tablespec",
+      "reference": "umf/customers.json"
+    },
+    {
+      "id": "suppliers",
+      "format": "tablespec",
+      "reference": "umf/suppliers.json"
+    },
+    {
+      "id": "products",
+      "format": "tablespec",
+      "reference": "umf/products.json"
+    },
+    {
+      "id": "orders",
+      "format": "tablespec",
+      "reference": "umf/orders.json"
+    },
+    {
+      "id": "order_lines",
+      "format": "tablespec",
+      "reference": "umf/order_lines.json"
+    },
+    {
+      "id": "fulfillments",
+      "format": "tablespec",
+      "reference": "umf/fulfillments.json"
+    },
+    {
+      "id": "invoices",
+      "format": "tablespec",
+      "reference": "umf/invoices.json"
+    },
+    {
+      "id": "payments",
+      "format": "tablespec",
+      "reference": "umf/payments.json"
+    },
+    {
+      "id": "returns",
+      "format": "tablespec",
+      "reference": "umf/returns.json"
+    },
+    {
+      "id": "refunds",
+      "format": "tablespec",
+      "reference": "umf/refunds.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "customers",
+        "suppliers",
+        "products",
+        "orders",
+        "order_lines",
+        "fulfillments",
+        "invoices",
+        "payments",
+        "returns",
+        "refunds"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "customers": [
+        "id"
+      ],
+      "suppliers": [
+        "id"
+      ],
+      "products": [
+        "id",
+        "supplier_id"
+      ],
+      "orders": [
+        "id",
+        "customer_id"
+      ],
+      "order_lines": [
+        "id",
+        "order_id",
+        "product_id"
+      ],
+      "fulfillments": [
+        "id",
+        "line_id"
+      ],
+      "invoices": [
+        "id",
+        "order_id"
+      ],
+      "payments": [
+        "id",
+        "invoice_id"
+      ],
+      "returns": [
+        "id",
+        "line_id"
+      ],
+      "refunds": [
+        "id",
+        "return_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "partial-return",
+      "question": "Partial shipment and return preserve remaining inventory",
+      "sql": "SELECT f.quantity,r.quantity,l.quantity-f.quantity+r.quantity FROM order_lines l JOIN fulfillments f ON f.line_id=l.id JOIN returns r ON r.line_id=l.id WHERE f.quantity<l.quantity",
+      "expected": [
+        [
+          6,
+          2,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "fulfillment",
+      "question": "Find over-fulfilled lines without repairing source quantities",
+      "sql": "SELECT f.id FROM fulfillments f JOIN order_lines l ON f.line_id=l.id WHERE f.quantity>l.quantity ORDER BY f.id",
+      "expected": [
+        [
+          "F2"
+        ]
+      ]
+    },
+    {
+      "id": "settlement",
+      "question": "Compare exact payment, invoice and refund amounts",
+      "sql": "SELECT p.id FROM payments p JOIN invoices i ON p.invoice_id=i.id WHERE p.amount=i.amount AND p.currency=i.currency",
+      "expected": [
+        [
+          "PAY1"
+        ]
+      ]
+    },
+    {
+      "id": "refund",
+      "question": "Return and refund use the original product price",
+      "sql": "SELECT r.id FROM refunds r JOIN returns x ON x.id=r.return_id JOIN order_lines l ON l.id=x.line_id JOIN products p ON p.id=l.product_id WHERE r.amount=x.quantity*p.unit_price",
+      "expected": [
+        [
+          "RF1"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "customers": 1,
+    "suppliers": 1,
+    "products": 1,
+    "orders": 1,
+    "order_lines": 1,
+    "fulfillments": 2,
+    "invoices": 1,
+    "payments": 1,
+    "returns": 1,
+    "refunds": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

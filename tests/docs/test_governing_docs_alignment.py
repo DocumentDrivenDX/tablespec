@@ -102,7 +102,9 @@ def test_legacy_adrs_follow_current_template_sections() -> None:
     ]:
         text = _read(relative_path)
 
-        assert "| Date | Status | Deciders | Related | Confidence |" in text, relative_path
+        assert "| Date | Status | Deciders | Related | Confidence |" in text, (
+            relative_path
+        )
         for section in required_sections:
             assert f"\n## {section}\n" in text, f"{relative_path}: missing {section}"
 
@@ -179,7 +181,9 @@ def test_backfilled_user_stories_follow_the_story_template() -> None:
             re.IGNORECASE,
         )
         assert ac_pattern.search(text), f"{path}: missing Given/When/Then AC"
-        assert "| Scenario | AC ID | Input / State | Action | Expected Result |" in text, path
+        assert (
+            "| Scenario | AC ID | Input / State | Action | Expected Result |" in text
+        ), path
         assert not placeholder_scenarios.search(text), (
             f"{path}: scenario table still has placeholder labels"
         )

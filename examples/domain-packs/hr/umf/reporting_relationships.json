@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "reporting_relationships",
+  "description": "Synthetic reporting_relationships; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reporting_relationships id; synthetic reference scenario."
+    },
+    {
+      "name": "employee_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reporting_relationships employee_id; synthetic reference scenario."
+    },
+    {
+      "name": "manager_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reporting_relationships manager_id; synthetic reference scenario."
+    },
+    {
+      "name": "valid_from",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reporting_relationships valid_from; synthetic reference scenario."
+    },
+    {
+      "name": "valid_to",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reporting_relationships valid_to; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "employee_id",
+        "references_table": "employment_relationships",
+        "references_column": "id"
+      },
+      {
+        "column": "manager_id",
+        "references_table": "employment_relationships",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "table_name": "stratigraphic_assertions",
+  "description": "Synthetic stratigraphic_assertions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions id; synthetic reference scenario."
+    },
+    {
+      "name": "source_context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions source_context_id; synthetic reference scenario."
+    },
+    {
+      "name": "target_context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions target_context_id; synthetic reference scenario."
+    },
+    {
+      "name": "relation",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions relation; synthetic reference scenario."
+    },
+    {
+      "name": "author",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions author; synthetic reference scenario."
+    },
+    {
+      "name": "evidence",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions evidence; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stratigraphic_assertions status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "source_context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      },
+      {
+        "column": "target_context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      }
+    ]
+  }
+}

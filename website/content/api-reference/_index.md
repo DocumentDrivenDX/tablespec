@@ -12,9 +12,18 @@ Symbols in the [Spark extras](#spark-extras) section require
 
 ## Loading and saving UMF specs
 
+### Shared document APIs
+
+`UMFLoader.load_document(path)` loads a shared document or migrates a legacy
+spec with its source archive. `save_document(document, path)` writes shared JSON.
+`UMF.from_document(document)` derives the compiler view. Edit the authoritative
+document and derive a new view; shared-to-split export refuses to discard content.
+See [UMF compatibility and execution limits](/concepts/umf/).
+
 ### `UMFLoader`
 
-Universal Metadata Format (UMF) is tablespec's source-table contract.
+UMF is maintained in a [separate project](https://github.com/DocumentDrivenDX/umf).
+tablespec uses `umf-core` for shared documents and owns `tablespec.pipeline`.
 `UMFLoader` is the canonical loader. It auto-detects split directories and
 JSON files. It does not auto-detect legacy single-file YAML.
 
@@ -43,7 +52,7 @@ loader.save(umf, Path("medical_claims.json"), format=UMFFormat.JSON)
 
 ## Core models
 
-Pydantic models for the UMF source-table format. The main models are:
+Pydantic compiler models for tablespec's native table-spec semantics. The main models are:
 
 | Model | Purpose |
 |-------|---------|

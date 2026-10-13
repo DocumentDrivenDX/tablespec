@@ -44,26 +44,65 @@ uv run python examples/demo.py
 
 ```bash
 # Add to your uv project
-uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # With Spark support (for profiling and validation)
-uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ### Using pip
 
 ```bash
 # Install from GitHub Pages index
-pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 
 # With Spark support
-pip install tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
+pip install tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
 
-**Note**: This package is distributed via GitHub Pages. The `--index-url` flag is required.
+**Note**: Use the project index for tablespec and PyPI for its dependencies.
+uv also requires the pinned `umf-core` Git dependency as a direct requirement.
 
 **Optional extras**:
 - `tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.
+
+### Claude Code / Codex plugin
+
+The tablespec agent skills ship as a plugin. In Claude Code:
+
+```
+/plugin marketplace add https://github.com/DocumentDrivenDX/tablespec
+/plugin install tablespec@tablespec
+```
+
+The plugin ships six skills, loaded automatically by task relevance (or invoked directly, e.g.
+`/tablespec:tablespec`):
+
+- `tablespec` - routing layer and cross-cutting conventions
+- `tablespec-umf-authoring` - authoring/editing split-format UMF specs
+- `tablespec-pipeline` - bootstrap, compile the artifact tree, run the backbone
+- `tablespec-validation` - Great Expectations suite lifecycle
+- `tablespec-sql-plans` - derived/gold tables and SQL plan generation
+- `tablespec-profiling-app` - the data-profiling Databricks App
+
+The same skills also work without installing the plugin: a repo clone carries them under
+`.claude/skills/` and `.agents/skills/`. For automation
+(scripts, Dockerfiles), use the CLI form:
+
+```bash
+claude plugin marketplace add https://github.com/DocumentDrivenDX/tablespec
+claude plugin install tablespec@tablespec
+```
+
+In Codex, the same plugin installs from the same marketplace:
+
+```bash
+codex plugin marketplace add DocumentDrivenDX/tablespec
+codex plugin add tablespec@tablespec
+```
+
+The plugin version is pinned in `.claude-plugin/plugin.json`; each release bumps it so installed copies
+refresh.
 
 ## Quick Start
 
@@ -241,3 +280,38 @@ Full documentation is available at [documentdrivendx.github.io/tablespec](https:
 ## License
 
 Apache License 2.0 - see LICENSE file for details.
+
+## Shared UMF Python documents
+
+TableSpec uses the official `umf-core` Python package from DocumentDrivenDX/umf
+for shared document models, schemas, serialization and validation machinery.
+TableSpec's pipeline extension remains in this repository.
+
+```python
+from tablespec.models import UMF
+from tablespec.umf_loader import UMFLoader
+
+loader = UMFLoader()
+document = loader.load_document("tables/orders")  # legacy migration + archive
+loader.save_document(document, "orders.umf.json")
+view = UMF.from_document(document)  # existing compiler input
+```
+
+Normal JSON loading recognizes shared documents. Shared-loaded compiler views
+retain their authoritative document; saving preserves unknown vocabularies. Edit
+the document and derive a new view rather than modifying that view directly.
+Legacy JSON/split APIs remain compatibility surfaces. Shared-to-split export
+refuses because it would drop shared content.
+
+Core Fields require explicit native `tablespec.pipeline` data_type refinements
+for execution. The initial binding consumes shared names/descriptions/titles/
+aliases and scalar families; other core constraints refuse until their native
+execution mapping is qualified. Native contextual nullability, source declarations,
+keys, relationships and pipeline policies remain TableSpec extension semantics.
+
+### Document packs
+
+Use `tablespec document-loader` for native Python fetch, complete BagIt/SHA-256
+handoff, offline publication and periodic fixity audits. See the
+[document-loader guide](docs/guide/document-loader.md) for DuckDB and named
+Spark/Unity Catalog targets, preservation metadata and qualification limits.

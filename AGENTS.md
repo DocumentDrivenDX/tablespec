@@ -287,12 +287,14 @@ a separate repository.
   `pythonpath` in the root `pyproject.toml`. Note `apps/data-profiling/tests/` is
   deliberately **not a package** — a second top-level `tests` package would shadow
   this repo's own.
-- **Lint / type-check:** `make lint` and pyright still scope to `src/` (+ `scripts/`).
-  `ruff check apps/` is not yet clean; bringing it under those gates is open work.
+- **Lint:** `make lint` covers `src/`, `scripts/`, and `apps/**/*.py` excluding
+  Databricks notebooks under `apps/**/notebooks/`. **Type-check:** pyright still
+  scopes to `src/` (+ `scripts/` as configured).
 - It has its own `CLAUDE.md` with its own conventions (e.g. no emojis in code).
   Honor those inside that tree.
 - Library changes it depends on belong in `src/tablespec/`, not in the app.
-- See `docs/guide/data-profiling-app.md` for architecture and deployment.
+- See `docs/guide/data-profiling-app.md` for architecture and deployment, and
+  the product microsite Getting Started pages for operator workspace steps.
 
 ## Merge Policy
 

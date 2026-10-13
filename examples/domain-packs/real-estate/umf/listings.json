@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "table_name": "listings",
+  "description": "Synthetic listings; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listings id; synthetic reference scenario."
+    },
+    {
+      "name": "property_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listings property_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listings status; synthetic reference scenario."
+    },
+    {
+      "name": "valid_from",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listings valid_from; synthetic reference scenario."
+    },
+    {
+      "name": "valid_to",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listings valid_to; synthetic reference scenario."
+    },
+    {
+      "name": "asking_price",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored listings asking_price; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored listings currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "property_id",
+        "references_table": "properties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

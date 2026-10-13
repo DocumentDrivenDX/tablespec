@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "media",
+  "description": "Synthetic media; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored media id; synthetic reference scenario."
+    },
+    {
+      "name": "property_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored media property_id; synthetic reference scenario."
+    },
+    {
+      "name": "reference",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored media reference; synthetic reference scenario."
+    },
+    {
+      "name": "availability",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored media availability; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "property_id",
+        "references_table": "properties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

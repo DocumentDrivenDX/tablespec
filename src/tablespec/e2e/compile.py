@@ -46,9 +46,9 @@ import yaml
 from tablespec.e2e.manifest import (
     CompiledArtifacts,
     TableArtifacts,
-    ddl_path,
     dbt_gold_project_dir,
     dbt_ingest_project_dir,
+    ddl_path,
     gold_plan_path,
     ingest_sql_path,
     json_schema_path,
@@ -94,8 +94,10 @@ def compile_umfs(
         profile_enriched: recorded on the manifest; True iff *suites* carry
             profile-derived expectations (Path A enrichment). Does not itself run
             profiling -- the caller (Path A) supplies enriched *suites*.
-        dialect: cast dialect threaded into the dbt projects (``"duckdb"`` default;
-            ``"spark"`` / ``"databricks"`` for the warehouse legs).
+        dialect: public cast dialect (``"duckdb"`` default; ``"spark"`` /
+            ``"databricks"`` for warehouse legs). ``databricks`` is an accepted
+            public spelling; Spark-family emitters may normalize it to ``spark``
+            internally because cast SQL is identical.
         gold_targets: table names to additionally compile a SINGLE-target gold SQL
             plan for via ``generate_sql_plan``. ``None`` = no per-table gold plans.
         suites: optional precompiled expectation lists keyed by table name. When a
@@ -212,9 +214,24 @@ def _compile_table(
         umf_data["primary_key"] = promotion["columns"]
 
     # 0. snapshot the UMF the compile ran against (audit + reproducibility).
+    if umf._shared_document is not None:
+        from umf import write_document
+
+        from tablespec.extensions.umf import EXTENSION_ID
+
+        document = umf.to_document()
+        if promotion["promoted"]:
+            extensions = document.modules[0].extensions or {}
+            extensions.setdefault(EXTENSION_ID, {"metadata": {}})["metadata"][
+                "primary_key"
+            ] = promotion["columns"]
+            document.modules[0].extensions = extensions
+        snapshot = write_document(document, "yaml")
+    else:
+        snapshot = yaml.safe_dump(umf_data, sort_keys=False, allow_unicode=True)
     umf_snap = _write(
         umf_snapshot_path(root, name),
-        yaml.safe_dump(umf_data, sort_keys=False, allow_unicode=True),
+        snapshot,
     )
 
     # 1. ingest SQL (raw DDL + typed DDL + raw->ingested transform).

@@ -3,9 +3,10 @@ title: Demos
 weight: 5
 ---
 
-This page is for readers who want evidence that tablespec can run against real
-inputs. Each demo names the source data, the generated UMF specs or artifacts,
-the validation result, and the environment used to run it.
+This page is for readers who want concrete demo arcs against real inputs. Each
+demo names the source data, the generated UMF specs or artifacts, and where to
+run it. For the ordered operator checklist (wheel upload, cluster mode, opt-in
+serverless), use [In a workspace](/getting-started/in-a-workspace/).
 
 ## Northwind on Databricks
 
@@ -37,12 +38,42 @@ The demo lives in two notebooks under
      suites for typed sources carry no string-shape raw checks. The run ends
      in a per-table validation scorecard.
 
-The demo has run on DBR 17.3 LTS (Spark 4, SQL Server 2025) and DBR 16.4 LTS
-(SQL Server 2022), single-node, single-user access mode. The
+Cluster notes and wheel upload steps: the
 [notebook README](https://github.com/DocumentDrivenDX/tablespec/blob/main/notebooks/northwind-demo/README.md)
-covers cluster setup, wheel upload, and running against an external SQL
-Server instead. The same flow runs locally without Databricks via the
-Docker-gated test: `uv run pytest tests/integration/test_northwind_e2e.py`.
+and [In a workspace](/getting-started/in-a-workspace/). The same flow runs
+locally without Databricks via the Docker-gated test:
+`uv run pytest tests/integration/test_northwind_e2e.py`.
+
+## Kaggle flat-file onboarding
+
+The Kaggle demo lands a delimited CSV from a Unity Catalog volume (default:
+NYC Airbnb open data), profiles it, produces a validated UMF, exports a
+workbook, compiles artifacts, and runs staged validation.
+
+Notebooks under
+[`notebooks/kaggle-demo/`](https://github.com/DocumentDrivenDX/tablespec/tree/main/notebooks/kaggle-demo):
+
+1. **`01-stage-csv-kaggle`** — schema/volume + CSV stage (plumbing).
+2. **`02-kaggle-tablespec-demo`** — tablespec story end to end.
+
+Widgets swap the CSV URL or path for other flat files of the same shape.
+
+## SEC 10-K corpus and facts
+
+The SEC demo governs a document corpus with `EMBEDDING(1024)` and an XBRL
+companyfacts table via `source: kind: json`. Notebook 01 is consumer plumbing
+(EDGAR + embed); notebook 02 is the tablespec path (validate, compile, staged
+validation with dimensionality checks).
+
+Notebooks under
+[`notebooks/sec-10k-demo/`](https://github.com/DocumentDrivenDX/tablespec/tree/main/notebooks/sec-10k-demo);
+example specs in
+[`examples/sec10k_corpus.yaml`](https://github.com/DocumentDrivenDX/tablespec/blob/main/examples/sec10k_corpus.yaml)
+and
+[`examples/sec10k_companyfacts.yaml`](https://github.com/DocumentDrivenDX/tablespec/blob/main/examples/sec10k_companyfacts.yaml).
+
+Use the deterministic fake embedding mode when the workspace has no Foundation
+Model API access.
 
 ## Synthea guidebook
 

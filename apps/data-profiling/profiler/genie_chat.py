@@ -16,7 +16,6 @@ API reference:
 
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Optional
@@ -139,11 +138,28 @@ def _api(method: str, path: str, body: Optional[dict] = None) -> dict:
                 path.split("/spaces/")[1].split("/")[0] if "/spaces/" in path else "?"
             )
             raise PermissionError(
-                f"The app service principal does not have access to Genie Space '{space_id}'.\n\n"
+                f"The app's identity does not have access to Genie Space "
+                f"'{space_id}'.\n\n"
                 f"Fix: Databricks workspace → AI/BI → Genie Spaces → your space → "
-                f"Permissions → Add SP '39ee93a7-c623-4614-90a8-c3798bb5b329' with Can Run."
+                f"Permissions → add {_running_identity(w)} with Can Run."
             ) from exc
         raise
+
+
+def _running_identity(w) -> str:
+    """Describe the identity the app runs as, for grant instructions (DIAG-02).
+
+    Reported rather than hardcoded: the identity differs per deployment, and a
+    baked-in principal id would both be wrong elsewhere and violate CFG-02.
+    """
+    try:
+        me = w.current_user.me()
+        name = getattr(me, "user_name", None) or getattr(me, "display_name", None)
+        if name:
+            return f"'{name}'"
+    except Exception:  # noqa: BLE001
+        pass
+    return "the app's service principal"
 
 
 def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> GenieResult:
@@ -154,11 +170,11 @@ def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> Geni
         .text.content       — natural-language answer
         .query.query        — generated SQL
         .query.description  — fallback text if no .text attachment
-        .query.statement_id — use to fetch rows via query-result endpoint
+        .query.statement_id — present on some responses; query-result is
+                              addressed by conversation/message id, not this field
     """
     text_parts: list[str] = []
     sql: Optional[str] = None
-    statement_id: Optional[str] = None
     col_names: list[str] = []
     rows: list[list] = []
 
@@ -174,8 +190,6 @@ def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> Geni
             sql = qry["query"]
         if qry.get("description") and not text_parts:
             text_parts.append(qry["description"])
-        if qry.get("statement_id"):
-            statement_id = qry["statement_id"]
 
     # Fallback: some versions surface text at the message top-level
     if not text_parts:
@@ -187,7 +201,7 @@ def _extract_result(space_id: str, conv_id: str, msg_id: str, msg: dict) -> Geni
 
     text = "\n\n".join(text_parts).strip()
 
-    # Fetch query result rows if we have a statement_id
+    # Fetch query result rows via conversation/message path
     try:
         qr_path = (
             f"/api/2.0/genie/spaces/{space_id}/conversations/{conv_id}"

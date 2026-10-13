@@ -1,0 +1,109 @@
+{
+  "case": {
+    "case_key": "edva-1-23-cv-00108",
+    "case_number": "1:23-cv-00108",
+    "case_title": "United States and Plaintiff States v. Google LLC (digital advertising)",
+    "court": "United States District Court for the Eastern District of Virginia",
+    "source_url": "https://www.justice.gov/atr/case/us-and-plaintiff-states-v-google-llc-2023"
+  },
+  "documents": [
+    {
+      "evidence_key": "complaint",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Complaint",
+      "document_kind": "court_filing",
+      "document_date": "2023-01-24",
+      "docket_number": "1",
+      "exhibit_number": null,
+      "upstream_url": "https://www.justice.gov/media/1272576/dl?inline=",
+      "source_listing_url": "https://www.justice.gov/atr/case/us-and-plaintiff-states-v-google-llc-2023",
+      "publication_status": "publicly posted by DOJ",
+      "discovery_status": "not classified as discovery production",
+      "redistribution": "unknown"
+    },
+    {
+      "evidence_key": "memorandum-opinion",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Memorandum Opinion",
+      "document_kind": "judicial_opinion",
+      "document_date": "2025-04-17",
+      "docket_number": null,
+      "exhibit_number": null,
+      "upstream_url": "https://www.justice.gov/atr/media/1412561/dl?inline=",
+      "source_listing_url": "https://www.justice.gov/atr/case/us-and-plaintiff-states-v-google-llc-2023",
+      "publication_status": "publicly posted by DOJ",
+      "discovery_status": "not classified as discovery production",
+      "redistribution": "allowed"
+    },
+    {
+      "evidence_key": "rowley-deposition",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Designated Deposition Testimony of Bryan Rowley",
+      "document_kind": "deposition_designations",
+      "document_date": "2021-07-22",
+      "docket_number": null,
+      "exhibit_number": null,
+      "upstream_url": "https://www.justice.gov/atr/media/1372421/dl?inline=",
+      "source_listing_url": "https://www.justice.gov/atr/case/us-and-plaintiff-states-v-google-llc-2023",
+      "publication_status": "publicly posted by DOJ",
+      "discovery_status": "deposition testimony; published designations only",
+      "redistribution": "unknown"
+    },
+    {
+      "evidence_key": "okelley-deposition",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Designated Deposition Testimony of Brian O'Kelley",
+      "document_kind": "deposition_designations",
+      "document_date": "2023-09-09",
+      "docket_number": null,
+      "exhibit_number": null,
+      "upstream_url": "https://www.justice.gov/atr/media/1368926/dl",
+      "source_listing_url": "https://www.justice.gov/atr/case/us-and-plaintiff-states-v-google-llc-2023",
+      "publication_status": "publicly posted by DOJ",
+      "discovery_status": "deposition testimony; published designations only",
+      "redistribution": "unknown"
+    },
+    {
+      "evidence_key": "PTX0014",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Email with attachment: Jason Harinstein to Alex Kinnier et al.",
+      "document_kind": "email_with_attachment",
+      "document_date": "2007-03-16",
+      "docket_number": null,
+      "exhibit_number": "PTX0014",
+      "upstream_url": "https://www.justice.gov/atr/media/1368461/dl",
+      "source_listing_url": "https://www.justice.gov/atr/us-and-plaintiff-states-v-google-llc-2023-trial-exhibits",
+      "publication_status": "listed as admitted government exhibit by DOJ",
+      "discovery_status": "production-style Bates identifiers visible; production history not independently verified",
+      "redistribution": "unknown"
+    },
+    {
+      "evidence_key": "PTX0032",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Email: Joan Braddi to Neal Mohan et al.",
+      "document_kind": "email",
+      "document_date": "2008-09-03",
+      "docket_number": null,
+      "exhibit_number": "PTX0032",
+      "upstream_url": "https://www.justice.gov/atr/media/1368436/dl",
+      "source_listing_url": "https://www.justice.gov/atr/us-and-plaintiff-states-v-google-llc-2023-trial-exhibits",
+      "publication_status": "listed as admitted government exhibit by DOJ",
+      "discovery_status": "production-style Bates identifiers visible; production history not independently verified",
+      "redistribution": "unknown"
+    },
+    {
+      "evidence_key": "PTX0110",
+      "case_key": "edva-1-23-cv-00108",
+      "title": "Google document",
+      "document_kind": "corporate_document",
+      "document_date": "2012-08-20",
+      "docket_number": null,
+      "exhibit_number": "PTX0110",
+      "upstream_url": "https://www.justice.gov/atr/media/1368771/dl",
+      "source_listing_url": "https://www.justice.gov/atr/us-and-plaintiff-states-v-google-llc-2023-trial-exhibits",
+      "publication_status": "listed as admitted government exhibit by DOJ",
+      "discovery_status": "production-style Bates identifiers visible; production history not independently verified",
+      "redistribution": "unknown"
+    }
+  ]
+}

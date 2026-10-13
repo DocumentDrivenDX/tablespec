@@ -164,10 +164,9 @@ def _assert_excel_roundtrip(discovered: dict[str, UMF], out_dir: Path) -> None:
 
         if umf.source is not None:
             assert reimported.source is not None, name
-            assert (
-                reimported.source.model_dump(exclude_none=True)
-                == umf.source.model_dump(exclude_none=True)
-            ), name
+            assert reimported.source.model_dump(
+                exclude_none=True
+            ) == umf.source.model_dump(exclude_none=True), name
 
         if umf.relationships and umf.relationships.foreign_keys:
             assert reimported.relationships is not None, name

@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "excavation_activities",
+  "description": "Synthetic excavation_activities; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored excavation_activities id; synthetic reference scenario."
+    },
+    {
+      "name": "context_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored excavation_activities context_id; synthetic reference scenario."
+    },
+    {
+      "name": "recorded_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored excavation_activities recorded_at; synthetic reference scenario."
+    },
+    {
+      "name": "action",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored excavation_activities action; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      }
+    ]
+  }
+}

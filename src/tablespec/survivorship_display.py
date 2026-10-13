@@ -138,7 +138,9 @@ class SurvivorshipValidator:
             errors.append(f"Column '{col_name}': survivorship missing 'explanation'")
 
         # Validate candidates
-        SurvivorshipValidator._validate_candidates(col_name, mapping, all_tables, errors)
+        SurvivorshipValidator._validate_candidates(
+            col_name, mapping, all_tables, errors
+        )
 
     @staticmethod
     def _validate_candidates(
@@ -171,7 +173,9 @@ class SurvivorshipValidator:
                 # DerivationCandidate not available, do basic validation
                 validated_candidate = None
                 if "table" not in candidate:
-                    errors.append(f"Column '{col_name}', candidate {i}: missing 'table' field")
+                    errors.append(
+                        f"Column '{col_name}', candidate {i}: missing 'table' field"
+                    )
                     continue
 
             # Validate table and column if all_tables provided
@@ -245,7 +249,9 @@ def format_survivorship(surv_data: dict[str, Any], verbose: bool = False) -> str
 
             if candidates:
                 lines.append(f"    Sources ({len(candidates)}):")
-                for candidate in sorted(candidates, key=lambda c: c.get("priority", 999)):
+                for candidate in sorted(
+                    candidates, key=lambda c: c.get("priority", 999)
+                ):
                     priority = candidate.get("priority", "?")
                     table = candidate.get("table", "?")
                     column = candidate.get("column", "?")

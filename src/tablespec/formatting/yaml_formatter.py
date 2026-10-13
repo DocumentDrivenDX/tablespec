@@ -164,9 +164,16 @@ def prepare_for_yaml(obj: Any) -> Any:
         if obj and not obj.isspace():
             stripped = obj.strip()
             if stripped in (".", "..", "...", "_") or (
-                stripped.replace(".", "", 1).replace("_", "").replace("-", "", 1).replace("+", "", 1).replace("e", "", 1).replace("E", "", 1).isdigit()
+                stripped.replace(".", "", 1)
+                .replace("_", "")
+                .replace("-", "", 1)
+                .replace("+", "", 1)
+                .replace("e", "", 1)
+                .replace("E", "", 1)
+                .isdigit()
                 and not stripped.isalpha()
-                and stripped != obj  # only if stripping changed it, or contains dots/underscores
+                and stripped
+                != obj  # only if stripping changed it, or contains dots/underscores
             ):
                 try:
                     float(stripped)

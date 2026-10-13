@@ -41,10 +41,17 @@ class CompatibilityReport:
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _nullable_contexts(n: Nullable | None) -> dict[str, bool]:
-    """Return a {context_key: bool} dict for a Nullable, treating None as empty."""
+
+def _nullable_contexts(n: bool | Nullable | None) -> dict[str, bool]:
+    """Return a {context_key: bool} dict for a Nullable, treating None as empty.
+
+    A plain boolean nullable applies to every context and is represented by
+    the synthetic "*" key so tightening (True -> False) is still detected.
+    """
     if n is None:
         return {}
+    if isinstance(n, bool):
+        return {"*": n}
     # Nullable uses model_config extra="allow", so extra fields are in __pydantic_extra__
     result: dict[str, bool] = {}
     for key in n.model_fields_set | set(n.__pydantic_extra__ or {}):
@@ -243,7 +250,9 @@ def _check_nullable_change(
         if old_val is None and new_val is not None:
             # New context added — not breaking for existing consumers
             severity = "info"
-            desc = f"Nullable context '{key}' added for column '{name}' (value={new_val})"
+            desc = (
+                f"Nullable context '{key}' added for column '{name}' (value={new_val})"
+            )
             change = "nullable_context_added"
         elif old_val is not None and new_val is None:
             # Context removed
@@ -415,16 +424,12 @@ def check_compatibility(old: UMF, new: UMF) -> CompatibilityReport:
     # Forward compatible = new schema can consume data written with old schema
     # This is broken if columns were added that are required
     has_forward_breaking = any(
-        i.severity == "breaking" and i.change in ("added_required",)
-        for i in issues
+        i.severity == "breaking" and i.change in ("added_required",) for i in issues
     )
     # Backward compatible = old consumers can still read data written with new schema
     # Broken by removals, type narrowing, nullable tightening, pk changes
     has_backward_breaking = any(
-        i.severity == "breaking"
-        and i.change
-        not in ("added_required",)
-        for i in issues
+        i.severity == "breaking" and i.change not in ("added_required",) for i in issues
     )
 
     return CompatibilityReport(

@@ -123,9 +123,7 @@ def get_metadata_column_definitions(
         name: {
             **definition,
             "nullable": (
-                {context: False for context in context_keys}
-                if context_keys
-                else False
+                {context: False for context in context_keys} if context_keys else False
             ),
         }
         for name, definition in METADATA_COLUMN_DEFINITIONS.items()
@@ -270,7 +268,9 @@ class SyncResult:
                 s = str(v)
                 return s if len(s) <= 50 else f"{s[:47]}..."
 
-            params = ", ".join(f"{k}={truncate_value(v)}" for k, v in relevant_kwargs.items())
+            params = ", ".join(
+                f"{k}={truncate_value(v)}" for k, v in relevant_kwargs.items()
+            )
             return f"{rule_type} ({params})"
 
         return rule_type
@@ -372,13 +372,19 @@ class BaselineSyncer:
         for table_path in sorted(pipeline_path.iterdir()):
             if table_path.is_dir() and not table_path.name.startswith("."):
                 # Check if it's a table directory (has table.yaml or columns/)
-                if (table_path / "table.yaml").exists() or (table_path / "columns").exists():
-                    result = self.sync_table(table_path, dry_run, aggressive, clean_outdated)
+                if (table_path / "table.yaml").exists() or (
+                    table_path / "columns"
+                ).exists():
+                    result = self.sync_table(
+                        table_path, dry_run, aggressive, clean_outdated
+                    )
                     results[table_path.name] = result
 
         return results
 
-    def _sync_metadata_columns(self, table_path: Path, result: SyncResult, dry_run: bool) -> None:
+    def _sync_metadata_columns(
+        self, table_path: Path, result: SyncResult, dry_run: bool
+    ) -> None:
         """Sync metadata columns for a table."""
         columns_dir = table_path / "columns"
 
@@ -399,7 +405,9 @@ class BaselineSyncer:
                 else:
                     # Update to canonical definition
                     if not dry_run:
-                        self._update_metadata_column_file(column_file, canonical_def, existing)
+                        self._update_metadata_column_file(
+                            column_file, canonical_def, existing
+                        )
                         self._validate_written_table(table_path)
                     result.columns_updated += 1
                     self.logger.info(f"Updated metadata column: {meta_col_name}")
@@ -455,7 +463,11 @@ class BaselineSyncer:
 
             # Sync validations
             updated_validations, col_result = self._sync_column_validations(
-                col_name, canonical_exps, existing_validations, aggressive, clean_outdated
+                col_name,
+                canonical_exps,
+                existing_validations,
+                aggressive,
+                clean_outdated,
             )
 
             # Update result statistics
@@ -558,9 +570,15 @@ class BaselineSyncer:
                             column_name=col_name,
                             rule_type=canonical_exp["type"],
                             kwargs=canonical_exp.get("kwargs", {}),
-                            generated_from=canonical_exp.get("meta", {}).get("generated_from", ""),
-                            user_severity=existing_exp.get("meta", {}).get("severity", ""),
-                            canonical_severity=canonical_exp.get("meta", {}).get("severity", ""),
+                            generated_from=canonical_exp.get("meta", {}).get(
+                                "generated_from", ""
+                            ),
+                            user_severity=existing_exp.get("meta", {}).get(
+                                "severity", ""
+                            ),
+                            canonical_severity=canonical_exp.get("meta", {}).get(
+                                "severity", ""
+                            ),
                         )
                     )
                 else:
@@ -595,7 +613,9 @@ class BaselineSyncer:
                             column_name=col_name,
                             rule_type=canonical_exp["type"],
                             kwargs=canonical_exp.get("kwargs", {}),
-                            generated_from=canonical_exp.get("meta", {}).get("generated_from", ""),
+                            generated_from=canonical_exp.get("meta", {}).get(
+                                "generated_from", ""
+                            ),
                         )
                     )
                     self.logger.info(
@@ -610,7 +630,9 @@ class BaselineSyncer:
                             column_name=col_name,
                             rule_type=canonical_exp["type"],
                             kwargs=canonical_exp.get("kwargs", {}),
-                            generated_from=canonical_exp.get("meta", {}).get("generated_from", ""),
+                            generated_from=canonical_exp.get("meta", {}).get(
+                                "generated_from", ""
+                            ),
                         )
                     )
             else:
@@ -622,7 +644,9 @@ class BaselineSyncer:
                         column_name=col_name,
                         rule_type=canonical_exp["type"],
                         kwargs=canonical_exp.get("kwargs", {}),
-                        generated_from=canonical_exp.get("meta", {}).get("generated_from", ""),
+                        generated_from=canonical_exp.get("meta", {}).get(
+                            "generated_from", ""
+                        ),
                     )
                 )
 
@@ -638,7 +662,9 @@ class BaselineSyncer:
                             column_name=col_name,
                             rule_type=exp["type"],
                             kwargs=exp.get("kwargs", {}),
-                            generated_from=exp.get("meta", {}).get("generated_from", ""),
+                            generated_from=exp.get("meta", {}).get(
+                                "generated_from", ""
+                            ),
                         )
                     )
                 self.logger.info(
@@ -704,7 +730,9 @@ class BaselineSyncer:
             # Find which values differ
             for key in canonical_kwargs:
                 if canonical_kwargs[key] != existing_kwargs.get(key):
-                    return f"{key}: {canonical_kwargs[key]} != {existing_kwargs.get(key)}"
+                    return (
+                        f"{key}: {canonical_kwargs[key]} != {existing_kwargs.get(key)}"
+                    )
 
             return "Unknown difference in rule structure"
 
@@ -716,7 +744,9 @@ class BaselineSyncer:
             return "match"
         return "severity_only"
 
-    def _find_structural_match(self, canonical: dict, unmarked_list: list[dict]) -> dict | None:
+    def _find_structural_match(
+        self, canonical: dict, unmarked_list: list[dict]
+    ) -> dict | None:
         """Find an unmarked validation that structurally matches canonical.
 
         Args:
@@ -748,7 +778,9 @@ class BaselineSyncer:
     ) -> None:
         """Create a new metadata column YAML file with baseline validations."""
         # Generate baseline validations for this column
-        validations = self.baseline_generator.generate_baseline_column_expectations(canonical_def)
+        validations = self.baseline_generator.generate_baseline_column_expectations(
+            canonical_def
+        )
 
         column_data = {"column": canonical_def, "validations": validations}
 
@@ -790,7 +822,9 @@ class BaselineSyncer:
         if isinstance(obj, dict):
             # Filter out None values, sort keys
             filtered = {k: v for k, v in obj.items() if v is not None}
-            return {k: self._sort_recursive(filtered[k]) for k in sorted(filtered.keys())}
+            return {
+                k: self._sort_recursive(filtered[k]) for k in sorted(filtered.keys())
+            }
 
         if isinstance(obj, list):
             # NEVER sort lists - order matters!

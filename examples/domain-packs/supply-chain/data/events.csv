@@ -1,0 +1,3 @@
+"id","shipment_id","upstream_event_id","event_time","action"
+"E1","S1","SOURCE1","2026-01-01T10:00Z","receive"
+"E2","S1","SOURCE1","2026-01-01T10:00Z","receive"

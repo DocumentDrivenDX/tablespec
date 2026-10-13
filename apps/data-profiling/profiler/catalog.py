@@ -92,7 +92,10 @@ def load_env_labels(path: str = "connections.yaml") -> List[str]:
 
 
 def _runtime() -> str:
-    return os.environ.get("PROFILER_RUNTIME", "mock").lower()
+    """Runtime mode, from the single resolved configuration (CFG-01/CFG-03)."""
+    from .config import get_config
+
+    return get_config().runtime
 
 
 def list_catalogs(conn: Connection) -> List[str]:
@@ -199,14 +202,17 @@ def _sql_query(q: str) -> List[tuple]:
 # ---------------------------------------------------------------------------
 # Mock backend — enough variety to exercise the cascading UI.
 #
-# POC topology: single `dev` catalog. Environments are simulated by schema
-# name prefix (test_main_*, prod_main_*, qa_main_*, stage_main_*, dev_*).
-# _volumes keys are internal; they are not returned as table names.
+# These names are fictional fixtures, not any deployment's real addresses: per
+# CFG-02 no environment-identifying literal belongs in tracked source, and a
+# fixture that mirrors a live catalog is exactly such a literal. The schema
+# prefixes (test_main_*, prod_main_*, qa_main_*, stage_main_*) are retained
+# because they demonstrate the environment-by-prefix convention the connection
+# model supports. _volumes keys are internal; not returned as table names.
 
 _MOCK = {
-    "dev": {
-        # Profiler output volume
-        "test_main_profiler": {"_volumes": ["ab_runs"]},
+    "demo_catalog": {
+        # Profiler metadata home + output volume
+        "demo_main_profiler": {"_volumes": ["ab_runs"]},
         # Tuva input layer — claims domain
         "test_main_claims": [
             "medical_claim",

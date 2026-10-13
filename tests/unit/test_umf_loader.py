@@ -1,3 +1,14 @@
+# @covers US-012-AC1
+# @covers US-012-AC2
+# @covers US-012-AC3
+# @covers US-012-AC4
+# @covers US-012-AC5
+# @covers US-001-AC1
+# @covers US-001-AC2
+# @covers US-001-AC3
+# @covers US-001-AC4
+# @covers US-001-AC5
+# @covers US-001-AC6
 # @covers US-034-AC2
 """Tests for UMF format loading and conversion (split ↔ JSON)."""
 

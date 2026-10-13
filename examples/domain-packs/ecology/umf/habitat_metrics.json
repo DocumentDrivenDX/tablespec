@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "table_name": "habitat_metrics",
+  "description": "Synthetic habitat_metrics; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored habitat_metrics id; synthetic reference scenario."
+    },
+    {
+      "name": "catchment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored habitat_metrics catchment_id; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored habitat_metrics value; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored habitat_metrics unit; synthetic reference scenario."
+    },
+    {
+      "name": "basis",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored habitat_metrics basis; synthetic reference scenario."
+    },
+    {
+      "name": "algorithm",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored habitat_metrics algorithm; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "catchment_id",
+        "references_table": "catchments",
+        "references_column": "id"
+      }
+    ]
+  }
+}

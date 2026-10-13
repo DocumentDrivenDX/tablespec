@@ -1,0 +1,731 @@
+{
+  "id": "construction",
+  "version": "1.0.0",
+  "description": "construction synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_projects": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/projects.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4f2bf031642d7334047c0a101b74fb238dfb2faa53cc653eaf30e5c2d978a9c8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_parties": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/parties.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "5c006ee1b75e90e52ecc2d444cfbb7e93cd3300bc784b57b0abc66e9cdb4fef3"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_contracts": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/contracts.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "577a200a2b17cd17ee75729dbd1127b0f1e58980ed1820f8adbe00c99b8f1223"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_locations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/locations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "838e384a2401fb912c9e573b61519b43a024adb8032683f5d47558b5a00bcbe4"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_assets": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/assets.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e5864666d4df31b564b80218294649ead0cc89579b35df20b012c9d471a3dddb"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_work_packages": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/work_packages.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0c01227c5559530595d661e45371ede2173a20fdab4b962ae5cf4922d5d153c3"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_activities": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/activities.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "72d7c6c9320c616b1c7b8a0c119f6281074961f085c306110c1930bf7a9f6215"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_dependencies": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/dependencies.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ca97496a2bf64171c33893626f1ac9484c63dbc3f03a58a62a8f8952dd0670c8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_resources": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/resources.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d3224d0e1e41831135718cac906239983760c2a8f34b7303fbc936defb234f5d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_cost_items": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/cost_items.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "51cb54ef0cd306ec681267b2b1884a7cc7bd6e8a4f2d2e878c43f683a5a50362"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_change_orders": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/change_orders.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bbc8277d8379e7d3577bac5365e50b7e03c6f7c54c21bc316aa46ec36d56c965"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_rfis": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/rfis.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0bae1f1cbdbe920a94e333b622a09d78220c94238d6fc32bec1f0635a81d543e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_inspections": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/inspections.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "971910f4099190793bc4f061b21406aa625bab9c5e5000c74342f151dc35ad5a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_submittals": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/submittals.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "dc53d92cac06bd74f509e671e2081d91c033491eedf9f5acb435f103702a073e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_bim_references": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/bim_references.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bd4179b6dd85d184a53de282b55587aa5d2fdcb43f1781d865ead6d9fd64eec5"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_documents": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/documents.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "9c5fa1ab54e73440107a2a1c9c531bede285e2faa3a47ba1571b20d103d40049"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "asset_plan_svg": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "assets/plan.svg",
+      "revision": "1.0.0",
+      "format": "svg",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "770cc02ad08782d1fe33ccb6b6992a2b8a3e1e59d02ccecbb9c38a3a0ab488ff"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF authored synthetic illustration"
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "projects",
+      "source_id": "template_projects",
+      "role": "rows"
+    },
+    {
+      "schema_id": "parties",
+      "source_id": "template_parties",
+      "role": "rows"
+    },
+    {
+      "schema_id": "contracts",
+      "source_id": "template_contracts",
+      "role": "rows"
+    },
+    {
+      "schema_id": "locations",
+      "source_id": "template_locations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "assets",
+      "source_id": "template_assets",
+      "role": "rows"
+    },
+    {
+      "schema_id": "work_packages",
+      "source_id": "template_work_packages",
+      "role": "rows"
+    },
+    {
+      "schema_id": "activities",
+      "source_id": "template_activities",
+      "role": "rows"
+    },
+    {
+      "schema_id": "dependencies",
+      "source_id": "template_dependencies",
+      "role": "rows"
+    },
+    {
+      "schema_id": "resources",
+      "source_id": "template_resources",
+      "role": "rows"
+    },
+    {
+      "schema_id": "cost_items",
+      "source_id": "template_cost_items",
+      "role": "rows"
+    },
+    {
+      "schema_id": "change_orders",
+      "source_id": "template_change_orders",
+      "role": "rows"
+    },
+    {
+      "schema_id": "rfis",
+      "source_id": "template_rfis",
+      "role": "rows"
+    },
+    {
+      "schema_id": "inspections",
+      "source_id": "template_inspections",
+      "role": "rows"
+    },
+    {
+      "schema_id": "submittals",
+      "source_id": "template_submittals",
+      "role": "rows"
+    },
+    {
+      "schema_id": "bim_references",
+      "source_id": "template_bim_references",
+      "role": "rows"
+    },
+    {
+      "schema_id": "documents",
+      "source_id": "template_documents",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "projects",
+      "format": "tablespec",
+      "reference": "umf/projects.json"
+    },
+    {
+      "id": "parties",
+      "format": "tablespec",
+      "reference": "umf/parties.json"
+    },
+    {
+      "id": "contracts",
+      "format": "tablespec",
+      "reference": "umf/contracts.json"
+    },
+    {
+      "id": "locations",
+      "format": "tablespec",
+      "reference": "umf/locations.json"
+    },
+    {
+      "id": "assets",
+      "format": "tablespec",
+      "reference": "umf/assets.json"
+    },
+    {
+      "id": "work_packages",
+      "format": "tablespec",
+      "reference": "umf/work_packages.json"
+    },
+    {
+      "id": "activities",
+      "format": "tablespec",
+      "reference": "umf/activities.json"
+    },
+    {
+      "id": "dependencies",
+      "format": "tablespec",
+      "reference": "umf/dependencies.json"
+    },
+    {
+      "id": "resources",
+      "format": "tablespec",
+      "reference": "umf/resources.json"
+    },
+    {
+      "id": "cost_items",
+      "format": "tablespec",
+      "reference": "umf/cost_items.json"
+    },
+    {
+      "id": "change_orders",
+      "format": "tablespec",
+      "reference": "umf/change_orders.json"
+    },
+    {
+      "id": "rfis",
+      "format": "tablespec",
+      "reference": "umf/rfis.json"
+    },
+    {
+      "id": "inspections",
+      "format": "tablespec",
+      "reference": "umf/inspections.json"
+    },
+    {
+      "id": "submittals",
+      "format": "tablespec",
+      "reference": "umf/submittals.json"
+    },
+    {
+      "id": "bim_references",
+      "format": "tablespec",
+      "reference": "umf/bim_references.json"
+    },
+    {
+      "id": "documents",
+      "format": "tablespec",
+      "reference": "umf/documents.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "projects",
+        "parties",
+        "contracts",
+        "locations",
+        "assets",
+        "work_packages",
+        "activities",
+        "dependencies",
+        "resources",
+        "cost_items",
+        "change_orders",
+        "rfis",
+        "inspections",
+        "submittals",
+        "bim_references",
+        "documents"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "projects": [
+        "id"
+      ],
+      "parties": [
+        "id"
+      ],
+      "contracts": [
+        "id",
+        "project_id",
+        "party_id"
+      ],
+      "locations": [
+        "id",
+        "project_id"
+      ],
+      "assets": [
+        "id",
+        "location_id"
+      ],
+      "work_packages": [
+        "id",
+        "project_id"
+      ],
+      "activities": [
+        "id",
+        "work_package_id"
+      ],
+      "dependencies": [
+        "id",
+        "predecessor_id",
+        "successor_id"
+      ],
+      "resources": [
+        "id",
+        "activity_id"
+      ],
+      "cost_items": [
+        "id",
+        "contract_id",
+        "activity_id"
+      ],
+      "change_orders": [
+        "id",
+        "contract_id",
+        "downstream_package_id",
+        "rfi_id"
+      ],
+      "rfis": [
+        "id",
+        "asset_id"
+      ],
+      "inspections": [
+        "id",
+        "asset_id"
+      ],
+      "submittals": [
+        "id",
+        "project_id",
+        "asset_id"
+      ],
+      "bim_references": [
+        "id",
+        "asset_id"
+      ],
+      "documents": [
+        "id",
+        "project_id"
+      ]
+    },
+    "include_sources": [
+      "asset_plan_svg"
+    ],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "downstream-change",
+      "question": "Delay and RFI retain approved downstream change",
+      "sql": "SELECT w.status,x.status,d.name FROM work_packages w JOIN activities a ON a.work_package_id=w.id JOIN dependencies dep ON dep.predecessor_id=a.id JOIN activities b ON b.id=dep.successor_id JOIN work_packages d ON d.id=b.work_package_id JOIN change_orders x ON x.downstream_package_id=d.id JOIN rfis r ON r.id=x.rfi_id WHERE w.status='delayed' AND x.status='approved'",
+      "expected": [
+        [
+          "delayed",
+          "approved",
+          "Finish"
+        ]
+      ]
+    },
+    {
+      "id": "bim-submittal",
+      "question": "Approved submittal identifies model revision and physical asset",
+      "sql": "SELECT s.status,s.revision,b.model_revision,b.native_object_id FROM submittals s JOIN bim_references b ON b.asset_id=s.asset_id",
+      "expected": [
+        [
+          "approved",
+          "r1",
+          "r1",
+          "beam-001"
+        ]
+      ]
+    },
+    {
+      "id": "cycle",
+      "question": "Expose directed schedule cycle without deleting dependency",
+      "sql": "SELECT a.id,b.id FROM dependencies a JOIN dependencies b ON a.predecessor_id=b.successor_id AND a.successor_id=b.predecessor_id WHERE a.id<b.id",
+      "expected": [
+        [
+          "D1",
+          "D2"
+        ]
+      ]
+    },
+    {
+      "id": "change",
+      "question": "Proposed change stays separate from contract baseline",
+      "sql": "SELECT c.amount,x.amount,x.status FROM contracts c JOIN change_orders x ON x.contract_id=c.id ORDER BY x.id",
+      "expected": [
+        [
+          1000,
+          50,
+          "proposed"
+        ],
+        [
+          1000,
+          75,
+          "approved"
+        ]
+      ]
+    },
+    {
+      "id": "evidence",
+      "question": "Inspection and RFI refer to same physical asset",
+      "sql": "SELECT i.asset_id,r.status FROM inspections i JOIN rfis r ON r.asset_id=i.asset_id",
+      "expected": [
+        [
+          "A1",
+          "open"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "projects": 1,
+    "parties": 1,
+    "contracts": 1,
+    "locations": 1,
+    "assets": 1,
+    "work_packages": 2,
+    "activities": 2,
+    "dependencies": 2,
+    "resources": 1,
+    "cost_items": 1,
+    "change_orders": 2,
+    "rfis": 1,
+    "inspections": 1,
+    "submittals": 1,
+    "bim_references": 1,
+    "documents": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

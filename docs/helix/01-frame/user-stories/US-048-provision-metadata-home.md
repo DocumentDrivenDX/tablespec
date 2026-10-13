@@ -8,7 +8,7 @@ ddx:
 **Feature**: FEAT-034 — App Deployment & Configuration
 **PRD Requirements**: FR-23.2, FR-23.3
 **Priority**: P1
-**Status**: Specified
+**Status**: Built
 
 ## Story
 
@@ -35,12 +35,18 @@ reporting an unusable configuration is US-049.
 
 ## Acceptance Criteria
 
-- [ ] **US-048-AC1** — Given a declared location whose schema does not exist, when provisioning runs, then the schema is created and reported as created.
-- [ ] **US-048-AC2** — Given a declared location whose schema exists but whose output volume does not, when provisioning runs, then the volume is created and the existing schema is left unmodified.
-- [ ] **US-048-AC3** — Given a provisioned location, when provisioning runs a second time, then no object is created or altered and the step completes successfully.
-- [ ] **US-048-AC4** — Given a governance table that exists with an older column set, when provisioning runs, then the missing columns are added and every pre-existing row is retained.
-- [ ] **US-048-AC5** — Given a completed provisioning run, when the app starts, then it reads and writes its governance tables with no manually executed SQL having been required.
-- [ ] **US-048-AC6** — Given a deploying identity that cannot issue a required grant, when provisioning runs, then it reports the exact grant needed and the identity that needs it, and does not report success.
+- [x] **US-048-AC1** — Given a declared location whose schema does not exist, when provisioning runs, then the schema is created and reported as created.
+  **Evidence**: `apps/data-profiling/tests/test_provision.py` (`@covers US-048-AC1`).
+- [x] **US-048-AC2** — Given a declared location whose schema exists but whose output volume does not, when provisioning runs, then the volume is created and the existing schema is left unmodified.
+  **Evidence**: `test_provision.py` (`@covers US-048-AC2`).
+- [x] **US-048-AC3** — Given a provisioned location, when provisioning runs a second time, then no object is created or altered and the step completes successfully.
+  **Evidence**: `test_provision.py` re-run zero-change (`@covers US-048-AC3`).
+- [x] **US-048-AC4** — Given a governance table that exists with an older column set, when provisioning runs, then the missing columns are added and every pre-existing row is retained.
+  **Evidence**: `test_provision.py` column reconcile (`@covers US-048-AC4`).
+- [x] **US-048-AC5** — Given a completed provisioning run, when the app starts, then it reads and writes its governance tables with no manually executed SQL having been required.
+  **Evidence**: `test_fr23_stack.py` composition (`@covers US-048-AC5`); `scripts/provision.py`.
+- [x] **US-048-AC6** — Given a deploying identity that cannot issue a required grant, when provisioning runs, then it reports the exact grant needed and the identity that needs it, and does not report success.
+  **Evidence**: `test_provision.py` grant reporting (`@covers US-048-AC6`).
 
 ## Edge Cases
 

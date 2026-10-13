@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "shipments",
+  "description": "Synthetic shipments; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipments id; synthetic reference scenario."
+    },
+    {
+      "name": "container_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipments container_id; synthetic reference scenario."
+    },
+    {
+      "name": "facility_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipments facility_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored shipments status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "container_id",
+        "references_table": "containers",
+        "references_column": "id"
+      },
+      {
+        "column": "facility_id",
+        "references_table": "facilities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

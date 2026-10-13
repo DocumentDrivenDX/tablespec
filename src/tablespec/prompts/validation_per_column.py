@@ -43,7 +43,9 @@ def generate_validation_prompt_per_column(
             table_name, table_description, column_name, column_data
         )
     if context == "table":
-        return _generate_table_validation_prompt_focused(table_name, table_description, umf_data)
+        return _generate_table_validation_prompt_focused(
+            table_name, table_description, umf_data
+        )
     msg = f"Unknown context: {context}. Must be 'column' or 'table'"
     raise ValueError(msg)
 
@@ -91,7 +93,9 @@ def _generate_column_validation_prompt_focused(
     if format_spec:
         auto_validations.append(f"- Format validation ({format_spec})")
     if domain_type:
-        auto_validations.append(f"- Domain type constraints ({domain_type} format/value set)")
+        auto_validations.append(
+            f"- Domain type constraints ({domain_type} format/value set)"
+        )
 
     # Get column-level expectation types
     expectation_types = get_llm_generatable_expectations(context="column")
@@ -182,7 +186,9 @@ def _generate_table_validation_prompt_focused(
     # Extract column names from UMF data
     columns_section = ""
     if umf_data and "columns" in umf_data:
-        column_names = [col.get("name", "") for col in umf_data["columns"] if col.get("name")]
+        column_names = [
+            col.get("name", "") for col in umf_data["columns"] if col.get("name")
+        ]
         if column_names:
             columns_section = f"""
 ## Available Columns

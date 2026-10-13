@@ -1,0 +1,854 @@
+{
+  "id": "ecology",
+  "version": "1.0.0",
+  "description": "ecology synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_watersheds": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/watersheds.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "91f4cbca689ddc03afaf4fa1f408d494664660e9fb05a89cd0dd2de1612c2db2"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_catchments": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/catchments.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1b510442a0bcdaa89fa62b392e01e1db58ed6506b05d8b3556ca31012a1ca322"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_reaches": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/reaches.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "a99078ad156afa46480ec312d4069121f2a3b2a26279fe2a77b5c425bdfe5b4c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_network_links": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/network_links.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "40a7b970dd7e68520e9f2170cabc2ba93b9f0653fb4aa174d7b19cd4989e7088"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_monitoring_sites": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/monitoring_sites.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7bed40cb21ab4ff39e05c0b1ddf95511c8feae0fe3458acc73feb20fb5da9ec7"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_projects": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/projects.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1708f240a86730d1bf85ebfb0ffbc5da27ba99382caab5d1fda24794bb8c38dd"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_methods": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/methods.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e13d17e2d644b1f9f4ed8a6b57d12b7a81eb1416b5f4caf412602126e8c086b8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_observed_properties": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/observed_properties.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7508b3b25c4ef26cc26ad7630a68c768ade2073b9cbe328ab009b734162c4691"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_sampling_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/sampling_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8ddf6e58ed86126aa46044728b636ee26dc5c21178a37de82543e28dffa1d3ac"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_samples": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/samples.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "a9572b9b785778626e107102d2753dc45ad89b8c4714624993198daa7e418533"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_observations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/observations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e3bb377a8cfa33b16ede1bb02cf8e1ee57b5bcf0ca6a6aa01d14f42ea7fd89c9"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_taxa": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/taxa.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e03c8d8d6c8bbc044571dafb95c05250faf1b92f55363483cba2b431d0da3f4d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_identifications": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/identifications.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1b6185a721e17f36fc6b2542ac478898c56d04d87aca193289806c47f9ea5d92"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_effort": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/effort.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c5b17c91dd68e7bd0c5d493e588114f2aa6191ba8d958003d250aa3dc9b0c2c0"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_occurrences": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/occurrences.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "083287d9c0c93cf89daa2a627f6aec1879a925f4b997eba9ac8a68cd7388f414"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_habitat_metrics": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/habitat_metrics.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "344372a580f993bbf78ce5b814ae00a7d94d016549195071e32aab41983c2a3c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_management_interventions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/management_interventions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c4e019a656bdc74c1531d45ae5af7ec380c9ceb3b7376c293ec7590ad1d692be"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_fishing_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/fishing_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4c73a39d94d83aee3c3d2ba49747cc95d1d220e1cce77d15c538a4a7fade1bb0"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_site_matches": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/site_matches.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "5bfb28fdaecf3f88b8eec941578aef60ae2d877e190a7e416ddbb9776137a1f6"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "watersheds",
+      "source_id": "template_watersheds",
+      "role": "rows"
+    },
+    {
+      "schema_id": "catchments",
+      "source_id": "template_catchments",
+      "role": "rows"
+    },
+    {
+      "schema_id": "reaches",
+      "source_id": "template_reaches",
+      "role": "rows"
+    },
+    {
+      "schema_id": "network_links",
+      "source_id": "template_network_links",
+      "role": "rows"
+    },
+    {
+      "schema_id": "monitoring_sites",
+      "source_id": "template_monitoring_sites",
+      "role": "rows"
+    },
+    {
+      "schema_id": "projects",
+      "source_id": "template_projects",
+      "role": "rows"
+    },
+    {
+      "schema_id": "methods",
+      "source_id": "template_methods",
+      "role": "rows"
+    },
+    {
+      "schema_id": "observed_properties",
+      "source_id": "template_observed_properties",
+      "role": "rows"
+    },
+    {
+      "schema_id": "sampling_events",
+      "source_id": "template_sampling_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "samples",
+      "source_id": "template_samples",
+      "role": "rows"
+    },
+    {
+      "schema_id": "observations",
+      "source_id": "template_observations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "taxa",
+      "source_id": "template_taxa",
+      "role": "rows"
+    },
+    {
+      "schema_id": "identifications",
+      "source_id": "template_identifications",
+      "role": "rows"
+    },
+    {
+      "schema_id": "effort",
+      "source_id": "template_effort",
+      "role": "rows"
+    },
+    {
+      "schema_id": "occurrences",
+      "source_id": "template_occurrences",
+      "role": "rows"
+    },
+    {
+      "schema_id": "habitat_metrics",
+      "source_id": "template_habitat_metrics",
+      "role": "rows"
+    },
+    {
+      "schema_id": "management_interventions",
+      "source_id": "template_management_interventions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "fishing_events",
+      "source_id": "template_fishing_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "site_matches",
+      "source_id": "template_site_matches",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "watersheds",
+      "format": "tablespec",
+      "reference": "umf/watersheds.json"
+    },
+    {
+      "id": "catchments",
+      "format": "tablespec",
+      "reference": "umf/catchments.json"
+    },
+    {
+      "id": "reaches",
+      "format": "tablespec",
+      "reference": "umf/reaches.json"
+    },
+    {
+      "id": "network_links",
+      "format": "tablespec",
+      "reference": "umf/network_links.json"
+    },
+    {
+      "id": "monitoring_sites",
+      "format": "tablespec",
+      "reference": "umf/monitoring_sites.json"
+    },
+    {
+      "id": "projects",
+      "format": "tablespec",
+      "reference": "umf/projects.json"
+    },
+    {
+      "id": "methods",
+      "format": "tablespec",
+      "reference": "umf/methods.json"
+    },
+    {
+      "id": "observed_properties",
+      "format": "tablespec",
+      "reference": "umf/observed_properties.json"
+    },
+    {
+      "id": "sampling_events",
+      "format": "tablespec",
+      "reference": "umf/sampling_events.json"
+    },
+    {
+      "id": "samples",
+      "format": "tablespec",
+      "reference": "umf/samples.json"
+    },
+    {
+      "id": "observations",
+      "format": "tablespec",
+      "reference": "umf/observations.json"
+    },
+    {
+      "id": "taxa",
+      "format": "tablespec",
+      "reference": "umf/taxa.json"
+    },
+    {
+      "id": "identifications",
+      "format": "tablespec",
+      "reference": "umf/identifications.json"
+    },
+    {
+      "id": "effort",
+      "format": "tablespec",
+      "reference": "umf/effort.json"
+    },
+    {
+      "id": "occurrences",
+      "format": "tablespec",
+      "reference": "umf/occurrences.json"
+    },
+    {
+      "id": "habitat_metrics",
+      "format": "tablespec",
+      "reference": "umf/habitat_metrics.json"
+    },
+    {
+      "id": "management_interventions",
+      "format": "tablespec",
+      "reference": "umf/management_interventions.json"
+    },
+    {
+      "id": "fishing_events",
+      "format": "tablespec",
+      "reference": "umf/fishing_events.json"
+    },
+    {
+      "id": "site_matches",
+      "format": "tablespec",
+      "reference": "umf/site_matches.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "watersheds",
+        "catchments",
+        "reaches",
+        "network_links",
+        "monitoring_sites",
+        "projects",
+        "methods",
+        "observed_properties",
+        "sampling_events",
+        "samples",
+        "observations",
+        "taxa",
+        "identifications",
+        "effort",
+        "occurrences",
+        "habitat_metrics",
+        "management_interventions",
+        "fishing_events",
+        "site_matches"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "watersheds": [
+        "id"
+      ],
+      "catchments": [
+        "id",
+        "watershed_id"
+      ],
+      "reaches": [
+        "id",
+        "catchment_id"
+      ],
+      "network_links": [
+        "id",
+        "upstream_id",
+        "downstream_id"
+      ],
+      "monitoring_sites": [
+        "id",
+        "reach_id"
+      ],
+      "projects": [
+        "id"
+      ],
+      "methods": [
+        "id"
+      ],
+      "observed_properties": [
+        "id"
+      ],
+      "sampling_events": [
+        "id",
+        "site_id",
+        "project_id",
+        "method_id"
+      ],
+      "samples": [
+        "id",
+        "event_id"
+      ],
+      "observations": [
+        "id",
+        "sample_id",
+        "property_id"
+      ],
+      "taxa": [
+        "id"
+      ],
+      "identifications": [
+        "id",
+        "taxon_id"
+      ],
+      "effort": [
+        "id",
+        "event_id"
+      ],
+      "occurrences": [
+        "id",
+        "event_id",
+        "identification_id",
+        "effort_id"
+      ],
+      "habitat_metrics": [
+        "id",
+        "catchment_id"
+      ],
+      "management_interventions": [
+        "id",
+        "reach_id"
+      ],
+      "fishing_events": [
+        "id",
+        "site_id"
+      ],
+      "site_matches": [
+        "id",
+        "site_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "effort-event",
+      "question": "Occurrence and sampling effort share actual survey event",
+      "sql": "SELECT o.id FROM occurrences o JOIN effort e ON e.id=o.effort_id WHERE e.event_id<>o.event_id",
+      "expected": []
+    },
+    {
+      "id": "connected-measurements",
+      "question": "Two connected reaches retain temperature and dissolved oxygen with probe methods",
+      "sql": "SELECT p.name,COUNT(DISTINCT r.id) FROM observations o JOIN observed_properties p ON p.id=o.property_id JOIN samples s ON s.id=o.sample_id JOIN sampling_events e ON e.id=s.event_id JOIN monitoring_sites ms ON ms.id=e.site_id JOIN reaches r ON r.id=ms.reach_id JOIN methods m ON m.id=e.method_id WHERE p.name IN ('temperature','dissolved-oxygen') AND m.fraction='in-situ' GROUP BY p.name ORDER BY p.name",
+      "expected": [
+        [
+          "dissolved-oxygen",
+          2
+        ],
+        [
+          "temperature",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "censor",
+      "question": "Below-detection nitrate is not zero",
+      "sql": "SELECT id,threshold,qualifier FROM observations WHERE result_kind='censored' AND value IS NULL",
+      "expected": [
+        [
+          "O2",
+          0.1,
+          "below-detection"
+        ]
+      ]
+    },
+    {
+      "id": "match",
+      "question": "Coordinate-only match stays unresolved",
+      "sql": "SELECT id FROM site_matches WHERE resolution='unresolved'",
+      "expected": [
+        [
+          "SM1"
+        ]
+      ]
+    },
+    {
+      "id": "effort",
+      "question": "Exclude effort-unknown detection from quantitative comparison",
+      "sql": "SELECT o.id FROM occurrences o JOIN effort e ON e.id=o.effort_id WHERE e.amount IS NULL",
+      "expected": [
+        [
+          "OC3"
+        ]
+      ]
+    },
+    {
+      "id": "zero",
+      "question": "Known-effort non-detection is distinct from missing occurrence",
+      "sql": "SELECT o.id FROM occurrences o JOIN effort e ON e.id=o.effort_id WHERE o.count=0 AND o.detection='not-detected' AND e.amount IS NOT NULL",
+      "expected": [
+        [
+          "OC2"
+        ]
+      ]
+    },
+    {
+      "id": "network",
+      "question": "Reach linkage preserves upstream direction",
+      "sql": "SELECT upstream_id,downstream_id FROM network_links",
+      "expected": [
+        [
+          "R1",
+          "R2"
+        ]
+      ]
+    },
+    {
+      "id": "comparability",
+      "question": "Matrix, fraction and taxonomy rank are retained",
+      "sql": "SELECT DISTINCT m.matrix,m.fraction,t.rank FROM occurrences o JOIN sampling_events e ON e.id=o.event_id JOIN methods m ON m.id=e.method_id JOIN identifications i ON i.id=o.identification_id JOIN taxa t ON t.id=i.taxon_id",
+      "expected": [
+        [
+          "benthos",
+          "whole",
+          "family"
+        ]
+      ]
+    },
+    {
+      "id": "fishing",
+      "question": "Catch effort does not become scientific survey effort",
+      "sql": "SELECT effort_unit FROM fishing_events",
+      "expected": [
+        [
+          "angler-hour"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "watersheds": 1,
+    "catchments": 1,
+    "reaches": 2,
+    "network_links": 1,
+    "monitoring_sites": 2,
+    "projects": 1,
+    "methods": 3,
+    "observed_properties": 3,
+    "sampling_events": 5,
+    "samples": 4,
+    "observations": 6,
+    "taxa": 1,
+    "identifications": 1,
+    "effort": 2,
+    "occurrences": 3,
+    "habitat_metrics": 1,
+    "management_interventions": 1,
+    "fishing_events": 1,
+    "site_matches": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

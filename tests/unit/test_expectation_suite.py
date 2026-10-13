@@ -9,7 +9,6 @@ from tablespec.models.umf import (
     UMF,
     UMFColumn,
     ValidationRules,
-    classify_validation_type,
 )
 
 
@@ -296,7 +295,11 @@ class TestUMFIntegration:
                     QualityCheck(
                         expectation={
                             "expectation_type": "expect_column_values_to_be_between",
-                            "kwargs": {"column": "id", "min_value": 0, "max_value": 100},
+                            "kwargs": {
+                                "column": "id",
+                                "min_value": 0,
+                                "max_value": 100,
+                            },
                         },
                         severity="warning",
                     )

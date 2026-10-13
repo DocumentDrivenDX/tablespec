@@ -1,0 +1,1119 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:manufacturing",
+  "title": "manufacturing ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:manufacturing:",
+      "elements": [
+        {
+          "id": "facilities",
+          "kind": "record",
+          "name": "facilities",
+          "title": "facilities",
+          "description": "Synthetic facilities; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "facilities.id"
+            },
+            {
+              "module": "domain",
+              "element": "facilities.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "facilities.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "facilities.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored facilities id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "facilities.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored facilities name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "machines",
+          "kind": "record",
+          "name": "machines",
+          "title": "machines",
+          "description": "Synthetic machines; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "machines.id"
+            },
+            {
+              "module": "domain",
+              "element": "machines.facility_id"
+            },
+            {
+              "module": "domain",
+              "element": "machines.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "machines.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "machines.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored machines id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "machines.facility_id",
+          "name": "facility_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored machines facility_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "machines.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored machines name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "components",
+          "kind": "record",
+          "name": "components",
+          "title": "components",
+          "description": "Synthetic components; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "components.id"
+            },
+            {
+              "module": "domain",
+              "element": "components.machine_id"
+            },
+            {
+              "module": "domain",
+              "element": "components.parent_id"
+            },
+            {
+              "module": "domain",
+              "element": "components.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "components.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "components.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored components id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "components.machine_id",
+          "name": "machine_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored components machine_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "components.parent_id",
+          "name": "parent_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored components parent_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "components.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored components name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_orders",
+          "kind": "record",
+          "name": "work_orders",
+          "title": "work_orders",
+          "description": "Synthetic work_orders; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "work_orders.id"
+            },
+            {
+              "module": "domain",
+              "element": "work_orders.machine_id"
+            },
+            {
+              "module": "domain",
+              "element": "work_orders.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "work_orders.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "work_orders.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_orders id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_orders.machine_id",
+          "name": "machine_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_orders machine_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "work_orders.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored work_orders status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "material_lots",
+          "kind": "record",
+          "name": "material_lots",
+          "title": "material_lots",
+          "description": "Synthetic material_lots; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "material_lots.id"
+            },
+            {
+              "module": "domain",
+              "element": "material_lots.material"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "material_lots.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "material_lots.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored material_lots id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "material_lots.material",
+          "name": "material",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored material_lots material; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "production_runs",
+          "kind": "record",
+          "name": "production_runs",
+          "title": "production_runs",
+          "description": "Synthetic production_runs; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "production_runs.id"
+            },
+            {
+              "module": "domain",
+              "element": "production_runs.work_order_id"
+            },
+            {
+              "module": "domain",
+              "element": "production_runs.lot_id"
+            },
+            {
+              "module": "domain",
+              "element": "production_runs.started_at"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "production_runs.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "production_runs.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored production_runs id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "production_runs.work_order_id",
+          "name": "work_order_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored production_runs work_order_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "production_runs.lot_id",
+          "name": "lot_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored production_runs lot_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "production_runs.started_at",
+          "name": "started_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored production_runs started_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations",
+          "kind": "record",
+          "name": "observations",
+          "title": "observations",
+          "description": "Synthetic observations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "observations.id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.component_id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.value"
+            },
+            {
+              "module": "domain",
+              "element": "observations.unit"
+            },
+            {
+              "module": "domain",
+              "element": "observations.observed_at"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "observations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "observations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.component_id",
+          "name": "component_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations component_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations value; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "observations.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.observed_at",
+          "name": "observed_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations observed_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "alarms",
+          "kind": "record",
+          "name": "alarms",
+          "title": "alarms",
+          "description": "Synthetic alarms; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "alarms.id"
+            },
+            {
+              "module": "domain",
+              "element": "alarms.observation_id"
+            },
+            {
+              "module": "domain",
+              "element": "alarms.condition"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "alarms.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "alarms.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored alarms id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "alarms.observation_id",
+          "name": "observation_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored alarms observation_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "alarms.condition",
+          "name": "condition",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored alarms condition; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections",
+          "kind": "record",
+          "name": "inspections",
+          "title": "inspections",
+          "description": "Synthetic inspections; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "inspections.id"
+            },
+            {
+              "module": "domain",
+              "element": "inspections.run_id"
+            },
+            {
+              "module": "domain",
+              "element": "inspections.method"
+            },
+            {
+              "module": "domain",
+              "element": "inspections.result"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "inspections.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "inspections.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections.run_id",
+          "name": "run_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections run_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections.method",
+          "name": "method",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections method; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "inspections.result",
+          "name": "result",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored inspections result; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events",
+          "kind": "record",
+          "name": "maintenance_events",
+          "title": "maintenance_events",
+          "description": "Synthetic maintenance_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "maintenance_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "maintenance_events.component_id"
+            },
+            {
+              "module": "domain",
+              "element": "maintenance_events.work_order_id"
+            },
+            {
+              "module": "domain",
+              "element": "maintenance_events.action"
+            },
+            {
+              "module": "domain",
+              "element": "maintenance_events.alarm_id"
+            },
+            {
+              "module": "domain",
+              "element": "maintenance_events.occurred_at"
+            },
+            {
+              "module": "domain",
+              "element": "maintenance_events.resumed_run_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "maintenance_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.component_id",
+          "name": "component_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events component_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.work_order_id",
+          "name": "work_order_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events work_order_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.action",
+          "name": "action",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events action; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.alarm_id",
+          "name": "alarm_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events alarm_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.occurred_at",
+          "name": "occurred_at",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events occurred_at; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "maintenance_events.resumed_run_id",
+          "name": "resumed_run_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored maintenance_events resumed_run_id; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "machines.facility_id",
+          "name": "machines.facility_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "machines"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "facilities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "components.machine_id",
+          "name": "components.machine_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "components"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "machines",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "components.parent_id",
+          "name": "components.parent_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "components"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "components",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "work_orders.machine_id",
+          "name": "work_orders.machine_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "work_orders"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "machines",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "production_runs.work_order_id",
+          "name": "production_runs.work_order_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "production_runs"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "work_orders",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "production_runs.lot_id",
+          "name": "production_runs.lot_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "production_runs"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "material_lots",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "observations.component_id",
+          "name": "observations.component_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "components",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "alarms.observation_id",
+          "name": "alarms.observation_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "alarms"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "observations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "inspections.run_id",
+          "name": "inspections.run_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "inspections"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "production_runs",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "maintenance_events.component_id",
+          "name": "maintenance_events.component_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "maintenance_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "components",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "maintenance_events.work_order_id",
+          "name": "maintenance_events.work_order_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "maintenance_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "work_orders",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "maintenance_events.alarm_id",
+          "name": "maintenance_events.alarm_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "maintenance_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "alarms",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "maintenance_events.resumed_run_id",
+          "name": "maintenance_events.resumed_run_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "maintenance_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "production_runs",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

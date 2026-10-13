@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "version",
+    "id",
+    "implementation_version",
+    "profile",
+    "runtime",
+    "entrypoint",
+    "configuration_schema",
+    "qualification",
+    "artifacts"
+  ],
+  "properties": {
+    "version": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "const": "umf.document-loader"
+    },
+    "implementation_version": {
+      "const": "1.0.0"
+    },
+    "profile": {
+      "enum": [
+        "court-documents",
+        "sec-filings",
+        "documents"
+      ]
+    },
+    "runtime": {
+      "const": "bun"
+    },
+    "entrypoint": {
+      "const": "run.ts"
+    },
+    "configuration_schema": {
+      "const": "inventory.schema.json"
+    },
+    "qualification": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": [
+          "reference",
+          "sha256"
+        ],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

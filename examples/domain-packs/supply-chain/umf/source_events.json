@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "source_events",
+  "description": "Synthetic source_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored source_events id; synthetic reference scenario."
+    },
+    {
+      "name": "publisher",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored source_events publisher; synthetic reference scenario."
+    },
+    {
+      "name": "native_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored source_events native_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

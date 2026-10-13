@@ -1,5 +1,10 @@
 """Unit tests for schema generators."""
 
+# @covers US-003-AC1
+# @covers US-003-AC2
+# @covers US-003-AC3
+# @covers US-003-AC4
+
 from __future__ import annotations
 
 import json
@@ -150,7 +155,9 @@ class TestGenerateSQLDDL:
         """Test suggested indexes are generated."""
         ddl = generate_sql_ddl(full_umf)
         assert "-- Suggested Indexes" in ddl
-        assert "CREATE INDEX idx_customer_name ON customer_table (customer_name);" in ddl
+        assert (
+            "CREATE INDEX idx_customer_name ON customer_table (customer_name);" in ddl
+        )
         assert "CREATE INDEX idx_created_at ON customer_table (created_at);" in ddl
 
     def test_no_indexes_when_not_present(self, minimal_umf):
@@ -188,7 +195,12 @@ class TestGenerateSQLDDL:
                 {"name": "date_col", "data_type": "DATE", "nullable": True},
                 {"name": "bool_col", "data_type": "BOOLEAN", "nullable": True},
                 {"name": "float_col", "data_type": "FLOAT", "nullable": True},
-                {"name": "decimal_col", "data_type": "DECIMAL", "precision": 10, "scale": 2},
+                {
+                    "name": "decimal_col",
+                    "data_type": "DECIMAL",
+                    "precision": 10,
+                    "scale": 2,
+                },
             ],
         }
         ddl = generate_sql_ddl(umf)
@@ -214,7 +226,12 @@ class TestGenerateSQLDDL:
                 {"name": "date_col", "data_type": "DATE", "nullable": True},
                 {"name": "bool_col", "data_type": "BOOLEAN", "nullable": True},
                 {"name": "float_col", "data_type": "FLOAT", "nullable": True},
-                {"name": "decimal_col", "data_type": "DECIMAL", "precision": 10, "scale": 2},
+                {
+                    "name": "decimal_col",
+                    "data_type": "DECIMAL",
+                    "precision": 10,
+                    "scale": 2,
+                },
             ],
         }
         ddl = generate_sql_ddl(umf)
@@ -272,11 +289,28 @@ class TestGeneratePySparkSchema:
         assert "# PySpark Schema for TestTable" in schema
         assert "# Generated from UMF specification" in schema
 
+    def test_without_source_file_modified_is_deterministic(self):
+        """Repeated renders stay byte-identical without source file metadata."""
+        umf = {
+            "table_name": "test_table",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {"name": "name", "data_type": "STRING", "nullable": True},
+            ],
+        }
+
+        schema1 = generate_pyspark_schema(umf)
+        schema2 = generate_pyspark_schema(umf)
+
+        assert schema1 == schema2
+        assert "# Source file modified:" not in schema1
+
     def test_imports_all_types(self, minimal_umf):
         """Test all PySpark type imports are included."""
         schema = generate_pyspark_schema(minimal_umf)
         assert (
-            "from pyspark.sql.types import StringType, IntegerType, LongType, DecimalType" in schema
+            "from pyspark.sql.types import StringType, IntegerType, LongType, DecimalType"
+            in schema
         )
         assert (
             "from pyspark.sql.types import FloatType, DoubleType, BooleanType, DateType, TimestampType"
@@ -315,7 +349,11 @@ class TestGeneratePySparkSchema:
 
         # Should have 9 StructField definitions in fields + 1 in import = 10
         # Just check that we have the right number of field definitions (9)
-        lines = [line for line in schema.split("\n") if line.strip().startswith('StructField("')]
+        lines = [
+            line
+            for line in schema.split("\n")
+            if line.strip().startswith('StructField("')
+        ]
         assert len(lines) == 9
 
     def test_proper_formatting(self, minimal_umf):
@@ -428,7 +466,9 @@ class TestGenerateJSONSchema:
         """Test column descriptions are included."""
         schema = generate_json_schema(full_umf)
 
-        assert schema["properties"]["customer_id"]["description"] == "Unique customer ID"
+        assert (
+            schema["properties"]["customer_id"]["description"] == "Unique customer ID"
+        )
         assert schema["properties"]["email"]["description"] == "Customer email address"
 
     def test_required_fields(self, full_umf):
@@ -559,6 +599,8 @@ class TestPropertyBasedGeneratorsEmbedding:
         json_str = json.dumps(result)
         parsed = json.loads(json_str)
         assert parsed == result
+
+
 class TestPropertyBasedGenerators:
     """Property-based tests for schema generators using Hypothesis."""
 
@@ -592,3 +634,32 @@ class TestPropertyBasedGenerators:
         json_str = json.dumps(result)
         parsed = json.loads(json_str)
         assert parsed == result
+
+
+class TestInternalColumnsExcluded:
+    """Internal helper columns are excluded from all generated schemas."""
+
+    @pytest.fixture
+    def umf_with_internal(self):
+        return {
+            "table_name": "test_table",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {"name": "helper", "data_type": "STRING", "internal": True},
+            ],
+        }
+
+    def test_sql_ddl_excludes_internal(self, umf_with_internal):
+        ddl = generate_sql_ddl(umf_with_internal)
+        assert "id" in ddl
+        assert "helper" not in ddl
+
+    def test_pyspark_schema_excludes_internal(self, umf_with_internal):
+        code = generate_pyspark_schema(umf_with_internal)
+        assert '"id"' in code
+        assert "helper" not in code
+
+    def test_json_schema_excludes_internal(self, umf_with_internal):
+        schema = generate_json_schema(umf_with_internal)
+        assert "id" in schema["properties"]
+        assert "helper" not in schema["properties"]

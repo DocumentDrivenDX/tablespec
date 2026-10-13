@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "activities",
+  "description": "Synthetic activities; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored activities id; synthetic reference scenario."
+    },
+    {
+      "name": "work_package_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored activities work_package_id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored activities name; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "work_package_id",
+        "references_table": "work_packages",
+        "references_column": "id"
+      }
+    ]
+  }
+}

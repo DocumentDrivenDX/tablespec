@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "rfis",
+  "description": "Synthetic rfis; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored rfis id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored rfis asset_id; synthetic reference scenario."
+    },
+    {
+      "name": "question",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored rfis question; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored rfis status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "asset_id",
+        "references_table": "assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

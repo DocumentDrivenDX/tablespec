@@ -29,6 +29,7 @@ nav:
     - Happy Path: guide/happy-path.md
     - UMF Format: guide/umf-format.md
     - Schema Generation: guide/schema-generation.md
+    - SQL Plans: guide/sql-plans.md
     - Great Expectations: guide/great-expectations.md
     - Profiling: guide/profiling.md
     - LLM Prompts: guide/llm-prompts.md
@@ -38,6 +39,7 @@ nav:
     - Data Profiling App: guide/data-profiling-app.md
     - Split-Format UMF: guide/split-format.md
     - Sample Data: guide/sample-data.md
+    - Document Loading: guide/document-loader.md
     - Domain Inference: guide/domain-inference.md
     - Change Management: guide/change-management.md
   - API Reference:

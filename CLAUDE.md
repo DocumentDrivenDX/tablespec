@@ -10,13 +10,19 @@ Top-level layout:
 - `apps/data-profiling/` - Streamlit **Databricks App**: profiling, A/B comparison,
   drift, nightly Load Results, and an in-app Guidebook tab. First-party code, same
   Apache-2.0 license as the library (`NOTICE` records its origin). Formatted with
-  `ruff format`, and its suite runs in `make test`/CI via `testpaths` +
-  `pythonpath` (see `[tool.pytest.ini_options]`). `make lint` and pyright still
-  scope to `src/`. See `docs/guide/data-profiling-app.md`.
+  `ruff format`; `make lint` includes app Python (excluding notebooks); its suite
+  runs in `make test`/CI via `testpaths` + `pythonpath`. See
+  `docs/guide/data-profiling-app.md` and microsite Getting Started for deploy.
 - `app.yaml` + `requirements.txt` (repo root) - Databricks Apps manifest for that
   app. The source root must be the repo root so `pip install .` provides
   `tablespec` to the app; the command chdir's into `apps/data-profiling` because
   the app resolves `connections.yaml` relative to the working directory.
+- `skills/tablespec/` + `.claude-plugin/` + `.codex-plugin/` - the published **agent-skill plugin**
+  (`/plugin marketplace add https://github.com/DocumentDrivenDX/tablespec`). `skills/tablespec/SKILL.md`
+  is the source of truth; `.agents/skills/tablespec` and `.claude/skills/tablespec` are symlinks to it.
+  All three manifests carry a literal `version` that must equal the next release tag — bump them before
+  tagging (CI's `version-guard` job fails the release otherwise); `tests/docs/test_plugin_manifests.py`
+  keeps them mutually consistent.
 
 `src/tablespec/` is organized as a small public surface plus feature-focused subpackages:
 
@@ -24,6 +30,7 @@ Top-level layout:
 - `core/` - Shared IR, relation, registry, selection, and schema-fact primitives.
 - `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
 - `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
+- `extensions/` - Tablespec-owned pipeline and source-archive metadata extensions over shared UMF.
 - `formatting/` - YAML formatting helpers and shared formatting constants.
 - `guidebook/` - Static HTML guidebook generator (discovery, lineage, rendering) for UMF directories.
 - `inference/` - Domain-type inference and registry helpers.
@@ -33,7 +40,7 @@ Top-level layout:
 - `profiling/` - Native profiler types plus Spark/JDBC profile-to-UMF mappers, and `sql_reflect` (Spark-free UMF reflection from INFORMATION_SCHEMA rows).
 - `prompts/` - LLM prompt templates for docs, validation, filenames, relationships, and survivorship.
 - `quality/` - Baseline capture/storage and quality execution helpers.
-- `sample_data/` - Synthetic data generation, registry, validation, and filename helpers.
+- `sample_data/` - Selectable healthcare/legal generators, disk-backed scale planning, constraint reports, file output, and injectable Unity Catalog sinks.
 - `schemas/` - Schema generators, relationship resolution, and packaged JSON schema assets.
 - `validation/` - GX processors, staged reports, custom expectations, and the Spark-backed table validator.
 
@@ -57,6 +64,8 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
 
 ## Optional Dependencies
 
+- **`[databricks]`** - SDK statement execution for the optional Unity Catalog sample-data loader; authentication stays in the SDK profile.
+  - Install: `uv sync --extra databricks`
 - **`[spark]`** - PySpark support for Spark session helpers, profiling, validation, and other Spark-backed APIs.
   - Install: `uv sync --extra spark`
 - **`[duckdb]`** - DuckDB plus SQLAlchemy support for local dbt/SQL execution paths and dialect parity checks.

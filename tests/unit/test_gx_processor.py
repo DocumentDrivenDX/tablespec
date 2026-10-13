@@ -40,7 +40,9 @@ def valid_expectation_suite() -> dict:
     }
 
 
-def test_valid_expectation_suite_passes(temp_test_dir: Path, valid_expectation_suite: dict):
+def test_valid_expectation_suite_passes(
+    temp_test_dir: Path, valid_expectation_suite: dict
+):
     """Test that a valid expectation suite passes schema validation."""
     # Write valid suite to JSON file
     json_file = temp_test_dir / "test_table_validation_rules.json"
@@ -146,16 +148,24 @@ def test_valid_ignore_row_if_values(temp_test_dir: Path):
             ],
         }
 
-        json_file = temp_test_dir / f"test_multicolumn_{valid_value}_validation_rules.json"
+        json_file = (
+            temp_test_dir / f"test_multicolumn_{valid_value}_validation_rules.json"
+        )
         with json_file.open("w") as f:
             json.dump(suite, f)
 
         processor = GXExpectationProcessor()
         result = processor.process_expectation_suite(json_file, temp_test_dir)
-        assert result["status"] == "success", f"Multi-column value '{valid_value}' was rejected"
+        assert result["status"] == "success", (
+            f"Multi-column value '{valid_value}' was rejected"
+        )
 
     # Test column pair expectations with column pair enum values
-    column_pair_values = ["both_values_are_missing", "either_value_is_missing", "neither"]
+    column_pair_values = [
+        "both_values_are_missing",
+        "either_value_is_missing",
+        "neither",
+    ]
     for valid_value in column_pair_values:
         suite = {
             "name": f"test_colpair_{valid_value}_suite",
@@ -181,7 +191,9 @@ def test_valid_ignore_row_if_values(temp_test_dir: Path):
 
         processor = GXExpectationProcessor()
         result = processor.process_expectation_suite(json_file, temp_test_dir)
-        assert result["status"] == "success", f"Column pair value '{valid_value}' was rejected"
+        assert result["status"] == "success", (
+            f"Column pair value '{valid_value}' was rejected"
+        )
 
 
 def test_invalid_severity_value(temp_test_dir: Path):
@@ -430,7 +442,9 @@ class TestProcessExpectationSuiteAdditional:
         assert result["status"] == "failed"
         assert result["reason"] == "processing_error"
 
-    def test_process_suite_extracts_table_name_from_expectations(self, temp_test_dir: Path):
+    def test_process_suite_extracts_table_name_from_expectations(
+        self, temp_test_dir: Path
+    ):
         """Table name is extracted from filename with _expectations suffix."""
         suite = {
             "name": "claims_suite",
@@ -698,13 +712,17 @@ class TestValidateGxSuite:
         success, errors = processor.validate_gx_suite(suite_file)
         # Schema validation should pass; GX library validation may fail in some environments
         # due to numpy/pandas incompatibility - filter those out
-        non_env_errors = [e for e in errors if "numpy" not in e and "binary incompatibility" not in e]
+        non_env_errors = [
+            e for e in errors if "numpy" not in e and "binary incompatibility" not in e
+        ]
         assert len(non_env_errors) == 0
 
     def test_validate_nonexistent_file(self, temp_test_dir: Path):
         """Non-existent file returns failure."""
         processor = GXExpectationProcessor()
-        success, errors = processor.validate_gx_suite(temp_test_dir / "nonexistent.yaml")
+        success, errors = processor.validate_gx_suite(
+            temp_test_dir / "nonexistent.yaml"
+        )
         assert success is False
         assert len(errors) > 0
 
@@ -739,7 +757,9 @@ class TestValidateGxSuite:
         processor = GXExpectationProcessor()
         success, errors = processor.validate_gx_suite(suite_file)
         # Filter out environment-dependent GX library errors
-        non_env_errors = [e for e in errors if "numpy" not in e and "binary incompatibility" not in e]
+        non_env_errors = [
+            e for e in errors if "numpy" not in e and "binary incompatibility" not in e
+        ]
         assert len(non_env_errors) == 0
 
     def test_validate_suite_pending_missing_meta(self, temp_test_dir: Path):
@@ -767,13 +787,20 @@ class TestValidateGxSuite:
         # Mock out GX imports to simulate available GX library
         mock_suite_cls = MagicMock()
         mock_exp_config_cls = MagicMock()
-        with patch.dict("sys.modules", {
-            "great_expectations": MagicMock(),
-            "great_expectations.core": MagicMock(),
-            "great_expectations.core.expectation_suite": MagicMock(ExpectationSuite=mock_suite_cls),
-            "great_expectations.expectations": MagicMock(),
-            "great_expectations.expectations.expectation_configuration": MagicMock(ExpectationConfiguration=mock_exp_config_cls),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "great_expectations": MagicMock(),
+                "great_expectations.core": MagicMock(),
+                "great_expectations.core.expectation_suite": MagicMock(
+                    ExpectationSuite=mock_suite_cls
+                ),
+                "great_expectations.expectations": MagicMock(),
+                "great_expectations.expectations.expectation_configuration": MagicMock(
+                    ExpectationConfiguration=mock_exp_config_cls
+                ),
+            },
+        ):
             success, errors = processor.validate_gx_suite(suite_file)
         # Should flag missing meta
         assert any("meta" in e for e in errors)
@@ -802,13 +829,20 @@ class TestValidateGxSuite:
 
         mock_suite_cls = MagicMock()
         mock_exp_config_cls = MagicMock()
-        with patch.dict("sys.modules", {
-            "great_expectations": MagicMock(),
-            "great_expectations.core": MagicMock(),
-            "great_expectations.core.expectation_suite": MagicMock(ExpectationSuite=mock_suite_cls),
-            "great_expectations.expectations": MagicMock(),
-            "great_expectations.expectations.expectation_configuration": MagicMock(ExpectationConfiguration=mock_exp_config_cls),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "great_expectations": MagicMock(),
+                "great_expectations.core": MagicMock(),
+                "great_expectations.core.expectation_suite": MagicMock(
+                    ExpectationSuite=mock_suite_cls
+                ),
+                "great_expectations.expectations": MagicMock(),
+                "great_expectations.expectations.expectation_configuration": MagicMock(
+                    ExpectationConfiguration=mock_exp_config_cls
+                ),
+            },
+        ):
             success, errors = processor.validate_gx_suite(suite_file)
         assert any("description" in e for e in errors)
 
@@ -881,12 +915,16 @@ class TestValidateGxFormat:
 
     def test_expectations_not_list(self):
         processor = GXExpectationProcessor()
-        errors = processor._validate_gx_format({"name": "suite", "expectations": "not_a_list"})
+        errors = processor._validate_gx_format(
+            {"name": "suite", "expectations": "not_a_list"}
+        )
         assert any("array" in e for e in errors)
 
     def test_expectations_not_dicts(self):
         processor = GXExpectationProcessor()
-        errors = processor._validate_gx_format({"name": "suite", "expectations": ["string"]})
+        errors = processor._validate_gx_format(
+            {"name": "suite", "expectations": ["string"]}
+        )
         assert any("objects" in e for e in errors)
 
     def test_empty_expectations_no_errors(self):
@@ -918,7 +956,10 @@ class TestValidateGxFormat:
         data = {
             "name": "suite",
             "expectations": [
-                {"expectation_type": "expect_column_to_exist", "kwargs": {"column": "id"}}
+                {
+                    "expectation_type": "expect_column_to_exist",
+                    "kwargs": {"column": "id"},
+                }
             ],
         }
         errors = processor._validate_gx_format(data)

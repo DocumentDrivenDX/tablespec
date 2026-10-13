@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "table_name": "enrollments",
+  "description": "Synthetic enrollments; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored enrollments id; synthetic reference scenario."
+    },
+    {
+      "name": "person_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored enrollments person_id; synthetic reference scenario."
+    },
+    {
+      "name": "offering_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored enrollments offering_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "person_id",
+        "references_table": "people",
+        "references_column": "id"
+      },
+      {
+        "column": "offering_id",
+        "references_table": "course_offerings",
+        "references_column": "id"
+      }
+    ]
+  }
+}

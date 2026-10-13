@@ -53,7 +53,9 @@ class GXWrapper:
             # Log but don't fail - custom expectations are optional enhancements
             self.logger.warning(f"Failed to register custom expectations: {e}")
 
-    def create_expectation_suite(self, name: str, meta: dict[str, Any] | None = None) -> Any:
+    def create_expectation_suite(
+        self, name: str, meta: dict[str, Any] | None = None
+    ) -> Any:
         """Create GX expectation suite with standard configuration."""
         from great_expectations.core.expectation_suite import ExpectationSuite
 

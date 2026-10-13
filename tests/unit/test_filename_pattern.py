@@ -20,7 +20,11 @@ class TestFilenamePattern:
         )
 
         assert pattern.regex == r"^([A-Z]+)_([A-Z]{2})_([A-Z]{2})_OutreachList\.txt$"
-        assert pattern.captures == {1: "source_vendor", 2: "source_state", 3: "source_lob"}
+        assert pattern.captures == {
+            1: "source_vendor",
+            2: "source_state",
+            3: "source_lob",
+        }
         assert pattern.description == "Basic outreach file pattern"
 
     def test_pattern_with_mode(self):

@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "table_name": "observations",
+  "description": "Synthetic observations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations id; synthetic reference scenario."
+    },
+    {
+      "name": "sample_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations sample_id; synthetic reference scenario."
+    },
+    {
+      "name": "property_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations property_id; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "DECIMAL",
+      "nullable": true,
+      "description": "Authored observations value; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "threshold",
+      "data_type": "DECIMAL",
+      "nullable": true,
+      "description": "Authored observations threshold; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations unit; synthetic reference scenario."
+    },
+    {
+      "name": "result_kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations result_kind; synthetic reference scenario."
+    },
+    {
+      "name": "qualifier",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored observations qualifier; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "sample_id",
+        "references_table": "samples",
+        "references_column": "id"
+      },
+      {
+        "column": "property_id",
+        "references_table": "observed_properties",
+        "references_column": "id"
+      }
+    ]
+  }
+}

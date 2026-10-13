@@ -28,7 +28,9 @@ class TestConvertUmfFormatToStrftime:
 
     def test_timestamp_format_full(self):
         """Test YYYY-MM-DD HH:MM:SS converts to %Y-%m-%d %H:%M:%S."""
-        assert convert_umf_format_to_strftime("YYYY-MM-DD HH:MM:SS") == "%Y-%m-%d %H:%M:%S"
+        assert (
+            convert_umf_format_to_strftime("YYYY-MM-DD HH:MM:SS") == "%Y-%m-%d %H:%M:%S"
+        )
 
     def test_timestamp_format_compact(self):
         """Test YYYYMMDD HHMMSS converts to %Y%m%d %H%M%S."""

@@ -1,5 +1,10 @@
 """Unit tests for UMFDiff: comparing two UMF objects."""
 
+# @covers US-015-AC1
+# @covers US-015-AC2
+# @covers US-015-AC3
+# @covers US-015-AC4
+
 import pytest
 
 from tablespec.models.umf import UMF, UMFColumn, ValidationRules
@@ -29,7 +34,9 @@ def _make_umf(columns=None, description=None, table_type=None, validation_rules=
 
 
 def _make_col(name, data_type="VARCHAR", length=None, description=None, **kwargs):
-    return UMFColumn(name=name, data_type=data_type, length=length, description=description, **kwargs)
+    return UMFColumn(
+        name=name, data_type=data_type, length=length, description=description, **kwargs
+    )
 
 
 class TestUMFChangeTypeEnum:
@@ -49,7 +56,9 @@ class TestUMFComponentTypeEnum:
 
 class TestUMFColumnChange:
     def test_get_key(self):
-        change = UMFColumnChange(change_type=UMFChangeType.ADDED, column_name="birth_date")
+        change = UMFColumnChange(
+            change_type=UMFChangeType.ADDED, column_name="birth_date"
+        )
         assert change.get_key() == "column.birth_date"
 
     def test_description_added(self):
@@ -133,11 +142,15 @@ class TestUMFValidationChange:
 
 class TestUMFMetadataChange:
     def test_get_key(self):
-        change = UMFMetadataChange(field_name="description", old_value="old", new_value="new")
+        change = UMFMetadataChange(
+            field_name="description", old_value="old", new_value="new"
+        )
         assert change.get_key() == "metadata.description"
 
     def test_description_canonical_name(self):
-        change = UMFMetadataChange(field_name="canonical_name", old_value="Old Name", new_value="New Name")
+        change = UMFMetadataChange(
+            field_name="canonical_name", old_value="Old Name", new_value="New Name"
+        )
         assert "canonical_name" in change.description()
         assert "Old Name" in change.description()
 
@@ -146,11 +159,15 @@ class TestUMFMetadataChange:
         assert change.description() == "Update aliases"
 
     def test_description_table_description(self):
-        change = UMFMetadataChange(field_name="description", old_value="old", new_value="new")
+        change = UMFMetadataChange(
+            field_name="description", old_value="old", new_value="new"
+        )
         assert change.description() == "Update table description"
 
     def test_description_other_field(self):
-        change = UMFMetadataChange(field_name="table_type", old_value="provided", new_value="lookup")
+        change = UMFMetadataChange(
+            field_name="table_type", old_value="provided", new_value="lookup"
+        )
         assert change.description() == "Update table_type"
 
 
@@ -198,8 +215,12 @@ class TestUMFDiffColumnChanges:
         assert changes[0].changed_fields["length"] == (50, 100)
 
     def test_sort_order_removed_added_modified(self):
-        old = _make_umf(columns=[_make_col("remove_me"), _make_col("modify_me", length=10)])
-        new = _make_umf(columns=[_make_col("modify_me", length=20), _make_col("add_me")])
+        old = _make_umf(
+            columns=[_make_col("remove_me"), _make_col("modify_me", length=10)]
+        )
+        new = _make_umf(
+            columns=[_make_col("modify_me", length=20), _make_col("add_me")]
+        )
         diff = UMFDiff(old, new)
         changes = diff.get_column_changes()
         assert len(changes) == 3
@@ -217,7 +238,9 @@ class TestUMFDiffColumnChanges:
 
 
 class TestUMFDiffValidationChanges:
-    def _make_expectation(self, col, rule_type, rule_index=0, severity="warning", **extra):
+    def _make_expectation(
+        self, col, rule_type, rule_index=0, severity="warning", **extra
+    ):
         exp = {
             "type": f"expect_{rule_type}",
             "kwargs": {"column": col} if col != "-" else {},
@@ -281,8 +304,12 @@ class TestUMFDiffValidationChanges:
     def test_validation_sort_order(self):
         exp1 = self._make_expectation("col1", "not_null", rule_index=0)
         exp2 = self._make_expectation("col1", "unique", rule_index=0)
-        exp3_old = self._make_expectation("col1", "in_set", rule_index=0, severity="warning")
-        exp3_new = self._make_expectation("col1", "in_set", rule_index=0, severity="error")
+        exp3_old = self._make_expectation(
+            "col1", "in_set", rule_index=0, severity="warning"
+        )
+        exp3_new = self._make_expectation(
+            "col1", "in_set", rule_index=0, severity="error"
+        )
 
         old = _make_umf(validation_rules=ValidationRules(expectations=[exp1, exp3_old]))
         new = _make_umf(validation_rules=ValidationRules(expectations=[exp2, exp3_new]))
@@ -290,7 +317,11 @@ class TestUMFDiffValidationChanges:
         changes = diff.get_validation_changes()
         types = [c.change_type for c in changes]
         # removed first, then added, then modified
-        assert types == [UMFChangeType.REMOVED, UMFChangeType.ADDED, UMFChangeType.MODIFIED]
+        assert types == [
+            UMFChangeType.REMOVED,
+            UMFChangeType.ADDED,
+            UMFChangeType.MODIFIED,
+        ]
 
 
 class TestUMFDiffMetadataChanges:
@@ -343,13 +374,21 @@ class TestUMFDiffInternalMethods:
 
     def test_compare_dicts_with_exclude(self):
         diff = UMFDiff(old_umf=None, new_umf=_make_umf())
-        result = diff._compare_dicts({"a": 1, "b": 2}, {"a": 99, "b": 3}, exclude_keys={"a"})
+        result = diff._compare_dicts(
+            {"a": 1, "b": 2}, {"a": 99, "b": 3}, exclude_keys={"a"}
+        )
         assert result == {"b": (2, 3)}
 
     def test_compare_validation_rules_excludes_meta_internals(self):
         diff = UMFDiff(old_umf=None, new_umf=_make_umf())
-        old_rule = {"type": "expect_not_null", "meta": {"rule_index": 0, "severity": "warning"}}
-        new_rule = {"type": "expect_not_null", "meta": {"rule_index": 1, "severity": "error"}}
+        old_rule = {
+            "type": "expect_not_null",
+            "meta": {"rule_index": 0, "severity": "warning"},
+        }
+        new_rule = {
+            "type": "expect_not_null",
+            "meta": {"rule_index": 1, "severity": "error"},
+        }
         result = diff._compare_validation_rules(old_rule, new_rule)
         # rule_index is excluded, but severity is tracked
         assert "meta.severity" in result

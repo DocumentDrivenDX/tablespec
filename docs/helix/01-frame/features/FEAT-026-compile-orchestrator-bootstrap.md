@@ -46,8 +46,9 @@ imports tablespec at run time. The compile is path-agnostic: both bootstrap path
 converge on the same `list[UMF]` and the same compiled output.
 
 At that point the source has not become silver. Cross-source conformance,
-survivorship, entity resolution, dimensional modeling, and enrichment still belong
-to downstream layers. What has changed is that the source's semantics have been
+survivorship, and derived gold tables are declared in their own UMF specs and
+compiled as gold plans by the same orchestrator; they are never folded into
+ingestion. What has changed is that the source's semantics have been
 captured in Databricks / Unity Catalog / Delta-compatible artifacts rather than
 left as source-format accidents.
 

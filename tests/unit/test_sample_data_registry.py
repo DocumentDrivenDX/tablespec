@@ -102,7 +102,11 @@ class TestPreGenerateKeyPools:
         umf_files = {
             "members": {
                 "columns": [
-                    {"name": "member_id", "data_type": "STRING", "sample_values": ["AB12345678901"]},
+                    {
+                        "name": "member_id",
+                        "data_type": "STRING",
+                        "sample_values": ["AB12345678901"],
+                    },
                 ],
                 "relationships": {
                     "outgoing": [
@@ -157,7 +161,9 @@ class TestPreGenerateKeyPools:
             },
         }
         seeds = {"col_x": ["SEED1", "SEED2", "SEED3"]}
-        registry.pre_generate_key_pools(gen, umf_files=umf_files, cross_pipeline_seeds=seeds)
+        registry.pre_generate_key_pools(
+            gen, umf_files=umf_files, cross_pipeline_seeds=seeds
+        )
         # Pool should contain the seed values
         for pool in registry.foreign_key_manager.pools.values():
             assert "SEED1" in pool
@@ -202,7 +208,11 @@ class TestFindRepresentativeColumn:
             "table1": {
                 "columns": [
                     {"name": "col_a", "data_type": "STRING"},
-                    {"name": "col_b", "data_type": "STRING", "sample_values": ["X", "Y"]},
+                    {
+                        "name": "col_b",
+                        "data_type": "STRING",
+                        "sample_values": ["X", "Y"],
+                    },
                 ]
             }
         }

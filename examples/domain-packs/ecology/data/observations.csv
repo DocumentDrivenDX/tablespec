@@ -1,0 +1,7 @@
+"id","sample_id","property_id","value","threshold","unit","result_kind","qualifier"
+"O1","SA1","OP1","1.20","\N","mg/L","measured","accepted"
+"O2","SA1","OP1","\N","0.10","mg/L","censored","below-detection"
+"O3","SA3","OP2","18.00","\N","Cel","measured","accepted"
+"O4","SA3","OP3","8.00","\N","mg/L","measured","accepted"
+"O5","SA4","OP2","19.00","\N","Cel","measured","accepted"
+"O6","SA4","OP3","7.50","\N","mg/L","measured","accepted"

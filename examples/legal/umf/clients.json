@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "table_name": "clients",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "client_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated client id"
+    },
+    {
+      "name": "client_name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Fabricated client name",
+      "domain_type": "client_name"
+    }
+  ],
+  "primary_key": [
+    "client_id"
+  ]
+}

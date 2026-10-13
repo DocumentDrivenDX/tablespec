@@ -1,0 +1,1050 @@
+{
+  "id": "archaeology",
+  "version": "1.0.0",
+  "description": "archaeology synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_projects": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/projects.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ef9675fad71a4aebf98db0425fd0adfed2760e65261a9e527708b91838f7a056"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_sites": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/sites.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "35b71ebb38865dce87d4501d4bbb158cb2831b9bf8cc45a1c421fde7d839104d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_seasons": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/seasons.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "9a48dd1201910aa37d8c9163225e4082f1071339292bca6ad934033e741e159d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_areas": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/areas.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "360029d3c7d8a903d561339b00a08bc18b05e01feee05cbd1d19aedda4893ecb"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_squares": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/squares.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d0e96cd9b5a75d3c7589546d5debd8a01ad27c2294eb1b247a7b61f94f5d90fd"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_contexts": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/contexts.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b409db09696067006c731441c12a22227229dd50b64a879c28a6f154f05e1009"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_excavation_activities": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/excavation_activities.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cb5728c63f854008efabe6fae7b339516e9c7d3ee800baa685627a064e41534d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_stratigraphic_assertions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/stratigraphic_assertions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "10c04981fcbf4bbaa5fa720295e5e69bd3880460d4aa12f56d36afd51e73941d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_find_lots": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/find_lots.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "9754249c056086a96f5892ef10f55771841b3d6bab7cf3f4562cd5662f65545d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_objects": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/objects.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b8badfa08bc402b929b56e17f2828765bbb135c074a29b0c2cbf092a57c2ab6d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_samples": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/samples.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "49daffa7a0338f79b2a9208eaa84d6f5595b6731be990c4e666538d61b98a492"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_analyses": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/analyses.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "6595b10f23bb01bb312125a05dbd396a946178f3cbf41196df887b1bbc0cc446"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_pottery_results": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/pottery_results.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "20dd1cc76b6f5bfec4f45140677c33c96a3c4707a2d139d451391c9a7136884f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_soil_results": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/soil_results.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "e626b5028b71173aa7269726522bca091e31a02a9de9c80a7f25d232991e8a65"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_fauna_results": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/fauna_results.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "69305ae869423b418547dcc85e48db825d19fc69be807773379be9c4ac113d2d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_observations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/observations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4b74f161c72c7196d4930684113942785bf5d1b5dbb5801b18b870d5d1767cd5"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_interpretations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/interpretations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c166b71c3e2b5a532760fbe732b7c6650307ceac023ba89c253e840e85a78710"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_assets": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/assets.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "37a5201bde0734588fe9bc7521fb5259e2158f6a7c3613dbebe418b0ac3dfcae"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_asset_subjects": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/asset_subjects.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bf93472d6db2731ef395d2ee2799be99741a72666cd0091fb8241fe3f6c60008"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_interpretation_evidence": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/interpretation_evidence.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "adf5c5e1763780196a8c4cc8a350df1c8cfa8065ddc613fc9f6ddc05025edcbd"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_stratigraphic_evidence": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/stratigraphic_evidence.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c0e600a1a7891e39151a70256682f0bd020f7f25f7a369ba52d8e027281f3d4d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_provenance": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/provenance.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "22b89d0e9598c896f73bfaa8df5c51cc63bbefeaa4b6fd750f0d03d9f922c064"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "asset_report_txt": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "assets/report.txt",
+      "revision": "1.0.0",
+      "format": "text",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "197b6ad719c4b4af78ebecd1f97148e0662367d1cbaba25d37646bcccd6b4842"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF authored synthetic illustration"
+      }
+    },
+    "asset_photo_svg": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "assets/photo.svg",
+      "revision": "1.0.0",
+      "format": "svg",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "abb051a6748c1c8e630d42907d0e45856dd7d0112f18dbb94cdc836885e4a290"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF authored synthetic illustration"
+      }
+    },
+    "asset_map_svg": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "assets/map.svg",
+      "revision": "1.0.0",
+      "format": "svg",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "f8c9edabbef94948863c787f236c85700f74cfca43f321e57bd48f5837c1a73a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF authored synthetic illustration"
+      }
+    },
+    "asset_square_svg": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "assets/square.svg",
+      "revision": "1.0.0",
+      "format": "svg",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0b9240d4c6db480425dd004aa6b978221357917b2a69a1dcff601a88df59335f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF authored synthetic illustration"
+      }
+    },
+    "asset_object_svg": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "assets/object.svg",
+      "revision": "1.0.0",
+      "format": "svg",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "f760b9b0d93e54f2785d956e32c4977bd5aadcec56bc07ce4fee42fd9d6840f9"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF authored synthetic illustration"
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "projects",
+      "source_id": "template_projects",
+      "role": "rows"
+    },
+    {
+      "schema_id": "sites",
+      "source_id": "template_sites",
+      "role": "rows"
+    },
+    {
+      "schema_id": "seasons",
+      "source_id": "template_seasons",
+      "role": "rows"
+    },
+    {
+      "schema_id": "areas",
+      "source_id": "template_areas",
+      "role": "rows"
+    },
+    {
+      "schema_id": "squares",
+      "source_id": "template_squares",
+      "role": "rows"
+    },
+    {
+      "schema_id": "contexts",
+      "source_id": "template_contexts",
+      "role": "rows"
+    },
+    {
+      "schema_id": "excavation_activities",
+      "source_id": "template_excavation_activities",
+      "role": "rows"
+    },
+    {
+      "schema_id": "stratigraphic_assertions",
+      "source_id": "template_stratigraphic_assertions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "find_lots",
+      "source_id": "template_find_lots",
+      "role": "rows"
+    },
+    {
+      "schema_id": "objects",
+      "source_id": "template_objects",
+      "role": "rows"
+    },
+    {
+      "schema_id": "samples",
+      "source_id": "template_samples",
+      "role": "rows"
+    },
+    {
+      "schema_id": "analyses",
+      "source_id": "template_analyses",
+      "role": "rows"
+    },
+    {
+      "schema_id": "pottery_results",
+      "source_id": "template_pottery_results",
+      "role": "rows"
+    },
+    {
+      "schema_id": "soil_results",
+      "source_id": "template_soil_results",
+      "role": "rows"
+    },
+    {
+      "schema_id": "fauna_results",
+      "source_id": "template_fauna_results",
+      "role": "rows"
+    },
+    {
+      "schema_id": "observations",
+      "source_id": "template_observations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "interpretations",
+      "source_id": "template_interpretations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "assets",
+      "source_id": "template_assets",
+      "role": "rows"
+    },
+    {
+      "schema_id": "asset_subjects",
+      "source_id": "template_asset_subjects",
+      "role": "rows"
+    },
+    {
+      "schema_id": "interpretation_evidence",
+      "source_id": "template_interpretation_evidence",
+      "role": "rows"
+    },
+    {
+      "schema_id": "stratigraphic_evidence",
+      "source_id": "template_stratigraphic_evidence",
+      "role": "rows"
+    },
+    {
+      "schema_id": "provenance",
+      "source_id": "template_provenance",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "projects",
+      "format": "tablespec",
+      "reference": "umf/projects.json"
+    },
+    {
+      "id": "sites",
+      "format": "tablespec",
+      "reference": "umf/sites.json"
+    },
+    {
+      "id": "seasons",
+      "format": "tablespec",
+      "reference": "umf/seasons.json"
+    },
+    {
+      "id": "areas",
+      "format": "tablespec",
+      "reference": "umf/areas.json"
+    },
+    {
+      "id": "squares",
+      "format": "tablespec",
+      "reference": "umf/squares.json"
+    },
+    {
+      "id": "contexts",
+      "format": "tablespec",
+      "reference": "umf/contexts.json"
+    },
+    {
+      "id": "excavation_activities",
+      "format": "tablespec",
+      "reference": "umf/excavation_activities.json"
+    },
+    {
+      "id": "stratigraphic_assertions",
+      "format": "tablespec",
+      "reference": "umf/stratigraphic_assertions.json"
+    },
+    {
+      "id": "find_lots",
+      "format": "tablespec",
+      "reference": "umf/find_lots.json"
+    },
+    {
+      "id": "objects",
+      "format": "tablespec",
+      "reference": "umf/objects.json"
+    },
+    {
+      "id": "samples",
+      "format": "tablespec",
+      "reference": "umf/samples.json"
+    },
+    {
+      "id": "analyses",
+      "format": "tablespec",
+      "reference": "umf/analyses.json"
+    },
+    {
+      "id": "pottery_results",
+      "format": "tablespec",
+      "reference": "umf/pottery_results.json"
+    },
+    {
+      "id": "soil_results",
+      "format": "tablespec",
+      "reference": "umf/soil_results.json"
+    },
+    {
+      "id": "fauna_results",
+      "format": "tablespec",
+      "reference": "umf/fauna_results.json"
+    },
+    {
+      "id": "observations",
+      "format": "tablespec",
+      "reference": "umf/observations.json"
+    },
+    {
+      "id": "interpretations",
+      "format": "tablespec",
+      "reference": "umf/interpretations.json"
+    },
+    {
+      "id": "assets",
+      "format": "tablespec",
+      "reference": "umf/assets.json"
+    },
+    {
+      "id": "asset_subjects",
+      "format": "tablespec",
+      "reference": "umf/asset_subjects.json"
+    },
+    {
+      "id": "interpretation_evidence",
+      "format": "tablespec",
+      "reference": "umf/interpretation_evidence.json"
+    },
+    {
+      "id": "stratigraphic_evidence",
+      "format": "tablespec",
+      "reference": "umf/stratigraphic_evidence.json"
+    },
+    {
+      "id": "provenance",
+      "format": "tablespec",
+      "reference": "umf/provenance.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "projects",
+        "sites",
+        "seasons",
+        "areas",
+        "squares",
+        "contexts",
+        "excavation_activities",
+        "stratigraphic_assertions",
+        "find_lots",
+        "objects",
+        "samples",
+        "analyses",
+        "pottery_results",
+        "soil_results",
+        "fauna_results",
+        "observations",
+        "interpretations",
+        "assets",
+        "asset_subjects",
+        "interpretation_evidence",
+        "stratigraphic_evidence",
+        "provenance"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "projects": [
+        "id"
+      ],
+      "sites": [
+        "id",
+        "project_id"
+      ],
+      "seasons": [
+        "id",
+        "site_id"
+      ],
+      "areas": [
+        "id",
+        "season_id"
+      ],
+      "squares": [
+        "id",
+        "area_id"
+      ],
+      "contexts": [
+        "id",
+        "square_id"
+      ],
+      "excavation_activities": [
+        "id",
+        "context_id"
+      ],
+      "stratigraphic_assertions": [
+        "id",
+        "source_context_id",
+        "target_context_id"
+      ],
+      "find_lots": [
+        "id",
+        "context_id"
+      ],
+      "objects": [
+        "id",
+        "lot_id"
+      ],
+      "samples": [
+        "id",
+        "context_id",
+        "parent_id"
+      ],
+      "analyses": [
+        "id",
+        "sample_id"
+      ],
+      "pottery_results": [
+        "id",
+        "object_id"
+      ],
+      "soil_results": [
+        "id",
+        "analysis_id"
+      ],
+      "fauna_results": [
+        "id",
+        "analysis_id"
+      ],
+      "observations": [
+        "id",
+        "context_id"
+      ],
+      "interpretations": [
+        "id",
+        "context_id",
+        "supersedes_id"
+      ],
+      "assets": [
+        "id"
+      ],
+      "asset_subjects": [
+        "id",
+        "asset_id",
+        "context_id",
+        "object_id"
+      ],
+      "interpretation_evidence": [
+        "id",
+        "interpretation_id",
+        "pottery_result_id",
+        "fauna_result_id"
+      ],
+      "stratigraphic_evidence": [
+        "id",
+        "assertion_id",
+        "asset_id"
+      ],
+      "provenance": [
+        "id",
+        "project_id"
+      ]
+    },
+    "include_sources": [
+      "asset_report_txt",
+      "asset_photo_svg",
+      "asset_map_svg",
+      "asset_square_svg",
+      "asset_object_svg"
+    ],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "cycle",
+      "question": "Keep contradictory stratigraphic assertions visible",
+      "sql": "SELECT a.id,b.id FROM stratigraphic_assertions a JOIN stratigraphic_assertions b ON a.source_context_id=b.target_context_id AND a.target_context_id=b.source_context_id WHERE a.id<b.id",
+      "expected": [
+        [
+          "ST1",
+          "ST2"
+        ]
+      ]
+    },
+    {
+      "id": "dating",
+      "question": "Overlapping interpretations keep both authors and evidence",
+      "sql": "SELECT a.author,b.author FROM interpretations a JOIN interpretations b ON a.context_id=b.context_id AND a.id<b.id WHERE a.earliest<=b.latest AND b.earliest<=a.latest",
+      "expected": [
+        [
+          "Author A",
+          "Author B"
+        ]
+      ]
+    },
+    {
+      "id": "media",
+      "question": "One square drawing depicts two contexts",
+      "sql": "SELECT asset_id,COUNT(DISTINCT context_id) FROM asset_subjects GROUP BY asset_id HAVING COUNT(DISTINCT context_id)>1",
+      "expected": [
+        [
+          "AS4",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "missing-media",
+      "question": "External assets are not falsely included",
+      "sql": "SELECT id FROM assets WHERE availability='external'",
+      "expected": [
+        [
+          "AS6"
+        ]
+      ]
+    },
+    {
+      "id": "specialists",
+      "question": "NISP, MNI, sherds and vessels keep distinct denominators",
+      "sql": "SELECT f.nisp,f.mni,p.sherd_count,p.estimated_vessels FROM fauna_results f JOIN analyses a ON a.id=f.analysis_id JOIN samples s ON s.id=a.sample_id JOIN find_lots l ON l.context_id=s.context_id JOIN objects o ON o.lot_id=l.id JOIN pottery_results p ON p.object_id=o.id",
+      "expected": [
+        [
+          5,
+          2,
+          3,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "lineage",
+      "question": "Find-to-context chain is retained",
+      "sql": "SELECT o.id,c.native_locus FROM objects o JOIN find_lots l ON l.id=o.lot_id JOIN contexts c ON c.id=l.context_id",
+      "expected": [
+        [
+          "O1",
+          "1"
+        ]
+      ]
+    },
+    {
+      "id": "evidence-links",
+      "question": "Interpretations retain resolved specialist evidence alongside native source literals",
+      "sql": "SELECT i.author,p.form,f.taxon FROM interpretations i JOIN interpretation_evidence e ON e.interpretation_id=i.id LEFT JOIN pottery_results p ON p.id=e.pottery_result_id LEFT JOIN fauna_results f ON f.id=e.fauna_result_id ORDER BY i.id",
+      "expected": [
+        [
+          "Author A",
+          "bowl",
+          null
+        ],
+        [
+          "Author B",
+          null,
+          "synthetic-ungulate"
+        ]
+      ]
+    },
+    {
+      "id": "sample",
+      "question": "Subsample lineage and soil preparation remain explicit",
+      "sql": "SELECT s.parent_id,r.preparation FROM samples s JOIN analyses a ON a.sample_id=s.parent_id JOIN soil_results r ON r.analysis_id=a.id WHERE s.parent_id IS NOT NULL",
+      "expected": [
+        [
+          "SA1",
+          "dry-sieve"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "projects": 1,
+    "sites": 1,
+    "seasons": 1,
+    "areas": 1,
+    "squares": 1,
+    "contexts": 2,
+    "excavation_activities": 1,
+    "stratigraphic_assertions": 2,
+    "find_lots": 1,
+    "objects": 1,
+    "samples": 2,
+    "analyses": 2,
+    "pottery_results": 1,
+    "soil_results": 1,
+    "fauna_results": 1,
+    "observations": 1,
+    "interpretations": 2,
+    "assets": 6,
+    "asset_subjects": 6,
+    "interpretation_evidence": 2,
+    "stratigraphic_evidence": 2,
+    "provenance": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

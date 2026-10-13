@@ -42,8 +42,16 @@ resources:
       permission: "CAN_USE"
 
 env:
-  - name: "OUTPUT_VOLUME_CATALOG"
-    valueFrom: "output-volume"
+  # Metadata home (ADR-019: a declared address, never discovered). Keep in
+  # step with the resources block above; both must name the same location.
+  - name: "PROFILER_METADATA_CATALOG"
+    value: "dev"
+
+  - name: "PROFILER_METADATA_SCHEMA"
+    value: "test_main_profiler"
+
+  - name: "PROFILER_OUTPUT_VOLUME"
+    value: "ab_runs"
 
   - name: "DATABRICKS_WAREHOUSE_ID"
     value: "2ad65b4df5cd3a9e"
@@ -54,3 +62,7 @@ env:
   # Genie Space ID for the Ask Genie conversational tab.
   - name: "GENIE_SPACE_ID"
     value: "01f15f8e849e1c31a47c5785d07751bf"
+
+  # "Go To Dashboard" button in the sidebar. Unset hides the button.
+  - name: "PROFILER_DASHBOARD_URL"
+    value: "https://adb-7405619521761591.11.azuredatabricks.net/dashboardsv3/01f15f7d18171dac85cdc247e47d48a5/published?o=7405619521761591"

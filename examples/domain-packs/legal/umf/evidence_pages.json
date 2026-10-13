@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "table_name": "evidence_pages",
+  "description": "Observed public litigation corpus. Source PDF bytes are authoritative; extraction is a lossy search aid. No fictional firm or client association.",
+  "columns": [
+    {
+      "name": "page_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "page key"
+    },
+    {
+      "name": "evidence_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "evidence key"
+    },
+    {
+      "name": "pdf_page",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "pdf page"
+    },
+    {
+      "name": "text",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "text"
+    },
+    {
+      "name": "text_status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "text status"
+    },
+    {
+      "name": "bates_candidates_json",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "bates candidates json"
+    }
+  ],
+  "primary_key": [
+    "page_key"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "evidence_key",
+        "references_table": "evidence_documents",
+        "references_column": "evidence_key"
+      }
+    ]
+  }
+}

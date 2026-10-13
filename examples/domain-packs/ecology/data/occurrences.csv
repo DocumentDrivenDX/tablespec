@@ -1,0 +1,4 @@
+"id","event_id","identification_id","effort_id","count","detection"
+"OC1","E5","ID1","EF1","3","detected"
+"OC2","E5","ID1","EF1","0","not-detected"
+"OC3","E5","ID1","EF2","1","detected"

@@ -27,7 +27,9 @@ class HealthcareDataGenerators:
         self.key_registry = key_registry
         self.logger = logging.getLogger(self.__class__.__name__)
         self.member_ids: set[str] = set()
-        self.base_date = config.get_reference_date() - timedelta(days=config.temporal_range_days)
+        self.base_date = config.get_reference_date() - timedelta(
+            days=config.temporal_range_days
+        )
 
         # Healthcare domain data
         # Complete list of US states and territories
@@ -261,8 +263,12 @@ class HealthcareDataGenerators:
 
         return {
             "address_line1": f"{random.randint(100, 9999)} {random.choice(street_names)}",
-            "address_line2": f"Apt {random.randint(1, 999)}" if random.random() < 0.2 else "",
-            "city": random.choice(["Chicago", "Houston", "Los Angeles", "Phoenix", "Philadelphia"]),
+            "address_line2": f"Apt {random.randint(1, 999)}"
+            if random.random() < 0.2
+            else "",
+            "city": random.choice(
+                ["Chicago", "Houston", "Los Angeles", "Phoenix", "Philadelphia"]
+            ),
             "state": random.choice(self.states),
             "zipcode": f"{random.randint(10000, 99999)}",
             "county": random.choice(counties),
@@ -315,15 +321,17 @@ class HealthcareDataGenerators:
             # Try multiple formats: date only, datetime with time, datetime with T separator
             for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
                 try:
-                    min_date = datetime.strptime(min_date_str.strip(), fmt).replace(tzinfo=UTC)
+                    min_date = datetime.strptime(min_date_str.strip(), fmt).replace(
+                        tzinfo=UTC
+                    )
                     break
                 except ValueError:
                     continue
             else:
                 # If none of the formats work, try parsing just the date part
-                min_date = datetime.strptime(min_date_str.strip().split()[0], "%Y-%m-%d").replace(
-                    tzinfo=UTC
-                )
+                min_date = datetime.strptime(
+                    min_date_str.strip().split()[0], "%Y-%m-%d"
+                ).replace(tzinfo=UTC)
         else:
             min_date = datetime(1900, 1, 1, tzinfo=UTC)
 
@@ -332,15 +340,17 @@ class HealthcareDataGenerators:
             # Try multiple formats: date only, datetime with time, datetime with T separator
             for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
                 try:
-                    max_date = datetime.strptime(max_date_str.strip(), fmt).replace(tzinfo=UTC)
+                    max_date = datetime.strptime(max_date_str.strip(), fmt).replace(
+                        tzinfo=UTC
+                    )
                     break
                 except ValueError:
                     continue
             else:
                 # If none of the formats work, try parsing just the date part
-                max_date = datetime.strptime(max_date_str.strip().split()[0], "%Y-%m-%d").replace(
-                    tzinfo=UTC
-                )
+                max_date = datetime.strptime(
+                    max_date_str.strip().split()[0], "%Y-%m-%d"
+                ).replace(tzinfo=UTC)
         else:
             max_date = self.config.get_reference_date()
 
@@ -365,7 +375,9 @@ class HealthcareDataGenerators:
 
         # Generate age between 18 and 120 years
         # Most people are 18-90 (80% probability), some are 90-120 (20% probability)
-        years_old = random.randint(18, 90) if random.random() < 0.8 else random.randint(90, 120)
+        years_old = (
+            random.randint(18, 90) if random.random() < 0.8 else random.randint(90, 120)
+        )
 
         # Calculate birth date
         birth_year = today.year - years_old
@@ -718,7 +730,9 @@ class HealthcareDataGenerators:
             Formatted timestamp string
 
         """
-        date = self.base_date + timedelta(days=random.randint(0, self.config.temporal_range_days))
+        date = self.base_date + timedelta(
+            days=random.randint(0, self.config.temporal_range_days)
+        )
         # Add random time component
         hour = random.randint(0, 23)
         minute = random.randint(0, 59)

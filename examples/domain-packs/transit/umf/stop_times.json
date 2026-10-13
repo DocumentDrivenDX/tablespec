@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "stop_times",
+  "description": "Synthetic stop_times; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stop_times id; synthetic reference scenario."
+    },
+    {
+      "name": "trip_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stop_times trip_id; synthetic reference scenario."
+    },
+    {
+      "name": "stop_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stop_times stop_id; synthetic reference scenario."
+    },
+    {
+      "name": "sequence",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored stop_times sequence; synthetic reference scenario."
+    },
+    {
+      "name": "arrival",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored stop_times arrival; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "trip_id",
+        "references_table": "trips",
+        "references_column": "id"
+      },
+      {
+        "column": "stop_id",
+        "references_table": "stops",
+        "references_column": "id"
+      }
+    ]
+  }
+}

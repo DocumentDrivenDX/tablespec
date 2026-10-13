@@ -1,0 +1,52 @@
+{
+  "sample": "member + claims + claim_enriched (tests/e2e/fixtures)",
+  "table_count": 3,
+  "tables": [
+    "claim_enriched",
+    "claims",
+    "member"
+  ],
+  "dialect": "duckdb",
+  "seconds": {
+    "load_specs": 0.01,
+    "compile_umfs": 0.0162,
+    "backbone": null,
+    "total_automated": 0.0262
+  },
+  "artifacts_present": {
+    "claim_enriched": {
+      "umf_snapshot": true,
+      "ingest_sql": true,
+      "ddl_sql": true,
+      "pyspark_schema": true,
+      "json_schema": true,
+      "suite_json": true,
+      "dbt_ingest": true
+    },
+    "claims": {
+      "umf_snapshot": true,
+      "ingest_sql": true,
+      "ddl_sql": true,
+      "pyspark_schema": true,
+      "json_schema": true,
+      "suite_json": true,
+      "dbt_ingest": true
+    },
+    "member": {
+      "umf_snapshot": true,
+      "ingest_sql": true,
+      "ddl_sql": true,
+      "pyspark_schema": true,
+      "json_schema": true,
+      "suite_json": true,
+      "dbt_ingest": true
+    }
+  },
+  "manifest": null,
+  "dbt_gold_project": true,
+  "ldp_project": true,
+  "backbone_ok": null,
+  "manual_baseline_protocol": "docs/guide/onboarding-benchmark.md#manual-baseline-protocol",
+  "reduction_formula": "1 - (seconds.total_automated / t_manual_minutes*60)",
+  "metrics_path": "docs/helix/06-iterate/metrics/onboarding_benchmark.json"
+}

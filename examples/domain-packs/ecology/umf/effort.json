@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "table_name": "effort",
+  "description": "Synthetic effort; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored effort id; synthetic reference scenario."
+    },
+    {
+      "name": "event_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored effort event_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": true,
+      "description": "Authored effort amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored effort unit; synthetic reference scenario."
+    },
+    {
+      "name": "method",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored effort method; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "event_id",
+        "references_table": "sampling_events",
+        "references_column": "id"
+      }
+    ]
+  }
+}

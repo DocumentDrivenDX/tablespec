@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "parcels",
+  "description": "Synthetic parcels; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored parcels id; synthetic reference scenario."
+    },
+    {
+      "name": "native_code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored parcels native_code; synthetic reference scenario."
+    },
+    {
+      "name": "geometry_crs",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored parcels geometry_crs; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

@@ -2,16 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-import pytest
 
 from profiler.compare import compare_tables, schema_change_counts, schema_diff
 from profiler.metamodel import (
     ColumnProfile,
     DatasetProfile,
-    ProfilerRun,
-    new_run_id,
 )
 
 

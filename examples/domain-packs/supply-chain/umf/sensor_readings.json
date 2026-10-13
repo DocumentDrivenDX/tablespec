@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "table_name": "sensor_readings",
+  "description": "Synthetic sensor_readings; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sensor_readings id; synthetic reference scenario."
+    },
+    {
+      "name": "container_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sensor_readings container_id; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored sensor_readings value; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sensor_readings unit; synthetic reference scenario."
+    },
+    {
+      "name": "method",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored sensor_readings method; synthetic reference scenario."
+    },
+    {
+      "name": "upper_limit",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored sensor_readings upper_limit; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "container_id",
+        "references_table": "containers",
+        "references_column": "id"
+      }
+    ]
+  }
+}

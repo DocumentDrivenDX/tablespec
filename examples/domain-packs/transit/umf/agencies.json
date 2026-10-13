@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "agencies",
+  "description": "Synthetic agencies; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agencies id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agencies name; synthetic reference scenario."
+    },
+    {
+      "name": "timezone",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored agencies timezone; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

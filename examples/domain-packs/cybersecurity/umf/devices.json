@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "devices",
+  "description": "Synthetic devices; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored devices id; synthetic reference scenario."
+    },
+    {
+      "name": "publisher",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored devices publisher; synthetic reference scenario."
+    },
+    {
+      "name": "native_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored devices native_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

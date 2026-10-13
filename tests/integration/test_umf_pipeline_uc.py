@@ -353,9 +353,9 @@ class TestPipelineMultiTable:
             assert checks["has_rows"], f"{table_name}: no rows generated"
             assert checks["columns_match"], f"{table_name}: column mismatch"
             assert checks["rows_consistent_width"], f"{table_name}: row width mismatch"
-            assert checks[
-                "type_validation_pass"
-            ], f"{table_name}: type errors: {checks['type_errors']}"
+            assert checks["type_validation_pass"], (
+                f"{table_name}: type errors: {checks['type_errors']}"
+            )
 
 
 class TestUMFModelRoundTrip:
@@ -363,7 +363,7 @@ class TestUMFModelRoundTrip:
 
     def test_umf_round_trip(self, spark):
         """UMF from Spark -> YAML -> reload -> identical."""
-        from tablespec import UMF, save_umf_to_yaml, load_umf_from_yaml
+        from tablespec import save_umf_to_yaml, load_umf_from_yaml
 
         df = spark.table("samples.tpch.customer").limit(100)
         umf = spark_df_to_enriched_umf(df, "Customer_RT", spark)

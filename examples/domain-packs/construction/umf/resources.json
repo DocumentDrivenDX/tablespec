@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "resources",
+  "description": "Synthetic resources; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored resources id; synthetic reference scenario."
+    },
+    {
+      "name": "activity_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored resources activity_id; synthetic reference scenario."
+    },
+    {
+      "name": "quantity",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored resources quantity; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored resources unit; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "activity_id",
+        "references_table": "activities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

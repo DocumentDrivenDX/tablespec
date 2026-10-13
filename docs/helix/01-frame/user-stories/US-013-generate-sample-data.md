@@ -34,6 +34,18 @@ This story covers the generate sample data from umf slice in the parent feature.
 - [ ] **US-013-AC3** — Given a `member` UMF with `claim_id`, `status`, and `service_date` constraints, when the sample-data generator runs, then **US-013-AC3** - Healthcare domain types (SSN, NPI, state codes) generate realistic values
 - [ ] **US-013-AC4** — Given a `member` UMF with `claim_id`, `status`, and `service_date` constraints, when the sample-data generator runs, then **US-013-AC4** - Output available in CSV and JSON formats with configurable row counts
 
+- [ ] **US-013-AC5** — Given fabricated legal specs and a fixed seed, repeated generation produces identical rows with legal row/parent correlations.
+- [ ] **US-013-AC6** — Given a verified dataset and an offline sink, staging batches publish one replacement per table; failed staging leaves that target data untouched.
+- [ ] **US-013-AC7** — Given a configured scale and parent overrides, child counts propagate and all generated foreign keys reference fabricated parent rows.
+- [ ] **US-013-AC8** — Given unsupported or unsatisfiable constraints, generation fails before sink writes; a local review requires no authentication or workspace access.
+
+- [ ] **US-013-AC9** — Given small and demo legal fixtures at several seeds, unique team/wall pairs are disjoint, every matter has a partner and another member, and entries use eligible team members; independent audits fail on injected violations.
+- [ ] **US-013-AC10** — Given typed documents, narratives and sample invoice windows, issue labels match clauses, hours/rates reconcile exactly, invoice totals equal period sums, and parent coverage/skew meet tested bounds.
+- [ ] **US-013-AC11** — Given an offline Files API port, explicit bulk loading uploads bounded CSV chunks, COPY loads staging, then overwrites targets and cleans files; verify-only issues reads and fails on mismatched counts or integrity checks.
+
+- [ ] **US-013-AC12** — Given the official medical pack, explicit ingestion retains source bytes, exact clinical literals and source-to-archive provenance; changed bytes, uncleared redistribution rights and invalid rows fail before export or sink writes.
+- [ ] **US-013-AC13** — Given verified medical fixtures, the shared local Sail and Spark loaders publish repeatable replacements and independent readback checks confirm counts, foreign keys and original resource content.
+
 ## Edge Cases
 
 - **foreign keys must stay referentially consistent**: foreign keys must stay referentially consistent

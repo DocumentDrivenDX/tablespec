@@ -435,7 +435,9 @@ class GXConstraintExtractor:
         # Fix standalone h (12-hour without zero padding) not part of %I
         return re.sub(r"(?<!%)(?<!%-)(?<![A-Za-z])h(?![A-Za-z])", "%-I", result)
 
-    def is_column_not_null(self, expectations: dict[str, Any], column_name: str) -> bool:
+    def is_column_not_null(
+        self, expectations: dict[str, Any], column_name: str
+    ) -> bool:
         """Check if a column has a not-null expectation.
 
         Args:
@@ -826,7 +828,10 @@ class GXConstraintExtractor:
                     equality_constraints[column_a].append(constraint)
 
                     # Also add reverse mapping
-                    reverse_constraint = {"column_B": column_a, "ignore_row_if": ignore_row_if}
+                    reverse_constraint = {
+                        "column_B": column_a,
+                        "ignore_row_if": ignore_row_if,
+                    }
                     if column_b not in equality_constraints:
                         equality_constraints[column_b] = []
                     equality_constraints[column_b].append(reverse_constraint)
@@ -855,7 +860,10 @@ class GXConstraintExtractor:
             return unique_constraints
 
         for expectation in expectations["expectations"]:
-            if expectation.get("type") == "expect_select_column_values_to_be_unique_within_record":
+            if (
+                expectation.get("type")
+                == "expect_select_column_values_to_be_unique_within_record"
+            ):
                 kwargs = expectation.get("kwargs", {})
                 column_list = kwargs.get("column_list", [])
                 ignore_row_if = kwargs.get("ignore_row_if", "never")

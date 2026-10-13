@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "realtime_observations",
+  "description": "Synthetic realtime_observations; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored realtime_observations id; synthetic reference scenario."
+    },
+    {
+      "name": "trip_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored realtime_observations trip_id; synthetic reference scenario."
+    },
+    {
+      "name": "observed_at",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored realtime_observations observed_at; synthetic reference scenario."
+    },
+    {
+      "name": "delay_seconds",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored realtime_observations delay_seconds; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "trip_id",
+        "references_table": "trips",
+        "references_column": "id"
+      }
+    ]
+  }
+}

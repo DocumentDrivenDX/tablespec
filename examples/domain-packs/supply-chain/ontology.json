@@ -1,0 +1,1211 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:supply-chain",
+  "title": "supply-chain ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:supply-chain:",
+      "elements": [
+        {
+          "id": "organizations",
+          "kind": "record",
+          "name": "organizations",
+          "title": "organizations",
+          "description": "Synthetic organizations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "organizations.id"
+            },
+            {
+              "module": "domain",
+              "element": "organizations.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "organizations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "organizations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "organizations.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizations name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "facilities",
+          "kind": "record",
+          "name": "facilities",
+          "title": "facilities",
+          "description": "Synthetic facilities; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "facilities.id"
+            },
+            {
+              "module": "domain",
+              "element": "facilities.organization_id"
+            },
+            {
+              "module": "domain",
+              "element": "facilities.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "facilities.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "facilities.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored facilities id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "facilities.organization_id",
+          "name": "organization_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored facilities organization_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "facilities.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored facilities name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "products",
+          "kind": "record",
+          "name": "products",
+          "title": "products",
+          "description": "Synthetic products; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "products.id"
+            },
+            {
+              "module": "domain",
+              "element": "products.sku"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "products.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "products.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored products id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "products.sku",
+          "name": "sku",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored products sku; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "lots",
+          "kind": "record",
+          "name": "lots",
+          "title": "lots",
+          "description": "Synthetic lots; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "lots.id"
+            },
+            {
+              "module": "domain",
+              "element": "lots.product_id"
+            },
+            {
+              "module": "domain",
+              "element": "lots.lot_code"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "lots.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "lots.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored lots id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "lots.product_id",
+          "name": "product_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored lots product_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "lots.lot_code",
+          "name": "lot_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored lots lot_code; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "items",
+          "kind": "record",
+          "name": "items",
+          "title": "items",
+          "description": "Synthetic items; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "items.id"
+            },
+            {
+              "module": "domain",
+              "element": "items.lot_id"
+            },
+            {
+              "module": "domain",
+              "element": "items.serial"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "items.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "items.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored items id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "items.lot_id",
+          "name": "lot_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored items lot_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "items.serial",
+          "name": "serial",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored items serial; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "containers",
+          "kind": "record",
+          "name": "containers",
+          "title": "containers",
+          "description": "Synthetic containers; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "containers.id"
+            },
+            {
+              "module": "domain",
+              "element": "containers.parent_id"
+            },
+            {
+              "module": "domain",
+              "element": "containers.kind"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "containers.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "containers.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored containers id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "containers.parent_id",
+          "name": "parent_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored containers parent_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "containers.kind",
+          "name": "kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored containers kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipments",
+          "kind": "record",
+          "name": "shipments",
+          "title": "shipments",
+          "description": "Synthetic shipments; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "shipments.id"
+            },
+            {
+              "module": "domain",
+              "element": "shipments.container_id"
+            },
+            {
+              "module": "domain",
+              "element": "shipments.facility_id"
+            },
+            {
+              "module": "domain",
+              "element": "shipments.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "shipments.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "shipments.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipments id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipments.container_id",
+          "name": "container_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipments container_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipments.facility_id",
+          "name": "facility_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipments facility_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipments.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipments status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_events",
+          "kind": "record",
+          "name": "source_events",
+          "title": "source_events",
+          "description": "Synthetic source_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "source_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "source_events.publisher"
+            },
+            {
+              "module": "domain",
+              "element": "source_events.native_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "source_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "source_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_events.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_events publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "source_events.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored source_events native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "events",
+          "kind": "record",
+          "name": "events",
+          "title": "events",
+          "description": "Synthetic events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "events.id"
+            },
+            {
+              "module": "domain",
+              "element": "events.shipment_id"
+            },
+            {
+              "module": "domain",
+              "element": "events.upstream_event_id"
+            },
+            {
+              "module": "domain",
+              "element": "events.event_time"
+            },
+            {
+              "module": "domain",
+              "element": "events.action"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "events.shipment_id",
+          "name": "shipment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored events shipment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "events.upstream_event_id",
+          "name": "upstream_event_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored events upstream_event_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "events.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored events event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "events.action",
+          "name": "action",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored events action; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sensor_readings",
+          "kind": "record",
+          "name": "sensor_readings",
+          "title": "sensor_readings",
+          "description": "Synthetic sensor_readings; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "sensor_readings.id"
+            },
+            {
+              "module": "domain",
+              "element": "sensor_readings.container_id"
+            },
+            {
+              "module": "domain",
+              "element": "sensor_readings.value"
+            },
+            {
+              "module": "domain",
+              "element": "sensor_readings.unit"
+            },
+            {
+              "module": "domain",
+              "element": "sensor_readings.method"
+            },
+            {
+              "module": "domain",
+              "element": "sensor_readings.upper_limit"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "sensor_readings.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "sensor_readings.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sensor_readings id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sensor_readings.container_id",
+          "name": "container_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sensor_readings container_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sensor_readings.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sensor_readings value; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "sensor_readings.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sensor_readings unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sensor_readings.method",
+          "name": "method",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sensor_readings method; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sensor_readings.upper_limit",
+          "name": "upper_limit",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sensor_readings upper_limit; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "containment",
+          "kind": "record",
+          "name": "containment",
+          "title": "containment",
+          "description": "Synthetic containment; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "containment.id"
+            },
+            {
+              "module": "domain",
+              "element": "containment.item_id"
+            },
+            {
+              "module": "domain",
+              "element": "containment.container_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "containment.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "containment.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored containment id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "containment.item_id",
+          "name": "item_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored containment item_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "containment.container_id",
+          "name": "container_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored containment container_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipment_items",
+          "kind": "record",
+          "name": "shipment_items",
+          "title": "shipment_items",
+          "description": "Synthetic shipment_items; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "shipment_items.id"
+            },
+            {
+              "module": "domain",
+              "element": "shipment_items.shipment_id"
+            },
+            {
+              "module": "domain",
+              "element": "shipment_items.item_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "shipment_items.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "shipment_items.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipment_items id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipment_items.shipment_id",
+          "name": "shipment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipment_items shipment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "shipment_items.item_id",
+          "name": "item_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored shipment_items item_id; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "facilities.organization_id",
+          "name": "facilities.organization_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "facilities"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "organizations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "lots.product_id",
+          "name": "lots.product_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "lots"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "products",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "items.lot_id",
+          "name": "items.lot_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "items"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "lots",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "containers.parent_id",
+          "name": "containers.parent_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "containers"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "containers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "shipments.container_id",
+          "name": "shipments.container_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "shipments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "containers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "shipments.facility_id",
+          "name": "shipments.facility_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "shipments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "facilities",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "events.shipment_id",
+          "name": "events.shipment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "shipments",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "events.upstream_event_id",
+          "name": "events.upstream_event_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "source_events",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sensor_readings.container_id",
+          "name": "sensor_readings.container_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sensor_readings"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "containers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "containment.item_id",
+          "name": "containment.item_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "containment"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "items",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "containment.container_id",
+          "name": "containment.container_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "containment"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "containers",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "shipment_items.shipment_id",
+          "name": "shipment_items.shipment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "shipment_items"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "shipments",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "shipment_items.item_id",
+          "name": "shipment_items.item_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "shipment_items"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "items",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

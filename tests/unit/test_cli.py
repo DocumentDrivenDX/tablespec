@@ -1,5 +1,11 @@
 """Tests for the tablespec CLI (typer app)."""
 
+# @covers US-010-AC1
+# @covers US-010-AC2
+# @covers US-010-AC3
+# @covers US-010-AC4
+# @covers US-010-AC5
+
 import json
 from pathlib import Path
 import re
@@ -141,7 +147,9 @@ class TestValidate:
 
         with (
             patch("tablespec.cli._validation_context", mock_context),
-            patch("tablespec.cli.validate_table", return_value=(True, [])) as mock_validate_table,
+            patch(
+                "tablespec.cli.validate_table", return_value=(True, [])
+            ) as mock_validate_table,
             patch("tablespec.cli.validate_pipeline") as mock_validate_pipeline,
         ):
             result = runner.invoke(app, ["validate", str(table_dir)])

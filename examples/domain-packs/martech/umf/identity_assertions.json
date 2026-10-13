@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "identity_assertions",
+  "description": "Synthetic identity_assertions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identity_assertions id; synthetic reference scenario."
+    },
+    {
+      "name": "left_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identity_assertions left_id; synthetic reference scenario."
+    },
+    {
+      "name": "right_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identity_assertions right_id; synthetic reference scenario."
+    },
+    {
+      "name": "evidence",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identity_assertions evidence; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored identity_assertions status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "left_id",
+        "references_table": "source_identities",
+        "references_column": "id"
+      },
+      {
+        "column": "right_id",
+        "references_table": "source_identities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

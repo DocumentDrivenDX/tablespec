@@ -1,0 +1,3 @@
+"id","site_id","parent_id","kind"
+"A1","S1","\N","transformer"
+"A2","S1","A1","feeder"

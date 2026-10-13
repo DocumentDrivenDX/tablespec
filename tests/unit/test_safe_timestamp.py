@@ -1,5 +1,11 @@
 """Tests for safe_to_timestamp / safe_to_date and the _format_to_prefilter_regex helper."""
 
+# @covers US-037-AC1
+# @covers US-037-AC2
+# @covers US-037-AC3
+# @covers US-037-AC4
+# @covers US-037-AC5
+
 from __future__ import annotations
 
 import re
@@ -54,9 +60,13 @@ class TestFormatToPrefilterRegex:
         regex = _format_to_prefilter_regex(spark_format)
         compiled = re.compile(regex)
         for v in valid:
-            assert compiled.match(v), f"{v!r} should match {regex} (format={spark_format})"
+            assert compiled.match(v), (
+                f"{v!r} should match {regex} (format={spark_format})"
+            )
         for iv in invalid:
-            assert not compiled.match(iv), f"{iv!r} should NOT match {regex} (format={spark_format})"
+            assert not compiled.match(iv), (
+                f"{iv!r} should NOT match {regex} (format={spark_format})"
+            )
 
     def test_iso_with_quoted_t(self):
         regex = _format_to_prefilter_regex("yyyy-MM-dd'T'HH:mm:ss")
@@ -148,6 +158,7 @@ class TestSafeToTimestampBranchSelection:
                     @staticmethod
                     def otherwise(other):
                         return "when_result"
+
                 calls.append(("when",))
                 return WhenResult()
 
@@ -157,6 +168,7 @@ class TestSafeToTimestampBranchSelection:
                     @staticmethod
                     def cast(t):
                         return None
+
                 return LitResult()
 
         monkeypatch.setattr(cu, "SPARK_AVAILABLE", True)
@@ -211,7 +223,9 @@ class TestSafeToTimestampCapabilityPath:
         calls = []
 
         class FakeColumn:
-            __module__ = "pyspark.sql.connect.column"  # Connect column, but capability says OK
+            __module__ = (
+                "pyspark.sql.connect.column"  # Connect column, but capability says OK
+            )
 
         class FakeLit:
             pass
@@ -251,7 +265,9 @@ class TestSafeToTimestampCapabilityPath:
         calls = []
 
         class FakeColumn:
-            __module__ = "pyspark.sql.column"  # Classic module, but capability says broken
+            __module__ = (
+                "pyspark.sql.column"  # Classic module, but capability says broken
+            )
 
             def rlike(self, pattern):
                 calls.append(("rlike", pattern))
@@ -277,6 +293,7 @@ class TestSafeToTimestampCapabilityPath:
                     @staticmethod
                     def otherwise(other):
                         return "when_result"
+
                 calls.append(("when",))
                 return WhenResult()
 
@@ -286,6 +303,7 @@ class TestSafeToTimestampCapabilityPath:
                     @staticmethod
                     def cast(t):
                         return None
+
                 return LitResult()
 
         monkeypatch.setattr(cu, "SPARK_AVAILABLE", True)
@@ -314,7 +332,6 @@ class TestSafeToTimestampCapabilityPath:
         monkeypatch.setattr(sess, "_session_capabilities", {})
 
         probe_count = 0
-        original_probe = sess._probe_try_to_timestamp_with_format
 
         def counting_probe(spark):
             nonlocal probe_count

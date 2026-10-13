@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "channels",
+  "description": "Synthetic channels; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored channels id; synthetic reference scenario."
+    },
+    {
+      "name": "meter_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored channels meter_id; synthetic reference scenario."
+    },
+    {
+      "name": "property",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored channels property; synthetic reference scenario."
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored channels unit; synthetic reference scenario."
+    },
+    {
+      "name": "reading_kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored channels reading_kind; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "meter_id",
+        "references_table": "meters",
+        "references_column": "id"
+      }
+    ]
+  }
+}

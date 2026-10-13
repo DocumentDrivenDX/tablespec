@@ -51,14 +51,20 @@ class TestRedundantTypeRemoval:
             )
 
     def test_column_to_exist_no_longer_generated(self):
-        umf_data = {"table_name": "t", "columns": [{"name": "id", "data_type": "INTEGER"}]}
+        umf_data = {
+            "table_name": "t",
+            "columns": [{"name": "id", "data_type": "INTEGER"}],
+        }
         gen = BaselineExpectationGenerator()
         exps = gen.generate_baseline_expectations(umf_data)
         types = [e["type"] for e in exps]
         assert "expect_column_to_exist" not in types
 
     def test_column_type_no_longer_generated(self):
-        umf_data = {"table_name": "t", "columns": [{"name": "id", "data_type": "INTEGER"}]}
+        umf_data = {
+            "table_name": "t",
+            "columns": [{"name": "id", "data_type": "INTEGER"}],
+        }
         gen = BaselineExpectationGenerator()
         exps = gen.generate_baseline_expectations(umf_data)
         types = [e["type"] for e in exps]
@@ -130,7 +136,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        null_exps = [e for e in exps if e["type"] == "expect_column_values_to_not_be_null"]
+        null_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(null_exps) == 1
         assert null_exps[0]["kwargs"]["mostly"] == 0.99
 
@@ -168,7 +176,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        length_exps = [e for e in exps if e["type"] == "expect_column_value_lengths_to_be_between"]
+        length_exps = [
+            e for e in exps if e["type"] == "expect_column_value_lengths_to_be_between"
+        ]
         assert len(length_exps) == 1
         assert length_exps[0]["kwargs"]["min_value"] == 2
         assert length_exps[0]["kwargs"]["max_value"] == 50
@@ -196,7 +206,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        null_exps = [e for e in exps if e["type"] == "expect_column_values_to_not_be_null"]
+        null_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(null_exps) == 1
         assert null_exps[0]["kwargs"]["mostly"] == 0.97
 
@@ -220,7 +232,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        null_exps = [e for e in exps if e["type"] == "expect_column_values_to_not_be_null"]
+        null_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(null_exps) == 1
         assert null_exps[0]["kwargs"]["mostly"] == 0.95
 
@@ -234,7 +248,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen.generate_baseline_column_expectations(col)
-        null_exps = [e for e in exps if e["type"] == "expect_column_values_to_not_be_null"]
+        null_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(null_exps) == 1
         assert null_exps[0]["meta"]["generated_from"] == "baseline"
 
@@ -248,7 +264,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen.generate_baseline_column_expectations(col)
-        length_exps = [e for e in exps if e["type"] == "expect_column_value_lengths_to_be_between"]
+        length_exps = [
+            e for e in exps if e["type"] == "expect_column_value_lengths_to_be_between"
+        ]
         assert len(length_exps) == 1
         assert length_exps[0]["meta"]["generated_from"] == "baseline"
 
@@ -261,7 +279,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        length_exps = [e for e in exps if e["type"] == "expect_column_value_lengths_to_be_between"]
+        length_exps = [
+            e for e in exps if e["type"] == "expect_column_value_lengths_to_be_between"
+        ]
         assert len(length_exps) == 1
 
     def test_profiling_not_null_when_all_nullable(self):
@@ -274,7 +294,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        null_exps = [e for e in exps if e["type"] == "expect_column_values_to_not_be_null"]
+        null_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(null_exps) == 1
         assert null_exps[0]["meta"]["generated_from"] == "profiling"
 
@@ -354,7 +376,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        regex_exps = [e for e in exps if e["type"] == "expect_column_values_to_match_regex"]
+        regex_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_match_regex"
+        ]
         assert len(regex_exps) == 1
         assert regex_exps[0]["kwargs"]["regex"] == "^[A-Z]{2}$"
         assert regex_exps[0]["kwargs"]["mostly"] == 0.95
@@ -369,7 +393,9 @@ class TestProfilingExpectations:
         }
         gen = BaselineExpectationGenerator()
         exps = gen._generate_profiling_expectations(col)
-        regex_exps = [e for e in exps if e["type"] == "expect_column_values_to_match_regex"]
+        regex_exps = [
+            e for e in exps if e["type"] == "expect_column_values_to_match_regex"
+        ]
         assert len(regex_exps) == 1
         assert regex_exps[0]["kwargs"]["regex"] == "^\\d{5}$"
 
@@ -399,3 +425,60 @@ class TestProfilingExpectations:
         gen = BaselineExpectationGenerator()
         exps = gen.generate_baseline_expectations(umf_data)
         assert any(e["type"] == "expect_column_values_to_be_unique" for e in exps)
+
+
+class TestInternalColumnsExcludedFromBaseline:
+    """Internal helper columns never appear in baseline expectations."""
+
+    def test_internal_columns_skipped_everywhere(self):
+        umf_data = {
+            "table_name": "t",
+            "columns": [
+                {"name": "id", "data_type": "INTEGER", "nullable": False},
+                {
+                    "name": "helper",
+                    "data_type": "VARCHAR",
+                    "internal": True,
+                    "nullable": False,
+                    "max_length": 10,
+                },
+            ],
+        }
+        gen = BaselineExpectationGenerator()
+        expectations = gen.generate_baseline_expectations(umf_data)
+
+        for exp in expectations:
+            kwargs = exp.get("kwargs", {})
+            assert kwargs.get("column") != "helper"
+            assert "helper" not in kwargs.get("column_list", [])
+            if exp["type"] == "expect_table_column_count_to_equal":
+                assert kwargs["value"] == 1
+
+
+class TestBooleanNullableBaseline:
+    """Plain boolean nullable generates the right not-null expectations."""
+
+    def _not_null_columns(self, expectations):
+        return {
+            exp["kwargs"]["column"]
+            for exp in expectations
+            if exp["type"] == "expect_column_values_to_not_be_null"
+        }
+
+    def test_nullable_false_bool_generates_not_null(self):
+        umf_data = {
+            "table_name": "t",
+            "columns": [{"name": "id", "data_type": "INTEGER", "nullable": False}],
+        }
+        gen = BaselineExpectationGenerator()
+        expectations = gen.generate_baseline_expectations(umf_data)
+        assert "id" in self._not_null_columns(expectations)
+
+    def test_nullable_true_bool_generates_no_not_null(self):
+        umf_data = {
+            "table_name": "t",
+            "columns": [{"name": "id", "data_type": "INTEGER", "nullable": True}],
+        }
+        gen = BaselineExpectationGenerator()
+        expectations = gen.generate_baseline_expectations(umf_data)
+        assert "id" not in self._not_null_columns(expectations)

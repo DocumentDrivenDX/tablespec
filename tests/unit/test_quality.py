@@ -4,6 +4,11 @@ Tests pure Python components without requiring PySpark.
 PySpark-dependent components are tested with skipif markers.
 """
 
+# @covers US-016-AC1
+# @covers US-016-AC2
+# @covers US-016-AC3
+# @covers US-016-AC4
+
 from __future__ import annotations
 
 import json

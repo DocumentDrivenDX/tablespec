@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "submittals",
+  "description": "Synthetic submittals; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored submittals id; synthetic reference scenario."
+    },
+    {
+      "name": "project_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored submittals project_id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored submittals asset_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored submittals status; synthetic reference scenario."
+    },
+    {
+      "name": "revision",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored submittals revision; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "project_id",
+        "references_table": "projects",
+        "references_column": "id"
+      },
+      {
+        "column": "asset_id",
+        "references_table": "assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

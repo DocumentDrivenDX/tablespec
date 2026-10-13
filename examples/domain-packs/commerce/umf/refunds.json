@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "table_name": "refunds",
+  "description": "Synthetic refunds; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored refunds id; synthetic reference scenario."
+    },
+    {
+      "name": "return_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored refunds return_id; synthetic reference scenario."
+    },
+    {
+      "name": "amount",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored refunds amount; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "currency",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored refunds currency; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "return_id",
+        "references_table": "returns",
+        "references_column": "id"
+      }
+    ]
+  }
+}

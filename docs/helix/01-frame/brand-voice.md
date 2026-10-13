@@ -28,7 +28,7 @@ Write for intelligent technical readers who are new to tablespec. The primary
 audience is data engineers, analytics engineers, platform engineers, and
 technical data stewards who understand tables, schemas, validation, and data
 pipelines, but may not know UMF, tablespec's artifact catalog, Databricks
-Lakeflow, Great Expectations, or this project's bronze/silver boundary.
+Lakeflow, Great Expectations, or this project's layer vocabulary.
 
 Do not assume the reader has followed previous pages. A page or module should
 stand on its own by naming:
@@ -47,9 +47,9 @@ artifacts`.
 
 ## Positioning Sentence
 
-tablespec defines the source-semantic ingested bronze contract and compiles one
-UMF into the SQL, dbt, Lakeflow, schema, and validation artifacts a data
-platform actually runs.
+tablespec compiles one UMF into the SQL, dbt, Lakeflow, schema, and validation
+artifacts a data platform actually runs, from raw ingestion through gold tables,
+with a source-semantic ingested bronze contract as the first definition of done.
 
 Use this as the default spine for homepage, docs, and demo copy. Shorten it
 when needed, but do not replace it with generic data-platform language.
@@ -60,8 +60,10 @@ when needed, but do not replace it with generic data-platform language.
    or refuses. Do not lead with broad promises.
 2. **Artifacts over abstractions.** Name the files and surfaces: UMF,
    `ingest.sql`, `schema.json`, GX suite, dbt project, Lakeflow pipeline.
-3. **Boundaries over buzzwords.** Explain where raw ends, where ingested bronze
-   is done, and where silver begins.
+3. **Layers over buzzwords.** Say which layer a contract governs: raw records,
+   source-semantic ingested tables, or silver and gold tables that declare
+   business decisions. tablespec compiles all of them; never write copy that
+   scopes the product to one layer.
 4. **Source semantics, not source accidents.** Preserve source meaning; reject
    avoidable quirks like flat-file string typing, ambiguous casts, and dump
    formatting as downstream contracts.
@@ -71,6 +73,12 @@ when needed, but do not replace it with generic data-platform language.
    members, providers, and source feeds when examples need a domain.
 7. **No synthetic excitement.** Do not sound impressed by the product. State the
    boundary and the consequence.
+8. **No process theater.** Product docs describe what to run and what success
+   looks like. They do not instruct readers to file tracker tickets, attach
+   screenshots for evidence, or treat demo runs as audit rituals.
+9. **Honest delivery status.** Shipped work is shipped. Workspace walkthroughs
+   are product docs (Getting Started), not "open residuals" or "bead leftovers."
+   Reserve gap language for real missing implementation, not for "not in default CI."
 
 ## Tone
 
@@ -92,6 +100,7 @@ Use these phrases consistently:
 - `reviewable diffs`
 - `one UMF`
 - `raw to ingested`
+- `raw to ingested to gold`
 - `typed, validated, keyed, relationship-aware`
 - `source semantics`
 - `source accidents`
@@ -118,16 +127,39 @@ Do not use these phrases in product or docs copy:
 Also avoid vague nouns such as `solution`, `platform`, `workflow`, or
 `experience` when a concrete noun is available.
 
+### Process and tracker jargon (docs & microsite)
+
+Do **not** use these in product-facing Getting Started, demos, FEAT status
+banners, or user-story acceptance prose:
+
+- `PASS tickets` / `file PASS evidence` / `attach screenshots to the tracker`
+- `operational residual` / `bead residual` / `implementation residual` as a
+  product status (say what is shipped and where the runbook lives)
+- `not CI-gated` / `waived for CI` as the main status of a demo (say which
+  notebooks or microsite page to run)
+- `agent gates` / `agent-executable` in user-facing copy
+- `Nothing here is required for default CI` as a page lede (put opt-in test
+  facts next to the commands that need secrets, not as apology)
+
+Internal HELIX alignment reviews and bead descriptions may use residual
+language when recording a point-in-time gap analysis. That does not belong on
+the public microsite or in "Delivery" banners for shipped features.
+
 ## Say This, Not That
 
 | Instead of | Say |
 |---|---|
 | Unlock trusted data pipelines. | Compile one UMF into the artifacts your pipeline runs. |
-| Seamlessly bridge raw and silver. | Define where ingested bronze is done and where silver work begins. |
+| Seamlessly bridge raw and silver. | Declare the ingested contract, then declare silver and gold derivations in the same UMF. |
+| Silver begins after the source contract is complete. | Silver decisions are declared in their own specs and compiled by the same step. |
 | Modernize schema management. | Replace per-tool schema drift with committed artifacts generated from one UMF. |
 | Data quality made easy. | Generate validation suites from the same contract that defines the table. |
 | Source preserving bronze. | Source-semantic ingested bronze: typed, validated, keyed, and still faithful to the source. |
 | Eliminate complexity. | Move type casting, validation, and artifact generation into a reviewed compile step. |
+| Workspace job residual / not CI-gated. | Notebooks under `notebooks/…`; walkthrough on Getting Started → In a workspace. |
+| Live deploy residual / open residual work. | Deploy steps: Getting Started → Deploy the app. Local smoke: `make app-smoke`. |
+| File PASS evidence or attach screenshots. | *(Delete — success is the checkpoint table or command exit status.)* |
+| Agent gates use the mock runtime. | Local smoke (no workspace): … |
 
 ## Headline Patterns
 
@@ -138,7 +170,7 @@ Good headlines use a product noun plus an engineering consequence.
 - `Source semantics without source accidents`
 - `Compile the contract. Review the diff.`
 - `Raw stays auditable. Ingested becomes usable.`
-- `Silver starts after the source contract is complete.`
+- `Silver decisions are declared, not hidden in ingestion.`
 
 Avoid headlines that could belong to any data product.
 
@@ -146,13 +178,15 @@ Avoid headlines that could belong to any data product.
 
 ### Homepage
 
-Lead with the bronze contract, not a general productivity promise. The homepage
-must show the pipeline boundary and artifact outputs in the first two sections.
+Lead with the compiled contract, not a general productivity promise. The homepage
+must show the layers tablespec compiles and the artifact outputs in the first
+two sections.
 
 Required nouns near the top:
 
 - `UMF`
 - `ingested bronze`
+- `gold`
 - `runtime artifacts`
 - `SQL`
 - `dbt`
@@ -172,6 +206,13 @@ Good:
 Weak:
 
 > tablespec helps you get started with a simple workflow.
+
+Workspace pages (In a workspace, Deploy the app):
+
+- Lead with what the reader will do and what success looks like.
+- Name notebooks, env vars, and checklists — not tracker policy.
+- Put "default CI does not need a workspace" only next to opt-in test commands,
+  never as the page thesis.
 
 ### Concepts
 
@@ -199,7 +240,7 @@ the generated artifacts, the validation result, and the environment.
 Buttons:
 
 - `Start with a UMF`
-- `Read the bronze contract`
+- `Read raw, ingested, and silver`
 - `View compile artifacts`
 - `Run the demo`
 - `Open CLI reference`
@@ -219,11 +260,39 @@ Error and empty states:
 - Name the file or command to inspect.
 - Avoid blame and jokes.
 
+## Feature and story status copy
+
+When a FEAT or user story is **Built** for the library path:
+
+- State what is shipped and where evidence lives (tests, examples, notebooks).
+- Point workspace demos at microsite Getting Started or `notebooks/…/README.md`.
+- Do not leave "Delivery" banners that still read as open residual work.
+
+When something is truly unfinished:
+
+- Name the missing behavior or file.
+- Prefer a DDx bead over soft status language in public docs.
+
+## Evolving this voice
+
+This file is the single voice authority. Build on it in place:
+
+1. **When a phrase fails twice** (reader confusion or repeated edit in review),
+   add one row to **Avoided Language** or **Say This, Not That**.
+2. **When shipping a public surface** (microsite page, CLI help, FEAT banner),
+   run the checklist below.
+3. **Do not** invent a second full voice doc. Root [`VOICE.md`](../../../VOICE.md)
+   only points here.
+4. Point-in-time alignment reviews may use residual jargon; **active** product
+   copy must not inherit it unchanged.
+
 ## Voice Checklist
 
-- [x] Does the copy name the contract or artifact?
-- [x] Does it avoid generic platform claims?
-- [x] Does it preserve the raw / ingested bronze / silver boundary?
-- [x] Does it say what changes in review?
-- [x] Does it use one of the approved product terms when relevant?
-- [x] Does it avoid hype words and abstract value claims?
+- [ ] Does the copy name the contract or artifact?
+- [ ] Does it avoid generic platform claims?
+- [ ] Does it name the layer a contract governs without scoping tablespec to one layer?
+- [ ] Does it say what changes in review?
+- [ ] Does it use one of the approved product terms when relevant?
+- [ ] Does it avoid hype words and abstract value claims?
+- [ ] Does it avoid process theater (PASS tickets, residual status, agent gates)?
+- [ ] For workspace demos: does it name the runbook path instead of "not in CI"?

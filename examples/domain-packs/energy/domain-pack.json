@@ -1,0 +1,433 @@
+{
+  "id": "energy",
+  "version": "1.0.0",
+  "description": "energy synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_sites": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/sites.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "c81ff38173513948def362ece7d304dd0c63cab762dadbe228d41e9c063da296"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_utility_assets": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/utility_assets.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "55686daf97cce06fb26b08152b2c64ccc570a902feea93ab57dd3da09900547c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_meters": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/meters.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4d28767004a998d1655b645f8f90a8b589ef0f869097ff0b3e7c088177b04d32"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_channels": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/channels.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "1c7ba63cedb4cb2554de54795759f19dcd8499c7cd0fef0386ba33b5deb9030e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_interval_readings": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/interval_readings.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0aab2d64e2d965a9864424c330631bdb5c256ec7d0cda04d3ace73ef69087d0c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_interval_gaps": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/interval_gaps.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "540f0ab7894596a6c0aba7f1f7e604d0d4744fa0fcc9d2a485cecb761ddb2658"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_tariffs": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/tariffs.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "f1f7ac99291b3e7788bd27cc025b7551b77c528ed091f753533f45b651207eb0"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_outages": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/outages.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4f858204d4e0aa337acd5d60fdc8ed88e690fe302cf3cd751a1515f148bd47b9"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_service_relationships": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/service_relationships.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "6697acf5ea831d08363c943dd730b78a1ad81755953e83ed3a657f67f6dc0089"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "sites",
+      "source_id": "template_sites",
+      "role": "rows"
+    },
+    {
+      "schema_id": "utility_assets",
+      "source_id": "template_utility_assets",
+      "role": "rows"
+    },
+    {
+      "schema_id": "meters",
+      "source_id": "template_meters",
+      "role": "rows"
+    },
+    {
+      "schema_id": "channels",
+      "source_id": "template_channels",
+      "role": "rows"
+    },
+    {
+      "schema_id": "interval_readings",
+      "source_id": "template_interval_readings",
+      "role": "rows"
+    },
+    {
+      "schema_id": "interval_gaps",
+      "source_id": "template_interval_gaps",
+      "role": "rows"
+    },
+    {
+      "schema_id": "tariffs",
+      "source_id": "template_tariffs",
+      "role": "rows"
+    },
+    {
+      "schema_id": "outages",
+      "source_id": "template_outages",
+      "role": "rows"
+    },
+    {
+      "schema_id": "service_relationships",
+      "source_id": "template_service_relationships",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "sites",
+      "format": "tablespec",
+      "reference": "umf/sites.json"
+    },
+    {
+      "id": "utility_assets",
+      "format": "tablespec",
+      "reference": "umf/utility_assets.json"
+    },
+    {
+      "id": "meters",
+      "format": "tablespec",
+      "reference": "umf/meters.json"
+    },
+    {
+      "id": "channels",
+      "format": "tablespec",
+      "reference": "umf/channels.json"
+    },
+    {
+      "id": "interval_readings",
+      "format": "tablespec",
+      "reference": "umf/interval_readings.json"
+    },
+    {
+      "id": "interval_gaps",
+      "format": "tablespec",
+      "reference": "umf/interval_gaps.json"
+    },
+    {
+      "id": "tariffs",
+      "format": "tablespec",
+      "reference": "umf/tariffs.json"
+    },
+    {
+      "id": "outages",
+      "format": "tablespec",
+      "reference": "umf/outages.json"
+    },
+    {
+      "id": "service_relationships",
+      "format": "tablespec",
+      "reference": "umf/service_relationships.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "sites",
+        "utility_assets",
+        "meters",
+        "channels",
+        "interval_readings",
+        "interval_gaps",
+        "tariffs",
+        "outages",
+        "service_relationships"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "sites": [
+        "id"
+      ],
+      "utility_assets": [
+        "id",
+        "site_id",
+        "parent_id"
+      ],
+      "meters": [
+        "id",
+        "asset_id"
+      ],
+      "channels": [
+        "id",
+        "meter_id"
+      ],
+      "interval_readings": [
+        "id",
+        "channel_id"
+      ],
+      "interval_gaps": [
+        "id",
+        "reading_id",
+        "outage_id"
+      ],
+      "tariffs": [
+        "id"
+      ],
+      "outages": [
+        "id",
+        "asset_id"
+      ],
+      "service_relationships": [
+        "id",
+        "site_id",
+        "tariff_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "replacement-gap",
+      "question": "A 30-day series retains meter replacement and outage-labeled gaps",
+      "sql": "SELECT m.name,g.reason,r.event_time FROM interval_gaps g JOIN interval_readings r ON r.id=g.reading_id JOIN channels c ON c.id=r.channel_id JOIN meters m ON m.id=c.meter_id JOIN outages o ON o.id=g.outage_id WHERE r.value IS NULL AND r.event_time>=m.valid_from AND r.event_time<=m.valid_to",
+      "expected": [
+        [
+          "Replacement meter",
+          "outage",
+          "2026-01-20T10:00Z"
+        ]
+      ]
+    },
+    {
+      "id": "reset",
+      "question": "Cumulative register decrease is exposed",
+      "sql": "SELECT b.id FROM interval_readings a JOIN interval_readings b ON a.channel_id=b.channel_id AND a.event_time<b.event_time WHERE b.value<a.value AND a.id='R1' AND b.id='R2'",
+      "expected": [
+        [
+          "R2"
+        ]
+      ]
+    },
+    {
+      "id": "unit",
+      "question": "Cumulative reading kind and energy unit remain explicit",
+      "sql": "SELECT DISTINCT reading_kind,unit FROM channels",
+      "expected": [
+        [
+          "cumulative",
+          "kW.h"
+        ]
+      ]
+    },
+    {
+      "id": "topology",
+      "question": "Feeder retains parent asset and outage",
+      "sql": "SELECT a.id,a.parent_id,o.id FROM utility_assets a JOIN outages o ON o.asset_id=a.id",
+      "expected": [
+        [
+          "A2",
+          "A1",
+          "O1"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "sites": 1,
+    "utility_assets": 2,
+    "meters": 2,
+    "channels": 2,
+    "interval_readings": 31,
+    "interval_gaps": 1,
+    "tariffs": 1,
+    "outages": 1,
+    "service_relationships": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

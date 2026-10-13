@@ -58,7 +58,9 @@ class ValidationRuleProcessor:
                     digit_match = re.search(r"(\d+)\s*digit", rule_lower)
                     if digit_match:
                         digit_count = int(digit_match.group(1))
-                        return "".join([str(random.randint(0, 9)) for _ in range(digit_count)])
+                        return "".join(
+                            [str(random.randint(0, 9)) for _ in range(digit_count)]
+                        )
 
             # Handle length constraints
             length_constraints = validation_rules.get("length_constraints", [])
@@ -68,7 +70,9 @@ class ValidationRuleProcessor:
                     length_match = re.search(r"exactly\s+(\d+)", constraint.lower())
                     if length_match:
                         length = int(length_match.group(1))
-                        return "".join([str(random.randint(0, 9)) for _ in range(length)])
+                        return "".join(
+                            [str(random.randint(0, 9)) for _ in range(length)]
+                        )
 
             # Handle business rules
             business_rules = validation_rules.get("business_rules", [])
@@ -81,14 +85,14 @@ class ValidationRuleProcessor:
                 if "icd" in rule_lower:
                     # Generate ICD-10 code format
                     letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    return (
-                        f"{random.choice(letters)}{random.randint(10, 99)}.{random.randint(0, 9)}"
-                    )
+                    return f"{random.choice(letters)}{random.randint(10, 99)}.{random.randint(0, 9)}"
 
             # Handle conditional rules (simplified - just note them for now)
             conditional_rules = validation_rules.get("conditional_rules", [])
             if conditional_rules:
-                self.logger.debug(f"Column {col_name} has conditional rules: {conditional_rules}")
+                self.logger.debug(
+                    f"Column {col_name} has conditional rules: {conditional_rules}"
+                )
 
             return None  # No specific rule applied
 

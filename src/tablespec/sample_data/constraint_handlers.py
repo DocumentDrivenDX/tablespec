@@ -72,7 +72,9 @@ class ConstraintHandlers:
 
         if ignore_row_if == "any_value_is_missing":
             # Apply constraint only if all columns are present and non-null
-            return all(v is not None for v in values) and len(values) == len(constraint_columns)
+            return all(v is not None for v in values) and len(values) == len(
+                constraint_columns
+            )
         if ignore_row_if == "all_values_are_missing":
             # Apply constraint unless all values are missing
             return any(v is not None for v in values)

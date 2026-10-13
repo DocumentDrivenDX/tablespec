@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "table_name": "results",
+  "description": "Synthetic results; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored results id; synthetic reference scenario."
+    },
+    {
+      "name": "enrollment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored results enrollment_id; synthetic reference scenario."
+    },
+    {
+      "name": "assessment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored results assessment_id; synthetic reference scenario."
+    },
+    {
+      "name": "score",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored results score; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "enrollment_id",
+        "references_table": "enrollments",
+        "references_column": "id"
+      },
+      {
+        "column": "assessment_id",
+        "references_table": "assessments",
+        "references_column": "id"
+      }
+    ]
+  }
+}

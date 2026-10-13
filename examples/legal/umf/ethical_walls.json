@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "ethical_walls",
+  "description": "Fabricated demonstration only; no real firm records.",
+  "columns": [
+    {
+      "name": "ethical_wall_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated ethical wall id"
+    },
+    {
+      "name": "matter_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated matter id"
+    },
+    {
+      "name": "timekeeper_id",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Fabricated timekeeper id"
+    }
+  ],
+  "primary_key": [
+    "ethical_wall_id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "matter_id",
+        "references_table": "matters",
+        "references_column": "matter_id"
+      },
+      {
+        "column": "timekeeper_id",
+        "references_table": "timekeepers",
+        "references_column": "timekeeper_id"
+      }
+    ]
+  },
+  "unique_constraints": [
+    [
+      "matter_id",
+      "timekeeper_id"
+    ]
+  ]
+}

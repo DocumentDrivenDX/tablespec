@@ -11,29 +11,36 @@ that a data pipeline can run or review.
 
 ## Install
 
-tablespec is distributed via GitHub Pages. The `--index-url` flag is required.
+tablespec is distributed via GitHub Pages. Use the project index for tablespec
+and PyPI for its dependencies:
 
 ```bash
 # Using uv (recommended)
-uv add tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # Using pip
-pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/
+pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
+
+`uv` commands declare the pinned `umf-core` source explicitly because uv
+requires transitive Git dependencies to be direct requirements. The Python
+package and compiler use the same pinned UMF revision.
 
 Add the `[spark]` extra only if you need PySpark-based profiling, JDBC
 discovery, or DataFrame validation:
 
 ```bash
-uv add tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/
+uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ## Author a UMF table spec
 
-Universal Metadata Format (UMF) is tablespec's schema contract for a source
-table. The canonical UMF editing format is a **split directory**: one
+UMF is a separate metadata project; tablespec supplies its pipeline extension
+and compiler. This walkthrough uses the supported legacy table-spec model and
+its **split directory** editing format: one
 `table.yaml` file for table-level metadata plus one file per column under
-`columns/`. Build one from Python:
+`columns/`. See [UMF and tablespec](/concepts/umf/) for shared documents
+and preservation rules. Build a split spec from Python:
 
 ```python
 from pathlib import Path
@@ -204,15 +211,23 @@ Spark schema, primary and foreign keys, and the required provenance columns.
 Credentials are never inlined; the spec carries only a `password_secret_ref`
 naming a secret in the runtime's secret store.
 
-The [Northwind demo notebooks](/demos/) run this database-discovery path end
-to end on a Databricks cluster: provision SQL Server on the driver node,
-discover the whole database, validate every spec, and land typed tables with
-staged validation reports that work on classic clusters and serverless.
+**No Spark yet?** Follow [First 15 minutes](/getting-started/first-15-minutes/)
+for install → validate → `tablespec bootstrap` → guidebook.
+
+When you have a workspace, use the operator checklists:
+
+- [In a workspace](/getting-started/in-a-workspace/) — Path A bootstrap, Northwind,
+  Kaggle flat-file, SEC 10-K embeddings, and opt-in serverless conformance
+- [Deploy the app](/getting-started/deploy-the-app/) — guidebook + profiling
+  Databricks App with a declared metadata home
 
 ## Next steps
 
 {{< cards >}}
-  {{< card link="/concepts" title="Core Concepts" subtitle="The UMF model, the raw/ingested/silver boundary, compiled artifacts, and the validation model." icon="academic-cap" >}}
-  {{< card link="/cli-reference" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
-  {{< card link="/demos" title="Demos" subtitle="Northwind on Databricks, the Synthea guidebook, and the local screencast demo." icon="play" >}}
+  {{< card link="/getting-started/first-15-minutes/" title="First 15 minutes" subtitle="No Spark: validate, bootstrap artifacts, and open a guidebook." icon="clock" >}}
+  {{< card link="/getting-started/in-a-workspace/" title="In a workspace" subtitle="Notebook demos and opt-in serverless steps for a real Databricks environment." icon="server" >}}
+  {{< card link="/getting-started/deploy-the-app/" title="Deploy the app" subtitle="Provision metadata home, declare inputs, grant, and deploy the profiling app." icon="cog" >}}
+  {{< card link="/concepts/" title="Core Concepts" subtitle="The UMF model, the raw, ingested, and silver layers, compiled artifacts, and the validation model." icon="academic-cap" >}}
+  {{< card link="/cli-reference/" title="CLI Reference" subtitle="All 22 commands with their options." icon="terminal" >}}
+  {{< card link="/demos/" title="Demos" subtitle="Northwind, Kaggle, Synthea, SEC 10-K, and the local screencast." icon="play" >}}
 {{< /cards >}}

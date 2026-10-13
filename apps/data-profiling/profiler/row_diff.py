@@ -20,7 +20,6 @@ SQL design notes:
 
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Any, Optional, TYPE_CHECKING
@@ -207,9 +206,10 @@ def diff_pct(changed: int, total: int) -> str:
 
 def _sql(statement: str):
     from .catalog import _workspace_client
+    from .config import get_config
 
     w = _workspace_client()
-    wid = os.environ.get("DATABRICKS_WAREHOUSE_ID", "")
+    wid = get_config().warehouse_id or ""
     result = w.statement_execution.execute_statement(
         warehouse_id=wid,
         statement=statement.strip(),

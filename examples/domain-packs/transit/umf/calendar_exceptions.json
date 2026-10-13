@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "calendar_exceptions",
+  "description": "Synthetic calendar_exceptions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored calendar_exceptions id; synthetic reference scenario."
+    },
+    {
+      "name": "calendar_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored calendar_exceptions calendar_id; synthetic reference scenario."
+    },
+    {
+      "name": "service_date",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored calendar_exceptions service_date; synthetic reference scenario."
+    },
+    {
+      "name": "exception_type",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored calendar_exceptions exception_type; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "calendar_id",
+        "references_table": "service_calendars",
+        "references_column": "id"
+      }
+    ]
+  }
+}

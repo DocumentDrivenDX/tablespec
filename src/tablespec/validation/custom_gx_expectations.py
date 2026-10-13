@@ -307,7 +307,10 @@ def validate_column_pair_date_order(
     # human-readable ``"a < b"`` comparison string here would diverge from the classic
     # engine's partial_unexpected_list and break cross-engine value parity.
     partial_unexpected_list = [
-        [_pair_element_repr(row[value_column]), _pair_element_repr(row[reference_column])]
+        [
+            _pair_element_repr(row[value_column]),
+            _pair_element_repr(row[reference_column]),
+        ]
         for row in sample_rows
     ]
 

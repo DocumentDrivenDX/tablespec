@@ -319,9 +319,7 @@ After identifying relationships, verify:
         prompt += f"\n## Lookup Tables ({len(lookup_tables)} tables)\n\n"
         prompt += "**IMPORTANT**: Lookup tables contain reference/code data with high cardinality primary keys.\n"
         prompt += "Look for columns in main tables that might reference these lookup table primary keys.\n"
-        prompt += (
-            "Common patterns: STATUS, DISPOSITION, TYPE, CODE columns linking to lookup tables.\n\n"
-        )
+        prompt += "Common patterns: STATUS, DISPOSITION, TYPE, CODE columns linking to lookup tables.\n\n"
 
         for table_name in sorted(lookup_tables.keys()):
             lookup_data = lookup_tables[table_name]
@@ -365,8 +363,12 @@ After identifying relationships, verify:
                 for col in lookup_columns:
                     col_name = col["name"]
                     col_type = col.get("data_type", "VARCHAR")
-                    col_desc = clean_description(col.get("description", "No description"))
-                    pk_marker = " (PRIMARY KEY)" if col.get("is_primary_key", False) else ""
+                    col_desc = clean_description(
+                        col.get("description", "No description")
+                    )
+                    pk_marker = (
+                        " (PRIMARY KEY)" if col.get("is_primary_key", False) else ""
+                    )
 
                     prompt += f"- `{col_name}` ({col_type}){pk_marker}: {col_desc}\n"
 

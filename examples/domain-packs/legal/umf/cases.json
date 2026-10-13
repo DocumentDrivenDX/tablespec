@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "table_name": "cases",
+  "description": "Observed public litigation corpus. Source PDF bytes are authoritative; extraction is a lossy search aid. No fictional firm or client association.",
+  "columns": [
+    {
+      "name": "case_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "case key"
+    },
+    {
+      "name": "case_number",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "case number"
+    },
+    {
+      "name": "case_title",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "case title"
+    },
+    {
+      "name": "court",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "court"
+    },
+    {
+      "name": "source_url",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "source url"
+    }
+  ],
+  "primary_key": [
+    "case_key"
+  ]
+}

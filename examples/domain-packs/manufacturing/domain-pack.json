@@ -1,0 +1,478 @@
+{
+  "id": "manufacturing",
+  "version": "1.0.0",
+  "description": "manufacturing synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_facilities": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/facilities.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "a2b865af80ad6b08decdef2e78659e4f5b141fb6905bbbb5b023ffc7cfbf4fcc"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_machines": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/machines.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d176eae15cf5dec06928e9f674ce9c7bc9afb92792e4afa83ef761e05d9a1523"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_components": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/components.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "dc547d7cfc047b73722e2bf37c376975c3b4fe32d1e1e79451edc3e3bbd56229"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_work_orders": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/work_orders.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cee7f9f3e27261c1c76eb3d17f08739691b95cc59fc1a3b78e1e99b5b3202f29"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_material_lots": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/material_lots.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "296c5cffab69660576ae92234e3dc1da5fca267ce5232b09cb239a224cbb77fd"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_production_runs": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/production_runs.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "8740748f40b2c17e98285bd3f825a2b7403909f7723c163d730a3a685c3062fa"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_observations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/observations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "04dc93d7aac9043dc4370ae3ae783fe5e54f3a004d30d2fdd2422f98cfe39c98"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_alarms": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/alarms.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "3638368477700159044ea962d12061e4f62549b06a6bd273a7f09855e9f24d92"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_inspections": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/inspections.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "545d8356023b75c7861d8a6c9787a3b9866cb808293c9381563437648aeb936d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_maintenance_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/maintenance_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d80beeba83a5d163dcbac43b156ab464aa205853f56872ca636c6c70a2defa84"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "facilities",
+      "source_id": "template_facilities",
+      "role": "rows"
+    },
+    {
+      "schema_id": "machines",
+      "source_id": "template_machines",
+      "role": "rows"
+    },
+    {
+      "schema_id": "components",
+      "source_id": "template_components",
+      "role": "rows"
+    },
+    {
+      "schema_id": "work_orders",
+      "source_id": "template_work_orders",
+      "role": "rows"
+    },
+    {
+      "schema_id": "material_lots",
+      "source_id": "template_material_lots",
+      "role": "rows"
+    },
+    {
+      "schema_id": "production_runs",
+      "source_id": "template_production_runs",
+      "role": "rows"
+    },
+    {
+      "schema_id": "observations",
+      "source_id": "template_observations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "alarms",
+      "source_id": "template_alarms",
+      "role": "rows"
+    },
+    {
+      "schema_id": "inspections",
+      "source_id": "template_inspections",
+      "role": "rows"
+    },
+    {
+      "schema_id": "maintenance_events",
+      "source_id": "template_maintenance_events",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "facilities",
+      "format": "tablespec",
+      "reference": "umf/facilities.json"
+    },
+    {
+      "id": "machines",
+      "format": "tablespec",
+      "reference": "umf/machines.json"
+    },
+    {
+      "id": "components",
+      "format": "tablespec",
+      "reference": "umf/components.json"
+    },
+    {
+      "id": "work_orders",
+      "format": "tablespec",
+      "reference": "umf/work_orders.json"
+    },
+    {
+      "id": "material_lots",
+      "format": "tablespec",
+      "reference": "umf/material_lots.json"
+    },
+    {
+      "id": "production_runs",
+      "format": "tablespec",
+      "reference": "umf/production_runs.json"
+    },
+    {
+      "id": "observations",
+      "format": "tablespec",
+      "reference": "umf/observations.json"
+    },
+    {
+      "id": "alarms",
+      "format": "tablespec",
+      "reference": "umf/alarms.json"
+    },
+    {
+      "id": "inspections",
+      "format": "tablespec",
+      "reference": "umf/inspections.json"
+    },
+    {
+      "id": "maintenance_events",
+      "format": "tablespec",
+      "reference": "umf/maintenance_events.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "facilities",
+        "machines",
+        "components",
+        "work_orders",
+        "material_lots",
+        "production_runs",
+        "observations",
+        "alarms",
+        "inspections",
+        "maintenance_events"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "facilities": [
+        "id"
+      ],
+      "machines": [
+        "id",
+        "facility_id"
+      ],
+      "components": [
+        "id",
+        "machine_id",
+        "parent_id"
+      ],
+      "work_orders": [
+        "id",
+        "machine_id"
+      ],
+      "material_lots": [
+        "id"
+      ],
+      "production_runs": [
+        "id",
+        "work_order_id",
+        "lot_id"
+      ],
+      "observations": [
+        "id",
+        "component_id"
+      ],
+      "alarms": [
+        "id",
+        "observation_id"
+      ],
+      "inspections": [
+        "id",
+        "run_id"
+      ],
+      "maintenance_events": [
+        "id",
+        "component_id",
+        "work_order_id",
+        "alarm_id",
+        "resumed_run_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "resume",
+      "question": "Temperature alarm precedes maintenance and resumed run",
+      "sql": "SELECT a.condition,m.action,r.id FROM alarms a JOIN observations o ON o.id=a.observation_id JOIN maintenance_events m ON m.alarm_id=a.id JOIN production_runs r ON r.id=m.resumed_run_id WHERE o.observed_at<m.occurred_at AND m.occurred_at<r.started_at",
+      "expected": [
+        [
+          "high-temperature",
+          "replace",
+          "R2"
+        ]
+      ]
+    },
+    {
+      "id": "unit-change",
+      "question": "Do not concatenate unlabeled sensor units",
+      "sql": "SELECT component_id,COUNT(DISTINCT unit) FROM observations GROUP BY component_id HAVING COUNT(DISTINCT unit)>1",
+      "expected": [
+        [
+          "C2",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "lineage",
+      "question": "Trace run through work order and material lot",
+      "sql": "SELECT r.id,l.material,w.status FROM production_runs r JOIN work_orders w ON w.id=r.work_order_id JOIN material_lots l ON l.id=r.lot_id",
+      "expected": [
+        [
+          "R1",
+          "steel",
+          "complete"
+        ],
+        [
+          "R2",
+          "steel",
+          "complete"
+        ]
+      ]
+    },
+    {
+      "id": "maintenance",
+      "question": "Replacement identifies the actual component",
+      "sql": "SELECT c.name,m.action FROM maintenance_events m JOIN components c ON c.id=m.component_id",
+      "expected": [
+        [
+          "Bearing",
+          "replace"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "facilities": 1,
+    "machines": 1,
+    "components": 2,
+    "work_orders": 1,
+    "material_lots": 1,
+    "production_runs": 2,
+    "observations": 3,
+    "alarms": 2,
+    "inspections": 1,
+    "maintenance_events": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

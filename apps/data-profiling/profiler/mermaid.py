@@ -118,7 +118,7 @@ def _table_class(
 ) -> list[str]:
     lines = [
         f"    class {tbl_id} {{",
-        f"        <<Table>>",
+        "        <<Table>>",
         f"        catalog : {profile.catalog}",
         f"        schema : {profile.schema_}",
         f"        table : {profile.table}",

@@ -17,7 +17,9 @@ def generator():
 class TestConditionalNullable:
     """When context_column is set, per-context not-null expectations use row_condition."""
 
-    def test_per_context_expectations_with_context_column(self, generator: BaselineExpectationGenerator):
+    def test_per_context_expectations_with_context_column(
+        self, generator: BaselineExpectationGenerator
+    ):
         umf_data = {
             "context_column": "LOB",
             "columns": [
@@ -28,10 +30,16 @@ class TestConditionalNullable:
                 },
             ],
         }
-        expectations = generator.generate_baseline_expectations(umf_data, include_structural=False)
+        expectations = generator.generate_baseline_expectations(
+            umf_data, include_structural=False
+        )
 
         # Should generate one not-null per non-nullable context (MD and ME)
-        not_null_exps = [e for e in expectations if e["type"] == "expect_column_values_to_not_be_null"]
+        not_null_exps = [
+            e
+            for e in expectations
+            if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(not_null_exps) == 2
 
         # Each should have a row_condition
@@ -43,7 +51,9 @@ class TestConditionalNullable:
         for exp in not_null_exps:
             assert exp["kwargs"]["condition_parser"] == "spark"
 
-    def test_global_not_null_without_context_column(self, generator: BaselineExpectationGenerator):
+    def test_global_not_null_without_context_column(
+        self, generator: BaselineExpectationGenerator
+    ):
         umf_data = {
             "columns": [
                 {
@@ -53,14 +63,22 @@ class TestConditionalNullable:
                 },
             ],
         }
-        expectations = generator.generate_baseline_expectations(umf_data, include_structural=False)
+        expectations = generator.generate_baseline_expectations(
+            umf_data, include_structural=False
+        )
 
-        not_null_exps = [e for e in expectations if e["type"] == "expect_column_values_to_not_be_null"]
+        not_null_exps = [
+            e
+            for e in expectations
+            if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(not_null_exps) == 1
         # No row_condition — global not-null
         assert "row_condition" not in not_null_exps[0]["kwargs"]
 
-    def test_all_nullable_generates_nothing(self, generator: BaselineExpectationGenerator):
+    def test_all_nullable_generates_nothing(
+        self, generator: BaselineExpectationGenerator
+    ):
         umf_data = {
             "context_column": "LOB",
             "columns": [
@@ -71,8 +89,14 @@ class TestConditionalNullable:
                 },
             ],
         }
-        expectations = generator.generate_baseline_expectations(umf_data, include_structural=False)
-        not_null_exps = [e for e in expectations if e["type"] == "expect_column_values_to_not_be_null"]
+        expectations = generator.generate_baseline_expectations(
+            umf_data, include_structural=False
+        )
+        not_null_exps = [
+            e
+            for e in expectations
+            if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(not_null_exps) == 0
 
     def test_custom_context_column_name(self, generator: BaselineExpectationGenerator):
@@ -87,12 +111,20 @@ class TestConditionalNullable:
                 },
             ],
         }
-        expectations = generator.generate_baseline_expectations(umf_data, include_structural=False)
-        not_null_exps = [e for e in expectations if e["type"] == "expect_column_values_to_not_be_null"]
+        expectations = generator.generate_baseline_expectations(
+            umf_data, include_structural=False
+        )
+        not_null_exps = [
+            e
+            for e in expectations
+            if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(not_null_exps) == 1
         assert not_null_exps[0]["kwargs"]["row_condition"] == "segment='retail'"
 
-    def test_boolean_nullable_true_no_expectations(self, generator: BaselineExpectationGenerator):
+    def test_boolean_nullable_true_no_expectations(
+        self, generator: BaselineExpectationGenerator
+    ):
         """Boolean nullable=True (from DeequToUmfMapper) should not generate not-null."""
         umf_data = {
             "context_column": "LOB",
@@ -104,8 +136,14 @@ class TestConditionalNullable:
                 },
             ],
         }
-        expectations = generator.generate_baseline_expectations(umf_data, include_structural=False)
-        not_null_exps = [e for e in expectations if e["type"] == "expect_column_values_to_not_be_null"]
+        expectations = generator.generate_baseline_expectations(
+            umf_data, include_structural=False
+        )
+        not_null_exps = [
+            e
+            for e in expectations
+            if e["type"] == "expect_column_values_to_not_be_null"
+        ]
         assert len(not_null_exps) == 0
 
 
@@ -113,6 +151,7 @@ class TestContextColumnValidation:
     def test_valid_context_column_accepted(self):
         """UMF with context_column matching a column name should be valid."""
         from tablespec.models.umf import UMF
+
         umf = UMF(
             version="1.0",
             table_name="test",
@@ -127,6 +166,7 @@ class TestContextColumnValidation:
     def test_invalid_context_column_rejected(self):
         """UMF with context_column not matching any column should raise ValueError."""
         from tablespec.models.umf import UMF
+
         with pytest.raises(ValueError, match="context_column.*nonexistent.*not found"):
             UMF(
                 version="1.0",
@@ -140,6 +180,7 @@ class TestContextColumnValidation:
     def test_none_context_column_accepted(self):
         """UMF with no context_column should be valid."""
         from tablespec.models.umf import UMF
+
         umf = UMF(
             version="1.0",
             table_name="test",

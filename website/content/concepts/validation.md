@@ -130,7 +130,8 @@ with `generate_validation_prompt`, then apply the model's JSON response with
 
 ## Scope
 
-tablespec validates the ingested-bronze contract: presence, types,
-nullability, declared constraints, and key integrity. Cross-source business
-logic belongs to silver-layer models with their own specs — see
+Generated suites validate whatever the spec declares: presence, types,
+nullability, declared constraints, and key integrity. For an ingested bronze
+table that is the source contract. For a silver table it is the declared
+business rules of that table's own spec. See
 [Raw, ingested, and silver](/concepts/raw-ingested-silver/).

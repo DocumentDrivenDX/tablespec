@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "samples",
+  "description": "Synthetic samples; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored samples id; synthetic reference scenario."
+    },
+    {
+      "name": "event_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored samples event_id; synthetic reference scenario."
+    },
+    {
+      "name": "matrix",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored samples matrix; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "event_id",
+        "references_table": "sampling_events",
+        "references_column": "id"
+      }
+    ]
+  }
+}

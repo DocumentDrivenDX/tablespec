@@ -40,10 +40,14 @@ class TestGetCaptureGroupPatternForColumn:
         captures = {"1": "year", "2": "date"}
         filename_pattern = r"^file_([0-9]{4})_([0-9]{8})\.txt$"
 
-        pattern = generator.get_capture_group_pattern_for_column("year", captures, filename_pattern)
+        pattern = generator.get_capture_group_pattern_for_column(
+            "year", captures, filename_pattern
+        )
         assert pattern == "[0-9]{4}"
 
-        pattern = generator.get_capture_group_pattern_for_column("date", captures, filename_pattern)
+        pattern = generator.get_capture_group_pattern_for_column(
+            "date", captures, filename_pattern
+        )
         assert pattern == "[0-9]{8}"
 
     def test_returns_none_for_nonexistent_column(self, generator):
@@ -90,7 +94,9 @@ class TestGetCaptureGroupPatternForColumn:
         captures = {"1": "code"}
         filename_pattern = r"^((?:[A-Z]|[0-9])+)_file\.txt$"
 
-        pattern = generator.get_capture_group_pattern_for_column("code", captures, filename_pattern)
+        pattern = generator.get_capture_group_pattern_for_column(
+            "code", captures, filename_pattern
+        )
         assert pattern == "(?:[A-Z]|[0-9])+"
 
     def test_handles_alternation_in_capture(self, generator):
@@ -98,7 +104,9 @@ class TestGetCaptureGroupPatternForColumn:
         captures = {"1": "mode"}
         filename_pattern = r"^file_(I|R|A|U)\.txt$"
 
-        pattern = generator.get_capture_group_pattern_for_column("mode", captures, filename_pattern)
+        pattern = generator.get_capture_group_pattern_for_column(
+            "mode", captures, filename_pattern
+        )
         assert pattern == "I|R|A|U"
 
     def test_handles_optional_groups(self, generator):
@@ -112,7 +120,9 @@ class TestGetCaptureGroupPatternForColumn:
         assert pattern == "[A-Z0-9]+"
 
         # Optional group is still a capturing group
-        pattern = generator.get_capture_group_pattern_for_column("mode", captures, filename_pattern)
+        pattern = generator.get_capture_group_pattern_for_column(
+            "mode", captures, filename_pattern
+        )
         assert pattern == "[MODE]"
 
 
@@ -138,7 +148,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"vendor": "ACME", "state": "IL"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "ACME_IL_file.txt"
 
     def test_generates_filename_with_dates(self, generator):
@@ -154,7 +166,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"year": "2024", "date": "20241015"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "file_2024_20241015.txt"
 
     def test_fallback_to_simple_name_when_no_pattern(self, generator):
@@ -162,7 +176,9 @@ class TestGenerateFilenameFromPattern:
         umf_data = {"file_format": {}, "columns": []}
         records = []
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "test_table.txt"
 
     def test_fallback_when_no_records(self, generator):
@@ -178,7 +194,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = []
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "test_table.txt"
 
     def test_handles_flat_yaml_structure(self, generator):
@@ -192,7 +210,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"vendor": "ACME"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "ACME_file.txt"
 
     def test_handles_filename_sourced_columns(self, generator):
@@ -211,7 +231,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{}]  # Empty record - should use sample_values
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "VENDOR1_CA_file.txt"
 
     def test_handles_optional_capture_groups(self, generator):
@@ -227,7 +249,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"vendor": "ACME"}]  # mode not provided
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         # Should handle missing optional capture gracefully
         assert "ACME" in filename
         assert filename.endswith(".txt")
@@ -245,7 +269,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"date": "20241015"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "file_20241015.csv"
         assert filename.endswith(".csv")
 
@@ -262,7 +288,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "report.xlsx"
 
     def test_handles_complex_outreach_list_pattern(self, generator):
@@ -283,17 +311,35 @@ class TestGenerateFilenameFromPattern:
                 }
             },
             "columns": [
-                {"name": "source_vendor_prefix", "source": "filename", "sample_values": ["ACME"]},
+                {
+                    "name": "source_vendor_prefix",
+                    "source": "filename",
+                    "sample_values": ["ACME"],
+                },
                 {"name": "source_state", "source": "filename", "sample_values": ["IL"]},
                 {"name": "source_lob", "source": "filename", "sample_values": ["MD"]},
-                {"name": "source_project_code", "source": "filename", "sample_values": ["1001"]},
-                {"name": "source_file_date", "source": "filename", "sample_values": ["20241015"]},
-                {"name": "source_file_mode", "source": "filename", "sample_values": ["I"]},
+                {
+                    "name": "source_project_code",
+                    "source": "filename",
+                    "sample_values": ["1001"],
+                },
+                {
+                    "name": "source_file_date",
+                    "source": "filename",
+                    "sample_values": ["20241015"],
+                },
+                {
+                    "name": "source_file_mode",
+                    "source": "filename",
+                    "sample_values": ["I"],
+                },
             ],
         }
         records = [{}]
 
-        filename = generator.generate_filename_from_pattern("OutreachList", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "OutreachList", umf_data, records
+        )
         assert filename == "ACME_IL_MD_OutreachList_1001_20241015_I.txt"
 
     def test_handles_missing_capture_values(self, generator):
@@ -310,7 +356,9 @@ class TestGenerateFilenameFromPattern:
         # Record missing 'state' value
         records = [{"vendor": "ACME"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         # Should use UNKNOWN for missing values
         assert "ACME" in filename
         assert "UNKNOWN" in filename or filename.endswith(".txt")
@@ -328,7 +376,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"vendor": None}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         # Should use UNKNOWN for None values
         assert "UNKNOWN" in filename
 
@@ -345,7 +395,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"vendor": "ACME"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "file_ACME.txt"
         # Should not contain literal ^ or $
         assert "^" not in filename
@@ -364,7 +416,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"vendor": "acme"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert "acme" in filename.lower()
         # Should not contain (?i) in output
         assert "(?i)" not in filename
@@ -400,12 +454,16 @@ class TestGenerateFilenameFromPattern:
     def test_handles_empty_captures(self, generator):
         """Test handling pattern with no captures."""
         umf_data = {
-            "file_format": {"filename_pattern": {"regex": r"^static_file\.txt$", "captures": {}}},
+            "file_format": {
+                "filename_pattern": {"regex": r"^static_file\.txt$", "captures": {}}
+            },
             "columns": [],
         }
         records = [{}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "static_file.txt"
 
     def test_handles_shorthand_digit_class_outside_capture(self, generator):
@@ -421,7 +479,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"date": "20241015"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "0000_file_20241015.txt"
 
     def test_handles_character_class_outside_capture(self, generator):
@@ -437,7 +497,9 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{"code": "1234"}]
 
-        filename = generator.generate_filename_from_pattern("test_table", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "test_table", umf_data, records
+        )
         assert filename == "AAA_1234.txt"
 
     def test_giftcard_pattern_with_backslash_d(self, generator):
@@ -459,5 +521,7 @@ class TestGenerateFilenameFromPattern:
         }
         records = [{}]
 
-        filename = generator.generate_filename_from_pattern("giftcard", umf_data, records)
+        filename = generator.generate_filename_from_pattern(
+            "giftcard", umf_data, records
+        )
         assert filename == "0000_Master_Fulfillment_List_20250421.txt"

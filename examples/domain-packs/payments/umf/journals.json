@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "table_name": "journals",
+  "description": "Synthetic journals; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored journals id; synthetic reference scenario."
+    },
+    {
+      "name": "native_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored journals native_id; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

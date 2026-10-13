@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "table_name": "authentication_events",
+  "description": "Synthetic authentication_events; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored authentication_events id; synthetic reference scenario."
+    },
+    {
+      "name": "session_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored authentication_events session_id; synthetic reference scenario."
+    },
+    {
+      "name": "scenario_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored authentication_events scenario_id; synthetic reference scenario."
+    },
+    {
+      "name": "outcome",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored authentication_events outcome; synthetic reference scenario."
+    },
+    {
+      "name": "event_time",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored authentication_events event_time; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "session_id",
+        "references_table": "sessions",
+        "references_column": "id"
+      },
+      {
+        "column": "scenario_id",
+        "references_table": "scenarios",
+        "references_column": "id"
+      }
+    ]
+  }
+}

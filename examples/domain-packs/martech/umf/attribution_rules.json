@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "table_name": "attribution_rules",
+  "description": "Synthetic attribution_rules; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored attribution_rules id; synthetic reference scenario."
+    },
+    {
+      "name": "window_days",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored attribution_rules window_days; synthetic reference scenario."
+    },
+    {
+      "name": "algorithm",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored attribution_rules algorithm; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

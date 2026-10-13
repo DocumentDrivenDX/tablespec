@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "positions",
+  "description": "Synthetic positions; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored positions id; synthetic reference scenario."
+    },
+    {
+      "name": "unit_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored positions unit_id; synthetic reference scenario."
+    },
+    {
+      "name": "title",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored positions title; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "unit_id",
+        "references_table": "organizational_units",
+        "references_column": "id"
+      }
+    ]
+  }
+}

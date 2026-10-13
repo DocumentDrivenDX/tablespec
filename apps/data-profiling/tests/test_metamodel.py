@@ -215,7 +215,6 @@ class TestDatasetProfile:
             _dataset(n_cols=2, column_count=5)
 
     def test_fqn(self):
-        d = _dataset(catalog="c", table="t")
         d2 = DatasetProfile(
             env_label="X",
             connection="local",

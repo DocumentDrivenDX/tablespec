@@ -1,0 +1,2151 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:ecology",
+  "title": "ecology ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:ecology:",
+      "elements": [
+        {
+          "id": "watersheds",
+          "kind": "record",
+          "name": "watersheds",
+          "title": "watersheds",
+          "description": "Synthetic watersheds; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "watersheds.id"
+            },
+            {
+              "module": "domain",
+              "element": "watersheds.name"
+            },
+            {
+              "module": "domain",
+              "element": "watersheds.geometry"
+            },
+            {
+              "module": "domain",
+              "element": "watersheds.crs"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "watersheds.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "watersheds.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored watersheds id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "watersheds.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored watersheds name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "watersheds.geometry",
+          "name": "geometry",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored watersheds geometry; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "watersheds.crs",
+          "name": "crs",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored watersheds crs; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "catchments",
+          "kind": "record",
+          "name": "catchments",
+          "title": "catchments",
+          "description": "Synthetic catchments; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "catchments.id"
+            },
+            {
+              "module": "domain",
+              "element": "catchments.watershed_id"
+            },
+            {
+              "module": "domain",
+              "element": "catchments.area"
+            },
+            {
+              "module": "domain",
+              "element": "catchments.area_unit"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "catchments.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "catchments.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored catchments id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "catchments.watershed_id",
+          "name": "watershed_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored catchments watershed_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "catchments.area",
+          "name": "area",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored catchments area; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "catchments.area_unit",
+          "name": "area_unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored catchments area_unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reaches",
+          "kind": "record",
+          "name": "reaches",
+          "title": "reaches",
+          "description": "Synthetic reaches; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "reaches.id"
+            },
+            {
+              "module": "domain",
+              "element": "reaches.catchment_id"
+            },
+            {
+              "module": "domain",
+              "element": "reaches.native_framework"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "reaches.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "reaches.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reaches id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reaches.catchment_id",
+          "name": "catchment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reaches catchment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reaches.native_framework",
+          "name": "native_framework",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reaches native_framework; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_links",
+          "kind": "record",
+          "name": "network_links",
+          "title": "network_links",
+          "description": "Synthetic network_links; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "network_links.id"
+            },
+            {
+              "module": "domain",
+              "element": "network_links.upstream_id"
+            },
+            {
+              "module": "domain",
+              "element": "network_links.downstream_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "network_links.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "network_links.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_links id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_links.upstream_id",
+          "name": "upstream_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_links upstream_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "network_links.downstream_id",
+          "name": "downstream_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored network_links downstream_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "monitoring_sites",
+          "kind": "record",
+          "name": "monitoring_sites",
+          "title": "monitoring_sites",
+          "description": "Synthetic monitoring_sites; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "monitoring_sites.id"
+            },
+            {
+              "module": "domain",
+              "element": "monitoring_sites.reach_id"
+            },
+            {
+              "module": "domain",
+              "element": "monitoring_sites.native_id"
+            },
+            {
+              "module": "domain",
+              "element": "monitoring_sites.publisher"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "monitoring_sites.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "monitoring_sites.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored monitoring_sites id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "monitoring_sites.reach_id",
+          "name": "reach_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored monitoring_sites reach_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "monitoring_sites.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored monitoring_sites native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "monitoring_sites.publisher",
+          "name": "publisher",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored monitoring_sites publisher; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "projects",
+          "kind": "record",
+          "name": "projects",
+          "title": "projects",
+          "description": "Synthetic projects; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "projects.id"
+            },
+            {
+              "module": "domain",
+              "element": "projects.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "projects.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "projects.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored projects id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "projects.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored projects name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "methods",
+          "kind": "record",
+          "name": "methods",
+          "title": "methods",
+          "description": "Synthetic methods; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "methods.id"
+            },
+            {
+              "module": "domain",
+              "element": "methods.name"
+            },
+            {
+              "module": "domain",
+              "element": "methods.matrix"
+            },
+            {
+              "module": "domain",
+              "element": "methods.fraction"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "methods.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "methods.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored methods id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "methods.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored methods name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "methods.matrix",
+          "name": "matrix",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored methods matrix; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "methods.fraction",
+          "name": "fraction",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored methods fraction; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observed_properties",
+          "kind": "record",
+          "name": "observed_properties",
+          "title": "observed_properties",
+          "description": "Synthetic observed_properties; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "observed_properties.id"
+            },
+            {
+              "module": "domain",
+              "element": "observed_properties.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "observed_properties.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "observed_properties.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observed_properties id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observed_properties.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observed_properties name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sampling_events",
+          "kind": "record",
+          "name": "sampling_events",
+          "title": "sampling_events",
+          "description": "Synthetic sampling_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "sampling_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "sampling_events.site_id"
+            },
+            {
+              "module": "domain",
+              "element": "sampling_events.project_id"
+            },
+            {
+              "module": "domain",
+              "element": "sampling_events.method_id"
+            },
+            {
+              "module": "domain",
+              "element": "sampling_events.event_time"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "sampling_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "sampling_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sampling_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sampling_events.site_id",
+          "name": "site_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sampling_events site_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sampling_events.project_id",
+          "name": "project_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sampling_events project_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sampling_events.method_id",
+          "name": "method_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sampling_events method_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "sampling_events.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored sampling_events event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples",
+          "kind": "record",
+          "name": "samples",
+          "title": "samples",
+          "description": "Synthetic samples; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "samples.id"
+            },
+            {
+              "module": "domain",
+              "element": "samples.event_id"
+            },
+            {
+              "module": "domain",
+              "element": "samples.matrix"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "samples.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "samples.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored samples id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples.event_id",
+          "name": "event_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored samples event_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "samples.matrix",
+          "name": "matrix",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored samples matrix; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations",
+          "kind": "record",
+          "name": "observations",
+          "title": "observations",
+          "description": "Synthetic observations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "observations.id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.sample_id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.property_id"
+            },
+            {
+              "module": "domain",
+              "element": "observations.value"
+            },
+            {
+              "module": "domain",
+              "element": "observations.threshold"
+            },
+            {
+              "module": "domain",
+              "element": "observations.unit"
+            },
+            {
+              "module": "domain",
+              "element": "observations.result_kind"
+            },
+            {
+              "module": "domain",
+              "element": "observations.qualifier"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "observations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "observations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.sample_id",
+          "name": "sample_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations sample_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.property_id",
+          "name": "property_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations property_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored observations value; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "observations.threshold",
+          "name": "threshold",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored observations threshold; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "observations.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.result_kind",
+          "name": "result_kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations result_kind; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "observations.qualifier",
+          "name": "qualifier",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored observations qualifier; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "taxa",
+          "kind": "record",
+          "name": "taxa",
+          "title": "taxa",
+          "description": "Synthetic taxa; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "taxa.id"
+            },
+            {
+              "module": "domain",
+              "element": "taxa.name"
+            },
+            {
+              "module": "domain",
+              "element": "taxa.rank"
+            },
+            {
+              "module": "domain",
+              "element": "taxa.concept_version"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "taxa.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "taxa.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored taxa id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "taxa.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored taxa name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "taxa.rank",
+          "name": "rank",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored taxa rank; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "taxa.concept_version",
+          "name": "concept_version",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored taxa concept_version; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identifications",
+          "kind": "record",
+          "name": "identifications",
+          "title": "identifications",
+          "description": "Synthetic identifications; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "identifications.id"
+            },
+            {
+              "module": "domain",
+              "element": "identifications.taxon_id"
+            },
+            {
+              "module": "domain",
+              "element": "identifications.confidence"
+            },
+            {
+              "module": "domain",
+              "element": "identifications.life_stage"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "identifications.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "identifications.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identifications id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identifications.taxon_id",
+          "name": "taxon_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identifications taxon_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identifications.confidence",
+          "name": "confidence",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identifications confidence; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "identifications.life_stage",
+          "name": "life_stage",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored identifications life_stage; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "effort",
+          "kind": "record",
+          "name": "effort",
+          "title": "effort",
+          "description": "Synthetic effort; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "effort.id"
+            },
+            {
+              "module": "domain",
+              "element": "effort.event_id"
+            },
+            {
+              "module": "domain",
+              "element": "effort.amount"
+            },
+            {
+              "module": "domain",
+              "element": "effort.unit"
+            },
+            {
+              "module": "domain",
+              "element": "effort.method"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "effort.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "effort.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored effort id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "effort.event_id",
+          "name": "event_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored effort event_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "effort.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "Authored effort amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "effort.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored effort unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "effort.method",
+          "name": "method",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored effort method; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "occurrences",
+          "kind": "record",
+          "name": "occurrences",
+          "title": "occurrences",
+          "description": "Synthetic occurrences; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "occurrences.id"
+            },
+            {
+              "module": "domain",
+              "element": "occurrences.event_id"
+            },
+            {
+              "module": "domain",
+              "element": "occurrences.identification_id"
+            },
+            {
+              "module": "domain",
+              "element": "occurrences.effort_id"
+            },
+            {
+              "module": "domain",
+              "element": "occurrences.count"
+            },
+            {
+              "module": "domain",
+              "element": "occurrences.detection"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "occurrences.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "occurrences.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored occurrences id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "occurrences.event_id",
+          "name": "event_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored occurrences event_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "occurrences.identification_id",
+          "name": "identification_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored occurrences identification_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "occurrences.effort_id",
+          "name": "effort_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored occurrences effort_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "occurrences.count",
+          "name": "count",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored occurrences count; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "occurrences.detection",
+          "name": "detection",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored occurrences detection; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "habitat_metrics",
+          "kind": "record",
+          "name": "habitat_metrics",
+          "title": "habitat_metrics",
+          "description": "Synthetic habitat_metrics; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "habitat_metrics.id"
+            },
+            {
+              "module": "domain",
+              "element": "habitat_metrics.catchment_id"
+            },
+            {
+              "module": "domain",
+              "element": "habitat_metrics.value"
+            },
+            {
+              "module": "domain",
+              "element": "habitat_metrics.unit"
+            },
+            {
+              "module": "domain",
+              "element": "habitat_metrics.basis"
+            },
+            {
+              "module": "domain",
+              "element": "habitat_metrics.algorithm"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "habitat_metrics.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "habitat_metrics.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored habitat_metrics id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "habitat_metrics.catchment_id",
+          "name": "catchment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored habitat_metrics catchment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "habitat_metrics.value",
+          "name": "value",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored habitat_metrics value; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "habitat_metrics.unit",
+          "name": "unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored habitat_metrics unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "habitat_metrics.basis",
+          "name": "basis",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored habitat_metrics basis; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "habitat_metrics.algorithm",
+          "name": "algorithm",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored habitat_metrics algorithm; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "management_interventions",
+          "kind": "record",
+          "name": "management_interventions",
+          "title": "management_interventions",
+          "description": "Synthetic management_interventions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "management_interventions.id"
+            },
+            {
+              "module": "domain",
+              "element": "management_interventions.reach_id"
+            },
+            {
+              "module": "domain",
+              "element": "management_interventions.action"
+            },
+            {
+              "module": "domain",
+              "element": "management_interventions.event_time"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "management_interventions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "management_interventions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored management_interventions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "management_interventions.reach_id",
+          "name": "reach_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored management_interventions reach_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "management_interventions.action",
+          "name": "action",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored management_interventions action; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "management_interventions.event_time",
+          "name": "event_time",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored management_interventions event_time; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fishing_events",
+          "kind": "record",
+          "name": "fishing_events",
+          "title": "fishing_events",
+          "description": "Synthetic fishing_events; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "fishing_events.id"
+            },
+            {
+              "module": "domain",
+              "element": "fishing_events.site_id"
+            },
+            {
+              "module": "domain",
+              "element": "fishing_events.effort"
+            },
+            {
+              "module": "domain",
+              "element": "fishing_events.effort_unit"
+            },
+            {
+              "module": "domain",
+              "element": "fishing_events.catch_count"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "fishing_events.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "fishing_events.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fishing_events id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fishing_events.site_id",
+          "name": "site_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fishing_events site_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fishing_events.effort",
+          "name": "effort",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fishing_events effort; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "fishing_events.effort_unit",
+          "name": "effort_unit",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fishing_events effort_unit; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "fishing_events.catch_count",
+          "name": "catch_count",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored fishing_events catch_count; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "site_matches",
+          "kind": "record",
+          "name": "site_matches",
+          "title": "site_matches",
+          "description": "Synthetic site_matches; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "site_matches.id"
+            },
+            {
+              "module": "domain",
+              "element": "site_matches.site_id"
+            },
+            {
+              "module": "domain",
+              "element": "site_matches.candidate_native_id"
+            },
+            {
+              "module": "domain",
+              "element": "site_matches.evidence"
+            },
+            {
+              "module": "domain",
+              "element": "site_matches.resolution"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "site_matches.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "site_matches.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored site_matches id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "site_matches.site_id",
+          "name": "site_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored site_matches site_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "site_matches.candidate_native_id",
+          "name": "candidate_native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored site_matches candidate_native_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "site_matches.evidence",
+          "name": "evidence",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored site_matches evidence; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "site_matches.resolution",
+          "name": "resolution",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored site_matches resolution; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "catchments.watershed_id",
+          "name": "catchments.watershed_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "catchments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "watersheds",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "reaches.catchment_id",
+          "name": "reaches.catchment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "reaches"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "catchments",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "network_links.upstream_id",
+          "name": "network_links.upstream_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "network_links"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "reaches",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "network_links.downstream_id",
+          "name": "network_links.downstream_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "network_links"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "reaches",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "monitoring_sites.reach_id",
+          "name": "monitoring_sites.reach_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "monitoring_sites"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "reaches",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sampling_events.site_id",
+          "name": "sampling_events.site_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sampling_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "monitoring_sites",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sampling_events.project_id",
+          "name": "sampling_events.project_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sampling_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "projects",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "sampling_events.method_id",
+          "name": "sampling_events.method_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "sampling_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "methods",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "samples.event_id",
+          "name": "samples.event_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "samples"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sampling_events",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "observations.sample_id",
+          "name": "observations.sample_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "samples",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "observations.property_id",
+          "name": "observations.property_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "observed_properties",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "identifications.taxon_id",
+          "name": "identifications.taxon_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "identifications"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "taxa",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "effort.event_id",
+          "name": "effort.event_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "effort"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sampling_events",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "occurrences.event_id",
+          "name": "occurrences.event_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "occurrences"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "sampling_events",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "occurrences.identification_id",
+          "name": "occurrences.identification_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "occurrences"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "identifications",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "occurrences.effort_id",
+          "name": "occurrences.effort_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "occurrences"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "effort",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "habitat_metrics.catchment_id",
+          "name": "habitat_metrics.catchment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "habitat_metrics"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "catchments",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "management_interventions.reach_id",
+          "name": "management_interventions.reach_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "management_interventions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "reaches",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "fishing_events.site_id",
+          "name": "fishing_events.site_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "fishing_events"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "monitoring_sites",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "site_matches.site_id",
+          "name": "site_matches.site_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "site_matches"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "monitoring_sites",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

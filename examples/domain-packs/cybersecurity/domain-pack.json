@@ -1,0 +1,469 @@
+{
+  "id": "cybersecurity",
+  "version": "1.0.0",
+  "description": "cybersecurity synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_identities": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/identities.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bd4abd16db5f0c50394979ed797ec2e67def298786dab61889eed9d641e3fc12"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_accounts": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/accounts.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "865bc0bbe539551a15deb5143503c33a6eca20493bdb3b6cc8a4727426394954"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_devices": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/devices.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "08007e34d5563508b2f5a7d7832409b29048c9b3986c3522286017a1b5f9b917"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_sessions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/sessions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "5435d4bffe9d312aa654e4502215ebe0682c7b0da4f72a1e06eeb7fae954a060"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_scenarios": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/scenarios.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "5b2c6bcb9ad54cb57b22d1975100880559e011d98c287a8b137bda762fbb822e"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_authentication_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/authentication_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "67660417d39faf9d60540c0241bf182b6c53e68b6e79c673b93286a3e04ea269"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_network_activity": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/network_activity.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4851383503ca18dcc6f3a4b3424443214b3a639642ba48132373b38b37337421"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_findings": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/findings.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "403f753d45d7af63dcbb09c65fc8d75f9ce0459687731ae78a3e9616b2d6e942"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_incidents": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/incidents.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "35b11fd4221a4371d88c04fc6a1b5ffa6bca431018a12ca33f010e73f80b0af1"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_event_incident_links": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/event_incident_links.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "4dc38cb1f4e61318686649a9919967d4ed38e5ebf44297c519ebb33b68fb6ccd"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "identities",
+      "source_id": "template_identities",
+      "role": "rows"
+    },
+    {
+      "schema_id": "accounts",
+      "source_id": "template_accounts",
+      "role": "rows"
+    },
+    {
+      "schema_id": "devices",
+      "source_id": "template_devices",
+      "role": "rows"
+    },
+    {
+      "schema_id": "sessions",
+      "source_id": "template_sessions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "scenarios",
+      "source_id": "template_scenarios",
+      "role": "rows"
+    },
+    {
+      "schema_id": "authentication_events",
+      "source_id": "template_authentication_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "network_activity",
+      "source_id": "template_network_activity",
+      "role": "rows"
+    },
+    {
+      "schema_id": "findings",
+      "source_id": "template_findings",
+      "role": "rows"
+    },
+    {
+      "schema_id": "incidents",
+      "source_id": "template_incidents",
+      "role": "rows"
+    },
+    {
+      "schema_id": "event_incident_links",
+      "source_id": "template_event_incident_links",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "identities",
+      "format": "tablespec",
+      "reference": "umf/identities.json"
+    },
+    {
+      "id": "accounts",
+      "format": "tablespec",
+      "reference": "umf/accounts.json"
+    },
+    {
+      "id": "devices",
+      "format": "tablespec",
+      "reference": "umf/devices.json"
+    },
+    {
+      "id": "sessions",
+      "format": "tablespec",
+      "reference": "umf/sessions.json"
+    },
+    {
+      "id": "scenarios",
+      "format": "tablespec",
+      "reference": "umf/scenarios.json"
+    },
+    {
+      "id": "authentication_events",
+      "format": "tablespec",
+      "reference": "umf/authentication_events.json"
+    },
+    {
+      "id": "network_activity",
+      "format": "tablespec",
+      "reference": "umf/network_activity.json"
+    },
+    {
+      "id": "findings",
+      "format": "tablespec",
+      "reference": "umf/findings.json"
+    },
+    {
+      "id": "incidents",
+      "format": "tablespec",
+      "reference": "umf/incidents.json"
+    },
+    {
+      "id": "event_incident_links",
+      "format": "tablespec",
+      "reference": "umf/event_incident_links.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "identities",
+        "accounts",
+        "devices",
+        "sessions",
+        "scenarios",
+        "authentication_events",
+        "network_activity",
+        "findings",
+        "incidents",
+        "event_incident_links"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "identities": [
+        "id"
+      ],
+      "accounts": [
+        "id",
+        "identity_id"
+      ],
+      "devices": [
+        "id"
+      ],
+      "sessions": [
+        "id",
+        "account_id",
+        "device_id"
+      ],
+      "scenarios": [
+        "id"
+      ],
+      "authentication_events": [
+        "id",
+        "session_id",
+        "scenario_id"
+      ],
+      "network_activity": [
+        "id",
+        "session_id"
+      ],
+      "findings": [
+        "id",
+        "device_id",
+        "evidence_id"
+      ],
+      "incidents": [
+        "id"
+      ],
+      "event_incident_links": [
+        "id",
+        "event_id",
+        "incident_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "failed-then-success",
+      "question": "Five failures precede success from another device",
+      "sql": "SELECT COUNT(*),s.device_id FROM authentication_events f JOIN sessions fs ON fs.id=f.session_id JOIN authentication_events e ON e.outcome='success' JOIN sessions s ON s.id=e.session_id WHERE f.outcome='failure' AND f.event_time<e.event_time AND fs.device_id<>s.device_id GROUP BY s.device_id",
+      "expected": [
+        [
+          5,
+          "D2"
+        ]
+      ]
+    },
+    {
+      "id": "collision",
+      "question": "Same native device ID remains two publisher-qualified identities",
+      "sql": "SELECT native_id,COUNT(DISTINCT publisher) FROM devices GROUP BY native_id",
+      "expected": [
+        [
+          "device",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "evidence",
+      "question": "Trace finding to account and failure evidence",
+      "sql": "SELECT f.id,a.id,e.outcome FROM findings f JOIN authentication_events e ON e.id=f.evidence_id JOIN sessions s ON s.id=e.session_id JOIN accounts a ON a.id=s.account_id",
+      "expected": [
+        [
+          "F1",
+          "A1",
+          "failure"
+        ]
+      ]
+    },
+    {
+      "id": "association",
+      "question": "Event-to-incident link is attributable data",
+      "sql": "SELECT event_id,incident_id FROM event_incident_links",
+      "expected": [
+        [
+          "E1",
+          "IN1"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "identities": 2,
+    "accounts": 1,
+    "devices": 2,
+    "sessions": 2,
+    "scenarios": 1,
+    "authentication_events": 6,
+    "network_activity": 1,
+    "findings": 1,
+    "incidents": 1,
+    "event_incident_links": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

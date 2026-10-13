@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "alarms",
+  "description": "Synthetic alarms; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored alarms id; synthetic reference scenario."
+    },
+    {
+      "name": "observation_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored alarms observation_id; synthetic reference scenario."
+    },
+    {
+      "name": "condition",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored alarms condition; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "observation_id",
+        "references_table": "observations",
+        "references_column": "id"
+      }
+    ]
+  }
+}

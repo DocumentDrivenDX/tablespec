@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "table_name": "soil_results",
+  "description": "Synthetic soil_results; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored soil_results id; synthetic reference scenario."
+    },
+    {
+      "name": "analysis_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored soil_results analysis_id; synthetic reference scenario."
+    },
+    {
+      "name": "property",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored soil_results property; synthetic reference scenario."
+    },
+    {
+      "name": "value",
+      "data_type": "DECIMAL",
+      "nullable": false,
+      "description": "Authored soil_results value; synthetic reference scenario.",
+      "precision": 18,
+      "scale": 2
+    },
+    {
+      "name": "unit",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored soil_results unit; synthetic reference scenario."
+    },
+    {
+      "name": "preparation",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored soil_results preparation; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "analysis_id",
+        "references_table": "analyses",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,945 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:hr",
+  "title": "hr ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:hr:",
+      "elements": [
+        {
+          "id": "organizations",
+          "kind": "record",
+          "name": "organizations",
+          "title": "organizations",
+          "description": "Synthetic organizations; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "organizations.id"
+            },
+            {
+              "module": "domain",
+              "element": "organizations.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "organizations.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "organizations.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizations id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "organizations.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizations name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "organizational_units",
+          "kind": "record",
+          "name": "organizational_units",
+          "title": "organizational_units",
+          "description": "Synthetic organizational_units; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "organizational_units.id"
+            },
+            {
+              "module": "domain",
+              "element": "organizational_units.organization_id"
+            },
+            {
+              "module": "domain",
+              "element": "organizational_units.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "organizational_units.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "organizational_units.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizational_units id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "organizational_units.organization_id",
+          "name": "organization_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizational_units organization_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "organizational_units.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored organizational_units name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "positions",
+          "kind": "record",
+          "name": "positions",
+          "title": "positions",
+          "description": "Synthetic positions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "positions.id"
+            },
+            {
+              "module": "domain",
+              "element": "positions.unit_id"
+            },
+            {
+              "module": "domain",
+              "element": "positions.title"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "positions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "positions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored positions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "positions.unit_id",
+          "name": "unit_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored positions unit_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "positions.title",
+          "name": "title",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored positions title; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "candidates",
+          "kind": "record",
+          "name": "candidates",
+          "title": "candidates",
+          "description": "Synthetic candidates; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "candidates.id"
+            },
+            {
+              "module": "domain",
+              "element": "candidates.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "candidates.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "candidates.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored candidates id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "candidates.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored candidates name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "applications",
+          "kind": "record",
+          "name": "applications",
+          "title": "applications",
+          "description": "Synthetic applications; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "applications.id"
+            },
+            {
+              "module": "domain",
+              "element": "applications.candidate_id"
+            },
+            {
+              "module": "domain",
+              "element": "applications.position_id"
+            },
+            {
+              "module": "domain",
+              "element": "applications.status"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "applications.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "applications.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored applications id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "applications.candidate_id",
+          "name": "candidate_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored applications candidate_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "applications.position_id",
+          "name": "position_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored applications position_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "applications.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored applications status; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interviews",
+          "kind": "record",
+          "name": "interviews",
+          "title": "interviews",
+          "description": "Synthetic interviews; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "interviews.id"
+            },
+            {
+              "module": "domain",
+              "element": "interviews.application_id"
+            },
+            {
+              "module": "domain",
+              "element": "interviews.starts"
+            },
+            {
+              "module": "domain",
+              "element": "interviews.result"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "interviews.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "interviews.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interviews id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interviews.application_id",
+          "name": "application_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interviews application_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interviews.starts",
+          "name": "starts",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interviews starts; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "interviews.result",
+          "name": "result",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored interviews result; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "offers",
+          "kind": "record",
+          "name": "offers",
+          "title": "offers",
+          "description": "Synthetic offers; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "offers.id"
+            },
+            {
+              "module": "domain",
+              "element": "offers.application_id"
+            },
+            {
+              "module": "domain",
+              "element": "offers.amount"
+            },
+            {
+              "module": "domain",
+              "element": "offers.currency"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "offers.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "offers.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored offers id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "offers.application_id",
+          "name": "application_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored offers application_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "offers.amount",
+          "name": "amount",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored offers amount; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "offers.currency",
+          "name": "currency",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored offers currency; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "employment_relationships",
+          "kind": "record",
+          "name": "employment_relationships",
+          "title": "employment_relationships",
+          "description": "Synthetic employment_relationships; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "employment_relationships.id"
+            },
+            {
+              "module": "domain",
+              "element": "employment_relationships.candidate_id"
+            },
+            {
+              "module": "domain",
+              "element": "employment_relationships.position_id"
+            },
+            {
+              "module": "domain",
+              "element": "employment_relationships.valid_from"
+            },
+            {
+              "module": "domain",
+              "element": "employment_relationships.valid_to"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "employment_relationships.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "employment_relationships.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored employment_relationships id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "employment_relationships.candidate_id",
+          "name": "candidate_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored employment_relationships candidate_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "employment_relationships.position_id",
+          "name": "position_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored employment_relationships position_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "employment_relationships.valid_from",
+          "name": "valid_from",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored employment_relationships valid_from; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "employment_relationships.valid_to",
+          "name": "valid_to",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored employment_relationships valid_to; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reporting_relationships",
+          "kind": "record",
+          "name": "reporting_relationships",
+          "title": "reporting_relationships",
+          "description": "Synthetic reporting_relationships; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "reporting_relationships.id"
+            },
+            {
+              "module": "domain",
+              "element": "reporting_relationships.employee_id"
+            },
+            {
+              "module": "domain",
+              "element": "reporting_relationships.manager_id"
+            },
+            {
+              "module": "domain",
+              "element": "reporting_relationships.valid_from"
+            },
+            {
+              "module": "domain",
+              "element": "reporting_relationships.valid_to"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "reporting_relationships.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "reporting_relationships.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reporting_relationships id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reporting_relationships.employee_id",
+          "name": "employee_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reporting_relationships employee_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reporting_relationships.manager_id",
+          "name": "manager_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reporting_relationships manager_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reporting_relationships.valid_from",
+          "name": "valid_from",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reporting_relationships valid_from; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "reporting_relationships.valid_to",
+          "name": "valid_to",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored reporting_relationships valid_to; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "organizational_units.organization_id",
+          "name": "organizational_units.organization_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "organizational_units"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "organizations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "positions.unit_id",
+          "name": "positions.unit_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "positions"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "organizational_units",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "applications.candidate_id",
+          "name": "applications.candidate_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "applications"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "candidates",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "applications.position_id",
+          "name": "applications.position_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "applications"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "positions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "interviews.application_id",
+          "name": "interviews.application_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "interviews"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "applications",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "offers.application_id",
+          "name": "offers.application_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "offers"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "applications",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "employment_relationships.candidate_id",
+          "name": "employment_relationships.candidate_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "employment_relationships"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "candidates",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "employment_relationships.position_id",
+          "name": "employment_relationships.position_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "employment_relationships"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "positions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "reporting_relationships.employee_id",
+          "name": "reporting_relationships.employee_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "reporting_relationships"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "employment_relationships",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "reporting_relationships.manager_id",
+          "name": "reporting_relationships.manager_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "reporting_relationships"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "employment_relationships",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

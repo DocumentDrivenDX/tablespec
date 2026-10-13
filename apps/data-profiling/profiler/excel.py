@@ -14,18 +14,15 @@ folder via storage.write_text (binary mode).
 from __future__ import annotations
 
 import io
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 
 import openpyxl
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from .compare import schema_change_counts
 from .metamodel import (
-    ColumnComparison,
     ColumnProfile,
-    DatasetProfile,
     ProfilerRun,
 )
 from .row_diff import RowDiffResult

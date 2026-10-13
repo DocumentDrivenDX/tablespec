@@ -6,7 +6,7 @@ ddx:
 # Feature Registry
 
 **Status**: Active
-**Last Updated**: 2026-06-15
+**Last Updated**: 2026-07-23
 
 ## Active Features
 
@@ -22,7 +22,7 @@ ddx:
 | FEAT-008 | [CLI Interface](features/FEAT-008-cli.md) | Typer-based `tablespec` CLI for schema management, conversion, and validation workflows with Rich output. | Built | P0 | Platform / Data Engineering | PRD: CLI Interface (FR-8.1–FR-8.6) | 2026-06-11 |
 | FEAT-009 | [Excel Bidirectional Conversion](features/FEAT-009-excel-conversion.md) | Round-trip conversion between Excel workbooks and UMF schemas for non-technical domain expert collaboration, including lossless column-derivation round-trip (ADR-017). | Built | P1 | Data Stewardship | PRD: Excel Bidirectional Conversion (FR-9.1–FR-9.4) | 2026-06-15 |
 | FEAT-010 | [UMF Change Management](features/FEAT-010-change-management.md) | Split-format UMF storage, schema diffing, atomic change application, and git-based changelog generation. | Built | P0 | Platform / Data Engineering | PRD: Split-Format UMF; Schema Change Management (FR-10.1–FR-10.4, FR-11.1–FR-11.5) | 2026-06-11 |
-| FEAT-011 | [Sample Data Generation](features/FEAT-011-sample-data.md) | Generate realistic healthcare-specific sample data from UMF specs, respecting constraints, foreign keys, and domain types. | Built | P1 | Data-Quality Platform | PRD: Sample Data Generation (FR-12.1–FR-12.6) | 2026-06-11 |
+| FEAT-011 | [Sample Data Generation](features/FEAT-011-sample-data.md) | Generate fabricated tabular healthcare/legal data or ingest pinned official sample fixtures, with shared integrity checks, source provenance, CSV archives, optional UC loading and read-back audits. | Built | P1 | Data-Quality Platform | PRD: Sample Data Generation (FR-12.1–FR-12.9) | 2026-10-08 |
 | FEAT-012 | [Quality Baselines](features/FEAT-012-quality-baselines.md) | Capture, store, and compare quality baselines from DataFrames for drift detection; requires PySpark. | Built | P1 | Data-Quality Platform | PRD: Quality Baselines (FR-13.1–FR-13.5) | 2026-06-11 |
 | FEAT-013 | [Domain Type Inference](features/FEAT-013-domain-inference.md) | Automatic detection of domain types from column names, descriptions, and sample values. | Built | P1 | Data Platform | PRD: Domain Type Inference (FR-14.1–FR-14.4) | 2026-06-11 |
 | FEAT-014 | [Naming and Formatting Utilities](features/FEAT-014-naming-formatting.md) | Naming conventions, date format definitions, and YAML formatting utilities. | Built | P2 | Platform / Data Engineering | PRD: Naming Utilities; Date Format System (FR-16.1–FR-16.3, FR-17.1–FR-17.3) | 2026-06-11 |
@@ -30,7 +30,7 @@ ddx:
 | FEAT-016 | [Testing Infrastructure for Agentic Development](features/FEAT-016-testing-infrastructure.md) | Testing infrastructure for fast iteration, property-based testing, and test-first development workflows. | Built | P0 | Engineering Productivity | Vision/Principles (meta-feature; evidence tier for FR-20.3) | 2026-06-11 |
 | FEAT-017 | [Validation Pipeline Improvements](features/FEAT-017-validation-pipeline.md) | Fix structural validation pipeline issues: redundant expectations, missing execution paths, blocking behavior, reporting. | Built | P0 | Data-Quality Platform | PRD: Great Expectations Integration; Table Validation; Quality Baselines (FR-4.3, FR-7.5, FR-7.6, FR-13.3) | 2026-06-11 |
 | FEAT-018 | [Custom GX Extensions](features/FEAT-018-gx-extensions.md) | Custom Great Expectations expectation classes that bridge tablespec domain concepts into GX execution. | Built | P0 | Data-Quality Platform | PRD: Table Validation (FR-7.5) | 2026-06-11 |
-| FEAT-019 | [SQL Generator CTE Mode](features/FEAT-019-sql-cte-mode.md) | `mode` parameter on `SQLPlanGenerator` producing a single `WITH...SELECT` CTE statement instead of sequential temp views. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.4) | 2026-06-11 |
+| FEAT-019 | [SQL Generator CTE Mode](features/FEAT-019-sql-cte-mode.md) | `mode` parameter on `SQLPlanGenerator` producing a single `WITH...SELECT` CTE statement instead of sequential temp views; relationship-driven plan composition (expression/composite/instance-bound joins, lookup_join, union_branches/aggregate_source base strategies, final_dedup) with deterministic emission. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.4) | 2026-08-31 |
 | FEAT-020 | [Domain Type System Improvements](features/FEAT-020-domain-improvements.md) | Domain inference improvements: better matching accuracy, richer results, codebase-wide consistency. | Built | P1 | Data Platform | PRD: Domain Type Inference (FR-14.1–FR-14.4) | 2026-06-11 |
 | FEAT-021 | [UMF Loader & Validator Improvements](features/FEAT-021-loader-validator-improvements.md) | Improved error reporting and validation coverage in the UMF loading and validation pipeline. | Built | P1 | Platform / Data Engineering | PRD: UMF Model and I/O; Split-Format UMF (FR-1.7, FR-10.2, FR-10.3) | 2026-06-11 |
 | FEAT-022 | [Schema Compatibility Checker](features/FEAT-022-schema-compatibility.md) | Analyze two UMF versions for backward/forward compatibility, reporting breaking changes with explanations. | Built | P1 | Platform / Data Engineering | PRD: Schema Change Management (FR-11.6) | 2026-06-11 |
@@ -41,11 +41,11 @@ ddx:
 | FEAT-027 | [dbt Project Emitter](features/FEAT-027-dbt-emitter.md) | Deterministically emit a complete dbt project (models, contracts, tests, scaffolding) from UMF on the shared emission core seam. | Built | P0 | Platform / Compile Team | PRD: Multi-Target Emission (FR-19.2, FR-19.1) | 2026-06-10 |
 | FEAT-028 | [LDP Sibling Emitter](features/FEAT-028-ldp-sibling-emitter.md) | Emit a Lakeflow Declarative Pipelines project from a UMF set as a sibling backend on the shared target-agnostic core. | Built | P1 | Platform / Compilation | PRD: Multi-Target Emission (FR-19.3, FR-19.1) | 2026-06-10 |
 | FEAT-029 | [Runtime Platform](features/FEAT-029-runtime-platform.md) | Connect-safe session capability probing and engine-correct `functions` dispatch. | Built | P0 | Data Platform | PRD: Runtime Platform (FR-20.1, FR-20.2, FR-20.3) | 2026-06-10 |
-| FEAT-030 | [Product Microsite](features/FEAT-030-product-microsite.md) | Hugo/Hextra product microsite with reader-mode IA, source-semantic bronze explanation, demos, and Pages deployment that preserves `/simple/`. | Specified | P1 | Platform / Developer Experience | Vision/Principles (meta-feature; governed by ADR-014) | 2026-06-10 |
-| FEAT-031 | [Multi-Source Ingestion](features/FEAT-031-multi-source-ingestion.md) | Discriminated `source:` contract (delimited/parquet/jdbc) with kind-dependent raw typing, ingestion reader seam, JDBC compiled read specs, and database discovery; Northwind end-to-end is the acceptance goal. | Specified | P1 | Platform / Data Engineering | PRD: Source Acquisition (FR-21.1–FR-21.6); ADR-015 | 2026-06-10 |
-| FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract; SEC 10-K demo is the acceptance goal. | Draft | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-06-12 |
-| FEAT-033 | [Guidebook](features/FEAT-033-guidebook.md) | Render a directory of UMFs into a navigable, self-contained HTML guidebook — one page per table — with column metadata, FK + derivation lineage, group/flat indexes, and search; CLI + `generate_guidebook` API. | Built | P1 | Platform / Developer Experience | PRD: Guidebook (FR-22.1–FR-22.4); ADR-018 | 2026-06-15 |
-| FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. | Specified | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-12 |
+| FEAT-030 | [Product Microsite](features/FEAT-030-product-microsite.md) | Hugo/Hextra product microsite with reader-mode IA, source-semantic bronze explanation, demos, and Pages deployment that preserves `/simple/`. | Built | P1 | Platform / Developer Experience | Vision/Principles (meta-feature; governed by ADR-014) | 2026-07-22 |
+| FEAT-031 | [Multi-Source Ingestion](features/FEAT-031-multi-source-ingestion.md) | Discriminated `source:` contract (delimited/parquet/jdbc/json) with kind-dependent raw typing, ingestion reader seam, JDBC compiled read specs, and database discovery. DUMP/PARQ/JDBC/JSON cores + story floor US-039–044/050 shipped; workspace walkthroughs live on the product microsite. | Built | P1 | Platform / Data Engineering | PRD: Source Acquisition (FR-21.1–FR-21.7); ADR-015 | 2026-07-23 |
+| FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract. Type core + CORP example + SEC 10-K notebooks shipped; workspace walkthrough on the product microsite. | Built | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-07-23 |
+| FEAT-033 | [Guidebook](features/FEAT-033-guidebook.md) | Render a directory of UMFs into a navigable, self-contained HTML guidebook — one page per table — with column metadata, FK + derivation lineage, group/flat indexes, and search; CLI + `generate_guidebook` API. | Built | P1 | Platform / Developer Experience | PRD: Guidebook (FR-22.1–FR-22.4); ADR-018 | 2026-07-22 |
+| FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. Unit path in CI; operator deploy steps on the product microsite. | Built | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-23 |
 
 ## Status Definitions
 
@@ -59,10 +59,14 @@ ddx:
 - **Deprecated**: Scheduled for removal
 - **Cancelled**: Will not be pursued
 
-This repository's feature specifications record the spec-lifecycle status
-**Approved** (per the feature-specification template enum); delivery stage is
-tracked here in the registry, where every approved feature is **Built**
-(decided 2026-06-10).
+This repository's feature specifications record the **spec-lifecycle** status
+(**Approved** / **Specified** / **Draft** per the feature-specification template
+enum). **Delivery stage** is tracked only in this registry
+(Draft / Specified / Designed / In Test / In Build / Built / Deployed / …).
+Spec-lifecycle status does not imply delivery **Built**: a feature's spec may be
+final while delivery is still Specified or In Build. FEAT-001–034 delivery is
+**Built**. Workspace operator steps (app deploy, demo notebooks, serverless
+opt-in) are on the product microsite under Getting Started.
 
 ## Dependencies
 

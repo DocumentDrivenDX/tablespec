@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "table_name": "components",
+  "description": "Synthetic components; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored components id; synthetic reference scenario."
+    },
+    {
+      "name": "machine_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored components machine_id; synthetic reference scenario."
+    },
+    {
+      "name": "parent_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored components parent_id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored components name; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "machine_id",
+        "references_table": "machines",
+        "references_column": "id"
+      },
+      {
+        "column": "parent_id",
+        "references_table": "components",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "table_name": "scenarios",
+  "description": "Synthetic scenarios; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored scenarios id; synthetic reference scenario."
+    },
+    {
+      "name": "label",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored scenarios label; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ]
+}

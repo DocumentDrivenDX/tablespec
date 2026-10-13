@@ -1,8 +1,12 @@
 """Unit tests for profiling mapper classes."""
 
+# @covers US-007-AC1
+# @covers US-007-AC2
+# @covers US-007-AC3
+# @covers US-007-AC4
+
 from __future__ import annotations
 
-from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest

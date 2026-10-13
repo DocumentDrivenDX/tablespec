@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "table_name": "outages",
+  "description": "Synthetic outages; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored outages id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored outages asset_id; synthetic reference scenario."
+    },
+    {
+      "name": "starts",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored outages starts; synthetic reference scenario."
+    },
+    {
+      "name": "ends",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored outages ends; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "asset_id",
+        "references_table": "utility_assets",
+        "references_column": "id"
+      }
+    ]
+  }
+}

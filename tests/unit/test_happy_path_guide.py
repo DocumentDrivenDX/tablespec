@@ -37,6 +37,7 @@ def test_happy_path_guide_is_ordered_and_indexed() -> None:
 
     required_strings = [
         "bootstrap_from_tables",
+        "bootstrap_from_specs",
         "umfs_from_tables",
         "umfs_from_specs",
         "SampleDataGenerator",
@@ -51,10 +52,7 @@ def test_happy_path_guide_is_ordered_and_indexed() -> None:
         "generate_dbt_dag_project",
         "generate_ldp_project",
         "run_backbone",
-        "tablespec-ed74497c",
-        "tablespec-0b146671",
-        "tablespec-171e409c",
-        "tablespec-0fb0d1c2",
+        'dialect="databricks"',
         "pytest.main",
         "uv run pytest",
     ]

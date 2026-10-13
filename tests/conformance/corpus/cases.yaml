@@ -410,6 +410,31 @@ cases:
     ts_precision: 0
     tags: [gold]
 
+  - id: gold_union_branches
+    kind: gold
+    # The ``base_table_strategy: union_branches`` path: base table
+    # (inventory_legacy) + each union_base_tables entry (inventory_daily) become
+    # one UNION ALL branch that projects the TARGET column set through that
+    # source's OWN derivation candidates -- unlike union_sources (key-only
+    # universe) and unlike the pulseflow fork's union_base_tables handling
+    # (base-schema projection). Pins the full generation-cutover shape:
+    # complementary per-branch row_filters on a DATE-typed file_date (portable:
+    # gold SQL executes verbatim on both backends, so no to_date format
+    # parsing), a union_value source discriminator ('legacy_snapshot'/'daily'),
+    # CAST(NULL AS <type>) alignment for one-sided columns (fee_amount is
+    # legacy-only, licn daily-only), and per-branch dedup-latest
+    # (ROW_NUMBER PARTITION BY the 4-column target pk ORDER BY meta_load_dt
+    # DESC NULLS LAST). Both feeds carry a duplicated grain key (distinct
+    # meta_load_dt) so the window pick is observable, and each feed carries one
+    # row on the wrong side of the cutover so the row_filters are non-vacuous.
+    # A1 exists in BOTH generations with different snapshot_dates (pk column) --
+    # UNION ALL keeps both rows.
+    golden: tests/golden/ingest_parity/gold_union_branches.spark.expected.json
+    dir: tests/conformance/corpus/gold/gold_union_branches
+    generator: _generate_union_branch_base_view
+    ts_precision: 0
+    tags: [gold]
+
   - id: gold_fk_integrity
     kind: gold
     # PROMOTED (was pending): orphan-FK referential integrity is NOT a

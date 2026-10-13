@@ -1,0 +1,861 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:education",
+  "title": "education ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:education:",
+      "elements": [
+        {
+          "id": "institutions",
+          "kind": "record",
+          "name": "institutions",
+          "title": "institutions",
+          "description": "Synthetic institutions; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "institutions.id"
+            },
+            {
+              "module": "domain",
+              "element": "institutions.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "institutions.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "institutions.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored institutions id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "institutions.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored institutions name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "people",
+          "kind": "record",
+          "name": "people",
+          "title": "people",
+          "description": "Synthetic people; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "people.id"
+            },
+            {
+              "module": "domain",
+              "element": "people.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "people.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "people.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored people id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "people.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored people name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "courses",
+          "kind": "record",
+          "name": "courses",
+          "title": "courses",
+          "description": "Synthetic courses; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "courses.id"
+            },
+            {
+              "module": "domain",
+              "element": "courses.institution_id"
+            },
+            {
+              "module": "domain",
+              "element": "courses.code"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "courses.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "courses.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored courses id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "courses.institution_id",
+          "name": "institution_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored courses institution_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "courses.code",
+          "name": "code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored courses code; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "academic_terms",
+          "kind": "record",
+          "name": "academic_terms",
+          "title": "academic_terms",
+          "description": "Synthetic academic_terms; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "academic_terms.id"
+            },
+            {
+              "module": "domain",
+              "element": "academic_terms.starts"
+            },
+            {
+              "module": "domain",
+              "element": "academic_terms.ends"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "academic_terms.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "academic_terms.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored academic_terms id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "academic_terms.starts",
+          "name": "starts",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored academic_terms starts; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "academic_terms.ends",
+          "name": "ends",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored academic_terms ends; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "course_offerings",
+          "kind": "record",
+          "name": "course_offerings",
+          "title": "course_offerings",
+          "description": "Synthetic course_offerings; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "course_offerings.id"
+            },
+            {
+              "module": "domain",
+              "element": "course_offerings.course_id"
+            },
+            {
+              "module": "domain",
+              "element": "course_offerings.term_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "course_offerings.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "course_offerings.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored course_offerings id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "course_offerings.course_id",
+          "name": "course_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored course_offerings course_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "course_offerings.term_id",
+          "name": "term_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored course_offerings term_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "enrollments",
+          "kind": "record",
+          "name": "enrollments",
+          "title": "enrollments",
+          "description": "Synthetic enrollments; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "enrollments.id"
+            },
+            {
+              "module": "domain",
+              "element": "enrollments.person_id"
+            },
+            {
+              "module": "domain",
+              "element": "enrollments.offering_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "enrollments.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "enrollments.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored enrollments id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "enrollments.person_id",
+          "name": "person_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored enrollments person_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "enrollments.offering_id",
+          "name": "offering_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored enrollments offering_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assessments",
+          "kind": "record",
+          "name": "assessments",
+          "title": "assessments",
+          "description": "Synthetic assessments; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "assessments.id"
+            },
+            {
+              "module": "domain",
+              "element": "assessments.offering_id"
+            },
+            {
+              "module": "domain",
+              "element": "assessments.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "assessments.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "assessments.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assessments id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assessments.offering_id",
+          "name": "offering_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assessments offering_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "assessments.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored assessments name; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "results",
+          "kind": "record",
+          "name": "results",
+          "title": "results",
+          "description": "Synthetic results; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "results.id"
+            },
+            {
+              "module": "domain",
+              "element": "results.enrollment_id"
+            },
+            {
+              "module": "domain",
+              "element": "results.assessment_id"
+            },
+            {
+              "module": "domain",
+              "element": "results.score"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "results.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "results.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored results id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "results.enrollment_id",
+          "name": "enrollment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored results enrollment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "results.assessment_id",
+          "name": "assessment_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored results assessment_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "results.score",
+          "name": "score",
+          "kind": "field",
+          "scalarType": "decimal",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored results score; synthetic reference scenario.",
+          "extensions": {},
+          "facets": {
+            "precision": 18,
+            "scale": 2
+          }
+        },
+        {
+          "id": "prerequisites",
+          "kind": "record",
+          "name": "prerequisites",
+          "title": "prerequisites",
+          "description": "Synthetic prerequisites; illustrative, not population-valid or native-standard conformance.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "prerequisites.id"
+            },
+            {
+              "module": "domain",
+              "element": "prerequisites.course_id"
+            },
+            {
+              "module": "domain",
+              "element": "prerequisites.prerequisite_id"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "prerequisites.id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "prerequisites.id",
+          "name": "id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored prerequisites id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "prerequisites.course_id",
+          "name": "course_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored prerequisites course_id; synthetic reference scenario.",
+          "extensions": {}
+        },
+        {
+          "id": "prerequisites.prerequisite_id",
+          "name": "prerequisite_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "Authored prerequisites prerequisite_id; synthetic reference scenario.",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "courses.institution_id",
+          "name": "courses.institution_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "courses"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "institutions",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "course_offerings.course_id",
+          "name": "course_offerings.course_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "course_offerings"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "courses",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "course_offerings.term_id",
+          "name": "course_offerings.term_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "course_offerings"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "academic_terms",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "enrollments.person_id",
+          "name": "enrollments.person_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "enrollments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "people",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "enrollments.offering_id",
+          "name": "enrollments.offering_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "enrollments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "course_offerings",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "assessments.offering_id",
+          "name": "assessments.offering_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "assessments"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "course_offerings",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "results.enrollment_id",
+          "name": "results.enrollment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "results"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "enrollments",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "results.assessment_id",
+          "name": "results.assessment_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "results"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "assessments",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "prerequisites.course_id",
+          "name": "prerequisites.course_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "prerequisites"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "courses",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "prerequisites.prerequisite_id",
+          "name": "prerequisites.prerequisite_id",
+          "source": [
+            {
+              "module": "domain",
+              "element": "prerequisites"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "courses",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

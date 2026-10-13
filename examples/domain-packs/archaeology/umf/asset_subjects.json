@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "table_name": "asset_subjects",
+  "description": "Synthetic asset_subjects; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored asset_subjects id; synthetic reference scenario."
+    },
+    {
+      "name": "asset_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored asset_subjects asset_id; synthetic reference scenario."
+    },
+    {
+      "name": "context_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored asset_subjects context_id; synthetic reference scenario."
+    },
+    {
+      "name": "object_id",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "Authored asset_subjects object_id; synthetic reference scenario."
+    },
+    {
+      "name": "region",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored asset_subjects region; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "asset_id",
+        "references_table": "assets",
+        "references_column": "id"
+      },
+      {
+        "column": "context_id",
+        "references_table": "contexts",
+        "references_column": "id"
+      },
+      {
+        "column": "object_id",
+        "references_table": "objects",
+        "references_column": "id"
+      }
+    ]
+  }
+}

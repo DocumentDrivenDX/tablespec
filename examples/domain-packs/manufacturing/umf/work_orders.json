@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "work_orders",
+  "description": "Synthetic work_orders; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored work_orders id; synthetic reference scenario."
+    },
+    {
+      "name": "machine_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored work_orders machine_id; synthetic reference scenario."
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored work_orders status; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "machine_id",
+        "references_table": "machines",
+        "references_column": "id"
+      }
+    ]
+  }
+}

@@ -47,8 +47,11 @@ def modify_column(umf: UMF, name: str, **changes: Any) -> UMF:
     return umf.model_copy(update={"columns": new_columns})
 
 
-def remove_expectation(umf: UMF, expectation_type: str, column: str | None = None) -> tuple[UMF, int]:
+def remove_expectation(
+    umf: UMF, expectation_type: str, column: str | None = None
+) -> tuple[UMF, int]:
     """Remove expectations matching type and optional column. Returns (new_umf, count_removed)."""
+
     def _matches(exp: dict[str, Any] | Any) -> bool:
         if isinstance(exp, dict):
             exp_type = exp.get("type", exp.get("expectation_type", ""))
@@ -64,21 +67,27 @@ def remove_expectation(umf: UMF, expectation_type: str, column: str | None = Non
 
     removed = 0
     updates: dict[str, Any] = {}
-    suite = umf.expectations or migrate_to_expectation_suite(umf.model_dump(exclude_none=True))
+    suite = umf.expectations or migrate_to_expectation_suite(
+        umf.model_dump(exclude_none=True)
+    )
 
     original_expectations = list(suite.expectations)
     filtered_expectations = [exp for exp in original_expectations if not _matches(exp)]
     removed = len(original_expectations) - len(filtered_expectations)
 
     if removed:
-        updates["expectations"] = suite.model_copy(update={"expectations": filtered_expectations})
+        updates["expectations"] = suite.model_copy(
+            update={"expectations": filtered_expectations}
+        )
         updates["validation_rules"] = None
         updates["quality_checks"] = None
 
     return umf.model_copy(update=updates) if updates else umf, removed
 
 
-def rename_column(umf: UMF, old_name: str, new_name: str, *, keep_alias: bool = False) -> UMF:
+def rename_column(
+    umf: UMF, old_name: str, new_name: str, *, keep_alias: bool = False
+) -> UMF:
     """Rename a column. If keep_alias, adds old_name to aliases."""
     existing_names = {col.name for col in umf.columns}
     if old_name not in existing_names:

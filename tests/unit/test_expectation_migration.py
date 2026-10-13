@@ -118,9 +118,7 @@ class TestMigrateQualityChecks:
             )
 
     def test_thresholds_preserved(self):
-        data = {
-            "quality_checks": {"checks": [], "thresholds": {"max_failures": 5}}
-        }
+        data = {"quality_checks": {"checks": [], "thresholds": {"max_failures": 5}}}
         suite = migrate_to_expectation_suite(data)
         assert suite.thresholds == {"max_failures": 5}
 
@@ -195,7 +193,9 @@ class TestMigrateEdgeCases:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             suite = migrate_to_expectation_suite(data)
-            assert suite.expectations[0].meta.stage == "raw"  # defaults to container's stage
+            assert (
+                suite.expectations[0].meta.stage == "raw"
+            )  # defaults to container's stage
             assert any(
                 "Unknown expectation type" in str(warning.message) for warning in w
             )

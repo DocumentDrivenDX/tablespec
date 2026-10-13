@@ -375,6 +375,28 @@
           "default": null,
           "description": "Additional columns to include in the aggregation view output. Used with window functions to preserve traceability columns like result value, meta_source_name, loinc code, etc. E.g., ['result', 'meta_source_name', 'meta_snapshot_dt'].",
           "title": "Select Columns"
+        },
+        "union_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Literal value to emit for this column in the UNION part corresponding to this table. Used for synthetic columns that don't exist in source tables but need different values per UNION branch (e.g., a flag that is false for the base table, true for the union table).",
+          "title": "Union Value"
         }
       },
       "required": [
@@ -819,6 +841,19 @@
           "default": null,
           "description": "SQL join type: 'left' (default) or 'inner'",
           "title": "Join Type"
+        },
+        "join_filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL WHERE clause appended to JOIN ON clause (e.g., 'clientid = 2')",
+          "title": "Join Filter"
         }
       },
       "required": [
@@ -1308,6 +1343,39 @@
       "title": "JsonSource",
       "type": "object"
     },
+    "LookupJoin": {
+      "description": "Two-hop join specification: reach a target table through a bridge.\n\nUsed when the base table shares no direct key with the target, but a\nbridge table links them (e.g. a fact row carries ``IncidentID``; the\nfacility dim is keyed on ``facility_id``; ``bronze_incident`` bridges\nthem via ``ID`` and ``FacilityID``). The generator emits\n``base JOIN bridge ON base.source_key = bridge.bridge_source_key`` then\n``JOIN target ON bridge.bridge_target_key = target.<target_column>``.",
+      "properties": {
+        "source_key": {
+          "description": "Column on the BASE table that keys into the bridge (e.g. 'IncidentID')",
+          "title": "Source Key",
+          "type": "string"
+        },
+        "bridge_table": {
+          "description": "The intermediary table joining base to target (e.g. 'bronze_incident')",
+          "title": "Bridge Table",
+          "type": "string"
+        },
+        "bridge_source_key": {
+          "description": "Column on the bridge that matches the base's source_key (e.g. 'ID')",
+          "title": "Bridge Source Key",
+          "type": "string"
+        },
+        "bridge_target_key": {
+          "description": "Column on the bridge that keys into the target (e.g. 'FacilityID')",
+          "title": "Bridge Target Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_key",
+        "bridge_table",
+        "bridge_source_key",
+        "bridge_target_key"
+      ],
+      "title": "LookupJoin",
+      "type": "object"
+    },
     "Nullable": {
       "additionalProperties": true,
       "description": "Nullable configuration per context (e.g., Line of Business).\n\nAccepts arbitrary context keys with boolean values. Common healthcare\ncontexts include MD (Medicaid), MP (Medicare Part D), ME (Medicare),\nbut any domain-specific keys are supported.\n\nExamples:\n    Nullable(MD=False, MP=False, ME=False)      # Healthcare LOBs\n    Nullable(US=False, EU=True)                  # Regional contexts\n    Nullable(production=False, staging=True)      # Environment contexts",
@@ -1369,6 +1437,25 @@
           ],
           "default": null,
           "description": "Cardinality specification for relationship"
+        },
+        "alternative_joins": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Alternative join conditions using OR logic. Each dict specifies source_column and target_column for additional join paths.",
+          "title": "Alternative Joins"
         }
       },
       "required": [
@@ -2469,6 +2556,11 @@
         "base_table_strategy": {
           "anyOf": [
             {
+              "enum": [
+                "union_sources",
+                "unpivot",
+                "union_branches"
+              ],
               "type": "string"
             },
             {
@@ -2476,7 +2568,7 @@
             }
           ],
           "default": null,
-          "description": "Strategy for building base table. Use 'union_sources' to build from UNION of source_tables.",
+          "description": "Strategy for building base table. 'union_sources': build a key-only universe from UNION of source_tables. 'unpivot': UNPIVOT the base table's unpivot_columns into rows. 'union_branches': UNION the base_table with union_base_tables (falling back to source_tables), each branch projecting the target column set through its own derivation candidates.",
           "title": "Base Table Strategy"
         },
         "base_table": {
@@ -2491,6 +2583,90 @@
           "default": null,
           "description": "Explicit base table name for SQL generation. Overrides automatic base table inference.",
           "title": "Base Table"
+        },
+        "base_table_filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL WHERE clause applied to the base table when building the base view. Used by generated tables that need to pre-filter base-table rows before joins run.",
+          "title": "Base Table Filter"
+        },
+        "base_join_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column on `base_table` to use as the join key when building the base view. Overrides the auto-inferred key column. Set when the base table has multiple key-like columns and the wrong one would be auto-selected.",
+          "title": "Base Join Column"
+        },
+        "final_filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL WHERE clause applied after the final assembly view is built. Runs against the fully-joined derivation output, so it can reference derived columns that don't exist on the base table. Use base_table_filter for filters that reference only base-table columns (faster, filters earlier).",
+          "title": "Final Filter"
+        },
+        "union_base_tables": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Additional tables to UNION ALL into the base view. Tables must have columns matching the base_table's selected columns. Used to merge rows from multiple sources into the generated base.",
+          "title": "Union Base Tables"
+        },
+        "union_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "union_all",
+                "union"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL union operator for union_base_tables. Defaults to 'union_all' (preserves all rows). Use 'union' for deduplication across sources.",
+          "title": "Union Type"
+        },
+        "union_exclude_base": {
+          "default": false,
+          "description": "When true, union_base_tables rows are excluded if their primary key already exists in the base table (anti-join). Prevents duplicate rows when populations may overlap.",
+          "title": "Union Exclude Base",
+          "type": "boolean"
+        },
+        "union_coalesce_base": {
+          "default": false,
+          "description": "When true (with union_exclude_base), overlapping rows are merged using COALESCE(base_col, union_col) instead of excluding the union table rows. Base table values preferred; union table values fill NULLs.",
+          "title": "Union Coalesce Base",
+          "type": "boolean"
         },
         "source_tables": {
           "anyOf": [
@@ -2550,6 +2726,20 @@
           "default": null,
           "description": "Deduplication strategy for generated tables. 'latest': deduplicate on primary_key, keeping the row with the most recent load date.",
           "title": "Dedup Strategy"
+        },
+        "final_dedup": {
+          "anyOf": [
+            {
+              "const": "distinct",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Final-assembly deduplication strategy (runs after all joins). 'distinct': emit SELECT DISTINCT so exact-duplicate rows produced by join fan-out are collapsed. Use when a joined table has higher cardinality than the base and you don't need every joined row.",
+          "title": "Final Dedup"
         },
         "output_config": {
           "anyOf": [

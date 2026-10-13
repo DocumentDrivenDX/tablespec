@@ -1,0 +1,7 @@
+"id","session_id","scenario_id","outcome","event_time"
+"E1","S1","SC1","failure","2026-01-01T10:01Z"
+"E2","S1","SC1","failure","2026-01-01T10:02Z"
+"E3","S1","SC1","failure","2026-01-01T10:03Z"
+"E4","S1","SC1","failure","2026-01-01T10:04Z"
+"E5","S1","SC1","failure","2026-01-01T10:05Z"
+"E6","S2","SC1","success","2026-01-01T10:06Z"

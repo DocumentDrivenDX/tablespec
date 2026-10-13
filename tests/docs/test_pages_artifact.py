@@ -1,3 +1,5 @@
+# @covers US-038-AC2
+# @covers US-038-AC4
 from __future__ import annotations
 
 import json
@@ -61,6 +63,8 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
             str(dist_dir),
             "--out-dir",
             str(out_dir),
+            "--repo",
+            "DocumentDrivenDX/tablespec",
             "--tag",
             "v1.2.3",
             "--releases-json",
@@ -74,13 +78,17 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
     assert (out_dir / ".nojekyll").is_file()
     assert (out_dir / "simple" / "index.html").is_file()
 
-    package_index = (out_dir / "simple" / "tablespec" / "index.html")
+    package_index = out_dir / "simple" / "tablespec" / "index.html"
     assert package_index.is_file()
     html = package_index.read_text(encoding="utf-8")
 
     assert "tablespec-1.2.3-py3-none-any.whl" in html
     assert "tablespec-1.2.3.tar.gz" in html
-    assert "../../../releases/download/v1.2.3/" in html
+    assert (
+        "https://github.com/DocumentDrivenDX/tablespec/releases/download/v1.2.3/"
+        in html
+    )
+    assert "../../../releases/" not in html
     assert "#sha256=" in html
     assert "tablespec-1.1.0-py3-none-any.whl" in html
     assert "notes.txt" not in html
@@ -96,6 +104,13 @@ def test_release_workflow_builds_combined_pages_artifact() -> None:
     assert "hugo --gc --minify" in workflow
     assert "scripts/build_pages_artifact.py" in workflow
     assert "/simple/tablespec/index.html" in workflow
+    install_commands = [
+        line.strip() for line in workflow.splitlines() if "pip install" in line
+    ]
+    assert len(install_commands) == 4
+    assert all(
+        "--extra-index-url https://pypi.org/simple" in line for line in install_commands
+    )
 
 
 def test_microsite_workflow_rebuilds_pages_without_dist_artifacts() -> None:

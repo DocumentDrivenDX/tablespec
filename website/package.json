@@ -4,7 +4,12 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:update-snapshots": "playwright test --update-snapshots"
+    "test:content": "playwright test",
+    "test:links": "playwright test -c playwright.link-check.config.ts",
+    "test:all": "npm run test:content && npm run test:links",
+    "test:update-snapshots": "playwright test --update-snapshots",
+    "install:browsers": "playwright install chromium",
+    "install:browsers:ci": "playwright install --with-deps chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"

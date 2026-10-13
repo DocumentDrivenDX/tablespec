@@ -46,7 +46,9 @@ class TestConfiguredCheckSelection:
             model_dump=lambda **_: {"quality_checks": {"checks": ["legacy"]}},
         )
 
-        with patch("tablespec.quality.executor.migrate_to_expectation_suite") as migrate:
+        with patch(
+            "tablespec.quality.executor.migrate_to_expectation_suite"
+        ) as migrate:
             checks, thresholds = executor._get_configured_checks(umf)
 
         migrate.assert_not_called()
@@ -102,7 +104,9 @@ class TestConfiguredCheckSelection:
             model_dump=lambda **_: {"quality_checks": {"checks": ["legacy"]}},
         )
 
-        with patch("tablespec.quality.executor.migrate_to_expectation_suite") as migrate:
+        with patch(
+            "tablespec.quality.executor.migrate_to_expectation_suite"
+        ) as migrate:
             checks, thresholds = executor._get_configured_checks(umf)
 
         migrate.assert_not_called()

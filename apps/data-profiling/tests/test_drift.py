@@ -7,12 +7,10 @@ otherwise checked against known bounds.
 
 from __future__ import annotations
 
-import math
 
 import pytest
 
 from profiler.drift import (
-    DriftResult,
     chi_square_from_freqs,
     compute_column_drift,
     js_divergence_from_counts,

@@ -43,7 +43,9 @@ class FilenameGenerator:
         for idx_str, col_name_or_meta in captures.items():
             # Handle both string column names and dict metadata
             if isinstance(col_name_or_meta, dict):
-                captured_col_name = col_name_or_meta.get("column") or col_name_or_meta.get("name")
+                captured_col_name = col_name_or_meta.get(
+                    "column"
+                ) or col_name_or_meta.get("name")
             else:
                 captured_col_name = col_name_or_meta
 
@@ -146,7 +148,9 @@ class FilenameGenerator:
             # Dict format: col_name = {"column": "column_name", ...} or {"name": "column_name", ...}
             if isinstance(col_name_or_meta, dict):
                 # Extract column name from dict metadata
-                col_name = col_name_or_meta.get("column") or col_name_or_meta.get("name")
+                col_name = col_name_or_meta.get("column") or col_name_or_meta.get(
+                    "name"
+                )
                 if not col_name:
                     self.logger.warning(
                         f"{table_name}: capture {capture_idx_str} has dict metadata but no 'column' or 'name' key: {col_name_or_meta}"
@@ -159,7 +163,9 @@ class FilenameGenerator:
 
             # For filename-sourced columns, use sample_values from UMF instead of data record
             # (filename columns aren't in the data rows - they're extracted FROM the filename)
-            col_def = next((c for c in umf_data.get("columns", []) if c["name"] == col_name), None)
+            col_def = next(
+                (c for c in umf_data.get("columns", []) if c["name"] == col_name), None
+            )
             if col_def and col_def.get("source") == "filename":
                 # Use first sample value from UMF
                 sample_values = col_def.get("sample_values", [])
@@ -169,7 +175,9 @@ class FilenameGenerator:
                 value = sample_record.get(col_name, "UNKNOWN")
 
             # Convert to string and handle None
-            filename_values[int(capture_idx_str)] = str(value) if value is not None else "UNKNOWN"
+            filename_values[int(capture_idx_str)] = (
+                str(value) if value is not None else "UNKNOWN"
+            )
 
         # Parse the regex pattern to extract the template structure
         # Pattern example: ^(VENDOR)_(STATE)_(LOB)_OutreachList_(\d{4})_(\d{8})(?:_([MODE]))?\.txt$
@@ -223,7 +231,9 @@ class FilenameGenerator:
 
             # Replace this capturing group with placeholder
             template_pattern = (
-                template_pattern[:start] + f"{{{capture_idx}}}" + template_pattern[end + 1 :]
+                template_pattern[:start]
+                + f"{{{capture_idx}}}"
+                + template_pattern[end + 1 :]
             )
             capture_idx += 1
 
@@ -280,7 +290,9 @@ class FilenameGenerator:
             # If content contains alternation (pipe), pick first option
             if "|" in content:
                 content = content.split("|")[0]  # Take first alternative
-            template_pattern = template_pattern[:start] + content + template_pattern[end + 1 :]
+            template_pattern = (
+                template_pattern[:start] + content + template_pattern[end + 1 :]
+            )
 
         # Restore temporary markers for optional groups with captures
         # (These were preserved because they contain capture placeholders)
@@ -351,11 +363,15 @@ class FilenameGenerator:
                 capture_details = []
                 for idx_str, col_name_or_meta in captures.items():
                     if isinstance(col_name_or_meta, dict):
-                        col_name = col_name_or_meta.get("column") or col_name_or_meta.get("name")
+                        col_name = col_name_or_meta.get(
+                            "column"
+                        ) or col_name_or_meta.get("name")
                     else:
                         col_name = col_name_or_meta
                     value = filename_values.get(int(idx_str), "UNKNOWN")
-                    capture_details.append(f"  Capture {idx_str} ({col_name}): '{value}'")
+                    capture_details.append(
+                        f"  Capture {idx_str} ({col_name}): '{value}'"
+                    )
 
                 # Log warning but don't fail - allow generation to continue
                 self.logger.warning(
@@ -368,7 +384,9 @@ class FilenameGenerator:
                     + "This usually means sample_values don't match the filename pattern regex. "
                     + "File will be generated but may not match during loading."
                 )
-            self.logger.debug(f"Generated filename '{filename}' matches pattern {filename_pattern}")
+            self.logger.debug(
+                f"Generated filename '{filename}' matches pattern {filename_pattern}"
+            )
 
         self.logger.info(f"Generated filename for {table_name}: {filename}")
         return filename

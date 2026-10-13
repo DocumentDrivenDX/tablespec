@@ -1,4 +1,10 @@
 # Databricks notebook source
+# @covers US-045-AC1
+# @covers US-045-AC2
+# @covers US-045-AC3
+# @covers US-045-AC4
+# @covers US-045-AC5
+# @covers US-045-AC6
 # MAGIC %md
 # MAGIC # 02 — tablespec SEC 10-K demo: specs → artifacts → validation → scorecard
 # MAGIC

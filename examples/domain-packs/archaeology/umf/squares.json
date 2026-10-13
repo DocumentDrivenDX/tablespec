@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "squares",
+  "description": "Synthetic squares; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored squares id; synthetic reference scenario."
+    },
+    {
+      "name": "area_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored squares area_id; synthetic reference scenario."
+    },
+    {
+      "name": "native_code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored squares native_code; synthetic reference scenario."
+    },
+    {
+      "name": "grid",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored squares grid; synthetic reference scenario."
+    },
+    {
+      "name": "datum",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored squares datum; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "area_id",
+        "references_table": "areas",
+        "references_column": "id"
+      }
+    ]
+  }
+}

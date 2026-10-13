@@ -1,0 +1,14 @@
+{
+  "include": [
+    "profiler/config.py",
+    "profiler/diagnostics.py",
+    "profiler/provision.py",
+    "profiler/smoke.py",
+    "scripts/fr23_smoke.py"
+  ],
+  "exclude": ["**/notebooks/**", "**/tests/**", "**/__pycache__/**"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": false
+}

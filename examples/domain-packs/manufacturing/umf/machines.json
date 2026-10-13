@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "machines",
+  "description": "Synthetic machines; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored machines id; synthetic reference scenario."
+    },
+    {
+      "name": "facility_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored machines facility_id; synthetic reference scenario."
+    },
+    {
+      "name": "name",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored machines name; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "facility_id",
+        "references_table": "facilities",
+        "references_column": "id"
+      }
+    ]
+  }
+}

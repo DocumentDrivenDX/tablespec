@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "table_name": "observations",
+  "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+  "columns": [
+    {
+      "name": "resource_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "resource key"
+    },
+    {
+      "name": "patient_key",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "patient key"
+    },
+    {
+      "name": "status",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "status"
+    },
+    {
+      "name": "code_system",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "code system"
+    },
+    {
+      "name": "code",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "code"
+    },
+    {
+      "name": "display",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "display"
+    },
+    {
+      "name": "effective_kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "effective kind"
+    },
+    {
+      "name": "effective_start",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "effective start"
+    },
+    {
+      "name": "effective_end",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "effective end"
+    },
+    {
+      "name": "issued",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "issued"
+    },
+    {
+      "name": "value_decimal",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "value decimal"
+    },
+    {
+      "name": "unit_display",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "unit display"
+    },
+    {
+      "name": "unit_system",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "unit system"
+    },
+    {
+      "name": "unit_code",
+      "data_type": "VARCHAR",
+      "nullable": true,
+      "description": "unit code"
+    },
+    {
+      "name": "performers_json",
+      "data_type": "TEXT",
+      "nullable": false,
+      "description": "performers json"
+    },
+    {
+      "name": "interpretation_json",
+      "data_type": "TEXT",
+      "nullable": false,
+      "description": "interpretation json"
+    },
+    {
+      "name": "reference_ranges_json",
+      "data_type": "TEXT",
+      "nullable": false,
+      "description": "reference ranges json"
+    }
+  ],
+  "primary_key": [
+    "resource_key"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "resource_key",
+        "references_table": "resources",
+        "references_column": "resource_key"
+      },
+      {
+        "column": "patient_key",
+        "references_table": "patients",
+        "references_column": "resource_key"
+      }
+    ]
+  }
+}

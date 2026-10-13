@@ -18,6 +18,8 @@ from tablespec.models import (
     IngestionConfig,
     IngestionExclusionRule,
     JoinViaSpec,
+    LookupJoin,
+    MergeCondition,
     Nullable,
     OutgoingRelationship,
     OutputConfig,
@@ -28,6 +30,7 @@ from tablespec.models import (
     RelationshipSummary,
     Relationships,
     Survivorship,
+    TableReference,
     UMFColumn,
     UMFColumnDerivation,
     UMFMetadata,
@@ -75,7 +78,7 @@ from tablespec.compatibility import (
     CompatibilityReport,
     check_compatibility,
 )
-from tablespec.bootstrap import bootstrap_from_tables
+from tablespec.bootstrap import bootstrap_from_specs, bootstrap_from_tables
 from tablespec.guidebook import generate as generate_guidebook
 from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
@@ -147,6 +150,8 @@ __all__ = [
     "IngestionConfig",
     "IngestionExclusionRule",
     "JoinViaSpec",
+    "LookupJoin",
+    "MergeCondition",
     "Nullable",
     "OutgoingRelationship",
     "OutputConfig",
@@ -157,6 +162,7 @@ __all__ = [
     "RelationshipSummary",
     "Relationships",
     "Survivorship",
+    "TableReference",
     "UMFColumnDerivation",
     "ValidationRule",
     "ValidationRules",
@@ -180,6 +186,7 @@ __all__ = [
     "CompatibilityReport",
     "CompatibilityIssue",
     "bootstrap_from_tables",
+    "bootstrap_from_specs",
 ]
 
 # SparkToUmfMapper and TableValidator are available only if pyspark is installed (via tablespec[spark])

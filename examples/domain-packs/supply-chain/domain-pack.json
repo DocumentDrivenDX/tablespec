@@ -1,0 +1,563 @@
+{
+  "id": "supply-chain",
+  "version": "1.0.0",
+  "description": "supply-chain synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_organizations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/organizations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "d722ece09b4ebee41598a83e1e96743e23f10ee87ccc082caad270e949c19e9f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_facilities": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/facilities.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "90351b0f73e163a6b3209ab6938714a539b4772e950f7077ae7c0cdd1497111a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_products": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/products.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "58cfb7dc4757a3b9f6516e82083ff23610c40a32abda039dde60b56d63519282"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_lots": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/lots.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b8e3cbda776d6e582791ce8b2eb2afc63e00a5a1492d9e632b8728bf80fa94e7"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_items": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/items.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "53c3295ab70166ce3ade8c631138ab481f26d4c51717c18a3157472778b03e9a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_containers": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/containers.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "24c748dcf459a98ede6273053e3faa01a000489e33211625c8236627bb9ecc7a"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_shipments": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/shipments.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "910cf3c1093cf98e4c9d7bd39f7f8e98df3747324209c7c746c9ba10d4383e89"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_source_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/source_events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "442dfc599760385ee7c958edda596b6bccd34d0cb5fb7b53dec569b5a84290e4"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_events": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/events.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "bf42a6ea9ddf9e2a3accf7c794a4bc1fb0517351fbd401c1e13fbf350b23661c"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_sensor_readings": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/sensor_readings.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "3361b0b77cab5652667dea8a16bbdf4176b64459774bed437eb8c53bf8f83225"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_containment": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/containment.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "530c59ed5d61b4d5258043d0b81c486034e3fe01a24229deed78795b9dfd382f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_shipment_items": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/shipment_items.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "ae3e1035b371301e56614be26aeda63a81cf0223730de3f2c2e47de92cfd49c8"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "organizations",
+      "source_id": "template_organizations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "facilities",
+      "source_id": "template_facilities",
+      "role": "rows"
+    },
+    {
+      "schema_id": "products",
+      "source_id": "template_products",
+      "role": "rows"
+    },
+    {
+      "schema_id": "lots",
+      "source_id": "template_lots",
+      "role": "rows"
+    },
+    {
+      "schema_id": "items",
+      "source_id": "template_items",
+      "role": "rows"
+    },
+    {
+      "schema_id": "containers",
+      "source_id": "template_containers",
+      "role": "rows"
+    },
+    {
+      "schema_id": "shipments",
+      "source_id": "template_shipments",
+      "role": "rows"
+    },
+    {
+      "schema_id": "source_events",
+      "source_id": "template_source_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "events",
+      "source_id": "template_events",
+      "role": "rows"
+    },
+    {
+      "schema_id": "sensor_readings",
+      "source_id": "template_sensor_readings",
+      "role": "rows"
+    },
+    {
+      "schema_id": "containment",
+      "source_id": "template_containment",
+      "role": "rows"
+    },
+    {
+      "schema_id": "shipment_items",
+      "source_id": "template_shipment_items",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "organizations",
+      "format": "tablespec",
+      "reference": "umf/organizations.json"
+    },
+    {
+      "id": "facilities",
+      "format": "tablespec",
+      "reference": "umf/facilities.json"
+    },
+    {
+      "id": "products",
+      "format": "tablespec",
+      "reference": "umf/products.json"
+    },
+    {
+      "id": "lots",
+      "format": "tablespec",
+      "reference": "umf/lots.json"
+    },
+    {
+      "id": "items",
+      "format": "tablespec",
+      "reference": "umf/items.json"
+    },
+    {
+      "id": "containers",
+      "format": "tablespec",
+      "reference": "umf/containers.json"
+    },
+    {
+      "id": "shipments",
+      "format": "tablespec",
+      "reference": "umf/shipments.json"
+    },
+    {
+      "id": "source_events",
+      "format": "tablespec",
+      "reference": "umf/source_events.json"
+    },
+    {
+      "id": "events",
+      "format": "tablespec",
+      "reference": "umf/events.json"
+    },
+    {
+      "id": "sensor_readings",
+      "format": "tablespec",
+      "reference": "umf/sensor_readings.json"
+    },
+    {
+      "id": "containment",
+      "format": "tablespec",
+      "reference": "umf/containment.json"
+    },
+    {
+      "id": "shipment_items",
+      "format": "tablespec",
+      "reference": "umf/shipment_items.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "organizations",
+        "facilities",
+        "products",
+        "lots",
+        "items",
+        "containers",
+        "shipments",
+        "source_events",
+        "events",
+        "sensor_readings",
+        "containment",
+        "shipment_items"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "organizations": [
+        "id"
+      ],
+      "facilities": [
+        "id",
+        "organization_id"
+      ],
+      "products": [
+        "id"
+      ],
+      "lots": [
+        "id",
+        "product_id"
+      ],
+      "items": [
+        "id",
+        "lot_id"
+      ],
+      "containers": [
+        "id",
+        "parent_id"
+      ],
+      "shipments": [
+        "id",
+        "container_id",
+        "facility_id"
+      ],
+      "source_events": [
+        "id"
+      ],
+      "events": [
+        "id",
+        "shipment_id",
+        "upstream_event_id"
+      ],
+      "sensor_readings": [
+        "id",
+        "container_id"
+      ],
+      "containment": [
+        "id",
+        "item_id",
+        "container_id"
+      ],
+      "shipment_items": [
+        "id",
+        "shipment_id",
+        "item_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "split-excursion",
+      "question": "A split lot reaches two shipments and exposes temperature excursion",
+      "sql": "SELECT l.lot_code,COUNT(DISTINCT s.id) FROM lots l JOIN items i ON i.lot_id=l.id JOIN shipment_items x ON x.item_id=i.id JOIN shipments s ON s.id=x.shipment_id GROUP BY l.lot_code",
+      "expected": [
+        [
+          "LOT1",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "excursion",
+      "question": "Compare temperature against explicit upper limit",
+      "sql": "SELECT id,value,unit FROM sensor_readings WHERE value>upper_limit",
+      "expected": [
+        [
+          "M2",
+          17,
+          "Cel"
+        ]
+      ]
+    },
+    {
+      "id": "replay",
+      "question": "Expose duplicate upstream event identity",
+      "sql": "SELECT upstream_event_id,COUNT(*) FROM events GROUP BY upstream_event_id HAVING COUNT(*)>1",
+      "expected": [
+        [
+          "SOURCE1",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "lineage",
+      "question": "Trace serialized item through lot and nested container",
+      "sql": "SELECT i.serial,l.lot_code,p.sku,c.parent_id FROM items i JOIN lots l ON l.id=i.lot_id JOIN products p ON p.id=l.product_id JOIN containment a ON a.item_id=i.id JOIN containers c ON c.id=a.container_id",
+      "expected": [
+        [
+          "SER1",
+          "LOT1",
+          "SKU1",
+          "C1"
+        ],
+        [
+          "SER2",
+          "LOT1",
+          "SKU1",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "sensor",
+      "question": "Keep method and temperature unit with measurements",
+      "sql": "SELECT DISTINCT unit,method FROM sensor_readings",
+      "expected": [
+        [
+          "Cel",
+          "probe"
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "organizations": 1,
+    "facilities": 1,
+    "products": 1,
+    "lots": 1,
+    "items": 2,
+    "containers": 3,
+    "shipments": 2,
+    "source_events": 1,
+    "events": 2,
+    "sensor_readings": 2,
+    "containment": 2,
+    "shipment_items": 2
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

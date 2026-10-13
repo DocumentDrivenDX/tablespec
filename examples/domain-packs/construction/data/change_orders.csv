@@ -1,0 +1,3 @@
+"id","contract_id","status","amount","downstream_package_id","rfi_id"
+"CH1","C1","proposed","50.00","W2","RFI1"
+"CH2","C1","approved","75.00","W2","RFI1"

@@ -3,17 +3,48 @@ title: Universal Metadata Format
 weight: 2
 ---
 
-Universal Metadata Format (UMF) is tablespec's source-table contract. A UMF
-spec records the table name, column names, source data types, nullability,
-keys, relationships, source declaration, and validation expectations.
+[Universal Metadata Format (UMF)](https://github.com/DocumentDrivenDX/umf) is a
+separate metadata project. tablespec consumes its shared documents and supplies
+the `tablespec.pipeline` extension and pipeline compiler.
 
-This page is for readers who need to author or review UMF files. Every
-tablespec operation starts by loading a UMF spec and validating it with
-Pydantic models.
+UMF's official `umf-core` Python package provides shared document models,
+schemas, serialization, and validation machinery. tablespec owns native table
+types, contextual nullability, sources, keys, relationships, expectations, and
+pipeline policies.
 
-## Formats
+## Shared documents and compiler views
 
-**Split directory (canonical).** One `table.yaml` file stores table-level
+Use the document APIs to retain shared metadata and unknown vocabularies:
+
+```python
+from tablespec.models import UMF
+from tablespec.umf_loader import UMFLoader
+
+loader = UMFLoader()
+document = loader.load_document("tables/orders")
+loader.save_document(document, "orders.umf.json")
+view = UMF.from_document(document)
+```
+
+Loading a legacy spec with `load_document` migrates it and retains a source
+archive. Normal JSON loading also recognizes shared documents. Shared-loaded
+compiler views retain their authoritative document; saving preserves unknown
+vocabularies. Edit the document, then derive a new view.
+
+Preserving metadata does not mean executing every vocabulary. Core Fields need
+explicit native `tablespec.pipeline` `data_type` refinements for execution.
+The initial binding consumes shared names, descriptions, titles, aliases, and
+scalar families. Other core constraints refuse until their native execution
+mapping is qualified. UMF adapter support does not automatically become a
+tablespec compiler backend.
+
+## Compatibility formats
+
+The examples below describe tablespec's existing table-spec model. Legacy JSON
+and split-directory APIs remain supported. Shared-to-split export refuses
+because it would discard shared content.
+
+**Split directory (legacy table-spec editing).** One `table.yaml` file stores table-level
 metadata. One file per column lives under `columns/`. This is the
 review-friendly editing format because a column change is a one-file diff:
 
@@ -49,7 +80,7 @@ column:
     MP: false
 ```
 
-**JSON (artifact standard).** A JSON UMF file stores the whole table contract
+**Legacy table-spec JSON.** A JSON file stores the whole table contract
 in one `.json` document. Compiled pipelines can consume this single-file
 artifact. `tablespec convert` translates between split directories and JSON,
 and `UMFLoader` auto-detects both formats.
@@ -64,7 +95,7 @@ the explicit migration helper.
 `FLOAT`, `DATE`, `DATETIME`, `TIMESTAMP`, `BOOLEAN`. Sized types use
 `length` (VARCHAR/CHAR), and `precision`/`scale` (DECIMAL).
 
-| UMF type | Spark SQL DDL | PySpark raw schema |
+| tablespec native type | Spark SQL DDL | PySpark raw schema |
 |----------|---------------|--------------------|
 | `VARCHAR`, `CHAR`, `TEXT` | `STRING` | `StringType()` |
 | `INTEGER` | `INTEGER` | `IntegerType()` |

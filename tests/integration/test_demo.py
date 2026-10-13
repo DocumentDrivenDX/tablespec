@@ -33,5 +33,7 @@ def test_demo_script_runs_successfully():
         print("=== STDERR ===")
         print(result.stderr[-3000:] if len(result.stderr) > 3000 else result.stderr)
 
-    assert result.returncode == 0, f"Demo script failed with exit code {result.returncode}"
+    assert result.returncode == 0, (
+        f"Demo script failed with exit code {result.returncode}"
+    )
     assert "Demo complete! All checks passed." in result.stdout

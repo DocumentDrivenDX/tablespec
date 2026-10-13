@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "table_name": "fauna_results",
+  "description": "Synthetic fauna_results; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fauna_results id; synthetic reference scenario."
+    },
+    {
+      "name": "analysis_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fauna_results analysis_id; synthetic reference scenario."
+    },
+    {
+      "name": "taxon",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fauna_results taxon; synthetic reference scenario."
+    },
+    {
+      "name": "element",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fauna_results element; synthetic reference scenario."
+    },
+    {
+      "name": "nisp",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored fauna_results nisp; synthetic reference scenario."
+    },
+    {
+      "name": "mni",
+      "data_type": "INTEGER",
+      "nullable": false,
+      "description": "Authored fauna_results mni; synthetic reference scenario."
+    },
+    {
+      "name": "method",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored fauna_results method; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "analysis_id",
+        "references_table": "analyses",
+        "references_column": "id"
+      }
+    ]
+  }
+}

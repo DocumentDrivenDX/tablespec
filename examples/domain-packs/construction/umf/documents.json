@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "table_name": "documents",
+  "description": "Synthetic documents; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored documents id; synthetic reference scenario."
+    },
+    {
+      "name": "project_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored documents project_id; synthetic reference scenario."
+    },
+    {
+      "name": "document_kind",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored documents document_kind; synthetic reference scenario."
+    },
+    {
+      "name": "reference",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored documents reference; synthetic reference scenario."
+    },
+    {
+      "name": "availability",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored documents availability; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "project_id",
+        "references_table": "projects",
+        "references_column": "id"
+      }
+    ]
+  }
+}

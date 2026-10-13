@@ -70,6 +70,9 @@ non-trivial in the repo.
 ├── requirements-dev.txt          <- dev deps (pytest, coverage)
 ├── profiler/
 │   ├── __init__.py
+│   ├── config.py                 <- resolved settings; the ONLY place a setting is read
+│   ├── provision.py              <- idempotent, additive metadata-home provisioning
+│   ├── diagnostics.py            <- startup validation; faults name setting + grant
 │   ├── catalog.py                <- UC lookups (mock + databricks backends)
 │   ├── storage.py                <- run folder + volume I/O
 │   ├── manifest.py               <- per-run manifest (inputs/timings)
@@ -82,7 +85,7 @@ non-trivial in the repo.
 │   ├── mermaid.py                <- 3 Mermaid diagrams per run
 │   ├── delta_repo.py             <- Delta governance tables (DDL + ingest)
 │   └── genie_chat.py             <- Genie space conversational backend
-└── tests/                        <- 8 files, 258 tests; run by the parent repo's CI
+└── tests/                        <- 11 files, 318 tests; run by the parent repo's CI
 ```
 
 UI tabs in `streamlit_app.py`: Compare two tables, Profile table(s), Ask Genie,
@@ -128,8 +131,8 @@ Known gaps:
 - **No all-string-table guard.** The hardening milestone called for detecting
   all-string tables and auto-disabling correlations/interactions. Nothing
   implements this today; a wide all-string table will still be profiled naively.
-- **`ruff check` is not clean here**, and the app is outside the parent repo's
-  `make lint` and pyright scopes.
+- **App code is under `ruff check`**, but `make lint` / pyright still scope to
+  parent `src/` (+ `scripts/`). Widening those gates is open work.
 - **Tests now run on Python 3.12 only.** This app's old CI matrixed 3.10/3.11 to
   match the Databricks Apps runtime; the parent repo requires 3.12+, so that
   version coverage was lost when the suites merged.
@@ -240,8 +243,8 @@ a native auto-discover should not return shared catalogs.
       create a second top-level `tests` package that shadows the parent repo's.
     - Tests run on Python 3.12 (the library's floor), not the 3.10/3.11 matrix
       this app used to run standalone.
-- **Formatting:** `ruff format` covers this tree, like the rest of the parent
-  repository. `ruff check` is not yet clean here.
+- **Formatting / lint:** `ruff format` and `ruff check` cover this tree (notebooks
+  excluded). Parent `make lint` / pyright still scope to `src/` (+ `scripts/`).
 - **Tests:** add unit tests under `tests/` for every new module. Goal: ≥80%
   coverage on the metamodel and drift modules. Test files import directly
   from the `profiler` package — see `tests/test_metamodel.py` for the
@@ -280,14 +283,43 @@ pytest tests/ -v
 
 See `README.md` §6 for full steps. Summary:
 
-- Output volume: `dev.test_main_profiler.ab_runs` (must exist; create with the
-  SQL in `README.md` §2).
-- SQL warehouse: any serverless warehouse the app SP can use.
-- Both wired in `app.yaml` → `resources.output-volume` and
-  `resources.sql-warehouse`. Adjust catalog/warehouse-id per workspace.
-- App SP needs: `USE CATALOG` + `USE SCHEMA` + `SELECT` on every catalog
-  the app can read; `WRITE VOLUME` on the output volume; `CAN USE` on the
-  warehouse; `SELECT` on `system.information_schema`.
+- **Every environment-specific value is declared in `app.yaml`** — metadata
+  catalog, metadata schema, output volume, warehouse, and the optional links.
+  Targeting a different workspace is an `app.yaml` edit and nothing else. Do
+  not reintroduce an environment literal into application source; `profiler/
+  config.py` is the only place a setting is resolved.
+- **Run `python scripts/provision.py` once per environment** before first
+  start. It creates the schema, the output volume, and the governance tables,
+  reports what it created versus what already existed, and is safe to re-run.
+  There is no lazy creation on first write — that was removed deliberately
+  (ADR-019 decision 3), so an unprovisioned target fails with a message
+  pointing here rather than quietly creating objects at a mistyped address.
+- App SP needs: `USE CATALOG` + `USE SCHEMA` + `SELECT` on every catalog the
+  app can read; `SELECT` + `MODIFY` on the governance tables; `READ VOLUME` +
+  `WRITE VOLUME` on the output volume; `CAN USE` on the warehouse; `SELECT` on
+  `system.information_schema`; `CAN RUN` on the Genie space if one is set. The
+  full list is also in `app.yaml`'s header comment.
+- The app validates all of this at startup and names any missing grant with the
+  statement an administrator must run. It reports privileges; it never tries to
+  acquire them.
+
+### Configuration resolution
+
+Settings resolve through one precedence (ADR-019 decision 1):
+
+```
+deployment environment  >  connections.yaml `metadata:`  >  built-in default
+```
+
+The sidebar's **Environment** panel shows the resolved location and which tier
+supplied each value, so a default that quietly filled in is visible rather than
+assumed. Built-in defaults are deliberately generic (`main.tablespec_profiler`)
+— a default naming a real address would put an environment literal back into
+tracked source through the fallback path.
+
+Optional settings (`GENIE_SPACE_ID`, `PROFILER_DASHBOARD_URL`,
+`PROFILER_SPEC_VOLUME`) are absent-tolerant: unset disables only the surface
+that depends on it.
 
 **Deploying with the Guidebook tab.** That tab does `import tablespec`, and
 Databricks Apps installs the `requirements.txt` at the app's *source root*. So
@@ -353,8 +385,8 @@ the Guidebook tab will show an import error. See
 
 The milestone plan is finished. The open work, roughly in order of value:
 
-1. **Make `ruff check` clean here**, then widen the parent repo's
-   `TRACKED_LINT_FILES` so `make lint` covers this directory. Pyright too.
+1. **Widen parent `make lint` / pyright** so `TRACKED_LINT_FILES` (and type-check)
+   cover this directory. App `ruff check` is already clean (notebooks excluded).
 2. **All-string-table guard** (see "Known gaps"): detect tables with no numeric
    columns, skip correlations/interactions, and record the decision in the
    manifest.

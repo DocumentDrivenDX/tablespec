@@ -1,0 +1,27 @@
+small:
+  roots: {clients: 3, timekeepers: 4}
+  children:
+    matters: {parent: clients, per_parent: 3}
+    time_entries: {parent: matters, per_parent: 15}
+    invoices: {parent: matters, per_parent: 2}
+    documents: {parent: matters, per_parent: 4}
+    matter_teams: {parent: matters, per_parent: 2}
+    ethical_walls: {parent: matters, per_parent: 1}
+demo:
+  roots: {clients: 25, timekeepers: 40}
+  children:
+    matters: {parent: clients, per_parent: 6}
+    time_entries: {parent: matters, per_parent: 666.6666666667}
+    invoices: {parent: matters, per_parent: 33.3333333333}
+    documents: {parent: matters, per_parent: 133.3333333333}
+    matter_teams: {parent: matters, per_parent: 4}
+    ethical_walls: {parent: matters, per_parent: 1}
+large:
+  roots: {clients: 250, timekeepers: 400}
+  children:
+    matters: {parent: clients, per_parent: 12}
+    time_entries: {parent: matters, per_parent: 1000}
+    invoices: {parent: matters, per_parent: 33}
+    documents: {parent: matters, per_parent: 133}
+    matter_teams: {parent: matters, per_parent: 4}
+    ethical_walls: {parent: matters, per_parent: 1}

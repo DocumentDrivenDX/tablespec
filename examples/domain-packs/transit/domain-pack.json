@@ -1,0 +1,441 @@
+{
+  "id": "transit",
+  "version": "1.0.0",
+  "description": "transit synthetic reference scenarios with tabular and UMF ontology schemas.",
+  "domain_types": {
+    "native_identity": {
+      "description": "Source-qualified native literal; replay identities use exact JSON tuples."
+    },
+    "source_literal": {
+      "description": "Exact authored literal; methods, units and temporal conventions retain domain-specific meaning."
+    }
+  },
+  "sources": {
+    "template_agencies": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/agencies.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "7a95e8becb29e514f65cc90a997f6492b66211d21925c3f0dc4c6343247fecdc"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_routes": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/routes.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "cddcdf0a06cc80309b08a725a0e54986bd97e749b5546f4afd4803a2f54d4798"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_stops": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/stops.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "b3b32f67e4cd231dd48b1594d914edcaa427c751b492770294deac794ba2a77f"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_service_calendars": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/service_calendars.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "54d95cde374228ed3f0180867e07fa1e00d8199491cc02e4de7cb72d03a73a21"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_calendar_exceptions": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/calendar_exceptions.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "92e84e2d49217e778fecc3c9444450e48686eaee3d3e0ac590ac2477b46c8fd4"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_trips": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/trips.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "387c391f0a0a8efeaa6f599b0ac670d0768f9446ba4a186359d1f63363cf00ef"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_stop_times": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/stop_times.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "34c7a1737a842b4ea7e49d1bb61fc881f070c0ee84b766bf285c4f4cde8dbe71"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_realtime_observations": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/realtime_observations.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0e9fbca685e68b45769c6216015844fdc2550ee1f9815bfd972cd7f5678c28de"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    },
+    "template_alerts": {
+      "kind": "external",
+      "data_kind": "fabricated",
+      "reference": "data/alerts.csv",
+      "format": "csv",
+      "revision": "1.0.0",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "01d91fb8aeda0cd619679dc4b4dd3cd883c64fda33aa467a32000f4be983551d"
+      },
+      "license": {
+        "redistribution": "allowed",
+        "attribution": "UMF project, authored synthetic fixture"
+      },
+      "provenance": {
+        "publisher": "UMF project",
+        "transformations": [
+          "Authored synthetic fixture; no real records or imported standard dataset."
+        ]
+      }
+    }
+  },
+  "source_bindings": [
+    {
+      "schema_id": "agencies",
+      "source_id": "template_agencies",
+      "role": "rows"
+    },
+    {
+      "schema_id": "routes",
+      "source_id": "template_routes",
+      "role": "rows"
+    },
+    {
+      "schema_id": "stops",
+      "source_id": "template_stops",
+      "role": "rows"
+    },
+    {
+      "schema_id": "service_calendars",
+      "source_id": "template_service_calendars",
+      "role": "rows"
+    },
+    {
+      "schema_id": "calendar_exceptions",
+      "source_id": "template_calendar_exceptions",
+      "role": "rows"
+    },
+    {
+      "schema_id": "trips",
+      "source_id": "template_trips",
+      "role": "rows"
+    },
+    {
+      "schema_id": "stop_times",
+      "source_id": "template_stop_times",
+      "role": "rows"
+    },
+    {
+      "schema_id": "realtime_observations",
+      "source_id": "template_realtime_observations",
+      "role": "rows"
+    },
+    {
+      "schema_id": "alerts",
+      "source_id": "template_alerts",
+      "role": "rows"
+    }
+  ],
+  "schemas": [
+    {
+      "id": "agencies",
+      "format": "tablespec",
+      "reference": "umf/agencies.json"
+    },
+    {
+      "id": "routes",
+      "format": "tablespec",
+      "reference": "umf/routes.json"
+    },
+    {
+      "id": "stops",
+      "format": "tablespec",
+      "reference": "umf/stops.json"
+    },
+    {
+      "id": "service_calendars",
+      "format": "tablespec",
+      "reference": "umf/service_calendars.json"
+    },
+    {
+      "id": "calendar_exceptions",
+      "format": "tablespec",
+      "reference": "umf/calendar_exceptions.json"
+    },
+    {
+      "id": "trips",
+      "format": "tablespec",
+      "reference": "umf/trips.json"
+    },
+    {
+      "id": "stop_times",
+      "format": "tablespec",
+      "reference": "umf/stop_times.json"
+    },
+    {
+      "id": "realtime_observations",
+      "format": "tablespec",
+      "reference": "umf/realtime_observations.json"
+    },
+    {
+      "id": "alerts",
+      "format": "tablespec",
+      "reference": "umf/alerts.json"
+    },
+    {
+      "id": "ontology",
+      "format": "umf",
+      "reference": "ontology.json"
+    }
+  ],
+  "execution_profile": {
+    "version": "1.0.0",
+    "targets": {
+      "tabular": [
+        "agencies",
+        "routes",
+        "stops",
+        "service_calendars",
+        "calendar_exceptions",
+        "trips",
+        "stop_times",
+        "realtime_observations",
+        "alerts"
+      ],
+      "graph": [
+        "ontology"
+      ]
+    },
+    "mode": "scenario-replay",
+    "scales": {
+      "small": 1,
+      "demo": 10,
+      "large": 100
+    },
+    "identity_columns": {
+      "agencies": [
+        "id"
+      ],
+      "routes": [
+        "id",
+        "agency_id"
+      ],
+      "stops": [
+        "id"
+      ],
+      "service_calendars": [
+        "id"
+      ],
+      "calendar_exceptions": [
+        "id",
+        "calendar_id"
+      ],
+      "trips": [
+        "id",
+        "route_id",
+        "calendar_id"
+      ],
+      "stop_times": [
+        "id",
+        "trip_id",
+        "stop_id"
+      ],
+      "realtime_observations": [
+        "id",
+        "trip_id"
+      ],
+      "alerts": [
+        "id",
+        "route_id"
+      ]
+    },
+    "include_sources": [],
+    "qualification": "Independent scenario-component replay; count scaling only. No calibrated distributions, independently varied topology/time/effort, external native-standard conformance or graph-storage execution claim."
+  },
+  "scenario_checks": [
+    {
+      "id": "active-service",
+      "question": "Canceled date does not cancel another service day",
+      "sql": "SELECT t.id,t.service_date FROM trips t LEFT JOIN calendar_exceptions x ON x.calendar_id=t.calendar_id AND x.service_date=t.service_date AND x.exception_type='removed' WHERE x.id IS NULL",
+      "expected": [
+        [
+          "T1",
+          "2026-01-09"
+        ]
+      ]
+    },
+    {
+      "id": "service-day",
+      "question": "Delayed post-midnight arrival retains original service date",
+      "sql": "SELECT t.service_date,s.arrival,o.observed_at,o.delay_seconds FROM trips t JOIN stop_times s ON s.trip_id=t.id JOIN realtime_observations o ON o.trip_id=t.id",
+      "expected": [
+        [
+          "2026-01-09",
+          "25:10:00",
+          "2026-01-10T01:12:00-05:00",
+          120
+        ]
+      ]
+    },
+    {
+      "id": "cancellation",
+      "question": "Canceled service date is not active",
+      "sql": "SELECT t.id,x.service_date FROM trips t JOIN calendar_exceptions x ON x.calendar_id=t.calendar_id AND x.service_date=t.service_date WHERE x.exception_type='removed'",
+      "expected": [
+        [
+          "T2",
+          "2026-01-02"
+        ]
+      ]
+    },
+    {
+      "id": "extended-time",
+      "question": "Service-day times beyond midnight retain native spelling",
+      "sql": "SELECT arrival FROM stop_times",
+      "expected": [
+        [
+          "25:10:00"
+        ]
+      ]
+    },
+    {
+      "id": "realtime",
+      "question": "Observed delay is distinct from scheduled time",
+      "sql": "SELECT delay_seconds FROM realtime_observations",
+      "expected": [
+        [
+          120
+        ]
+      ]
+    }
+  ],
+  "fixture_counts": {
+    "agencies": 1,
+    "routes": 1,
+    "stops": 1,
+    "service_calendars": 1,
+    "calendar_exceptions": 1,
+    "trips": 2,
+    "stop_times": 1,
+    "realtime_observations": 1,
+    "alerts": 1
+  },
+  "qualification": {
+    "origin": "fabricated",
+    "native_conformance": "not claimed",
+    "graph_target": "schema candidate only; consumer acceptance required",
+    "scope": "Authored initial corpus; desired feature scope and deferred source/realism work remain separate."
+  }
+}

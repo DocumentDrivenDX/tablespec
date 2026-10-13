@@ -59,6 +59,10 @@ def generate(
     selected = [d for d in discovered if group is None or d.group == group]
     has_groups = any(d.group for d in discovered)
 
+    if not selected:
+        # No table pages would be written; do not emit empty index-only trees.
+        return []
+
     written: list[Path] = []
     # group -> [(table, table_type, description)] for index pages.
     per_group: dict[str, list[tuple[str, str, str | None]]] = {}

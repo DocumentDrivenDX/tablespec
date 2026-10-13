@@ -1,5 +1,10 @@
 """Tests for pipeline dependency resolution."""
 
+# @covers US-020-AC1
+# @covers US-020-AC2
+# @covers US-020-AC3
+# @covers US-020-AC4
+
 import pytest
 import yaml
 
@@ -250,7 +255,9 @@ class TestDependencyResolverWithModel:
 
     def test_detect_no_cycles(self, tmp_path):
         """No cycles detected in linear dependency chain."""
-        _write_pipeline_yaml(tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}}
+        )
         _write_pipeline_yaml(tmp_path, "b")
 
         resolver = DependencyResolver(tmp_path)
@@ -260,11 +267,13 @@ class TestDependencyResolverWithModel:
     def test_detect_direct_cycle(self, tmp_path):
         """Detect direct circular dependency A -> B -> A."""
         _write_pipeline_yaml(
-            tmp_path, "a",
+            tmp_path,
+            "a",
             dependencies={"b": {"version": ">=1.0.0", "required": True}},
         )
         _write_pipeline_yaml(
-            tmp_path, "b",
+            tmp_path,
+            "b",
             dependencies={"a": {"version": ">=1.0.0", "required": True}},
         )
 
@@ -278,9 +287,15 @@ class TestDependencyResolverWithModel:
 
     def test_detect_indirect_cycle(self, tmp_path):
         """Detect indirect cycle A -> B -> C -> A."""
-        _write_pipeline_yaml(tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}})
-        _write_pipeline_yaml(tmp_path, "b", dependencies={"c": {"version": ">=1.0.0", "required": True}})
-        _write_pipeline_yaml(tmp_path, "c", dependencies={"a": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}}
+        )
+        _write_pipeline_yaml(
+            tmp_path, "b", dependencies={"c": {"version": ">=1.0.0", "required": True}}
+        )
+        _write_pipeline_yaml(
+            tmp_path, "c", dependencies={"a": {"version": ">=1.0.0", "required": True}}
+        )
 
         resolver = DependencyResolver(tmp_path)
         cycles = resolver.detect_cycles("a")
@@ -289,7 +304,8 @@ class TestDependencyResolverWithModel:
     def test_detect_cycles_missing_pipeline(self, tmp_path):
         """Missing dependency in cycle detection is handled gracefully."""
         _write_pipeline_yaml(
-            tmp_path, "a",
+            tmp_path,
+            "a",
             dependencies={"missing": {"version": ">=1.0.0", "required": True}},
         )
 
@@ -299,7 +315,12 @@ class TestDependencyResolverWithModel:
 
     def test_get_dependency_graph_simple(self, tmp_path):
         """Build a simple dependency graph."""
-        _write_pipeline_yaml(tmp_path, "a", version="1.0.0", dependencies={"b": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path,
+            "a",
+            version="1.0.0",
+            dependencies={"b": {"version": ">=1.0.0", "required": True}},
+        )
         _write_pipeline_yaml(tmp_path, "b", version="2.0.0")
 
         resolver = DependencyResolver(tmp_path)
@@ -312,8 +333,12 @@ class TestDependencyResolverWithModel:
 
     def test_get_dependency_graph_circular(self, tmp_path):
         """Circular reference is marked in graph."""
-        _write_pipeline_yaml(tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}})
-        _write_pipeline_yaml(tmp_path, "b", dependencies={"a": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}}
+        )
+        _write_pipeline_yaml(
+            tmp_path, "b", dependencies={"a": {"version": ">=1.0.0", "required": True}}
+        )
 
         resolver = DependencyResolver(tmp_path)
         graph = resolver.get_dependency_graph("a")
@@ -324,7 +349,11 @@ class TestDependencyResolverWithModel:
 
     def test_get_dependency_graph_missing(self, tmp_path):
         """Missing pipeline is marked in graph."""
-        _write_pipeline_yaml(tmp_path, "a", dependencies={"missing": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path,
+            "a",
+            dependencies={"missing": {"version": ">=1.0.0", "required": True}},
+        )
 
         resolver = DependencyResolver(tmp_path)
         graph = resolver.get_dependency_graph("a")
@@ -333,7 +362,9 @@ class TestDependencyResolverWithModel:
 
     def test_validate_dependencies_all_good(self, tmp_path):
         """Validate returns empty list when all is well."""
-        _write_pipeline_yaml(tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}}
+        )
         _write_pipeline_yaml(tmp_path, "b", version="1.5.0")
 
         resolver = DependencyResolver(tmp_path)
@@ -342,8 +373,12 @@ class TestDependencyResolverWithModel:
 
     def test_validate_dependencies_with_cycle(self, tmp_path):
         """Validate reports circular dependencies."""
-        _write_pipeline_yaml(tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}})
-        _write_pipeline_yaml(tmp_path, "b", dependencies={"a": {"version": ">=1.0.0", "required": True}})
+        _write_pipeline_yaml(
+            tmp_path, "a", dependencies={"b": {"version": ">=1.0.0", "required": True}}
+        )
+        _write_pipeline_yaml(
+            tmp_path, "b", dependencies={"a": {"version": ">=1.0.0", "required": True}}
+        )
 
         resolver = DependencyResolver(tmp_path)
         errors = resolver.validate_dependencies("a")

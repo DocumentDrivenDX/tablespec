@@ -66,49 +66,89 @@ class TestDomainTypeRegistryCompatibility:
     # DATE domain types
     def test_birth_date_compatible_with_date_type(self, registry: DomainTypeRegistry):
         """birth_date should be compatible with DateType."""
-        assert registry.is_domain_type_compatible_with_data_type("birth_date", "DateType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "birth_date", "DateType"
+        )
 
-    def test_birth_date_compatible_with_timestamp_type(self, registry: DomainTypeRegistry):
+    def test_birth_date_compatible_with_timestamp_type(
+        self, registry: DomainTypeRegistry
+    ):
         """birth_date should be compatible with TimestampType (supertype of DATE)."""
-        assert registry.is_domain_type_compatible_with_data_type("birth_date", "TimestampType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "birth_date", "TimestampType"
+        )
 
-    def test_birth_date_incompatible_with_string_type(self, registry: DomainTypeRegistry):
+    def test_birth_date_incompatible_with_string_type(
+        self, registry: DomainTypeRegistry
+    ):
         """birth_date should NOT be compatible with StringType."""
-        assert not registry.is_domain_type_compatible_with_data_type("birth_date", "StringType")
+        assert not registry.is_domain_type_compatible_with_data_type(
+            "birth_date", "StringType"
+        )
 
-    def test_birth_date_incompatible_with_integer_type(self, registry: DomainTypeRegistry):
+    def test_birth_date_incompatible_with_integer_type(
+        self, registry: DomainTypeRegistry
+    ):
         """birth_date should NOT be compatible with IntegerType."""
-        assert not registry.is_domain_type_compatible_with_data_type("birth_date", "IntegerType")
+        assert not registry.is_domain_type_compatible_with_data_type(
+            "birth_date", "IntegerType"
+        )
 
     # INTEGER domain types
-    def test_calendar_year_compatible_with_integer_type(self, registry: DomainTypeRegistry):
+    def test_calendar_year_compatible_with_integer_type(
+        self, registry: DomainTypeRegistry
+    ):
         """calendar_year should be compatible with IntegerType."""
-        assert registry.is_domain_type_compatible_with_data_type("calendar_year", "IntegerType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "calendar_year", "IntegerType"
+        )
 
-    def test_calendar_year_compatible_with_long_type(self, registry: DomainTypeRegistry):
+    def test_calendar_year_compatible_with_long_type(
+        self, registry: DomainTypeRegistry
+    ):
         """calendar_year should be compatible with LongType."""
-        assert registry.is_domain_type_compatible_with_data_type("calendar_year", "LongType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "calendar_year", "LongType"
+        )
 
-    def test_calendar_year_incompatible_with_string_type(self, registry: DomainTypeRegistry):
+    def test_calendar_year_incompatible_with_string_type(
+        self, registry: DomainTypeRegistry
+    ):
         """calendar_year should NOT be compatible with StringType."""
-        assert not registry.is_domain_type_compatible_with_data_type("calendar_year", "StringType")
+        assert not registry.is_domain_type_compatible_with_data_type(
+            "calendar_year", "StringType"
+        )
 
-    def test_calendar_year_incompatible_with_double_type(self, registry: DomainTypeRegistry):
+    def test_calendar_year_incompatible_with_double_type(
+        self, registry: DomainTypeRegistry
+    ):
         """calendar_year should NOT be compatible with DoubleType."""
-        assert not registry.is_domain_type_compatible_with_data_type("calendar_year", "DoubleType")
+        assert not registry.is_domain_type_compatible_with_data_type(
+            "calendar_year", "DoubleType"
+        )
 
     # TIMESTAMP domain types
-    def test_timestamp_compatible_with_timestamp_type(self, registry: DomainTypeRegistry):
+    def test_timestamp_compatible_with_timestamp_type(
+        self, registry: DomainTypeRegistry
+    ):
         """Timestamp should be compatible with TimestampType."""
-        assert registry.is_domain_type_compatible_with_data_type("timestamp", "TimestampType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "timestamp", "TimestampType"
+        )
 
     def test_timestamp_incompatible_with_date_type(self, registry: DomainTypeRegistry):
         """Timestamp should NOT be compatible with DateType (timestamp is more specific)."""
-        assert not registry.is_domain_type_compatible_with_data_type("timestamp", "DateType")
+        assert not registry.is_domain_type_compatible_with_data_type(
+            "timestamp", "DateType"
+        )
 
-    def test_timestamp_incompatible_with_string_type(self, registry: DomainTypeRegistry):
+    def test_timestamp_incompatible_with_string_type(
+        self, registry: DomainTypeRegistry
+    ):
         """Timestamp should NOT be compatible with StringType."""
-        assert not registry.is_domain_type_compatible_with_data_type("timestamp", "StringType")
+        assert not registry.is_domain_type_compatible_with_data_type(
+            "timestamp", "StringType"
+        )
 
     # Domain types without explicit type constraints (email, npi, etc.)
     def test_email_compatible_with_string_type(self, registry: DomainTypeRegistry):
@@ -119,12 +159,20 @@ class TestDomainTypeRegistryCompatibility:
         """Email has no explicit type constraint, compatible with any type."""
         # Since email has no expect_column_values_to_be_of_type validation,
         # it returns True for compatibility (type-agnostic, validated by regex)
-        assert registry.is_domain_type_compatible_with_data_type("email", "TimestampType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "email", "TimestampType"
+        )
 
-    def test_unknown_domain_type_compatible_with_any(self, registry: DomainTypeRegistry):
+    def test_unknown_domain_type_compatible_with_any(
+        self, registry: DomainTypeRegistry
+    ):
         """Unknown domain types should be compatible with any data type (allow fallback)."""
-        assert registry.is_domain_type_compatible_with_data_type("unknown_domain", "StringType")
-        assert registry.is_domain_type_compatible_with_data_type("unknown_domain", "IntegerType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "unknown_domain", "StringType"
+        )
+        assert registry.is_domain_type_compatible_with_data_type(
+            "unknown_domain", "IntegerType"
+        )
 
 
 class TestUMFColumnDomainTypeValidation:
@@ -296,7 +344,13 @@ class TestDomainTypeRegistryPlaceholders:
 
     def test_unmapped_compatible_with_any_type(self, registry: DomainTypeRegistry):
         """Unmapped domain type should be compatible with any data type."""
-        assert registry.is_domain_type_compatible_with_data_type("unmapped", "StringType")
-        assert registry.is_domain_type_compatible_with_data_type("unmapped", "IntegerType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "unmapped", "StringType"
+        )
+        assert registry.is_domain_type_compatible_with_data_type(
+            "unmapped", "IntegerType"
+        )
         assert registry.is_domain_type_compatible_with_data_type("unmapped", "DateType")
-        assert registry.is_domain_type_compatible_with_data_type("unmapped", "DecimalType")
+        assert registry.is_domain_type_compatible_with_data_type(
+            "unmapped", "DecimalType"
+        )

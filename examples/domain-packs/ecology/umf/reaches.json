@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "table_name": "reaches",
+  "description": "Synthetic reaches; illustrative, not population-valid or native-standard conformance.",
+  "columns": [
+    {
+      "name": "id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reaches id; synthetic reference scenario."
+    },
+    {
+      "name": "catchment_id",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reaches catchment_id; synthetic reference scenario."
+    },
+    {
+      "name": "native_framework",
+      "data_type": "VARCHAR",
+      "nullable": false,
+      "description": "Authored reaches native_framework; synthetic reference scenario."
+    }
+  ],
+  "primary_key": [
+    "id"
+  ],
+  "relationships": {
+    "foreign_keys": [
+      {
+        "column": "catchment_id",
+        "references_table": "catchments",
+        "references_column": "id"
+      }
+    ]
+  }
+}

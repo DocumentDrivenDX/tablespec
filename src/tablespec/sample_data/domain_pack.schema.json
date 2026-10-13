@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:umf:domain-pack:1.0.0",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "domain_types"
+  ],
+  "anyOf": [
+    {
+      "properties": {
+        "generator": {}
+      },
+      "required": [
+        "generator"
+      ]
+    },
+    {
+      "properties": {
+        "sources": {}
+      },
+      "required": [
+        "sources"
+      ]
+    }
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "generator": {
+      "type": "object",
+      "required": [
+        "id",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "domain_types": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "sample_generation": {
+            "type": "object",
+            "required": [
+              "method"
+            ],
+            "properties": {
+              "method": {
+                "type": "string",
+                "pattern": "^generate_[A-Za-z0-9_]+$"
+              }
+            },
+            "additionalProperties": true
+          },
+          "detection": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "scale_presets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "roots",
+          "children"
+        ],
+        "properties": {
+          "roots": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "children": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "parent",
+                "per_parent"
+              ],
+              "properties": {
+                "parent": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "per_parent": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "distribution": {
+                  "enum": [
+                    "uniform",
+                    "skewed"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sources": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:umf:dataset-source:1.0.0",
+        "type": "object",
+        "required": [
+          "kind",
+          "data_kind"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "synthetic",
+              "external"
+            ]
+          },
+          "data_kind": {
+            "enum": [
+              "fabricated",
+              "observed",
+              "deidentified",
+              "unknown"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "generator": {
+            "type": "object",
+            "required": [
+              "id",
+              "version"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              }
+            },
+            "additionalProperties": true
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "format": {
+            "type": "string",
+            "minLength": 1
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checksum": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "additionalProperties": true
+          },
+          "license": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reference": {
+                "type": "string",
+                "minLength": 1
+              },
+              "redistribution": {
+                "enum": [
+                  "allowed",
+                  "restricted",
+                  "unknown"
+                ]
+              },
+              "attribution": {
+                "type": "string"
+              },
+              "notices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "provenance": {
+            "type": "object",
+            "properties": {
+              "publisher": {
+                "type": "string",
+                "minLength": 1
+              },
+              "retrieved_at": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "transformations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "external"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "reference": {},
+                "format": {}
+              },
+              "required": [
+                "reference",
+                "format"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "synthetic"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "generator": {}
+              },
+              "required": [
+                "generator"
+              ]
+            }
+          }
+        ],
+        "additionalProperties": true
+      }
+    },
+    "source_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_id",
+          "source_id",
+          "role"
+        ],
+        "properties": {
+          "schema_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "rows",
+              "reference",
+              "terminology"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "schemas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "format",
+          "reference"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "format": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

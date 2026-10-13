@@ -191,7 +191,9 @@ def format_changelog_table(
         date_str = entry.commit_date.strftime("%Y-%m-%d")
         change_count = len(entry.changes)
 
-        summary = entry.summary[:50] + "..." if len(entry.summary) > 50 else entry.summary
+        summary = (
+            entry.summary[:50] + "..." if len(entry.summary) > 50 else entry.summary
+        )
 
         table.add_row(
             date_str,
@@ -230,7 +232,9 @@ def _extract_commit_body_changes(commit_message: str) -> list[str]:
             continue
 
         # End of changes section (empty line or new section)
-        if in_changes_section and (not line.strip() or line.startswith(("Source:", "Imported:"))):
+        if in_changes_section and (
+            not line.strip() or line.startswith(("Source:", "Imported:"))
+        ):
             break
 
         # Extract change lines (start with "- ")

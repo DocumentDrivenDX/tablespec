@@ -120,7 +120,9 @@ class TestRelationshipAnalyzer:
             },
         }
 
-    def test_discovers_single_equivalence_group_from_relationships(self, simple_umf_files):
+    def test_discovers_single_equivalence_group_from_relationships(
+        self, simple_umf_files
+    ):
         """Test that transitive relationships create single equivalence group."""
         # This test will fail until we implement RelationshipAnalyzer
         analyzer = RelationshipAnalyzer()
@@ -154,7 +156,9 @@ class TestRelationshipAnalyzer:
 
     def test_handles_empty_relationships(self):
         """Test analyzer handles UMF files with no relationships."""
-        empty_umf_files = {"TableX": {"columns": [{"name": "SomeColumn", "data_type": "STRING"}]}}
+        empty_umf_files = {
+            "TableX": {"columns": [{"name": "SomeColumn", "data_type": "STRING"}]}
+        }
 
         analyzer = RelationshipAnalyzer()
         analyzer.analyze_umf_files(empty_umf_files)
@@ -184,7 +188,9 @@ class TestForeignKeyPoolManager:
 
         return generator
 
-    def test_creates_single_pool_per_equivalence_group(self, test_config, stub_generator):
+    def test_creates_single_pool_per_equivalence_group(
+        self, test_config, stub_generator
+    ):
         """Test that pool manager creates one pool per equivalence group."""
         pool_manager = ForeignKeyPoolManager(test_config)
 
@@ -254,7 +260,9 @@ class TestDynamicValueGenerator:
 
     def test_generates_from_sample_values(self, varchar_column_metadata):
         """Test that generator uses sample values when available."""
-        generator_func = DynamicValueGenerator().create_generator(varchar_column_metadata)
+        generator_func = DynamicValueGenerator().create_generator(
+            varchar_column_metadata
+        )
 
         # Generate multiple values
         generated_values = [generator_func() for _ in range(100)]
@@ -268,7 +276,9 @@ class TestDynamicValueGenerator:
 
     def test_respects_data_type_constraints(self, integer_column_metadata):
         """Test that generator respects data type constraints."""
-        generator_func = DynamicValueGenerator().create_generator(integer_column_metadata)
+        generator_func = DynamicValueGenerator().create_generator(
+            integer_column_metadata
+        )
 
         generated_values = [generator_func() for _ in range(50)]
 

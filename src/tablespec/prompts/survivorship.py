@@ -467,7 +467,9 @@ that do not contain authoritative member demographics.
     if relationship_graph and joinable_tables:
         # Find primary source (usually outreach_list)
         primary_source = (
-            "outreach_list" if "outreach_list" in relationship_graph else target_table_name
+            "outreach_list"
+            if "outreach_list" in relationship_graph
+            else target_table_name
         )
 
         relationships_section = f"""
@@ -493,9 +495,7 @@ that do not contain authoritative member demographics.
                     target_col = rel.get("target_column", "")
                     cardinality = rel.get("cardinality", {})
                     card_type = cardinality.get("type", "")
-                    relationships_section += (
-                        f"- {primary_source}.{source_col} -> {target}.{target_col} ({card_type})\n"
-                    )
+                    relationships_section += f"- {primary_source}.{source_col} -> {target}.{target_col} ({card_type})\n"
 
             if incoming:
                 relationships_section += """
@@ -508,9 +508,7 @@ that do not contain authoritative member demographics.
                     target_col = rel.get("target_column", "")
                     cardinality = rel.get("cardinality", {})
                     card_type = cardinality.get("type", "")
-                    relationships_section += (
-                        f"- {source}.{source_col} -> {primary_source}.{target_col} ({card_type})\n"
-                    )
+                    relationships_section += f"- {source}.{source_col} -> {primary_source}.{target_col} ({card_type})\n"
 
     # Section 4: Source Priority Rules
     priority_section = """
@@ -618,9 +616,13 @@ The target field `{target_col_name}` has type `{target_col_type}`. Below are ALL
                     candidate_info = candidate_scores.get((table_name, col_name))
 
                     # Format: field_name (Canonical: CanonicalName, Aliases: [...]) [relevance, hop] - description
-                    aliases_part = f", Aliases: [{', '.join(col_aliases)}]" if col_aliases else ""
+                    aliases_part = (
+                        f", Aliases: [{', '.join(col_aliases)}]" if col_aliases else ""
+                    )
                     canonical_part = (
-                        f"Canonical: {col_canonical}" if col_canonical != col_name else ""
+                        f"Canonical: {col_canonical}"
+                        if col_canonical != col_name
+                        else ""
                     )
 
                     if canonical_part or aliases_part:
@@ -647,7 +649,9 @@ The target field `{target_col_name}` has type `{target_col_type}`. Below are ALL
                     # Show full description (no truncation)
                     desc_part = f" - {col_desc}" if col_desc else ""
 
-                    compatible_fields.append(f"- {col_name}{name_info}{score_info}{desc_part}")
+                    compatible_fields.append(
+                        f"- {col_name}{name_info}{score_info}{desc_part}"
+                    )
 
             if compatible_fields:
                 schema_reference_section += "\n".join(compatible_fields) + "\n"
@@ -670,12 +674,16 @@ The target field `{target_col_name}` has type `{target_col_type}`. Below are ALL
             "O": "Optional",
             "S": "Suggested",
         }.get(reporting_requirement, reporting_requirement)
-        reporting_section = f"\n- **Reporting Requirement**: {reporting_requirement} ({req_label})"
+        reporting_section = (
+            f"\n- **Reporting Requirement**: {reporting_requirement} ({req_label})"
+        )
 
     # Build nullable section
     nullable_section = ""
     if nullable:
-        nullable_parts = [f"{ctx}: {str(val).lower()}" for ctx, val in sorted(nullable.items())]
+        nullable_parts = [
+            f"{ctx}: {str(val).lower()}" for ctx, val in sorted(nullable.items())
+        ]
         if nullable_parts:
             nullable_section = f"\n- **Nullable**: {', '.join(nullable_parts)}"
 

@@ -1,8 +1,6 @@
 """Unit tests for sample_data.engine module - SampleDataGenerator and helpers."""
 
 import json
-from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -104,7 +102,11 @@ class TestBuildRelationshipGraph:
     def test_excludes_generated_tables(self, engine):
         umf_files = {
             "members": {"columns": [], "relationships": {}},
-            "derived_table": {"columns": [], "table_type": "generated", "relationships": {}},
+            "derived_table": {
+                "columns": [],
+                "table_type": "generated",
+                "relationships": {},
+            },
         }
         engine.build_relationship_graph(umf_files)
         assert "members" in engine.graph.nodes
@@ -123,7 +125,12 @@ class TestGenerateTableData:
     def test_generates_correct_record_count(self, engine):
         umf_data = {
             "columns": [
-                {"name": "id", "data_type": "STRING", "key_type": "primary", "source": "data"},
+                {
+                    "name": "id",
+                    "data_type": "STRING",
+                    "key_type": "primary",
+                    "source": "data",
+                },
                 {"name": "value", "data_type": "INTEGER", "source": "data"},
             ],
             "primary_key": ["id"],
@@ -161,12 +168,17 @@ class TestGenerateTableData:
     def test_primary_keys_registered(self, engine):
         umf_data = {
             "columns": [
-                {"name": "id", "data_type": "STRING", "key_type": "primary", "source": "data"},
+                {
+                    "name": "id",
+                    "data_type": "STRING",
+                    "key_type": "primary",
+                    "source": "data",
+                },
             ],
             "primary_key": ["id"],
             "validation_rules": {"expectations": []},
         }
-        records = engine.generate_table_data("test_table", umf_data, 3)
+        engine.generate_table_data("test_table", umf_data, 3)
         assert len(engine.key_registry.primary_keys["test_table"]) == 3
 
     def test_sample_data_cases(self, engine):
@@ -409,7 +421,10 @@ class TestColumnValidationRulesExtraction:
     def test_finds_rules(self, engine):
         umf_data = {
             "columns": [
-                {"name": "lob", "validation_rules": {"value_constraints": ["Valid values: MD, MC"]}},
+                {
+                    "name": "lob",
+                    "validation_rules": {"value_constraints": ["Valid values: MD, MC"]},
+                },
                 {"name": "id", "validation_rules": None},
             ]
         }
@@ -519,8 +534,18 @@ class TestGenerateTableDataDerivationColumns:
         """Composite primary keys should generate unique combinations."""
         umf_data = {
             "columns": [
-                {"name": "pk1", "data_type": "STRING", "key_type": "primary", "source": "data"},
-                {"name": "pk2", "data_type": "STRING", "key_type": "primary", "source": "data"},
+                {
+                    "name": "pk1",
+                    "data_type": "STRING",
+                    "key_type": "primary",
+                    "source": "data",
+                },
+                {
+                    "name": "pk2",
+                    "data_type": "STRING",
+                    "key_type": "primary",
+                    "source": "data",
+                },
             ],
             "primary_key": ["pk1", "pk2"],
             "validation_rules": {"expectations": []},
@@ -662,6 +687,8 @@ class TestLoadUmfFiles:
         )
 
         config = GenerationConfig(random_seed=42, num_members=5)
-        gen = SampleDataGenerator(input_dir=input_dir, output_dir=output_dir, config=config)
+        gen = SampleDataGenerator(
+            input_dir=input_dir, output_dir=output_dir, config=config
+        )
         result = gen.load_umf_files()
         assert "members" in result

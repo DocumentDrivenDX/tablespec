@@ -37,7 +37,11 @@ except (ImportError, ValueError):
     pass
 
 try:
-    from .gx_table_validator import GXTableValidator, ValidationBlockingError, ValidationResult
+    from .gx_table_validator import (
+        GXTableValidator,
+        ValidationBlockingError,
+        ValidationResult,
+    )
 except (ImportError, ValueError):
     pass
 

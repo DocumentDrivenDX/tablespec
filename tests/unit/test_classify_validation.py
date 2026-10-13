@@ -7,7 +7,6 @@ import pytest
 pytestmark = pytest.mark.fast
 
 from tablespec.models.umf import (
-
     INGESTED_QUALITY_CHECK_TYPES,
     RAW_VALIDATION_TYPES,
     REDUNDANT_VALIDATION_TYPES,

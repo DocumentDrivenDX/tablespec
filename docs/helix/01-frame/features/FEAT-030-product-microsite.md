@@ -53,8 +53,9 @@ Hextra theme imported as a Hugo Module; the theme is pinned by `website/go.mod`
 and `website/go.sum`.
 
 SITE-02. The homepage SHALL answer product, category, audience, value, and first
-action in the first viewport. It SHALL describe tablespec as a UMF compiler that
-defines a source-semantic ingested bronze contract.
+action in the first viewport. It SHALL describe tablespec as a UMF compiler for
+every layer, with a source-semantic ingested bronze contract as the first
+definition of done, and SHALL NOT scope the product to bronze.
 
 SITE-03. The top-level information architecture SHALL serve four reader modes:
 Evaluate, Start, Decide, and Operate. Navigation SHALL separate "why", "use",

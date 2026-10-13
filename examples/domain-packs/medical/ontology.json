@@ -1,0 +1,1169 @@
+{
+  "umf": "0.8.0",
+  "id": "urn:umf:domain:medical",
+  "title": "medical ontology",
+  "vocabularies": {},
+  "modules": [
+    {
+      "id": "domain",
+      "namespace": "urn:umf:domain:medical:",
+      "elements": [
+        {
+          "id": "resources",
+          "kind": "record",
+          "name": "resources",
+          "title": "resources",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "resources.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "resources.resource_type"
+            },
+            {
+              "module": "domain",
+              "element": "resources.native_id"
+            },
+            {
+              "module": "domain",
+              "element": "resources.source_file"
+            },
+            {
+              "module": "domain",
+              "element": "resources.source_sha256"
+            },
+            {
+              "module": "domain",
+              "element": "resources.resource_json"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "resources.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "resources.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "resources.resource_type",
+          "name": "resource_type",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource type",
+          "extensions": {}
+        },
+        {
+          "id": "resources.native_id",
+          "name": "native_id",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "native id",
+          "extensions": {}
+        },
+        {
+          "id": "resources.source_file",
+          "name": "source_file",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "source file",
+          "extensions": {}
+        },
+        {
+          "id": "resources.source_sha256",
+          "name": "source_sha256",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "source sha256",
+          "extensions": {}
+        },
+        {
+          "id": "resources.resource_json",
+          "name": "resource_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource json",
+          "extensions": {}
+        },
+        {
+          "id": "organizations",
+          "kind": "record",
+          "name": "organizations",
+          "title": "organizations",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "organizations.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "organizations.name"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "organizations.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "organizations.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "organizations.name",
+          "name": "name",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "name",
+          "extensions": {}
+        },
+        {
+          "id": "patients",
+          "kind": "record",
+          "name": "patients",
+          "title": "patients",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "patients.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "patients.active"
+            },
+            {
+              "module": "domain",
+              "element": "patients.gender"
+            },
+            {
+              "module": "domain",
+              "element": "patients.birth_date"
+            },
+            {
+              "module": "domain",
+              "element": "patients.organization_key"
+            },
+            {
+              "module": "domain",
+              "element": "patients.names_json"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "patients.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "patients.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "patients.active",
+          "name": "active",
+          "kind": "field",
+          "scalarType": "boolean",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "active",
+          "extensions": {}
+        },
+        {
+          "id": "patients.gender",
+          "name": "gender",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "gender",
+          "extensions": {}
+        },
+        {
+          "id": "patients.birth_date",
+          "name": "birth_date",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "birth date",
+          "extensions": {}
+        },
+        {
+          "id": "patients.organization_key",
+          "name": "organization_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "organization key",
+          "extensions": {}
+        },
+        {
+          "id": "patients.names_json",
+          "name": "names_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "names json",
+          "extensions": {}
+        },
+        {
+          "id": "practitioners",
+          "kind": "record",
+          "name": "practitioners",
+          "title": "practitioners",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "practitioners.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "practitioners.active"
+            },
+            {
+              "module": "domain",
+              "element": "practitioners.names_json"
+            },
+            {
+              "module": "domain",
+              "element": "practitioners.qualifications_json"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "practitioners.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "practitioners.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "practitioners.active",
+          "name": "active",
+          "kind": "field",
+          "scalarType": "boolean",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "active",
+          "extensions": {}
+        },
+        {
+          "id": "practitioners.names_json",
+          "name": "names_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "names json",
+          "extensions": {}
+        },
+        {
+          "id": "practitioners.qualifications_json",
+          "name": "qualifications_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "qualifications json",
+          "extensions": {}
+        },
+        {
+          "id": "encounters",
+          "kind": "record",
+          "name": "encounters",
+          "title": "encounters",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "encounters.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "encounters.patient_key"
+            },
+            {
+              "module": "domain",
+              "element": "encounters.status"
+            },
+            {
+              "module": "domain",
+              "element": "encounters.class_system"
+            },
+            {
+              "module": "domain",
+              "element": "encounters.class_code"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "encounters.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "encounters.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "encounters.patient_key",
+          "name": "patient_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "patient key",
+          "extensions": {}
+        },
+        {
+          "id": "encounters.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "status",
+          "extensions": {}
+        },
+        {
+          "id": "encounters.class_system",
+          "name": "class_system",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "class system",
+          "extensions": {}
+        },
+        {
+          "id": "encounters.class_code",
+          "name": "class_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "class code",
+          "extensions": {}
+        },
+        {
+          "id": "observations",
+          "kind": "record",
+          "name": "observations",
+          "title": "observations",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "observations.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "observations.patient_key"
+            },
+            {
+              "module": "domain",
+              "element": "observations.status"
+            },
+            {
+              "module": "domain",
+              "element": "observations.code_system"
+            },
+            {
+              "module": "domain",
+              "element": "observations.code"
+            },
+            {
+              "module": "domain",
+              "element": "observations.display"
+            },
+            {
+              "module": "domain",
+              "element": "observations.effective_kind"
+            },
+            {
+              "module": "domain",
+              "element": "observations.effective_start"
+            },
+            {
+              "module": "domain",
+              "element": "observations.effective_end"
+            },
+            {
+              "module": "domain",
+              "element": "observations.issued"
+            },
+            {
+              "module": "domain",
+              "element": "observations.value_decimal"
+            },
+            {
+              "module": "domain",
+              "element": "observations.unit_display"
+            },
+            {
+              "module": "domain",
+              "element": "observations.unit_system"
+            },
+            {
+              "module": "domain",
+              "element": "observations.unit_code"
+            },
+            {
+              "module": "domain",
+              "element": "observations.performers_json"
+            },
+            {
+              "module": "domain",
+              "element": "observations.interpretation_json"
+            },
+            {
+              "module": "domain",
+              "element": "observations.reference_ranges_json"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "observations.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "observations.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "observations.patient_key",
+          "name": "patient_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "patient key",
+          "extensions": {}
+        },
+        {
+          "id": "observations.status",
+          "name": "status",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "status",
+          "extensions": {}
+        },
+        {
+          "id": "observations.code_system",
+          "name": "code_system",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "code system",
+          "extensions": {}
+        },
+        {
+          "id": "observations.code",
+          "name": "code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "code",
+          "extensions": {}
+        },
+        {
+          "id": "observations.display",
+          "name": "display",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "display",
+          "extensions": {}
+        },
+        {
+          "id": "observations.effective_kind",
+          "name": "effective_kind",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "effective kind",
+          "extensions": {}
+        },
+        {
+          "id": "observations.effective_start",
+          "name": "effective_start",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "effective start",
+          "extensions": {}
+        },
+        {
+          "id": "observations.effective_end",
+          "name": "effective_end",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "effective end",
+          "extensions": {}
+        },
+        {
+          "id": "observations.issued",
+          "name": "issued",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "issued",
+          "extensions": {}
+        },
+        {
+          "id": "observations.value_decimal",
+          "name": "value_decimal",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "value decimal",
+          "extensions": {}
+        },
+        {
+          "id": "observations.unit_display",
+          "name": "unit_display",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "unit display",
+          "extensions": {}
+        },
+        {
+          "id": "observations.unit_system",
+          "name": "unit_system",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "unit system",
+          "extensions": {}
+        },
+        {
+          "id": "observations.unit_code",
+          "name": "unit_code",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "unit code",
+          "extensions": {}
+        },
+        {
+          "id": "observations.performers_json",
+          "name": "performers_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "performers json",
+          "extensions": {}
+        },
+        {
+          "id": "observations.interpretation_json",
+          "name": "interpretation_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "interpretation json",
+          "extensions": {}
+        },
+        {
+          "id": "observations.reference_ranges_json",
+          "name": "reference_ranges_json",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "reference ranges json",
+          "extensions": {}
+        },
+        {
+          "id": "medications",
+          "kind": "record",
+          "name": "medications",
+          "title": "medications",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "medications.resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "medications.code_text"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "medications.resource_key"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "medications.resource_key",
+          "name": "resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resource key",
+          "extensions": {}
+        },
+        {
+          "id": "medications.code_text",
+          "name": "code_text",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "code text",
+          "extensions": {}
+        },
+        {
+          "id": "resource_references",
+          "kind": "record",
+          "name": "resource_references",
+          "title": "resource_references",
+          "description": "Projection of pinned HL7 FHIR R4 4.0.1 examples. Full original meaning retained in resources.resource_json; not clinical/population evidence.",
+          "members": [
+            {
+              "module": "domain",
+              "element": "resource_references.reference_id"
+            },
+            {
+              "module": "domain",
+              "element": "resource_references.source_resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "resource_references.json_pointer"
+            },
+            {
+              "module": "domain",
+              "element": "resource_references.native_reference"
+            },
+            {
+              "module": "domain",
+              "element": "resource_references.target_resource_key"
+            },
+            {
+              "module": "domain",
+              "element": "resource_references.resolution"
+            }
+          ],
+          "keys": [
+            {
+              "id": "identity",
+              "name": "Identity",
+              "fields": [
+                {
+                  "module": "domain",
+                  "element": "resource_references.reference_id"
+                }
+              ],
+              "primary": true
+            }
+          ],
+          "extensions": {}
+        },
+        {
+          "id": "resource_references.reference_id",
+          "name": "reference_id",
+          "kind": "field",
+          "scalarType": "integer",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "reference id",
+          "extensions": {}
+        },
+        {
+          "id": "resource_references.source_resource_key",
+          "name": "source_resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "source resource key",
+          "extensions": {}
+        },
+        {
+          "id": "resource_references.json_pointer",
+          "name": "json_pointer",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "json pointer",
+          "extensions": {}
+        },
+        {
+          "id": "resource_references.native_reference",
+          "name": "native_reference",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "native reference",
+          "extensions": {}
+        },
+        {
+          "id": "resource_references.target_resource_key",
+          "name": "target_resource_key",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "absent-allowed",
+          "description": "target resource key",
+          "extensions": {}
+        },
+        {
+          "id": "resource_references.resolution",
+          "name": "resolution",
+          "kind": "field",
+          "scalarType": "string",
+          "cardinality": "one",
+          "nullability": "required",
+          "description": "resolution",
+          "extensions": {}
+        }
+      ],
+      "relationships": [
+        {
+          "id": "organizations.resource_key",
+          "name": "organizations.resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "organizations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "patients.resource_key",
+          "name": "patients.resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "patients"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "patients.organization_key",
+          "name": "patients.organization_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "patients"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "organizations",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "practitioners.resource_key",
+          "name": "practitioners.resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "practitioners"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "encounters.resource_key",
+          "name": "encounters.resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "encounters"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "encounters.patient_key",
+          "name": "encounters.patient_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "encounters"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "patients",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "observations.resource_key",
+          "name": "observations.resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "observations.patient_key",
+          "name": "observations.patient_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "observations"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "patients",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "medications.resource_key",
+          "name": "medications.resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "medications"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "resource_references.source_resource_key",
+          "name": "resource_references.source_resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "resource_references"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 1,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        },
+        {
+          "id": "resource_references.target_resource_key",
+          "name": "resource_references.target_resource_key",
+          "source": [
+            {
+              "module": "domain",
+              "element": "resource_references"
+            }
+          ],
+          "target": [
+            {
+              "module": "domain",
+              "element": "resources",
+              "key": "identity"
+            }
+          ],
+          "sourceMultiplicity": {
+            "min": 0,
+            "max": "*"
+          },
+          "targetMultiplicity": {
+            "min": 0,
+            "max": 1
+          },
+          "targetLifecycle": "independent",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}
