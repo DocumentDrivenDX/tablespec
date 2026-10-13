@@ -726,7 +726,8 @@
       "type": "object"
     },
     "ForeignKey": {
-      "description": "Foreign key relationship.",
+      "additionalProperties": false,
+      "description": "Foreign key relationship.\n\nExtra keys are forbidden so a misspelled or unknown key fails loudly\ninstead of being silently dropped on the next load/save round-trip.",
       "properties": {
         "column": {
           "description": "Source column name",
@@ -826,8 +827,33 @@
             }
           ],
           "default": null,
-          "description": "Pipeline name for cross-pipeline references",
+          "description": "Legacy spelling of references_domain; kept for older specs",
           "title": "References Pipeline"
+        },
+        "references_domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Domain that owns the referenced table when it is not this table's domain. The target must be in that domain's exports (see domain.yaml).",
+          "title": "References Domain"
+        },
+        "integration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IntegrationPattern"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "DDD integration pattern for a cross-domain reference (customer_supplier, conformist, anti_corruption, shared_kernel, ...). Advisory; the domain's suppliers map is the governing declaration."
         },
         "join_type": {
           "anyOf": [
@@ -986,6 +1012,16 @@
           "title": "Mode",
           "type": "string"
         },
+        "update_mode": {
+          "default": "upsert",
+          "description": "How rows with load_mode='U' are merged into the ingested table. 'upsert' (default): insert if PK unmatched, update if matched \u2014 use when _U files may contain the only copy of the data for a delivery. 'update_only': update matched PKs and drop unmatched rows with a warning \u2014 use for record-of-truth tables where an unmatched _U row indicates a data problem.",
+          "enum": [
+            "upsert",
+            "update_only"
+          ],
+          "title": "Update Mode",
+          "type": "string"
+        },
         "order_by": {
           "anyOf": [
             {
@@ -999,7 +1035,7 @@
             }
           ],
           "default": null,
-          "description": "Columns to determine 'latest' (sorted descending). Can include: filename-extracted columns (e.g., 'file_date_yyyymmdd') or metadata columns (e.g., 'meta_source_name', 'meta_snapshot_dt', 'meta_load_dt'). For snapshot mode: filters to rows with MAX values of these columns. For incremental mode: orders rows when deduping by primary key.",
+          "description": "Columns to determine 'latest' (sorted descending). Can include: filename-extracted columns (e.g., 'file_date_yyyymmdd'), metadata columns (e.g., 'meta_source_name', 'meta_snapshot_dt', 'meta_load_dt', 'meta_source_offset'), or data columns present in the row (e.g., 'run_date', 'updated_at'). Data columns are useful when the per-row recency signal lives inside the file rather than in the filename. Use 'meta_source_offset' as a stable tie-breaker for intra-file row order. For snapshot mode: filters to rows with MAX values of these columns. For incremental mode: orders rows when deduping by primary key.",
           "title": "Order By"
         },
         "pre_upsert_exclusions": {
@@ -1083,6 +1119,20 @@
       ],
       "title": "IngestionExclusionRule",
       "type": "object"
+    },
+    "IntegrationPattern": {
+      "description": "DDD context-map integration pattern on a supplier -> consumer edge.\n\nThe direction is always supplier (the domain whose exports are consumed) to\nconsumer (the domain declaring the edge). Only the consumer declares it.",
+      "enum": [
+        "partnership",
+        "shared_kernel",
+        "customer_supplier",
+        "conformist",
+        "anti_corruption",
+        "open_host",
+        "separate_ways"
+      ],
+      "title": "IntegrationPattern",
+      "type": "string"
     },
     "JdbcSource": {
       "additionalProperties": false,
@@ -1376,6 +1426,30 @@
       "title": "LookupJoin",
       "type": "object"
     },
+    "MergeCondition": {
+      "description": "Condition that gates when a column-level merge strategy applies.\n\nWhen the condition is met (source column value is in the specified values),\nthe merge strategy is applied. When not met, the target value is preserved.",
+      "properties": {
+        "column": {
+          "description": "Column to check in source data (e.g., 'load_mode')",
+          "title": "Column",
+          "type": "string"
+        },
+        "values": {
+          "description": "Values that activate the merge strategy (e.g., ['I', 'A'])",
+          "items": {
+            "type": "string"
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "column",
+        "values"
+      ],
+      "title": "MergeCondition",
+      "type": "object"
+    },
     "Nullable": {
       "additionalProperties": true,
       "description": "Nullable configuration per context (e.g., Line of Business).\n\nAccepts arbitrary context keys with boolean values. Common healthcare\ncontexts include MD (Medicaid), MP (Medicare Part D), ME (Medicare),\nbut any domain-specific keys are supported.\n\nExamples:\n    Nullable(MD=False, MP=False, ME=False)      # Healthcare LOBs\n    Nullable(US=False, EU=True)                  # Regional contexts\n    Nullable(production=False, staging=True)      # Environment contexts",
@@ -1456,6 +1530,89 @@
           "default": null,
           "description": "Alternative join conditions using OR logic. Each dict specifies source_column and target_column for additional join paths.",
           "title": "Alternative Joins"
+        },
+        "source_expression": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL expression over the SOURCE table's columns to use as the join key instead of source_column (e.g. 'TRIM(NPI)'). Bare column tokens are qualified with the base alias at generation time. Consumed by direct joins only.",
+          "title": "Source Expression"
+        },
+        "target_expression": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL expression over the TARGET table's columns to use as the join key instead of target_column (e.g. 'TRIM(NPI)'). Bare column tokens are qualified with the target alias at generation time. Consumed by direct joins only.",
+          "title": "Target Expression"
+        },
+        "lookup_join": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LookupJoin"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Two-hop join: reach the target table THROUGH a bridge table when the base and target share no direct key (e.g. base.IncidentID -> bronze_incident.FacilityID -> dim_facility.facility_id). The generator emits both joins. Consumed by direct joins only; mutually exclusive with source_expression/target_expression."
+        },
+        "join_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Join keyword for this relationship: 'left' (default), 'inner', or 'full_outer'. full_outer forces the direct-join strategy (fan-out preserved on both sides) regardless of cardinality notation. Consumed by direct joins only.",
+          "title": "Join Type"
+        },
+        "join_conditions": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Additional AND-ed equality conditions appended to the direct-join ON clause (composite keys). Each dict gives one side pair: source_column or source_expression (base side; bare tokens qualified against the accumulated base view) and target_column or target_expression (target side; bare tokens qualified against the joined table). Consumed by direct joins only.",
+          "title": "Join Conditions"
+        },
+        "table_instance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bind this relationship to ONE named instance of the target table (the alias derivation candidates reference via their own table_instance). Lets the same table join twice with DIFFERENT keys \u2014 each instance-bound relationship supplies its own source/target/conditions. Unbound relationships apply to every instance the candidates declare.",
+          "title": "Table Instance"
         }
       },
       "required": [
@@ -1986,6 +2143,19 @@
           "description": "Alternative names for this column (e.g., variations in spelling, case, or abbreviations). Used for resolving column name mismatches when mapping between different data sources.",
           "title": "Aliases"
         },
+        "term": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Glossary term this column represents, resolved against the owning domain's glossary (domain.yaml -> glossary). Independent of canonical_name, which stays the source-spec label.",
+          "title": "Term"
+        },
         "data_type": {
           "description": "Column data type",
           "pattern": "^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
@@ -2035,6 +2205,9 @@
         "nullable": {
           "anyOf": [
             {
+              "type": "boolean"
+            },
+            {
               "$ref": "#/$defs/Nullable"
             },
             {
@@ -2042,7 +2215,8 @@
             }
           ],
           "default": null,
-          "description": "Nullability by LOB"
+          "description": "Nullability specification. Can be a boolean (true/false) for simple cases, or a Nullable mapping with per-context values (e.g., LOB keys for healthcare pipelines).",
+          "title": "Nullable"
         },
         "sample_values": {
           "anyOf": [
@@ -2194,6 +2368,12 @@
           "title": "Exclude From Change Detection",
           "type": "boolean"
         },
+        "internal": {
+          "default": false,
+          "description": "When True, this is an internal helper column: it still participates in SQL aggregation/derivation (its aggregation view is built and joined so it can be referenced by other derivations), but it is EXCLUDED from the final output table, DDL, PySpark/JSON schema, GX baseline, and final schema validation. Use for winning-row anchors/bundles that should not appear in the result.",
+          "title": "Internal",
+          "type": "boolean"
+        },
         "reporting_requirement": {
           "anyOf": [
             {
@@ -2207,6 +2387,21 @@
           "default": null,
           "description": "Reporting requirement classification: 'R' (Required), 'O' (Optional), 'S' (Suggested)",
           "title": "Reporting Requirement"
+        },
+        "report_sheet": {
+          "anyOf": [
+            {
+              "maxLength": 31,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Excel worksheet tab this column is assigned to in a multi-sheet workbook report. Authoring-time provenance from the source spec workbook; consumed by report-configuration tooling, not by runtime output generation. Length is bounded by Excel's 31-character tab-name limit.",
+          "title": "Report Sheet"
         },
         "derived_from": {
           "anyOf": [
@@ -2423,6 +2618,50 @@
           "description": "If True, the string 'NULL' (case-insensitive) is preserved as a literal string value during ingestion. If False (default), 'NULL' strings are converted to SQL NULL. Use this for columns where 'NULL' is a valid data value (e.g., someone's actual last name is 'NULL').",
           "title": "Preserve Literal Null",
           "type": "boolean"
+        },
+        "merge_strategy": {
+          "anyOf": [
+            {
+              "enum": [
+                "replace",
+                "keep_minimum",
+                "keep_maximum",
+                "keep_existing"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column-level merge strategy during upsert. Default (None/'replace') overwrites with source value. 'keep_minimum' uses LEAST(target, source) to retain the smaller value. 'keep_maximum' uses GREATEST(target, source) to retain the larger value. 'keep_existing' uses COALESCE(target, source) to only fill if target is NULL.",
+          "title": "Merge Strategy"
+        },
+        "merge_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column name to initialize this column from when it is not present in source data. Used with merge_strategy to seed derived tracking columns from existing data columns (e.g., a load-date column seeded from a file-date column on first insert).",
+          "title": "Merge Source"
+        },
+        "merge_condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MergeCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Condition that gates when merge_strategy applies during upsert updates. When the source row meets the condition, the merge strategy is applied. When not met, the target (existing) value is preserved. Only affects UPDATE path \u2014 INSERT always uses source values. Example: merge_condition with column='load_mode', values=['I','A'] only applies the strategy for those load modes."
         }
       },
       "required": [
@@ -2559,7 +2798,8 @@
               "enum": [
                 "union_sources",
                 "unpivot",
-                "union_branches"
+                "union_branches",
+                "aggregate_source"
               ],
               "type": "string"
             },
@@ -2568,7 +2808,7 @@
             }
           ],
           "default": null,
-          "description": "Strategy for building base table. 'union_sources': build a key-only universe from UNION of source_tables. 'unpivot': UNPIVOT the base table's unpivot_columns into rows. 'union_branches': UNION the base_table with union_base_tables (falling back to source_tables), each branch projecting the target column set through its own derivation candidates.",
+          "description": "Strategy for building base table. 'union_sources': build a key-only universe from UNION of source_tables. 'unpivot': UNPIVOT the base table's unpivot_columns into rows. 'aggregate_source': the base view IS a GROUP BY over base_table \u2014 plain candidates become the group key(s), expression candidates must be aggregates, projected under their target names. 'union_branches': UNION the base_table with union_base_tables (falling back to source_tables), each branch projecting the target column set through its own derivation candidates.",
           "title": "Base Table Strategy"
         },
         "base_table": {
@@ -2623,6 +2863,22 @@
           "description": "SQL WHERE clause applied after the final assembly view is built. Runs against the fully-joined derivation output, so it can reference derived columns that don't exist on the base table. Use base_table_filter for filters that reference only base-table columns (faster, filters earlier).",
           "title": "Final Filter"
         },
+        "source_tables": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source table names for union_sources strategy.",
+          "title": "Source Tables"
+        },
         "union_base_tables": {
           "anyOf": [
             {
@@ -2667,22 +2923,6 @@
           "description": "When true (with union_exclude_base), overlapping rows are merged using COALESCE(base_col, union_col) instead of excluding the union table rows. Base table values preferred; union table values fill NULLs.",
           "title": "Union Coalesce Base",
           "type": "boolean"
-        },
-        "source_tables": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Source table names for union_sources strategy.",
-          "title": "Source Tables"
         },
         "unpivot_columns": {
           "anyOf": [
@@ -2730,7 +2970,10 @@
         "final_dedup": {
           "anyOf": [
             {
-              "const": "distinct",
+              "enum": [
+                "distinct",
+                "latest"
+              ],
               "type": "string"
             },
             {
@@ -2738,8 +2981,37 @@
             }
           ],
           "default": null,
-          "description": "Final-assembly deduplication strategy (runs after all joins). 'distinct': emit SELECT DISTINCT so exact-duplicate rows produced by join fan-out are collapsed. Use when a joined table has higher cardinality than the base and you don't need every joined row.",
+          "description": "Final-assembly deduplication strategy (runs after all joins). 'distinct': emit SELECT DISTINCT so exact-duplicate rows produced by join fan-out are collapsed. Use when a joined table has higher cardinality than the base and you don't need every joined row. 'latest': enforce the table's declared grain with QUALIFY ROW_NUMBER() OVER (PARTITION BY final_dedup_keys ORDER BY final_dedup_order_by) = 1 \u2014 rows with a NULL in any dedup key pass through undeduplicated (identity cannot be asserted without a key).",
           "title": "Final Dedup"
+        },
+        "final_dedup_keys": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Grain keys for final_dedup 'latest' (output column names). Defaults to the table's primary_key.",
+          "title": "Final Dedup Keys"
+        },
+        "final_dedup_order_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ORDER BY expression list for final_dedup 'latest' \u2014 decides which duplicate survives (e.g. 'ReceivedFromCustomer DESC'). Required with final_dedup 'latest'.",
+          "title": "Final Dedup Order By"
         },
         "output_config": {
           "anyOf": [
@@ -2946,6 +3218,19 @@
       "default": null,
       "description": "Alternative names for this table (e.g., sheet name variations, case variants). Used for resolving references when table names don't match exactly.",
       "title": "Aliases"
+    },
+    "term": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Glossary term this table represents, resolved against the owning domain's glossary (domain.yaml -> glossary).",
+      "title": "Term"
     },
     "source_sheet_name": {
       "anyOf": [

@@ -134,6 +134,18 @@ test.describe('Core Concepts', () => {
     await expect(article(page).getByRole('link', { name: /Universal Metadata Format/i })).toBeVisible()
     await expect(article(page).getByRole('link', { name: /Compiled artifacts/i })).toBeVisible()
     await expect(article(page).getByRole('link', { name: /Validation model/i })).toBeVisible()
+    await expect(article(page).getByRole('link', { name: /Domains and the context map/i })).toBeVisible()
+  })
+
+  test('domains page maps DDD terms to tablespec files', async ({ page }) => {
+    await page.goto('/concepts/domains/')
+    await expect(page.getByRole('heading', { name: /Domains and the context map/i }).first()).toBeVisible()
+    const body = await page.locator('body').textContent()
+    expect(body).toContain('Bounded context')
+    expect(body).toContain('domain.yaml')
+    expect(body).toContain('DOM-COMPAT')
+    // Context-map direction words; lineage words stay on table pages.
+    expect(body).toContain('supplier')
   })
 
   test('raw-ingested-silver page states the layer boundary correctly', async ({ page }) => {
@@ -269,6 +281,7 @@ test.describe('Build inventory', () => {
       '/worked-example/',
       '/concepts/',
       '/concepts/raw-ingested-silver/',
+      '/concepts/domains/',
       '/cli-reference/',
       '/api-reference/',
       '/demos/',

@@ -1,5 +1,16 @@
 """UMF data models for tablespec."""
 
+from tablespec.models.domain import (
+    DOMAIN_FILENAME,
+    DomainLoadError,
+    DomainMetadata,
+    Glossary,
+    GlossaryTerm,
+    IntegrationPattern,
+    SupplierRelationship,
+    load_domain,
+    load_glossary,
+)
 from tablespec.models.pipeline import (
     PipelineDependency,
     PipelineMetadata,
@@ -55,6 +66,15 @@ from tablespec.models.umf import (
 
 __all__ = [
     "DEFAULT_PRIMARY_KEY",
+    "DOMAIN_FILENAME",
+    "DomainLoadError",
+    "DomainMetadata",
+    "Glossary",
+    "GlossaryTerm",
+    "IntegrationPattern",
+    "SupplierRelationship",
+    "load_domain",
+    "load_glossary",
     "INGESTED_QUALITY_CHECK_TYPES",
     "RAW_VALIDATION_TYPES",
     "REDUNDANT_VALIDATION_TYPES",
