@@ -1,25 +1,41 @@
 # Guidebook
 
-The guidebook generator renders a directory of UMFs into a navigable,
-self-contained HTML site — one page per table — so engineers and analysts can
-browse a schema, its columns, and its lineage without reading YAML.
+The guidebook generator renders a directory of UMFs into a navigable static
+site — one page per table — so engineers and analysts can browse a schema, its
+columns, and where every column's data ultimately comes from, without reading
+YAML.
 
-Each page is self-contained (inline CSS, no JS frameworks, no network requests),
-so the output works opened from disk, served by a plain static server, or hosted
-anywhere.
+The site is plain HTML plus a small vanilla-JavaScript/CSS bundle in `assets/`
+(no frameworks, no network requests), so it works opened from disk, served by a
+plain static server, or hosted anywhere.
 
 ## What it renders
 
-- **Per-column metadata** — data type, length, format, description, sample values.
-- **Foreign-key lineage** — a referenced (hub) table lists every downstream
-  table/column that points at it (`via fk`).
-- **Derivation lineage** — a derived column shows its **upstream sources**, the
-  **SQL expression** for each derivation candidate (with priority + join-filter
-  for multi-candidate columns), and **survivorship** logic; the source columns
-  show the derived column as a downstream consumer (`via derivation`).
-- **Validation rules** — per-column expectations pulled from the UMF.
-- **Indexes + search** — a top-level index (grouped by subfolder when present,
-  flat otherwise) and a JSON search index covering every table and column.
+The left pane lists groups, a group's tables, or a table's columns (with a
+filter and an "up one level" link); breadcrumbs show where you are; `/` or
+Ctrl/⌘-K searches every table and column.
+
+- **Table — Overview**: description, type, primary key, base table and
+  strategy, final filter, source location and file format (for source tables),
+  the tables it reads from and is used by, joins (foreign keys), and table-level
+  rules.
+- **Table — Sources**: every source table the table ultimately reads, with the
+  columns it contributes and which columns they feed — as a list or a diagram.
+- **Column — Details**: type, format, length, nullability, key, provenance, and
+  sample values.
+- **Column — Lineage**: the source tables the column ultimately comes from
+  (traced through every intermediate generated table), with their location, and
+  a path diagram; click a step to see how it is derived.
+- **Column — Derivation**: each derivation candidate in priority order with its
+  source, join/row filter, SQL expression, and reason, plus survivorship.
+- **Column — Used by**: downstream columns that read this column; foreign-key
+  consumers are marked `via fk` (a foreign key is an entity reference, so it is
+  shown only downstream — ADR-018).
+- **Column — Validation**: per-column expectations.
+
+The URL hash keeps the selection (`orders.html#col=customer_name&tab=lineage`),
+so links and the browser's back button work; old `#col-<name>` anchors still
+open the column.
 
 ## Generate from the CLI
 
@@ -35,7 +51,25 @@ python -m http.server -d ./guidebook
 Options:
 
 - `--output` / `-o` — output directory (default `./guidebook`).
-- `--group` / `-g` — render only one group (subfolder); leaves indexes untouched.
+- `--group` / `-g` — render only one group (subfolder); leaves the home and group pages untouched.
+
+## Trace lineage from the CLI
+
+```bash
+# Every column of a table (use group.table for tables in subfolders)
+tablespec lineage ./tables member_quality_summary
+
+# One column, as JSON
+tablespec lineage ./tables member_quality_summary -c pcp_name -f json
+
+# One table as a single self-contained HTML page
+tablespec lineage ./tables member_quality_summary -f html -o mqs.html
+```
+
+Lineage is design-time: it follows the UMF derivations the SQL plan generator
+compiles (base-table and union strategies, candidate priority, expression
+references) and stops at tables whose `table_type` is not `generated`. Join keys
+and filters are shown on each step but not followed.
 
 ## Generate from Python
 
@@ -45,6 +79,20 @@ from tablespec import generate_guidebook
 
 written = generate_guidebook(root=Path("tables"), output_dir=Path("guidebook"))
 print(f"Wrote {len(written)} files")
+
+# Self-contained pages (CSS/JS inlined; no cross-page links or search), e.g.
+# for embedding a single page in an iframe:
+generate_guidebook(root=Path("tables"), output_dir=Path("embed"), self_contained=True)
+```
+
+The lineage engine is also usable directly:
+
+```python
+from tablespec.lineage import DiscoveredUMFProvider, LineageBuilder
+
+graph = LineageBuilder(DiscoveredUMFProvider(Path("tables"))).trace_table("", "orders")
+for leaf in graph.leaf_summaries["orders.customer_name"]:
+    print(leaf.column_id, leaf.source_system)
 ```
 
 ## Discovery and layout
@@ -64,8 +112,8 @@ with a warning.
 A UMF's parent subfolder becomes its **group**:
 
 - When UMFs live in subfolders, output nests as `<group>/<table>.html` and the
-  top index lists each group.
-- When every UMF sits at the root, output is flat and the top index lists all
+  home page lists each group.
+- When every UMF sits at the root, output is flat and the home page lists all
   tables directly.
 
 Duplicate `(group, table)` pairs would collide on the same output file; the
@@ -99,8 +147,9 @@ rendering.
 ## Worked example
 
 `examples/synthea/` is a runnable demo over the Synthea synthetic EHR schema (10
-raw tables plus a computed `member_quality_summary` report). It shows FK lineage
-on the hub tables and derivation / SQL / survivorship on the report. Regenerate
+raw tables plus a computed `member_quality_summary` report). It shows FK
+consumers on the hub tables, and on the report each column's source tables,
+derivation SQL, and survivorship. Regenerate
 its guidebook with:
 
 ```bash

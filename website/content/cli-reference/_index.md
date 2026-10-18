@@ -124,8 +124,25 @@ tablespec guidebook tables/ -o out/guidebook --group clinical
 | `--group`, `-g` | Render only one discovered group/subfolder. Indexes are left unchanged in single-group mode. |
 
 The command discovers split `table.yaml` directories and `.umf.json` files
-recursively. It writes one self-contained page per table, group and top-level
-indexes, and `search_index.json`.
+recursively. It writes one page per table, group and home pages, and an
+`assets/` folder (the site's JavaScript/CSS and a search catalog). Every column
+page shows the source tables the column ultimately comes from.
+
+### `lineage`
+
+Trace columns back to the source tables they ultimately read.
+
+```bash
+tablespec lineage tables/ member_quality_summary
+tablespec lineage tables/ clinical.encounters -c patient_id -f json
+tablespec lineage tables/ member_quality_summary -f html -o mqs.html
+```
+
+| Option | Description |
+|--------|-------------|
+| `--column`, `-c` | Trace a single column. |
+| `--format`, `-f` | `text` (default), `json`, or `html` (one self-contained guidebook page). |
+| `--output`, `-o` | Output file for `json` / `html`. |
 
 ## Convert formats
 
