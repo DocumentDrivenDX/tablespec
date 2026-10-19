@@ -106,3 +106,23 @@ the single homepage case then passed its content and screenshot comparisons.
 The existing production-base-path crawl and content checks pass all 11 tests,
 including the recovered domain page. This is local Chromium/macOS qualification,
 not a Linux screenshot rerun or a deployed-site claim.
+
+
+### Installed package qualification
+
+A wheel and sdist built from `614bded` as
+`tablespec-0.0.9.post26.dev0+614bded`. The wheel SHA-256 is
+`5a2c4807ba2a22c6b7f134c23e5614c3d57b2afd0c22186b1c9eef844a41e473`.
+Its metadata pins the exact official 0.10 source above; its contents include the
+recovered domain modules, both extension schemas, the domain-pack schema and all
+three project license files. This is a local development artifact, not a new
+published TableSpec release.
+
+Installed qualification passes 114 bridge/domain/glossary/scope/guidebook tests
+using Python isolated mode and pytest importlib mode from outside the repository.
+Assertions before and after testing prove `tablespec` and `umf` resolve from the
+isolated environment's site-packages, with no source PYTHONPATH. Asset hashes and
+local test-log hash are recorded in
+`/private/tmp/tablespec-current010-dist-20261019/qualification.json`. The source
+commit is still unpublished, so the public Git dependency is not yet remotely
+installable. No dependency fallback to a retired core is provided.
