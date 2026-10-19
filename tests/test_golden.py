@@ -29,6 +29,16 @@ pytestmark = [pytest.mark.no_spark]
 GOLDEN_DIR = Path(__file__).parent / "golden"
 
 
+def _read_expected(path: Path) -> str:
+    """Read expected output, excluding the repository fixture's license header."""
+    text = path.read_text()
+    for prefix in ("--", "#"):
+        text = text.removeprefix(
+            f"{prefix} SPDX-License-Identifier: MIT OR Apache-2.0\n"
+        )
+    return text
+
+
 def _discover_cases(subdir: str, expected_ext: str) -> list[tuple[str, Path, Path]]:
     """Discover golden test cases in a subdirectory.
 
@@ -61,7 +71,7 @@ def test_sql_ddl_golden(name: str, input_path: Path, expected_path: Path) -> Non
     """Verify SQL DDL output matches golden file."""
     umf_data = yaml.safe_load(input_path.read_text())
     actual = generate_sql_ddl(umf_data)
-    expected = expected_path.read_text().rstrip("\n")
+    expected = _read_expected(expected_path).rstrip("\n")
     assert actual == expected, (
         f"SQL DDL golden mismatch for '{name}'.\n"
         f"--- expected ---\n{expected}\n"
@@ -83,7 +93,7 @@ def test_ingest_sql_golden(name: str, input_path: Path, expected_path: Path) -> 
     """Verify raw->ingest SQL artifact matches golden file."""
     umf_data = yaml.safe_load(input_path.read_text())
     actual = generate_ingest_sql(umf_data)
-    expected = expected_path.read_text().rstrip("\n")
+    expected = _read_expected(expected_path).rstrip("\n")
     assert actual == expected, (
         f"Ingest SQL golden mismatch for '{name}'.\n"
         f"--- expected ---\n{expected}\n"
@@ -127,7 +137,7 @@ def test_dbt_project_golden(name: str, input_path: Path, expected_dir: Path) -> 
     actual_files = generate_dbt_project(umf_data, dialect="duckdb")
 
     expected_files = {
-        str(p.relative_to(expected_dir)): p.read_text()
+        str(p.relative_to(expected_dir)): _read_expected(p)
         for p in expected_dir.rglob("*")
         if p.is_file()
     }
@@ -160,7 +170,7 @@ def test_pyspark_schema_golden(
     """Verify PySpark schema output matches golden file."""
     umf_data = yaml.safe_load(input_path.read_text())
     actual = generate_pyspark_schema(umf_data)
-    expected = expected_path.read_text().rstrip("\n")
+    expected = _read_expected(expected_path).rstrip("\n")
     assert actual == expected, (
         f"PySpark schema golden mismatch for '{name}'.\n"
         f"--- expected ---\n{expected}\n"
