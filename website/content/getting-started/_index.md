@@ -16,11 +16,13 @@ and PyPI for its dependencies:
 
 ```bash
 # Using uv (recommended)
-uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # Using pip
 pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
+
+Shared documents use UMF core 0.10.0; older core versions are refused.
 
 `uv` commands declare the pinned `umf-core` source explicitly because uv
 requires transitive Git dependencies to be direct requirements. The Python
@@ -30,7 +32,7 @@ Add the `[spark]` extra only if you need PySpark-based profiling, JDBC
 discovery, or DataFrame validation:
 
 ```bash
-uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ## Author a UMF table spec

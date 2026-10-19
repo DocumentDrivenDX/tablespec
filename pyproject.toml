@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python",
+    "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python",
     "gitpython>=3.1.0,<4.0.0",
     "pydantic>=2.0.0,<3.0.0",
     "pyyaml>=6.0.0,<7.0.0",
