@@ -44,10 +44,10 @@ uv run python examples/demo.py
 
 ```bash
 # Add to your uv project
-uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # With Spark support (for profiling and validation)
-uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@8d37fd1100a4d8cdefa132a3e17a924f624cd873#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ### Using pip
@@ -282,6 +282,8 @@ Full documentation is available at [documentdrivendx.github.io/tablespec](https:
 Dual-licensed under MIT OR Apache-2.0, at your option. See [LICENSE.md](LICENSE.md).
 
 ## Shared UMF Python documents
+
+TableSpec accepts UMF core 0.10.0 only. Retired core versions are refused.
 
 TableSpec uses the official `umf-core` Python package from DocumentDrivenDX/umf
 for shared document models, schemas, serialization and validation machinery.

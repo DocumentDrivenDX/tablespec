@@ -48,3 +48,33 @@ Scoped Pyright has no new type errors, but reports three existing PySpark import
 unavailable in the temporary environment. Spark execution remains outside this
 evidence scope. Upstream commit publication is pending; the lock was generated
 against that exact local commit using a temporary Git URL mapping.
+
+
+## Current core cut — 2026-10-19
+
+The current binding emits and accepts UMF core 0.10.0 only. The official source
+pin and generated lock now name `4cdddceaceded64e59ac24b65f106e9610f90653`;
+that source commit still awaits upstream publication. Lock resolution used a
+command-local Git URL mapping to that exact local commit and fetched dependency
+metadata normally. Only the umf-core lock entry changed (0.8.0 to 0.10.0); this
+is not evidence that the commit is remotely available.
+
+Qualification uses the official built 0.10.0 wheel, SHA-256
+`692271d23216241e60c83296ce70bdb1021928c1751362f55d4b120d6cb9acaa`,
+in an isolated Python 3.12.15 environment with Pydantic 2.11.10 and explicit
+source PYTHONPATH. All 21 shared-binding tests pass, including public-loader
+refusal of 0.7/0.8/0.9 documents. Native TableSpec authoring version 1.0 and
+TableSpec extension version 0.1.0 remain independent of the shared core version.
+
+All 18 consumer ontology snapshots were refreshed from the matching canonical
+UMF `spec/domain-packs/<pack>/ontology.json` exports. Each matches its canonical
+source byte for byte; one census test validates and exactly round-trips all 18
+through the official core model with complete validation and zero diagnostics.
+The core header is the only changed ontology content.
+
+The initial broader regression found 361 passing tests and 12 golden mismatches
+caused by repository license headers in expected SQL/Python/dbt files. The
+integration branch excludes only those fixture header lines from expected
+output; its 17 golden/schema-sync checks pass. Combined integrated qualification
+is recorded below when completed; these results do not qualify Spark or remote
+Databricks. The original dated 0.8 results above remain historical evidence.

@@ -8,7 +8,14 @@ from importlib.resources import files
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
-from umf import Diagnostic, Document, Extension, Registry, validate_document
+from umf import (
+    Diagnostic,
+    Document,
+    Extension,
+    Registry,
+    current_core_version,
+    validate_document,
+)
 
 EXTENSION_ID = "tablespec.pipeline"
 EXTENSION_VERSION = "0.1.0"
@@ -129,7 +136,7 @@ def from_legacy(data: dict, *, document_id: str | None = None) -> Document:
         elements.append(element)
     return Document.model_validate(
         {
-            "umf": "0.8.0",
+            "umf": current_core_version(),
             "id": document_id or name,
             "vocabularies": {EXTENSION_ID: {"version": EXTENSION_VERSION}},
             "modules": [
@@ -163,8 +170,10 @@ def to_legacy(document: Document) -> dict:
             + "; ".join(d.message for d in validation.diagnostics)
         )
     data = document.to_dict()
-    if data["umf"] != "0.8.0" or len(data["modules"]) != 1:
-        raise ValueError("TableSpec requires core 0.8.0 and exactly one table module")
+    if data["umf"] != current_core_version() or len(data["modules"]) != 1:
+        raise ValueError(
+            f"TableSpec requires core {current_core_version()} and exactly one table module"
+        )
     if set(data) - {
         "umf",
         "id",

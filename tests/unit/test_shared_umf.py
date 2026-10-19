@@ -50,6 +50,7 @@ def native():
 def test_official_core_and_local_extension(native):
     document = from_legacy(native)
     assert type(document).__module__ == "umf.models"
+    assert document.to_dict()["umf"] == "0.10.0"
     assert document.modules[0].elements[0].scalar_type == "integer"
     result = validate_document(document, pipeline_registry())
     assert result.valid and not result.complete
@@ -62,7 +63,7 @@ def test_official_core_and_local_extension(native):
 def test_author_core_directly_then_compile():
     document = Document.model_validate(
         {
-            "umf": "0.8.0",
+            "umf": "0.10.0",
             "id": "authored",
             "vocabularies": {"tablespec.pipeline": {"version": "0.1.0"}},
             "modules": [
@@ -304,3 +305,14 @@ def test_compile_orchestrator_preserves_shared_snapshot_and_runtime_source(
     snapshot = UMFLoader().load_document(compiled.umf_snapshot)
     assert snapshot.to_dict() == document.to_dict()
     assert _declared_source(compiled.umf_snapshot).delimiter == "|"
+
+
+@pytest.mark.parametrize("version", ["0.7.0", "0.8.0", "0.9.0"])
+def test_loader_rejects_retired_core_versions(native, tmp_path, version):
+    data = from_legacy(native).to_dict()
+    data["umf"] = version
+    source = tmp_path / "retired.umf.json"
+    source.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError):
+        UMFLoader().load(source)
+    assert json.loads(source.read_text())["umf"] == version

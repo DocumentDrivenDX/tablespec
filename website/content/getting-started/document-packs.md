@@ -55,10 +55,11 @@ back independent object and table stores; retry uses the same revision keys.
 
 ## Installation and pins
 
-Install the released wheel with `--no-deps` in a prepared environment alongside
-umf-core 0.8.1. Acquisition and BagIt use only the Python standard library plus
-existing UMF serialization and JSON Schema validation. Explicit loader pins:
-`jsonschema==4.25.1`, `umf-core==0.8.1`. DuckDB is optional: `duckdb==1.5.0`.
+Current source uses UMF core 0.10.0, pinned to the official source commit in
+[Getting started](../). Use the matching TableSpec dependency set; the historical
+0.0.9 release below does not qualify the current dependency set. Acquisition and
+BagIt use the Python standard library plus existing UMF serialization and JSON
+Schema validation. DuckDB is optional.
 The TableSpec CLI additionally needs its existing declared requirements, including
 `typer==0.24.1`, `click==8.3.1`, `rich==13.9.4`; use the released wheel metadata for
 the complete base dependency set. Use the Databricks runtime's Spark rather than
