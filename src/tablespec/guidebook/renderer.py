@@ -27,6 +27,7 @@ from tablespec.guidebook.sql_format import format_sql
 
 if TYPE_CHECKING:
     from tablespec.guidebook.reverse_lineage import DownstreamRef, ReverseLineageIndex
+    from tablespec.models.domain import Glossary
     from tablespec.models.umf import UMF, UMFColumn
 
 
@@ -66,6 +67,8 @@ class _ColumnView:
     sample_values: list[str] | None
     candidates: list[_CandidateView] = field(default_factory=list)
     validation_rules: list[_RuleView] = field(default_factory=list)
+    term: str | None = None
+    term_definition: str | None = None
 
 
 def _extract_validation_rules(
@@ -101,8 +104,13 @@ def _column_view(
     expectations: list[dict[str, Any]] | None,
     *,
     current_group: str,
+    glossary: Glossary | None = None,
 ) -> _ColumnView:
-    """Build a ``_ColumnView`` from a ``UMFColumn``."""
+    """Build a ``_ColumnView`` from a ``UMFColumn``.
+
+    ``glossary`` resolves ``col.term`` (aliases included) to its definition;
+    an unresolved or absent term renders without a definition.
+    """
     candidates: list[_CandidateView] = []
     survivorship_explanation: str | None = None
     if col.derivation:
@@ -135,7 +143,19 @@ def _column_view(
         sample_values=col.sample_values,
         candidates=candidates,
         validation_rules=_extract_validation_rules(col.name, expectations),
+        term=col.term,
+        term_definition=(
+            glossary.definition_of(col.term) if glossary and col.term else None
+        ),
     )
+
+
+def _term_chip(term: str | None, definition: str | None) -> str:
+    """Render a glossary term as a chip; the definition is the ``title`` tooltip."""
+    if not term:
+        return ""
+    title = f' title="{escape(definition)}"' if definition else ""
+    return f'<span class="chip chip-term"{title}>term: {escape(term)}</span>'
 
 
 def _chip(text: str, kind: str = "") -> str:
@@ -321,6 +341,8 @@ def _render_business_view(
             if col.description
             else "<span class='muted'>(no description)</span>"
         )
+        if col.term:
+            desc = f"{_term_chip(col.term, col.term_definition)} {desc}"
         parts.append(
             f"<tr><td><a href='#{anchor}'><code>{escape(col.column_name)}</code></a></td>"
             f"<td><code>{escape(col.data_type)}</code></td>"
@@ -352,8 +374,15 @@ def _render_column_section(
         chips.append(_chip(f"len ≤ {col.length}"))
     if col.provenance_policy:
         chips.append(_chip(col.provenance_policy))
+    if col.term:
+        chips.append(_term_chip(col.term, col.term_definition))
     parts.append(f'<div class="chips">{"".join(chips)}</div>')
 
+    if col.term and col.term_definition:
+        parts.append(
+            f'<p class="term-definition"><strong>{escape(col.term)}</strong>: '
+            f"{escape(col.term_definition)}</p>"
+        )
     if col.description:
         parts.append(f"<p>{escape(col.description)}</p>")
 
@@ -473,6 +502,7 @@ def render_table_page(
     group: str = "",
     provenance_sha: str | None = None,
     generated_at: datetime | None = None,
+    glossary: Glossary | None = None,
 ) -> str:
     """Render one full table page as a standalone HTML document.
 
@@ -483,13 +513,17 @@ def render_table_page(
             lineage lookups and to build the breadcrumb.
         provenance_sha: Optional git SHA to show in the footer.
         generated_at: Timestamp for the footer (defaults to now, UTC).
+        glossary: The owning domain's glossary, when the group is a domain.
+            Resolves ``term`` on the table and its columns to definitions;
+            without it terms render as bare chips.
 
     """
     generated_at = generated_at or datetime.now(UTC)
     table_type = getattr(umf, "table_type", None) or "unknown"
     expectations = umf.validation_rules.expectations if umf.validation_rules else None
     columns = [
-        _column_view(col, expectations, current_group=group) for col in umf.columns
+        _column_view(col, expectations, current_group=group, glossary=glossary)
+        for col in umf.columns
     ]
 
     title = f"{group} / {umf.table_name}" if group else umf.table_name
@@ -506,6 +540,10 @@ def render_table_page(
         )
 
     header_chips = _chip(umf.table_name) + _chip(table_type)
+    if umf.term:
+        header_chips += _term_chip(
+            umf.term, glossary.definition_of(umf.term) if glossary else None
+        )
     if group:
         header_chips = _chip(group) + header_chips
     header = [

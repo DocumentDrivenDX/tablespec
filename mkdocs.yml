@@ -36,6 +36,7 @@ nav:
     - CLI: guide/cli.md
     - Excel Conversion: guide/excel.md
     - Guidebook: guide/guidebook.md
+    - Domains: guide/domains.md
     - Data Profiling App: guide/data-profiling-app.md
     - Split-Format UMF: guide/split-format.md
     - Sample Data: guide/sample-data.md

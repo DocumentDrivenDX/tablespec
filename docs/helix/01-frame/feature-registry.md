@@ -46,6 +46,7 @@ ddx:
 | FEAT-032 | [Embeddings & Document Corpus](features/FEAT-032-embeddings-and-document-corpus.md) | Dimensioned EMBEDDING type compiling to ARRAY<FLOAT>, GX dimensionality validation, and the governed document-corpus contract. Type core + CORP example + SEC 10-K notebooks shipped; workspace walkthrough on the product microsite. | Built | P1 | Platform / Data Engineering | PRD: UMF Model and I/O (FR-1.11); ADR-016 | 2026-07-23 |
 | FEAT-033 | [Guidebook](features/FEAT-033-guidebook.md) | Render a directory of UMFs into a navigable, self-contained HTML guidebook — one page per table — with column metadata, FK + derivation lineage, group/flat indexes, and search; CLI + `generate_guidebook` API. | Built | P1 | Platform / Developer Experience | PRD: Guidebook (FR-22.1–FR-22.4); ADR-018 | 2026-07-22 |
 | FEAT-034 | [App Deployment & Configuration](features/FEAT-034-app-deployment-configuration.md) | Deploy the guidebook + profiling app into any Databricks environment: metadata location as declared input, idempotent provisioning of schema/volume/governance tables, and fail-fast startup validation. Unit path in CI; operator deploy steps on the product microsite. | Built | P1 | Platform / Developer Experience | PRD: App Deployment & Configuration (FR-23.1–FR-23.6) | 2026-07-23 |
+| FEAT-035 | [Domains](features/FEAT-035-domains.md) | `domain.yaml` as the bounded context: owner, exports (published language) with SemVer version and consumer pins, suppliers with advisory DDD integration pattern (context map), glossary terms shown in the guidebook and prompts; cross-domain foreign-key fields and validation rules via `tablespec validate <root> [--baseline]`; guidebook domain map. | Built | P1 | Platform / Data Engineering | PRD: Domains (FR-24.1–FR-24.7); ADR-020, ADR-021 | 2026-09-15 |
 
 ## Status Definitions
 
@@ -118,6 +119,7 @@ listed here.
 | FEAT-032 | [features/FEAT-032-embeddings-and-document-corpus.md](features/FEAT-032-embeddings-and-document-corpus.md) | [user-stories/US-045-sec-10k-corpus-and-facts.md](user-stories/US-045-sec-10k-corpus-and-facts.md) | [../02-design/adr/ADR-016-embedding-type-array-float.md](../02-design/adr/ADR-016-embedding-type-array-float.md) | — | — |
 | FEAT-033 | [features/FEAT-033-guidebook.md](features/FEAT-033-guidebook.md) | [user-stories/US-046-browse-schema-guidebook.md](user-stories/US-046-browse-schema-guidebook.md) | [../02-design/adr/ADR-018-guidebook-lineage-semantics.md](../02-design/adr/ADR-018-guidebook-lineage-semantics.md) | — | — |
 | FEAT-034 | [features/FEAT-034-app-deployment-configuration.md](features/FEAT-034-app-deployment-configuration.md) | [user-stories/US-047-deploy-app-new-environment.md](user-stories/US-047-deploy-app-new-environment.md), [user-stories/US-048-provision-metadata-home.md](user-stories/US-048-provision-metadata-home.md), [user-stories/US-049-diagnose-misconfigured-deployment.md](user-stories/US-049-diagnose-misconfigured-deployment.md) | [../02-design/adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md](../02-design/adr/ADR-019-app-configuration-precedence-and-provisioning-authority.md) | — | — |
+| FEAT-035 | [features/FEAT-035-domains.md](features/FEAT-035-domains.md) | [user-stories/US-051-declare-and-validate-domains.md](user-stories/US-051-declare-and-validate-domains.md), [user-stories/US-052-version-published-language.md](user-stories/US-052-version-published-language.md) | [../02-design/adr/ADR-020-domains-as-bounded-contexts.md](../02-design/adr/ADR-020-domains-as-bounded-contexts.md), [../02-design/adr/ADR-021-published-language-versioning-and-advisory-patterns.md](../02-design/adr/ADR-021-published-language-versioning-and-advisory-patterns.md), [../02-design/domains-solution-design.md](../02-design/domains-solution-design.md) | `tests/unit/test_domain_*.py`, `test_glossary_surfaces.py`, `test_cli_validate_domains.py`, `test_guidebook_domain_map.py` | — |
 
 "—" means the link is not tracked at the registry level; per-feature stories,
 designs, and tests are recorded inside each feature specification (and in
@@ -127,6 +129,7 @@ designs, and tests are recorded inside each feature specification (and in
 
 ### UMF Core and Change Management
 - FEAT-001: UMF Models and I/O
+- FEAT-035: Domains
 - FEAT-010: UMF Change Management
 - FEAT-014: Naming and Formatting Utilities
 - FEAT-021: UMF Loader & Validator Improvements
