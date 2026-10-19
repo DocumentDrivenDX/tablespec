@@ -15,6 +15,7 @@ lineage view already owns "upstream" and "downstream" for value provenance
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from html import escape
 
 from tablespec.domains import LoadedDomain
@@ -24,7 +25,9 @@ DOMAIN_MAP_FILENAME = "domains.html"
 _TITLE = "Domain Map"
 
 
-def _domain_rows(domains: dict[str, LoadedDomain]) -> list[str]:
+def _domain_rows(
+    domains: dict[str, LoadedDomain], index_hrefs: Mapping[str, str] | None
+) -> list[str]:
     rows: list[str] = []
     for name in sorted(domains):
         d = domains[name]
@@ -42,8 +45,12 @@ def _domain_rows(domains: dict[str, LoadedDomain]) -> list[str]:
             if d.metadata.description
             else "<span class='muted'>—</span>"
         )
+        href = f"{name}/index.html" if index_hrefs is None else index_hrefs.get(name)
+        label = f"<code>{escape(name)}</code>"
+        if href is not None:
+            label = f"<a href='{escape(href)}'>{label}</a>"
         rows.append(
-            f"<tr><td><a href='{escape(name)}/index.html'><code>{escape(name)}</code></a></td>"
+            f"<tr><td>{label}</td>"
             f"<td>{owner}</td><td>{len(d.tables)}</td><td>{exports}</td><td>{desc}</td></tr>"
         )
     return rows
@@ -65,7 +72,9 @@ def _supplier_rows(domains: dict[str, LoadedDomain]) -> list[str]:
     return rows
 
 
-def _xref_rows(domains: dict[str, LoadedDomain]) -> list[str]:
+def _xref_rows(
+    domains: dict[str, LoadedDomain], table_hrefs: Mapping[tuple[str, str], str] | None
+) -> list[str]:
     rows: list[str] = []
     for name in sorted(domains):
         d = domains[name]
@@ -79,7 +88,14 @@ def _xref_rows(domains: dict[str, LoadedDomain]) -> list[str]:
                     continue
                 src = f"{name}.{umf.table_name}.{fk.column}"
                 dst = f"{target_domain}.{fk.target_table}.{fk.references_column}"
-                dst_href = f"{escape(target_domain)}/{escape(fk.target_table)}.html"
+                dst_href = (
+                    f"{target_domain}/{fk.target_table}.html"
+                    if table_hrefs is None
+                    else table_hrefs.get((target_domain, fk.target_table.lower()))
+                )
+                dst_label = f"<code>{escape(dst)}</code>"
+                if dst_href is not None:
+                    dst_label = f"<a href='{escape(dst_href)}'>{dst_label}</a>"
                 pattern = (
                     _chip(fk.integration.value)
                     if fk.integration
@@ -87,7 +103,7 @@ def _xref_rows(domains: dict[str, LoadedDomain]) -> list[str]:
                 )
                 rows.append(
                     f"<tr><td><code>{escape(src)}</code></td>"
-                    f"<td><a href='{dst_href}'><code>{escape(dst)}</code></a></td>"
+                    f"<td>{dst_label}</td>"
                     f"<td>{pattern}</td></tr>"
                 )
     return rows
@@ -98,11 +114,18 @@ def render_domain_map(
     css: str,
     *,
     provenance_sha: str | None = None,
+    index_hrefs: Mapping[str, str] | None = None,
+    table_hrefs: Mapping[tuple[str, str], str] | None = None,
 ) -> str:
-    """Render the domain map page."""
+    """Render the domain map page.
+
+    Optional href maps describe generated pages relative to this map. Missing
+    entries render as text so a partial corpus never links to absent pages.
+    Without maps, use the historical grouped output paths.
+    """
     n_tables = sum(len(d.tables) for d in domains.values())
     supplier_rows = _supplier_rows(domains)
-    xref_rows = _xref_rows(domains)
+    xref_rows = _xref_rows(domains, table_hrefs)
     body: list[str] = [
         '<nav class="crumbs"><a href="index.html">All tables</a> · Domain map</nav>',
         f"<h1>{_TITLE}</h1>",
@@ -114,7 +137,7 @@ def render_domain_map(
         "<h2>Domains</h2>",
         "<table><thead><tr><th>Domain</th><th>Owner</th><th>Tables</th>"
         "<th>Exports</th><th>Description</th></tr></thead><tbody>",
-        *_domain_rows(domains),
+        *_domain_rows(domains, index_hrefs),
         "</tbody></table>",
         "<h2>Supplier edges</h2>",
         "<p class='muted'>Declared in each consumer's <code>domain.yaml</code>. "

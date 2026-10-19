@@ -109,3 +109,40 @@ def test_prompt_unchanged_without_glossary() -> None:
     prompt = generate_documentation_prompt(umf_data)
     assert "Domain Glossary" not in prompt
     assert "## Analysis Request" in prompt
+
+
+def test_prompt_resolves_identity_when_terms_share_a_definition() -> None:
+    glossary = Glossary(
+        terms={
+            "Account": {"definition": "A party", "aliases": ["acct"]},
+            "Customer": {"definition": "A party", "aliases": ["cust"]},
+        }
+    )
+    data = _claims_umf().model_dump(exclude_none=True)
+    data["term"] = "cust"
+    for col in data["columns"]:
+        col["term"] = "CUSTOMER"
+    prompt = generate_documentation_prompt(data, glossary=glossary)
+    assert prompt.count("- **Customer**: A party") == 1
+    assert "- **Account**:" not in prompt
+
+    data["columns"][0]["term"] = "acct"
+    prompt = generate_documentation_prompt(data, glossary=glossary)
+    assert prompt.count("- **Customer**: A party") == 1
+    assert prompt.count("- **Account**: A party") == 1
+
+
+def test_root_domain_glossary_is_used_for_flat_table_pages(tmp_path: Path) -> None:
+    root = tmp_path / "claims"
+    root.mkdir()
+    (root / "domain.yaml").write_text("name: claims\nglossary: glossary.yaml\n")
+    (root / "glossary.yaml").write_text(
+        "member:\n  definition: A person enrolled for a coverage period\n"
+        "  aliases: [mbr]\nclaim:\n  definition: A billed encounter\n"
+    )
+    UMFLoader().save(_claims_umf(), root / "medical_claims")
+    out = tmp_path / "out"
+    generate(root, out)
+    page = (out / "medical_claims.html").read_text(encoding="utf-8")
+    assert 'title="A person enrolled for a coverage period"' in page
+    assert 'title="A billed encounter"' in page
