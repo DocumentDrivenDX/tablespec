@@ -78,3 +78,31 @@ integration branch excludes only those fixture header lines from expected
 output; its 17 golden/schema-sync checks pass. Combined integrated qualification
 is recorded below when completed; these results do not qualify Spark or remote
 Databricks. The original dated 0.8 results above remain historical evidence.
+
+
+The consolidated source at `e5b70b54c83a3d41a33a8b0b593802ba3e549e77`
+passes 599 tests across the bridge/core snapshots, native model/loader/schema
+generators, bootstrap, golden outputs, relationships and recovered domain,
+glossary, scope-validation and guidebook suites. Command: isolated Python
+`-m pytest` against those explicit test files with integration `src` on
+PYTHONPATH; no Spark marker expansion or remote execution. The raw local log is
+`/private/tmp/tablespec-consolidated-regression-20261019.log`, SHA-256
+`bafc7c424f0455b159fe8101784859a516ffd38933fdcda49609495e3dc4359a`.
+
+Integration preserves history with ordinary merges. Cross-domain FK resolution
+still checks source columns and local/incoming references; nested declarations
+retain outer-domain ownership. Glossary canonicalization matches term/alias
+identity, including distinct terms with identical definitions. Flat root-domain
+guidebooks retain glossary and use actual generated map links. Malformed domain
+or glossary YAML now reports path-bearing DOM-LOAD while retaining valid sibling
+domains. Regressions reproduced these defects before their fixes. Generated
+TableSpec schema matches its merged Pydantic model.
+
+The microsite builds 30 pages using the pinned Hextra theme and Hugo 0.168.0.
+Local Chromium content/navigation checks pass 15 tests. The initial homepage
+case failed only for absent macOS screenshot baselines. Both captured full-page
+desktop/mobile images were visually inspected and retained as platform baselines;
+the single homepage case then passed its content and screenshot comparisons.
+The existing production-base-path crawl and content checks pass all 11 tests,
+including the recovered domain page. This is local Chromium/macOS qualification,
+not a Linux screenshot rerun or a deployed-site claim.
