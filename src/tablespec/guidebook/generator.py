@@ -73,12 +73,14 @@ def generate(
     # Domains (domain.yaml per group) supply the glossary that resolves
     # `term` on table pages, and feed the domain map after the loop.
     domains = discover_domains(root)
+    root_domain = next((d for d in domains.values() if d.path == root), None)
+    table_hrefs: dict[tuple[str, str], str] = {}
 
     for unit in selected:
         try:
             # Same dispatch discovery used -- split dir / .umf.json / .umf.yaml.
             umf = load_discovered_umf(unit.path)
-            owning = domains.get(unit.group)
+            owning = root_domain or domains.get(unit.group)
             html = render_table_page(
                 umf,
                 reverse_index,
@@ -96,6 +98,10 @@ def generate(
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(html, encoding="utf-8")
         written.append(out_path)
+        if owning:
+            href = out_path.relative_to(output_dir).as_posix()
+            for name in (umf.table_name, *(umf.aliases or [])):
+                table_hrefs[(owning.name, name.lower())] = href
         per_group.setdefault(unit.group, []).append(
             (unit.table, getattr(umf, "table_type", None) or "unknown", umf.description)
         )
@@ -121,7 +127,19 @@ def generate(
     if domains:
         map_path = output_dir / DOMAIN_MAP_FILENAME
         map_path.write_text(
-            render_domain_map(domains, CSS, provenance_sha=provenance_sha),
+            render_domain_map(
+                domains,
+                CSS,
+                provenance_sha=provenance_sha,
+                index_hrefs={
+                    name: "index.html"
+                    if domain is root_domain
+                    else f"{name}/index.html"
+                    for name, domain in domains.items()
+                    if domain is root_domain or name in per_group
+                },
+                table_hrefs=table_hrefs,
+            ),
             encoding="utf-8",
         )
         written.append(map_path)
@@ -137,7 +155,12 @@ def generate(
         )
     else:
         flat_rows = per_group.get("", [])
-        top_html = render_top_index_flat(flat_rows, CSS, provenance_sha=provenance_sha)
+        top_html = render_top_index_flat(
+            flat_rows,
+            CSS,
+            provenance_sha=provenance_sha,
+            domain_map_href=DOMAIN_MAP_FILENAME if domains else None,
+        )
     top_path = output_dir / "index.html"
     top_path.write_text(top_html, encoding="utf-8")
     written.append(top_path)

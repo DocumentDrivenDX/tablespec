@@ -139,11 +139,19 @@ def render_top_index_flat(
     css: str,
     *,
     provenance_sha: str | None = None,
+    domain_map_href: str | None = None,
 ) -> str:
     """Render a flat top-level index listing every table directly."""
     body_parts: list[str] = [
         f"<h1>{_PAGE_TITLE}</h1>",
         f'<div class="chips">{_chip(f"{len(tables)} tables")}</div>',
+    ]
+    if domain_map_href:
+        body_parts.append(
+            f'<p><a href="{escape(domain_map_href)}">Domain map</a> — owners, '
+            "exports, supplier edges, and cross-domain references.</p>"
+        )
+    body_parts += [
         "<h2>Tables</h2>",
         "<table><thead><tr><th>Table</th><th>Type</th><th>Description</th></tr></thead><tbody>",
         *_table_rows(tables),

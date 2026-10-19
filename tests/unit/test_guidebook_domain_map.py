@@ -97,3 +97,37 @@ def test_cross_domain_fk_resolves_as_downstream_on_target(tmp_path: Path) -> Non
     member_page = (out / "eligibility" / "member.html").read_text(encoding="utf-8")
     # The FK from claims shows up as a downstream consumer on the exported table.
     assert "medical_claims" in member_page
+
+
+def test_root_domain_map_links_match_flat_output(tmp_path: Path) -> None:
+    from html.parser import HTMLParser
+
+    class Links(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.hrefs = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "a":
+                self.hrefs.extend(value for key, value in attrs if key == "href")
+
+    root = _corpus(tmp_path)
+    out = tmp_path / "out"
+    generate(root / "eligibility", out)
+    top = (out / "index.html").read_text(encoding="utf-8")
+    assert 'href="domains.html"' in top
+    links = Links()
+    links.feed((out / "domains.html").read_text(encoding="utf-8"))
+    assert links.hrefs
+    assert all((out / href).is_file() for href in links.hrefs)
+
+
+def test_root_domain_map_does_not_link_unrendered_supplier_table(
+    tmp_path: Path,
+) -> None:
+    root = _corpus(tmp_path)
+    out = tmp_path / "out"
+    generate(root / "claims", out)
+    page = (out / "domains.html").read_text(encoding="utf-8")
+    assert "eligibility.member.member_id" in page
+    assert "eligibility/member.html" not in page

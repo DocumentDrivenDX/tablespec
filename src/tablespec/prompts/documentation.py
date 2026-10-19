@@ -37,14 +37,13 @@ def _referenced_terms(
             if match is not None:
                 resolved[match] = str(glossary[match])
             continue
-        definition = glossary.definition_of(term)
-        if definition is None:
-            continue
-        canonical = next(
-            (k for k in glossary.terms if glossary.definition_of(k) == definition),
-            term,
-        )
-        resolved[canonical] = definition
+        needle = term.strip().lower()
+        for canonical, entry in glossary.terms.items():
+            if canonical.lower() == needle or needle in (
+                alias.lower() for alias in (entry.aliases or [])
+            ):
+                resolved[canonical] = entry.definition
+                break
     return sorted(resolved.items(), key=lambda kv: kv[0].lower())
 
 
