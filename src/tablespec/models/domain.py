@@ -237,7 +237,11 @@ def load_domain(domain_dir: Path) -> DomainMetadata:
     if not path.is_file():
         msg = f"No {DOMAIN_FILENAME} in {domain_dir}"
         raise DomainLoadError(msg)
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        msg = f"{path}: invalid YAML: {exc}"
+        raise DomainLoadError(msg) from exc
     if not isinstance(data, dict):
         msg = f"{path}: top level must be a mapping"
         raise DomainLoadError(msg)
@@ -263,7 +267,11 @@ def load_glossary(domain_dir: Path, meta: DomainMetadata) -> Glossary | None:
     if not path.is_file():
         msg = f"Glossary not found: {path}"
         raise DomainLoadError(msg)
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        msg = f"{path}: invalid YAML: {exc}"
+        raise DomainLoadError(msg) from exc
     if not isinstance(data, dict):
         msg = f"{path}: top level must be a mapping"
         raise DomainLoadError(msg)
