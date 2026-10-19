@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The single dialect/backend seam for rendering relation references.
 
 Every place the SQL generators inline a *relation* (a base table, a join target,

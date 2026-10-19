@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for casting_utils module - pure Python parts only.
 
 PySpark-dependent functions are tested by checking they raise ImportError

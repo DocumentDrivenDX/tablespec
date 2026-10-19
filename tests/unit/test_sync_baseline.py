@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for sync_baseline module - sync logic, conflict detection, metadata columns."""
 
 # @covers US-019-AC1

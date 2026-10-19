@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Detect and represent differences between two UMF versions.
 
 Provides in-memory comparison of UMF objects to identify:

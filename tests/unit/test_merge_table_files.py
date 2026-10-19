@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Contract tests for table merge with survivorship (US-018).
 
 Full Spark-backed merge is exercised when tablespec[spark] is available.

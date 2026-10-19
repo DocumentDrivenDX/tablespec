@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Regression coverage for constant inline values and safe warehouse errors."""
 
 from datetime import date, datetime

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Raw-file header resolution: canonical column lookup + header mapping.
 
 These are the utilities ``tablespec.merge`` consumes to rename raw file

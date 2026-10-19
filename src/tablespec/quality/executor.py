@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Quality check executor for post-ingestion data quality assessment.
 
 This module provides quality check execution using Great Expectations,

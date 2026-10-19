@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Opt-in dbt execution: emit a project, then run it with dbt-duckdb (ADR-008 §4.6).
 
 :class:`DbtRunner` is the runnable *product* target for the dbt backend. It pairs

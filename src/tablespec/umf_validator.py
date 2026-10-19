@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """UMF Validation Module
 
 Provides validation for Universal Metadata Format (UMF) files using JSON Schema.

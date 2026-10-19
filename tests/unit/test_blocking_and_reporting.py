@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-030-AC2
 """Tests for blocking behavior and validation reporting."""
 

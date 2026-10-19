@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """End-to-end tests for guidebook generation and reverse lineage."""
 
 # @covers US-046-AC1

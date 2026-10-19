@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """YAML formatting utilities for UMF files.
 
 This module provides tools for formatting YAML files using pure ruamel.yaml:

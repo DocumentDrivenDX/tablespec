@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 CREATE OR REFRESH STREAMING TABLE ingested_events
 (
   CONSTRAINT accepted_values_severity EXPECT (severity IS NULL OR severity IN ('LOW', 'HIGH')) ON VIOLATION DROP ROW

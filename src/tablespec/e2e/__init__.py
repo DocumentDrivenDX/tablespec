@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """End-to-end bootstrap: COMPILE a UMF set to runtime artifacts, then run them.
 
 Shared helper package behind the two demo scripts (``scripts/bootstrap_from_tables.py``

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the unified ExpectationSuite model (ADR-005)."""
 
 from tablespec.models.umf import (

@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 -- uniqueness intent: PRIMARY KEY (claim_id) is enforced by APPLY CHANGES ... KEYS (latest-per-key upsert).
 -- relationship intent: member_id -> ingested_member.member_id (referential integrity needs the parent dataset; not a row-local EXPECT).
 CREATE OR REFRESH STREAMING TABLE ingested_claims

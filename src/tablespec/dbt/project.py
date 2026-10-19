@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate a multi-table GOLD dbt project from a UMF set (the DAG emitter).
 
 Pipeline (corrected design, IR-first):

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for quality package - models, storage, and baseline storage.
 
 Tests pure Python components without requiring PySpark.

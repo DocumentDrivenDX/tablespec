@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Data guidebook generation.
 
 Renders UMF metadata into a navigable, self-contained HTML site — one page per

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Quality check results storage - Write quality check results to Delta tables.
 
 This module provides functionality to write quality check execution results

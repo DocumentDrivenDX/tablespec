@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Native Python document acquisition and offline verified publication."""
 
 from .preservation import fixity_audit, preservation_metadata

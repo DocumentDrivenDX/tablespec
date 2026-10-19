@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for the JDBC reader vertical (FEAT-031 JDBC-01..05).
 
 Covers pure option building (no Spark), read-time secret-ref resolution

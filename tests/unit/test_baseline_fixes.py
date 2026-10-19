@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for baseline generator fixes: redundant type removal and profiling expectations."""
 
 from __future__ import annotations

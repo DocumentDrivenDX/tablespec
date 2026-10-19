@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Fail-closed opt-in gate for the real Databricks e2e tier."""
 
 from __future__ import annotations

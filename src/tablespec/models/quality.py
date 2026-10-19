@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Quality check execution models.
 
 Dataclasses for quality check results, scores, thresholds, and run summaries.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """UMF authoring utilities — pure mutation functions and helpers."""
 
 from tablespec.authoring.apply_response import ApplyResult, apply_validation_response

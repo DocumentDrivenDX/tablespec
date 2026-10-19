@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Build the combined GitHub Pages artifact.
 
 The Pages site serves two contracts:

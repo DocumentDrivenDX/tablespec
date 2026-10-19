@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Behavioral execution of the DuckDB cast SQL emitted by ``cast_column_sql``.
 
 These run the *generated* DuckDB expression against a live DuckDB connection (no

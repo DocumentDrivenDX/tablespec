@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """End-to-end Spark Connect lane for the native profiler, using Sail.
 
 This is the cheap LOCAL Spark-Connect lane the project wanted: pysail ships a

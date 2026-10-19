@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Display and validate survivorship rules for generated tables.
 
 Provides utilities for viewing survivorship mappings in human-readable format

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Backward-compatible shim for the single-table dbt project generator.
 
 The implementation now lives in :mod:`tablespec.dbt.single_table` (all

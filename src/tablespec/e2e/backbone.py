@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The runtime BACKBONE: execute the COMPILED artifacts (never the UMF).
 
 Given a :class:`~tablespec.e2e.manifest.CompiledArtifacts` (from the compile

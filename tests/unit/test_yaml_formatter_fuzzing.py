@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Property-based fuzzing tests for YAML formatter idempotence.
 
 Uses Hypothesis to generate arbitrary YAML structures and verify that:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Validate GX expectation schemas against actual GX library.
 
 This module provides utilities to validate that expectation types defined in

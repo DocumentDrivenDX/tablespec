@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Guard: Hextra card links must not drop Hugo baseURL (/tablespec/).
 
 Root-absolute card links like ``link="/demos/"`` render as ``href=/demos`` and

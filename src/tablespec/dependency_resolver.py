@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pipeline Dependency Resolution
 
 Handles pipeline dependency loading, version constraint validation, and

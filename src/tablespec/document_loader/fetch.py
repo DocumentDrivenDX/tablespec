@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Serial HTTPS acquisition with immutable objects and atomic local publication."""
 
 from __future__ import annotations

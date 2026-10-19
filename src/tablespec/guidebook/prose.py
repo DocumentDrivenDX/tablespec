@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Lightweight prose -> HTML formatter for UMF free-text fields.
 
 Used for ``survivorship.explanation`` and similar multi-paragraph fields

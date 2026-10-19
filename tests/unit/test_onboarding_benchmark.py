@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit gate for the 3-table onboarding authoring-reduction benchmark."""
 
 # @covers product-completeness onboarding metric harness

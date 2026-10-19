@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for SampleDataGenerator format handling changes."""
 
 # @covers US-013-AC1

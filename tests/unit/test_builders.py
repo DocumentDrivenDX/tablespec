@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-029-AC1
 """Unit tests for UMFBuilder DSL."""
 

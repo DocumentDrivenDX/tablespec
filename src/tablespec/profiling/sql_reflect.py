@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Spark-free UMF reflection from SQL catalog metadata (INFORMATION_SCHEMA).
 
 Consistent with the rest of tablespec, this module never opens a database

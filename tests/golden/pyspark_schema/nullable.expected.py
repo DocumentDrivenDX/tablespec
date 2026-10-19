@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # PySpark Schema for claims
 # Generated from UMF specification
 # Source file modified: 2025-01-15 10:30:00

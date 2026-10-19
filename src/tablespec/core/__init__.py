@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Core, framework-agnostic seam shared by every table-rendering backend.
 
 This package defines the contract that both the direct Databricks-artifact path

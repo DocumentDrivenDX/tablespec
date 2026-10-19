@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Golden file tests for schema generators.
 
 Each test case is a pair of files in tests/golden/<generator>/:

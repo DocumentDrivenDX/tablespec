@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Load and convert UMF between split and JSON formats.
 
 Split format: Directory structure for git-friendly development (default)

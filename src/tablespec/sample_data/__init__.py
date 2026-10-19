@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Sample data generation from UMF specifications.
 
 Generates realistic, relationship-aware, validation-compliant sample data

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Opt-in gating for the real-Databricks e2e tier (shipped, test-tree-free).
 
 The backbone's real-serverless leg is gated by :func:`databricks_e2e_availability`

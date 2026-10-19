@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for naming convention validation."""
 
 from __future__ import annotations

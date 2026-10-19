@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Shared inline CSS for guidebook pages.
 
 Kept in one place so the table renderer and index renderer produce visually

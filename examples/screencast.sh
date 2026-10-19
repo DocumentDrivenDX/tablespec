@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # tablespec screencast — the "director" script
 #
 # Records identically under VHS and asciinema.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Constraint validation and enforcement for sample data generation."""
 
 import logging

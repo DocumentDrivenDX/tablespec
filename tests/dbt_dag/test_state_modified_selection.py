@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Item (3) state_modified_ci -- functional tests for the changed-table selection.
 
 Proves the engine-agnostic :class:`~tablespec.core.selection.ChangeSet` derivation

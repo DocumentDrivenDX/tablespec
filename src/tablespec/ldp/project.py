@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate a Lakeflow Declarative Pipelines (LDP) project from a UMF set (PROTOTYPE).
 
 This is the EXPLORATORY sibling of ``tablespec.dbt.generate_dbt_dag_project``: it

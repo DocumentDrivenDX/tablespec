@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-032-AC1
 # @covers US-032-AC2
 """Tests for CTE mode in SQL plan generation."""

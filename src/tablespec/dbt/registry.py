@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Backward-compatibility re-export of the (now core) logical-plan registry.
 
 The IR builder ``NodeRegistry`` is framework-agnostic and is shared by every

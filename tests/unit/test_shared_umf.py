@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Official Python UMF ownership and native compiler integration."""
 
 import json

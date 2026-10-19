@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Configuration for sample data generation."""
 
 from dataclasses import dataclass, field

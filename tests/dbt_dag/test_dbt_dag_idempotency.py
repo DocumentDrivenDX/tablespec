@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """DAG-level runtime idempotency for the multi-table GOLD dbt project.
 
 The single-table idempotency suite (``tests/ingest_parity/test_dbt_idempotency``)

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Emit the EXISTING ``SampleDataGenerator`` output as dbt *seeds* (item 4).
 
 The generator (``tablespec.sample_data.engine.SampleDataGenerator``) WRITES real

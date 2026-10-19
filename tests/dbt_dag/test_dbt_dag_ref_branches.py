@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """LIVE DAG covering the non-trivial ref branches the member_claims e2e omits.
 
 The member_claims e2e exercises only bare same-pipeline ``gold -> ingested`` edges.

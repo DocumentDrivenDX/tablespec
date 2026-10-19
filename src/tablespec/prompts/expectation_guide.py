@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Expectation Guide Utilities - Helper functions for validation prompt generation.
 
 This module provides utilities for loading expectation categories, parameter requirements,

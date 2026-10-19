@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Structural + functional tests for the PROTOTYPE LDP emitter.
 
 LDP runs only on Databricks; there is no Databricks here, so these are JVM-free,

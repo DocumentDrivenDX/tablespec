@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Idempotency + incremental-write behaviour of the dbt(+duckdb) ingest path.
 
 These run the generated single-table dbt project against a live DuckDB (no JVM)

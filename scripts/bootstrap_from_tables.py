@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Path A demo: bootstrap runtime artifacts FROM EXISTING SPARK TABLES.
 
 Reflects (and, by default, profiles) one or more existing Spark tables into a UMF

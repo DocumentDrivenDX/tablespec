@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for safe_to_timestamp / safe_to_date and the _format_to_prefilter_regex helper."""
 
 # @covers US-037-AC1

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generic Spark session factory for Delta Lake support.
 
 This module provides a centralized way to create Spark sessions with Delta Lake

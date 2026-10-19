@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Key-candidate sidecar contract for bootstrap/compile artifacts."""
 
 from __future__ import annotations

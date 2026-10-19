@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Test consistency between expectation schemas, categories, and parameters.
 
 This test module ensures that:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tablespec consumes generated UMF structural metadata without executing refs."""
 
 from copy import deepcopy

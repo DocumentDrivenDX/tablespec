@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Asserted Path A e2e: existing tables -> reflect/profile -> compile -> backbone.
 
 Drives ``scripts/bootstrap_from_tables.main``: seeds an 'existing' Spark table from

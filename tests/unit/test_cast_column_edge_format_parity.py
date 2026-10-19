@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Cross-engine parity for the numeric date/time edge formats (epoch-ms, Excel-serial).
 
 ADR-007 follow-up "cast-edge-formats": the runtime PySpark casters

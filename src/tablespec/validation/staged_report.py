@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Adapters from staged validation execution into validation reports."""
 
 from __future__ import annotations

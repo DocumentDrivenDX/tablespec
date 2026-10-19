@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Type widening/narrowing rules for UMF schema evolution.
 
 Defines the lattice of safe (lossless) type promotions so that

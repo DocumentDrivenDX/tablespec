@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Main CLI commands for bounded sample-data generation and UC loading."""
 
 import json

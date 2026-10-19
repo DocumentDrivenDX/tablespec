@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Validate naming conventions in UMF schemas."""
 
 from __future__ import annotations

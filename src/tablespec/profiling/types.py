@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Profiling data types for schema analysis."""
 
 from __future__ import annotations

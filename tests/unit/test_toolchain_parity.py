@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Local/CI toolchain parity guards.
 
 The pre-commit CI gate runs ruff-format over (nearly) the whole repo with the

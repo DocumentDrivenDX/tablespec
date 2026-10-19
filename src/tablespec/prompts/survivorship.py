@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Survivorship prompt generator - Generates data survivorship mapping prompts."""
 
 import re

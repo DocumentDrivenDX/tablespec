@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Great Expectations Constraint Extractor for Phase 5 data generation.
 
 This module extracts enumerated value constraints from GX expectation suites

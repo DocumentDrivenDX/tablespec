@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Core helpers for reading expectation facts from dict UMF payloads.
 
 This stays inside ``tablespec.core`` so backends can consume expectation facts

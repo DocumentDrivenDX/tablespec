@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Docker-gated SQL Server 2022 lane for JDBC discovery + reading (FEAT-031).
 
 US-039's local test scenario: a SQL Server container loaded with a

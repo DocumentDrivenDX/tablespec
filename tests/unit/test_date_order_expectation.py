@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for ExpectColumnPairDateOrder custom GX expectation.
 
 Uses the standalone validate_column_pair_date_order() function to test

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The COMPILE ORCHESTRATOR: UMF set -> persisted runtime artifacts.
 
 There is NO single tablespec command that compiles a UMF into every runtime

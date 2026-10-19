@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate Great Expectations from a DataFrameProfile.
 
 This module converts profiling statistics into GX expectation dictionaries

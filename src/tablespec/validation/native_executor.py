@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Connect-safe native evaluation of GX expectations via the DataFrame API.
 
 GX 1.x's ``add_spark`` / ``SparkDFExecutionEngine`` path uses classic

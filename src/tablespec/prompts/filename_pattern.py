@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Filename pattern prompt generator - Generates prompts for extracting metadata from filenames."""
 
 import json

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Documentation prompt generator - Generates table documentation prompts."""
 
 from typing import Any

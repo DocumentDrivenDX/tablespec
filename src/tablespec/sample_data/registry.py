@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Key registry for managing primary and foreign keys across tables."""
 
 from collections import defaultdict

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Trusted component replay through the existing verified disk spool and sinks."""
 
 from copy import deepcopy

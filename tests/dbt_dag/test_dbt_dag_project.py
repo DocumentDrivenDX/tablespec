@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Phase 5: multi-table GOLD dbt project -- DAG audit + semantic equivalence.
 
 This exercises ``generate_dbt_dag_project`` end to end on a small FK-linked fixture

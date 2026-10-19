@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for domain type compatibility validation.
 
 Tests that domain types are only applied when compatible with the column's data_type,

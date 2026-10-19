@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Functional tests for roadmap item (1): relationships + accepted_values.
 
 These exercise the emitter over REAL UMF fixtures and assert on the PARSED YAML

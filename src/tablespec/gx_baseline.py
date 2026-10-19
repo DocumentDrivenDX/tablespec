@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate Great Expectations baseline expectations from UMF metadata.
 
 This module provides deterministic expectation generation from UMF schema files,

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Render dbt model *contracts* from engine-agnostic :class:`ColumnContract` facts.
 
 A dbt model contract is two coordinated pieces of project text:

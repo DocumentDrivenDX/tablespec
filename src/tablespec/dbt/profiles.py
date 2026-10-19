@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Render a parametrized dbt ``profiles.yml`` for the conformance harness.
 
 A single source of truth for the three adapter targets the generated dbt projects

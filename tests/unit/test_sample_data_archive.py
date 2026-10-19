@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Portable CSV pack export and CLI behavior, with no remote services."""
 
 import csv

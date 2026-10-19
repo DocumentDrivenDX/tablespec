@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for context_column-based conditional nullable expectation generation."""
 
 from __future__ import annotations

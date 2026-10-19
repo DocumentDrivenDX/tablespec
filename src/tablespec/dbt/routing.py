@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """How a UMF table's physical identity maps to dbt source / model routing.
 
 A UMF table has no first-class ``catalog.schema`` today, so routing is policy:

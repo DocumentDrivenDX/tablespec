@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Type mapping utilities for converting between different type systems."""
 
 from typing import TYPE_CHECKING

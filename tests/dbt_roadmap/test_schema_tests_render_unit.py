@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Direct unit tests for the dbt ``schema_tests`` YAML renderer.
 
 Covers the standalone render helpers, the ``data_tests:`` header behaviour, the

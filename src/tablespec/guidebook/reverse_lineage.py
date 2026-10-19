@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Forward-lineage (downstream consumer) index.
 
 Walks every discovered UMF once and inverts the derivation graph so each

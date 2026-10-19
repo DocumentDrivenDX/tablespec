@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Logical-plan IR: an explicit dependency graph built BEFORE rendering.
 
 The IR is the corrected design's foundation (per the adversarial review): decide

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the guidebook prose-to-HTML formatter."""
 
 from tablespec.guidebook.prose import format_prose

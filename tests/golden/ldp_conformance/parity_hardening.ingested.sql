@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 CREATE OR REFRESH MATERIALIZED VIEW ingested_parity_hardening
 (
   CONSTRAINT not_null_row_id EXPECT (row_id IS NOT NULL) ON VIOLATION FAIL UPDATE

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-033-AC2
 """Tests for custom domain pack registration and use in sample data generation (US-013 AC-3).
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Supported date and datetime formats for UMF specifications.
 
 This module defines all supported date/datetime formats and provides validation

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """SQL plan generation from UMF metadata and relationships.
 
 Generates pure SQL execution plans from UMF metadata for building derived tables

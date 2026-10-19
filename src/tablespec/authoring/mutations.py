@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pure functions for UMF mutations. Each takes a UMF and returns a new UMF."""
 
 from __future__ import annotations

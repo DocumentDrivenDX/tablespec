@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 /**
  * Production-baseURL link crawl + content validation for the microsite.
  *

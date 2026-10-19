@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Spark Connect (Sail) lane for native GX suite execution and TableValidator.
 
 GX 1.x's ``add_spark`` engine is classic-Spark only: it uses classic

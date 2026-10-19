@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for GX schema validator - expectation type validation, schema checks."""
 
 from __future__ import annotations

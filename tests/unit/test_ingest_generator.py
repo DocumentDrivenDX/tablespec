@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for the shared ingest SELECT seam + the direct Databricks emitter.
 
 These are pure-Python (no Spark, no dbt, no duckdb) and cover:

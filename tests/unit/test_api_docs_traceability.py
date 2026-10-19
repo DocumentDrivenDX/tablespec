@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """API documentation inventory coverage.
 
 @covers US-028-AC1

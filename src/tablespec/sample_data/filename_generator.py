@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Filename generation from UMF patterns."""
 
 import logging

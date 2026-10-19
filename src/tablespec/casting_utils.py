@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Shared utilities for format-aware Spark type casting.
 
 This module provides a single source of truth for casting operations used by both:

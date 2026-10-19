@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Functional + unit coverage for model contracts (item 2: model_contracts).
 
 These tests do NOT run dbt -- they assert the GENERATED contract text (config +

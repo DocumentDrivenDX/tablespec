@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Table validation using UMF specifications with DataFrame error reporting.
 
 The TableValidator module provides validation of PySpark DataFrames against

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate a committed raw->ingest SQL artifact from a UMF spec.
 
 The output is plain Spark SQL (Databricks/Delta dialect) with three parts:

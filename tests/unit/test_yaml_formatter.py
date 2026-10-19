@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-027-AC2
 """Test suite for YAML formatter (normalizer + yamlfix + postprocessor)."""
 

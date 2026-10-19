@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for sample_data.registry module - KeyRegistry."""
 
 import pytest

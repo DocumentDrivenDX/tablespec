@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """UMF data models for tablespec."""
 
 from tablespec.models.pipeline import (

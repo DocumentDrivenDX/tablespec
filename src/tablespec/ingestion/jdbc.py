@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """JDBC source reading (FEAT-031 JDBC-01..05 / ADR-015 decision points 4-6).
 
 tablespec never opens a database connection itself: :class:`JdbcReader` only

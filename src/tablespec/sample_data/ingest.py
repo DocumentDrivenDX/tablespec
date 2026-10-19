@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Explicit local CSV ingestion into the existing verified disk-backed spool."""
 
 from datetime import date, datetime

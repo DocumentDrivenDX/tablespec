@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Branch coverage for the dbt materialization policy and the two emitters.
 
 Pure-Python (no dbt/duckdb invocation). Targets the corrected-design decision

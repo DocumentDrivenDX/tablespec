@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Discover UMF specs from a live database via Spark's JDBC connector.
 
 FEAT-031 DISC-01..03 / ADR-015 decision point 6: ``JdbcToUmfMapper`` reads a

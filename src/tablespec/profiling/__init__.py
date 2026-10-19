@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Schema profiling and mapping utilities for tablespec.
 
 This module provides tools for profiling DataFrames and mapping results to UMF format.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The two compile ENTRY POINTS that produce the UMF set fed to the orchestrator.
 
 Both return ``list[UMF]`` so :func:`tablespec.e2e.compile.compile_umfs` is

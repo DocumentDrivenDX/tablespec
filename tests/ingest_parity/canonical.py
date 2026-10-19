@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Re-export shim: the canonicalizer now lives in ``tablespec.canonical``.
 
 The deterministic cross-engine canonicalizer MOVED into the shipped package

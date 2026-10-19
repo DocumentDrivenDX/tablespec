@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Great Expectations Suite Processor for Phase 4.
 
 Processes AI-generated GX expectation suites from Phase 3,

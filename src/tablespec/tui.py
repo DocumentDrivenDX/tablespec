@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Interactive TUI for UMF exploration and editing.
 
 .. warning:: **Experimental** — This module is governed by FEAT-023

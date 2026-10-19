@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """no_spark e2e matrix: the COMPILE -> BACKBONE bootstrap on the no-JVM backends.
 
 Parametrized across the two local backends that need NO JVM / JAVA_HOME:

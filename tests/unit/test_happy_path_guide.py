@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Happy-path docs coverage.
 
 @covers tablespec-390cbf1f AC1 AC2 AC3 AC4

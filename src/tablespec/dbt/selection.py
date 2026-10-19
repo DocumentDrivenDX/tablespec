@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Map an engine-agnostic :class:`ChangeSet` to a dbt ``--select`` expression.
 
 This is the ONLY dbt-aware piece of the ``state:modified``-style CI selection.

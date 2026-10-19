@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for domain type inference - DomainTypeRegistry and DomainTypeInference.
 
 Covers loading, lookup, validation specs, sample generators, and inference matching.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for the public cast dialect contract."""
 
 from __future__ import annotations

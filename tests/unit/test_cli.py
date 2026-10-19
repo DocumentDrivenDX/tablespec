@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the tablespec CLI (typer app)."""
 
 # @covers US-010-AC1

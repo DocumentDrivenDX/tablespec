@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Offline publication ports and native Spark/Delta and DuckDB metadata sinks."""
 
 from __future__ import annotations

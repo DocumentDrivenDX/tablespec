@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Suite-level GX execution with staged validation support.
 
 Executes entire expectation suites in a single batch pass via the GX Spark

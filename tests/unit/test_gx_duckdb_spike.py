@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Spike test: verify Great Expectations 1.6+ works with DuckDB.
 
 This spike intentionally uses pandas via DuckDB export -- not part of the

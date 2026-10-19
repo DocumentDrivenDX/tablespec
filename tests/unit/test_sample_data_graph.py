@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for sample_data.graph module - RelationshipGraph and TableNode."""
 
 import pytest

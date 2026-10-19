@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Per-column validation rule prompt generator.
 
 This module provides a unified interface for generating validation rule prompts

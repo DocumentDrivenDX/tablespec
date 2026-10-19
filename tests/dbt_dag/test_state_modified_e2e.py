@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Item (3) state_modified_ci -- e2e: the derived selection resolves in real dbt.
 
 UMF dirs -> ``core.selection.change_set`` -> ``dbt.selection.select_expression``

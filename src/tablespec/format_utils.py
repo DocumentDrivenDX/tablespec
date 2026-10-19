@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Format conversion utilities for UMF metadata.
 
 This module provides utilities to convert between different date/time format specifications,

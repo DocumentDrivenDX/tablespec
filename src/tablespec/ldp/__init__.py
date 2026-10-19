@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The LDP implementation package -- a PROTOTYPE sibling of the dbt emitter.
 
 This package is EXPLORATORY and clearly EXPERIMENTAL. It generates a Lakeflow

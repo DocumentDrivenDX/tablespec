@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """SQL-statement runtime helpers shared by the backbone and the conformance engines.
 
 These live in the shipped package (not the test tree) so the runtime backbone can

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Golden test of the generated LDP SQL for the multi-table fixture (PROTOTYPE).
 
 Asserts the emitted LDP SQL is byte-stable against committed goldens under

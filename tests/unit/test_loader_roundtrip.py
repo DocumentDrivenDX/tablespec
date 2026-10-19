@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Property-based roundtrip test: any valid UMF survives save then load through split format."""
 
 import pytest

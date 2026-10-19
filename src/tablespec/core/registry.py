@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Build the logical-plan IR and the physical-name -> node index from a UMF set.
 
 This is the corrected design's "IR FIRST" step. Given the whole table set we:

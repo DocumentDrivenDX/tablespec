@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Validate relationships between tables in UMF schemas."""
 
 from __future__ import annotations

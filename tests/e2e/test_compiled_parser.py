@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for the compiled-artifact parser (compile/runtime separation).
 
 The runtime backbone must derive its raw-load schema, projection order, table

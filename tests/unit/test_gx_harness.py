@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-029-AC1
 # @covers US-029-AC2
 """Tests for the GXTestHarness (FEAT-016).

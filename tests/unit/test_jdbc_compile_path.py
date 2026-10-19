@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """JDBC source kind compiles first-class (no live DB required)."""
 
 from __future__ import annotations

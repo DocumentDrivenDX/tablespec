@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Derive LDP EXPECTATIONS from UMF validation facts (PROTOTYPE).
 
 Lakeflow Declarative Pipelines (LDP / the DLT rebrand) expresses data-quality

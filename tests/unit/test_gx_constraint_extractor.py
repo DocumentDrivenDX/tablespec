@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for GXConstraintExtractor regex generator fixes."""
 
 # @covers US-006-AC1

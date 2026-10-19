@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the guidebook SQL formatter wrapper."""
 
 from tablespec.guidebook.sql_format import format_sql

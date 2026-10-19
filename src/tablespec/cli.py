@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tablespec CLI - UMF schema management and conversion.
 
 Examples:

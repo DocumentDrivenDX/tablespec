@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for CLI apply-response command."""
 
 from __future__ import annotations

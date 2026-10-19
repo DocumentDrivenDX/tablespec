@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """UMF Builder DSL for composable test fixtures.
 
 Provides a fluent builder API for constructing UMF objects in tests,

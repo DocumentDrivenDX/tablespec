@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Path B demo: bootstrap runtime artifacts FROM UMF SPEC FILES.
 
 Loads one or more UMF spec YAML files into a UMF set, COMPILES that set to runtime

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Quality check execution and management for post-ingestion data quality assessment."""
 
 from tablespec.quality.baseline_service import BaselineService

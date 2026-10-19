@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Output formatting utilities for applying UMF format specifications during export.
 
 This module provides utilities to format DataFrame columns based on UMF format specifications

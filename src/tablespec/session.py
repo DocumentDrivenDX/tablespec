@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Spark session management and capability probing.
 
 This module centralizes obtaining a Spark session and detecting per-session

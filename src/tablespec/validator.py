@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Core validation logic for UMF schemas.
 
 This module provides reusable validation functions used by:

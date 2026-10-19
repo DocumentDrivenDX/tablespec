@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Seed-emitter functional tests (item 4: sample_data_seeds) -- AC4.1, AC4.4.
 
 These prove the seed emitter (``tablespec.dbt.seeds``) consumes the REAL output of

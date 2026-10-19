@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Validation rule processor for GX-aware sample data generation."""
 
 import logging

@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 -- adapter: databricks
 -- artifact: parsed_model_body (dbt parse raw_code; not compiled)
 -- materialized: incremental

@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 CREATE OR REFRESH MATERIALIZED VIEW ingested_dates_formats
 (
   CONSTRAINT not_null_event_id EXPECT (event_id IS NOT NULL) ON VIOLATION FAIL UPDATE

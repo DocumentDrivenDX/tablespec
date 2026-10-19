@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-027-AC2
 """Unit tests for date_formats module - supported date/datetime format definitions."""
 

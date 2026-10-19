@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Render one UMF plus reverse-lineage data into a single HTML page.
 
 The output is intentionally self-contained: inline CSS, no JS frameworks, no

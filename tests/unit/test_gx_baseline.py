@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Test Great Expectations baseline expectation generation from UMF."""
 
 # @covers US-005-AC1

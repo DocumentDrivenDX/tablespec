@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Column-level validation prompt generator - Generates focused per-column validation prompts."""
 
 import logging

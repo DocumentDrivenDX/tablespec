@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for profiling mapper classes."""
 
 # @covers US-007-AC1

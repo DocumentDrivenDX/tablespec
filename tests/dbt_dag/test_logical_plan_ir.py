@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Direct unit tests for the logical-plan IR (tablespec.core.ir).
 
 The IR is framework-agnostic (no dbt, no SQL). These tests pin its primitives:

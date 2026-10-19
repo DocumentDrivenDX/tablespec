@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Integration tests: UMF import → sample data generation → validation pipeline.
 
 Tests the full end-to-end pipeline using Unity Catalog sample tables:

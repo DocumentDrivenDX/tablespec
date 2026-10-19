@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for SQL plan generation and relationship resolution from UMF metadata."""
 
 from __future__ import annotations

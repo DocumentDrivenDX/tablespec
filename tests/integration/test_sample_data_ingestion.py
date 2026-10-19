@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Execute generated Delta DDL and inserts on local Sail and classic Spark.
 
 Sail command results carry unsigned counts; use Arrow directly rather than

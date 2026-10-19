@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Multi-source ingestion (FEAT-031 / ADR-015): source readers + raw-header utilities.
 
 A :class:`SourceReader` turns a UMF ``source:`` spec (see

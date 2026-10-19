@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Apply individual UMF changes to create modified UMF versions.
 
 Provides functions to apply column, validation rule, and metadata changes

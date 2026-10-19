@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Materialization policy: decided on the IR graph, applied at render time.
 
 Corrected-design rules:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for the dbt DAG planner: fail-closed, cycles, materialization.
 
 These are pure-Python (no dbt/duckdb invocation) and assert the corrected-design

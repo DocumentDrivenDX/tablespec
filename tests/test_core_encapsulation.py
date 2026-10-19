@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Prove the dbt path is encapsulated: CORE never imports ``tablespec.dbt``.
 
 The check is STATIC (AST over the core source files), not a runtime side-effect

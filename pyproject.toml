@@ -1,14 +1,15 @@
 [build-system]
-requires = ["hatchling", "uv-dynamic-versioning"]
+requires = ["hatchling>=1.27,<2", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [project]
+license = "MIT OR Apache-2.0"
+license-files = ["LICENSE.md", "LICENSE-MIT", "LICENSE-APACHE"]
 name = "tablespec"
 dynamic = ["version"]
 description = "Python library for working with table schemas in Universal Metadata Format (UMF)"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "Apache-2.0"}
 authors = [
     {name = "Erik LaBianca", email = "erik.labianca@gmail.com"},
 ]
@@ -17,7 +18,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

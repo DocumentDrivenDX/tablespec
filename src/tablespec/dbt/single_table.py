@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate a dbt(+DuckDB) project that ingests a raw landing table per a UMF spec.
 
 This is the second emitter of the raw->ingest design. It shares the cast SELECT and

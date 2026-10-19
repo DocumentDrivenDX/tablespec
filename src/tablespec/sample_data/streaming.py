@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Disk-backed generation, FK selection, and constraint verification."""
 
 from collections.abc import Iterator

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Validate UMF schema completeness.
 
 This module validates that UMF schemas have:

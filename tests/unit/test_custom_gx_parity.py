@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-031-AC1
 # @covers US-031-AC2
 """Classic-Spark vs Sail-Connect PARITY for the four custom GX expectations.

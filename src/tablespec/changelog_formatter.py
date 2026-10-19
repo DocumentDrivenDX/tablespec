@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Format changelog entries for display and export."""
 
 from datetime import datetime

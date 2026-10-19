@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Setup script to install Spark 4.0 with JDK 21 for local development and testing.
 
 Downloads and configures:

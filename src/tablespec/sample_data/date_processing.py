@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Date format conversion and constraint extraction utilities for sample data generation."""
 
 from datetime import datetime

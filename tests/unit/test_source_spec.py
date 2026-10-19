@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the discriminated ``source:`` block (FEAT-031 SRC-01..05, JDBC-01).
 
 Covers: jdbc source validation with secret-ref credentials, the file_format

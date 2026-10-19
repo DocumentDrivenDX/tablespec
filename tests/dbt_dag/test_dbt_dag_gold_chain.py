@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """LIVE acyclic gold -> gold DAG: a downstream gold model depends on an upstream one.
 
 The member_claims e2e fixture only exercises gold -> ingested edges. This file

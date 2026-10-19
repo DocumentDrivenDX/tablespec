@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for pipeline dependency resolution."""
 
 # @covers US-020-AC1

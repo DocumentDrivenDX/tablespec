@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for ExpectColumnValuesToMatchDomainType custom GX expectation.
 
 Uses the standalone validate_domain_type() function to test domain type

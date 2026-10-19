@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """3-table onboarding authoring-reduction benchmark (PRD success metric).
 
 Times the *automated* Path B workflow used as the tablespec side of the

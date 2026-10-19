@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Seed e2e tests (item 4: sample_data_seeds) -- AC4.2, AC4.3, AC4.5.
 
 UMF set -> run the REAL ``SampleDataGenerator`` into a temp dir -> emit dbt seeds

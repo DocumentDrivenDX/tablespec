@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for CLI column mutation commands: column-add, column-remove, column-modify, column-rename."""
 
 import json

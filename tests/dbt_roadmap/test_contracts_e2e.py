@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Model-contract e2e/functional/integration tests (item 2: model_contracts).
 
 UMF -> generate dbt project (enforced contract: per-column ``data_type`` +

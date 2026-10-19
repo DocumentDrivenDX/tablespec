@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for Spark-free UMF reflection from INFORMATION_SCHEMA metadata.
 
 The Databricks Apps path: a SQL warehouse supplies rows, no SparkSession

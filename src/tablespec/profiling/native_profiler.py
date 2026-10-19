@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Profile a Spark DataFrame using native Spark SQL functions.
 
 Uses only standard Spark SQL aggregations (min, max, avg, stddev,

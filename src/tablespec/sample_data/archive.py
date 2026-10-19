@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Portable, deterministic CSV sample packs; generation remains disk backed."""
 
 import csv

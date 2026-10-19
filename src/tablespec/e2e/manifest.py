@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """On-disk artifact layout + the :class:`CompiledArtifacts` manifest.
 
 The e2e bootstrap COMPILES a tablespec (UMF) set into runtime artifacts and the

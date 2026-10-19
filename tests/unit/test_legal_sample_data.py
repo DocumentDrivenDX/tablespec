@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Legal generation properties and UC sink contract tests (no workspace)."""
 
 from pathlib import Path

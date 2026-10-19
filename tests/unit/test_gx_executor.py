@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for GXSuiteExecutor — suite-level GX execution with staged validation.
 
 Unit tests cover pure logic (dataclasses, classification, routing).

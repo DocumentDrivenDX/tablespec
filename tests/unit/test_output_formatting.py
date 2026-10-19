@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for output_formatting module.
 
 PySpark-dependent functions are tested for ImportError behavior when PySpark is unavailable.

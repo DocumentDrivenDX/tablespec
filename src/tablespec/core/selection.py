@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Engine-agnostic *changed-table set* over two UMF directory snapshots.
 
 This is the CORE seam feeding the dbt impacted-model CI selection

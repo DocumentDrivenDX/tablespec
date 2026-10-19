@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pure Python utilities for working with table schemas in UMF format."""
 
 from tablespec.gx_baseline import BaselineExpectationGenerator, UmfToGxMapper

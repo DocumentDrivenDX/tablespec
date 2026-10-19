@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Consumers should prefer ADR-005 ExpectationSuite over legacy fields."""
 
 from __future__ import annotations

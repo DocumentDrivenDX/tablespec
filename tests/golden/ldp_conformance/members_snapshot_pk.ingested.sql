@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 -- uniqueness intent: PRIMARY KEY (member_id) is NOT enforced by LDP (snapshot/full-reload dataset; LDP has no row-local UNIQUE expectation -- relies on the source being unique per key).
 CREATE OR REFRESH MATERIALIZED VIEW ingested_members
 (

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Shared fixtures for the e2e bootstrap platform matrix.
 
 The matrix runs the COMPILE -> BACKBONE bootstrap across three local execution

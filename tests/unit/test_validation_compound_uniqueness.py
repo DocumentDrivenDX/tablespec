@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Executable compound uniqueness validation behavior."""
 
 from __future__ import annotations

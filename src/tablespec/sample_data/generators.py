@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Healthcare-specific data generators for sample data generation.
 
 This module uses the standard `random` module for sample data generation,

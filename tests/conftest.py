@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pytest configuration for tablespec tests."""
 
 import json

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pure Python CLI for network-open fetch and network-isolated publish jobs."""
 
 from pathlib import Path

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for umf_change_applier: applying atomic changes to UMF objects."""
 
 import pytest

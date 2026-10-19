@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Generate changelog from git history for tablespecs."""
 
 from __future__ import annotations

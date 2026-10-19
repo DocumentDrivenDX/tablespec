@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 CREATE OR REFRESH STREAMING TABLE ingested_events
 AS SELECT
         event_type                                                                  AS event_type,

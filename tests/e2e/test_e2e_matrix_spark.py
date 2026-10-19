@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """spark_only e2e matrix: the COMPILE -> BACKBONE bootstrap on classic JVM Spark.
 
 The classic-Spark leg of the platform matrix. It compiles the SAME fixture UMF set

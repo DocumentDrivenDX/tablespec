@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """UMF Pydantic Models
 
 Type-safe models for Universal Metadata Format (UMF) files.

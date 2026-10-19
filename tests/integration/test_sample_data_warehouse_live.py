@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Explicit opt-in SQL warehouse qualification; never runs in default CI."""
 
 import os

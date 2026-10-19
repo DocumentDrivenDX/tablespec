@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Dynamic Foreign Key Pool Manager for relationship-driven synchronization.
 
 This module provides components for analyzing relationships in UMF files and

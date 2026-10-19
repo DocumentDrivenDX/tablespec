@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for QualityCheckExecutor expectation source selection."""
 
 from __future__ import annotations

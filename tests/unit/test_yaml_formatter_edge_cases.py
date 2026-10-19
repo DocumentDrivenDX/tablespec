@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Edge case tests for YAML formatter - file operations, sort_recursive, prepare_for_yaml.
 
 Covers format_yaml_file, format_yaml_files, sort_recursive with CommentedMap/CommentedSeq,

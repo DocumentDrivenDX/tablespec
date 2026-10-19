@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Acceptance test: run the full demo script and assert it exits cleanly.
 
 The demo script exercises the entire tablespec public API end-to-end,

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Engine-agnostic derivation of per-column *schema test facts* from a UMF table.
 
 This is the CORE seam that feeds the dbt ``schema.yml`` test emitter

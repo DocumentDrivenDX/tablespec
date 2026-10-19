@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """TableSpec's compiler binding; shared Python machinery is owned by UMF."""
 
 import hashlib

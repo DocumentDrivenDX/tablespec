@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Deterministic canonicalization of an ingested table for cross-engine parity.
 
 The same canonical form is used by the Spark baseline (Phase 1) and the later dbt

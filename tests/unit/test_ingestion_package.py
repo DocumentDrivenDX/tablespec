@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the tablespec.ingestion package (FEAT-031 SRC-01..05).
 
 Covers reader factory dispatch, encoding normalization, the raw-header

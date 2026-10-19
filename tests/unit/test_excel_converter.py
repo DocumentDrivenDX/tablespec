@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for Excel ↔ UMF bidirectional converter."""
 
 # @covers US-011-AC1

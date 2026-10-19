@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Schema Generators - SQL DDL, PySpark, and JSON Schema generation."""
 
 from datetime import datetime

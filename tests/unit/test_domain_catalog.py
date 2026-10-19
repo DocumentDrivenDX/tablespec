@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """All-pack semantics and replay use reviewed checks, not executable pack SQL."""
 
 from decimal import Decimal

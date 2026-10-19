@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Sync metadata columns and programmatic baseline validations.
 
 This module provides functionality to keep metadata columns and baseline validations

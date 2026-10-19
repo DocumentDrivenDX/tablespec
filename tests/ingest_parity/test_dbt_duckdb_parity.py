@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Phase 2 dbt(+DuckDB) parity check against the Spark baseline.
 
 For each committed fixture under ``tests/fixtures/ingest/`` this test:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Portable document-loader admission and verified, bounded publication reading."""
 
 from __future__ import annotations

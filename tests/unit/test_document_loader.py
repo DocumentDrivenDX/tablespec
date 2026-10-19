@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Document acquisition and offline sink evidence; never needs public-network access."""
 
 from contextlib import contextmanager

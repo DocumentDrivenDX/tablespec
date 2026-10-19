@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Direct unit tests for the engine-agnostic ``core.schema_facts`` derivation.
 
 These hit the core seam with no dbt involvement: relationships (with the

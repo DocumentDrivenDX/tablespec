@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for classify_validation_type() and validation type sets."""
 
 from __future__ import annotations

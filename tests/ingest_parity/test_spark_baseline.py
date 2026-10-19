@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Phase 1 Spark baseline for raw->ingest parity (the conformance ORACLE).
 
 For each ingest case in the unified corpus this test runs the

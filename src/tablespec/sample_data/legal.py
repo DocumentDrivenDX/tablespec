@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Seeded fabricated legal values and explicit row/parent correlations.
 
 Names are labeled synthetic. Codes are a small litigation UTBMS subset,

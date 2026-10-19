@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 CREATE OR REFRESH MATERIALIZED VIEW ingested_provider_directory
 (
   CONSTRAINT not_null_provider_npi EXPECT (provider_npi IS NOT NULL) ON VIOLATION FAIL UPDATE

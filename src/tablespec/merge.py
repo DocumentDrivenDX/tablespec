@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Merge multiple table files using Spark and UMF metadata."""
 
 from __future__ import annotations

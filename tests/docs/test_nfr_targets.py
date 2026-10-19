@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Regression coverage for measurable HELIX NFR targets."""
 
 from __future__ import annotations

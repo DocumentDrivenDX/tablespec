@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Trace the public Databricks docs for the alias contract.
 
 @covers tablespec-5e81f5e0 AC1 AC2

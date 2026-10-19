@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Relationship resolver that infers join sequence and strategies from UMF metadata.
 
 This module computes a metadata-driven plan for SQL generation without hardcoded

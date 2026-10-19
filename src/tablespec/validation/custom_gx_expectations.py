@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Custom Great Expectations for Spark-specific validation.
 
 This module provides custom GX expectations that validate actual Spark casting

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """End-to-end guidebook generation from a directory of UMFs.
 
 Discover every UMF under a root, render one self-contained HTML page per table,

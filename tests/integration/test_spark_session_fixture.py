@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Integration test proving the local ``spark_session`` fixture EXECUTES.
 
 The Spark truth-gate for this repo relies on a real, Delta-capable Spark

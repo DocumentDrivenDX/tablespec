@@ -279,7 +279,7 @@ Full documentation is available at [documentdrivendx.github.io/tablespec](https:
 
 ## License
 
-Apache License 2.0 - see LICENSE file for details.
+Dual-licensed under MIT OR Apache-2.0, at your option. See [LICENSE.md](LICENSE.md).
 
 ## Shared UMF Python documents
 

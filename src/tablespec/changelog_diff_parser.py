@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Parse YAML diffs to detect specific changes in validation rules, columns, and relationships."""
 
 from dataclasses import dataclass

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Shared backbone-matrix assertions reused by the spark + no_spark lanes.
 
 Both lanes compile the SAME fixture UMF set and run the SAME backbone; they differ

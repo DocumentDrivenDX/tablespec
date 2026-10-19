@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The backend-emitter seam: ``get_emitter(backend)`` -> a runnable project emitter.
 
 ADR-008 §4 item 6 (the opt-in execution wiring) is implemented on top of the

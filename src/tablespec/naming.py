@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Table naming utilities for canonical name, snake_case conversions, and position sorting."""
 
 import re

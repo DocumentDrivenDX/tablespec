@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Apply LLM-generated validation responses to UMF."""
 
 from __future__ import annotations

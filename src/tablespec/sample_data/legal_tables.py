@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Relational legal fixtures: disk-backed staffing and invoice aggregates.
 
 This module generates tabular records only; it defines no ontology.

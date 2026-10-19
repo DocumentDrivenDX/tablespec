@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Flat UMF discovery for the guidebook.
 
 Replaces pulseflow's pipeline-aware ``PipelineDiscovery`` with a simple

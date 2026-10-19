@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Run-selectable domain packs; registration never changes the default pack."""
 
 from dataclasses import dataclass

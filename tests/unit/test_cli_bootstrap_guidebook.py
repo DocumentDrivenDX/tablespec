@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """CLI acceptance for bootstrap (Path B) and guidebook empty-input UX."""
 
 from __future__ import annotations

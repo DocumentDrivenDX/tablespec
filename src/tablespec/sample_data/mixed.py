@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Explicit mixed-pack assembly: trusted generation plus fixed local source rows."""
 
 from copy import deepcopy

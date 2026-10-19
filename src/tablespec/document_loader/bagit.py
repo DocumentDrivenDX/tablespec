@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Bounded complete BagIt 1.0 SHA-256 handoffs (RFC 8493); no fetch.txt support."""
 
 from __future__ import annotations

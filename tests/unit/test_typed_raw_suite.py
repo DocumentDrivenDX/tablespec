@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Raw-suite typing for typed sources (FEAT-031 SUITE-01..03).
 
 Suite COMPOSITION branches on the UMF's declared ``source.kind``: sources

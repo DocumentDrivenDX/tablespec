@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Render dbt ``schema.yml`` generic tests from engine-agnostic schema facts.
 
 The derivation (which FK becomes a ``relationships`` test, which domain enum

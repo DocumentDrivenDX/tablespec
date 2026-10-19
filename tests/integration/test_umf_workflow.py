@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Integration tests for end-to-end UMF workflows."""
 
 from __future__ import annotations

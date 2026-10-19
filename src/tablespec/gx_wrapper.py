@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Centralized wrapper for Great Expectations interactions.
 
 Provides consistent GX initialization, validation, and expectation handling

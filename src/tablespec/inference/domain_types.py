@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Domain type inference system for UMF columns.
 
 This module provides automatic detection of domain types (e.g., us_state_code, email, phone_number)

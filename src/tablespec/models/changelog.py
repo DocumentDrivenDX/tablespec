@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Changelog models for tracking tablespec changes from git history."""
 
 from dataclasses import dataclass

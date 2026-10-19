@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for flat UMF discovery used by the guidebook generator."""
 
 from __future__ import annotations

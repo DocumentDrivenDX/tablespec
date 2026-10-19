@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Baseline service - High-level API for capturing and comparing run baselines.
 
 This service provides the functionality to:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Schema compatibility checking between UMF versions.
 
 Compares two :class:`~tablespec.models.umf.UMF` objects and produces a

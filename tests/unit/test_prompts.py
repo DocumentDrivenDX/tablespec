@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for the prompts module - prompt generators for LLM interactions."""
 
 # @covers US-008-AC1

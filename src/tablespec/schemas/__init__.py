@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Schema generation utilities for UMF metadata.
 
 This package is part of the dbt-free CORE. It deliberately does NOT import

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Branch coverage for NodeRegistry internals not hit by the e2e/DAG tests.
 
 Pure-Python. Targets the registry's name-resolution and classification edges:

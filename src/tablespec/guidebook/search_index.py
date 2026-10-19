@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pre-built search index for the guidebook.
 
 Emits a flat ``search_index.json`` next to the generated HTML — one entry per

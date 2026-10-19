@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """tablespec demo — end-to-end walkthrough of the library's capabilities.
 
 Requires: tablespec[spark]  (uv sync --extra spark)

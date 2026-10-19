@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Parse the runtime-relevant schema out of the COMPILED artifacts.
 
 The runtime BACKBONE must consume only persisted compiled artifacts, never the

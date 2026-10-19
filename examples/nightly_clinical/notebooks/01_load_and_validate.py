@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Nightly clinical load — raw → ingested → gate

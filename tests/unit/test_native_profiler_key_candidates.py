@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for bounded composite key inference in the native profiler."""
 
 from __future__ import annotations

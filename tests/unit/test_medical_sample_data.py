@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Official medical fixtures use the shared source ingestion and CSV pack path."""
 
 import csv

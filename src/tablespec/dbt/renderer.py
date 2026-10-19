@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The dbt implementation of the core :class:`TableRenderer` seam.
 
 ``DbtRefRenderer`` turns a physical relation name the SQL generator wants to

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Public one-shot bootstrap helpers.
 
 Path A — existing Spark tables → reflect (+ optional profile) → compile.

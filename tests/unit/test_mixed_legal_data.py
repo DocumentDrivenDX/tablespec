@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Mixed legal source fidelity and private processing boundaries."""
 
 import csv

@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 -- uniqueness intent: PRIMARY KEY (claim_id) is enforced by APPLY CHANGES ... KEYS (latest-per-key upsert).
 CREATE OR REFRESH STREAMING TABLE ingested_claims
 (

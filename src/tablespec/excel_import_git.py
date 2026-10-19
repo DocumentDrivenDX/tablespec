@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Handle git commits during Excel import with review notes."""
 
 from datetime import UTC, datetime

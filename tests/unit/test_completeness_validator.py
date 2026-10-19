@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for completeness_validator module."""
 
 from tablespec.completeness_validator import (

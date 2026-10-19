@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The LDP implementation of the core :class:`TableRenderer` seam (PROTOTYPE).
 
 ``LdpRefRenderer`` turns a physical relation name the SQL generator wants to

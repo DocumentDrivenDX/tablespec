@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Cross-engine cast parity for the PROTOTYPE LDP emitter.
 
 Proves the LDP ingested-dataset cast bodies are the SHARED cast layer

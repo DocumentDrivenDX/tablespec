@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Regression tests for the documented public dialect contract."""
 
 from __future__ import annotations

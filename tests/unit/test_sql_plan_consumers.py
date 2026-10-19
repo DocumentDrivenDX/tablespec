@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Consumer wiring for the PR-18 model fields in SQL plan generation.
 
 Covers: base_table_filter, base_join_column, final_filter, final_dedup,

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Top-level and per-group index pages.
 
 When the discovery root has subfolders, output nests as ``<group>/<table>.html``

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Excel ↔ UMF bidirectional converter with strict validation.
 
 Enables round-trip conversion between Excel workbooks and UMF schemas.

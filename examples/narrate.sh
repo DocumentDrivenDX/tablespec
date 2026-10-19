@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Full pipeline: generate voice clips, record screencast with asciinema,
 # convert to MP4, merge narration audio aligned to actual scene timestamps.
 #

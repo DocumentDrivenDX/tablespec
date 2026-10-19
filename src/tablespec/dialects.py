@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Shared dialect validation and normalization helpers.
 
 This module centralizes the accepted dialect spellings used by the cast and dbt

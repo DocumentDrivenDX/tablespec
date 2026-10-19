@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tests for Hypothesis strategies producing valid UMF data.
 
 Verifies that the composable strategies in tests/strategies.py

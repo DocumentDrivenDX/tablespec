@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-012-AC1
 # @covers US-012-AC2
 # @covers US-012-AC3

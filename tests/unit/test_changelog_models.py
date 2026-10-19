@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for changelog models: ChangeType, ChangeDetail, ChangeEntry."""
 
 # @covers US-014-AC1

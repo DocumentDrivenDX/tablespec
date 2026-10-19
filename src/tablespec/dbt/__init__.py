@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The dbt implementation package -- all dbt-specific generation lives here.
 
 Encapsulation contract:

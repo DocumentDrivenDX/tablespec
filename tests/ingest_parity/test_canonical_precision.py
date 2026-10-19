@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for the extended canonicalization contract (Phase 2).
 
 These assert the configurable-timestamp-precision + explicit-timezone behavior of

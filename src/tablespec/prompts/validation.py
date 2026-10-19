@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Validation prompt generator - Generates Great Expectations validation prompts."""
 
 import json

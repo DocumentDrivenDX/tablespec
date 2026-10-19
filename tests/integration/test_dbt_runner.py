@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """End-to-end test for the dbt runnable-product target (ADR-008 §4 item 6).
 
 Proves the opt-in execution wiring: ``get_emitter('dbt')`` + :class:`DbtRunner`

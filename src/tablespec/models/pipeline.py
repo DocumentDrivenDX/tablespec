@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Pipeline metadata models for dependency resolution.
 
 Provides Pydantic models for pipeline.yaml files that declare

@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 -- uniqueness intent: PRIMARY KEY (claim_id) is NOT enforced by LDP (snapshot/full-reload dataset; LDP has no row-local UNIQUE expectation -- relies on the source being unique per key).
 -- relationship intent: member_id -> ingested_member.member_id (referential integrity needs the parent dataset; not a row-local EXPECT).
 CREATE OR REFRESH MATERIALIZED VIEW gold_enriched

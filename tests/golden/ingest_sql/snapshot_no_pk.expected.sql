@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT OR Apache-2.0
 -- ============================================================================
 -- Ingest plan: raw_provider_directory -> ingested_provider_directory
 -- ============================================================================

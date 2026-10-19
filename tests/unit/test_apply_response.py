@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # @covers US-036-AC2
 """Tests for LLM response applier."""
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Numeric value-sets must validate on the typed (ingested) stage, not raw strings.
 
 A profiled low-cardinality NUMERIC column yields an

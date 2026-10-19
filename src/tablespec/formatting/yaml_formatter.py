@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unified YAML formatter using pure ruamel.yaml for consistent, idempotent formatting.
 
 This module provides a high-level API for formatting YAML files with:

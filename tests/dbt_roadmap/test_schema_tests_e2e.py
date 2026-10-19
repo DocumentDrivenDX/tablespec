@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """E2E: relationships + accepted_values generic tests against REAL dbt + duckdb.
 
 UMF -> generate dbt project -> load real raw CSVs into duckdb -> ``dbt build``

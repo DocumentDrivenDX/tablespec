@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unity Catalog SQL port and adapters; no credential handling in tablespec."""
 
 from collections.abc import Callable

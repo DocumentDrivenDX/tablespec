@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Asserted Path B e2e: specs -> compile -> backbone (consumes only artifacts).
 
 Drives the same ``scripts/bootstrap_from_specs.main`` the demo runs and asserts the

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Unit tests for Dynamic Foreign Key Pool Manager.
 
 Tests the relationship-driven foreign key synchronization system using

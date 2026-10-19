@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Relationship prompt generator - Generates FK relationship detection prompts."""
 
 import logging

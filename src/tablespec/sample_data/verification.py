@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Tabular SQL audits shared by local generation and UC read-back."""
 
 from collections.abc import Callable

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """SQL pretty-printer for derivation expressions.
 
 Thin wrapper around ``sqlparse.format`` so multi-line CASE statements and

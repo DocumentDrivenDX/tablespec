@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Prompt generation utilities for creating AI prompts from UMF metadata."""
 
 from .column_validation import (

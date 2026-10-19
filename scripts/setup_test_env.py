@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Resolve a PySpark-compatible JAVA_HOME for the test/check environment.
 
 PySpark 4.0 runs on a JVM but does NOT work on every JDK: recent JDKs (e.g.

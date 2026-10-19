@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """PREMIS 3 semantic mapping and PROV-O JSON-LD for verified source revisions.
 
 This JSON profile maps PREMIS data-dictionary units; it is not PREMIS XML.
