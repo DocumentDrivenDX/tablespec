@@ -352,3 +352,25 @@ def test_same_domain_qualified_key_uses_local_target(
         assert any("missing_referenced_column" in e for e in errors)
     else:
         assert not errors
+
+
+@pytest.mark.parametrize("filename", ["domain.yaml", "glossary.yaml"])
+def test_yaml_syntax_errors_report_domain_load_and_preserve_siblings(
+    tmp_path: Path, filename: str
+) -> None:
+    _corpus(tmp_path)
+    domain = tmp_path / "claims"
+    if filename == "glossary.yaml":
+        declaration = domain / "domain.yaml"
+        declaration.write_text(declaration.read_text() + "glossary: glossary.yaml\n")
+    malformed = domain / filename
+    malformed.write_text("invalid: [\n")
+
+    # Discovery remains usable for guidebook and scope resolution callers.
+    assert set(discover_domains(tmp_path)) == {"eligibility"}
+    run = validate_domain_scopes(tmp_path)
+    failures = [f for f in run.report.errors if f.rule == "DOM-LOAD"]
+    assert len(failures) == 1
+    assert failures[0].domain == "claims"
+    assert str(malformed) in failures[0].message
+    assert "eligibility" in run.domains
