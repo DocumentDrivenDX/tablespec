@@ -150,12 +150,13 @@ def load_domain_dir(domain_dir: Path) -> LoadedDomain:
 def find_domain_dirs(root: Path) -> list[Path]:
     """Return the immediate child directories of ``root`` that hold a ``domain.yaml``.
 
-    ``root`` itself is included when it holds one (a single-domain checkout).
+    When ``root`` holds a declaration (a single-domain checkout), only it is
+    returned: declarations beneath it cannot establish nested domains.
     """
     root = Path(root).resolve()
     dirs: list[Path] = []
     if (root / DOMAIN_FILENAME).is_file():
-        dirs.append(root)
+        return [root]
     for child in sorted(root.iterdir()):
         if child.is_dir() and (child / DOMAIN_FILENAME).is_file():
             dirs.append(child)
@@ -212,18 +213,22 @@ class DomainScope:
     covers_root: bool = False
 
 
-def _owning_domain_dir(start: Path) -> Path | None:
-    """Nearest directory at or above ``start`` holding a ``domain.yaml``.
+def owning_domain_dir(start: Path) -> Path | None:
+    """Outermost directory at or above ``start`` holding a ``domain.yaml``.
+
+    Nested declarations belong to the outer domain and cannot establish a
+    second ownership scope, whichever path the caller starts from.
 
     The search stops at a repository root (a directory containing ``.git``)
     so a stray ``domain.yaml`` far up the filesystem is never adopted.
     """
-    current = start
+    current = Path(start).resolve()
+    owner = None
     while True:
         if (current / DOMAIN_FILENAME).is_file():
-            return current
+            owner = current
         if (current / ".git").exists() or current.parent == current:
-            return None
+            return owner
         current = current.parent
 
 
@@ -242,7 +247,7 @@ def resolve_domain_scopes(path: Path) -> list[DomainScope]:
     path = Path(path).resolve()
     start = path if path.is_dir() else path.parent
 
-    owner = _owning_domain_dir(start)
+    owner = owning_domain_dir(start)
     if owner is not None:
         domains = discover_domains(owner.parent)
         loaded = domains.get(owner.name)
@@ -290,5 +295,6 @@ __all__ = [
     "is_pruned_dir",
     "iter_table_dirs",
     "load_domain_dir",
+    "owning_domain_dir",
     "resolve_domain_scopes",
 ]

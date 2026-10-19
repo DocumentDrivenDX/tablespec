@@ -25,7 +25,7 @@ class RelationshipValidator:
         self.errors: list[tuple[str, str]] = []
 
     def validate_foreign_keys(
-        self, umf: UMF, all_tables: dict[str, UMF]
+        self, umf: UMF, all_tables: dict[str, UMF], *, owning_domain: str | None = None
     ) -> list[tuple[str, str]]:
         """Validate foreign key relationships.
 
@@ -65,15 +65,22 @@ class RelationshipValidator:
                 )
                 continue
 
+            # Domain rules resolve cross-domain targets against the sibling
+            # domains' exported tables. This local lookup must still check the
+            # source column above, and all unqualified/same-domain targets.
+            if owning_domain and fk.target_domain and fk.target_domain != owning_domain:
+                continue
+            target_table = fk.target_table if owning_domain else fk.references_table
+
             # Check referenced table exists
-            ref_table = all_tables.get(fk.references_table.lower())
+            ref_table = all_tables.get(target_table.lower())
             if not ref_table:
                 # Try with aliases
                 ref_table = next(
                     (
                         t
                         for t in all_tables.values()
-                        if fk.references_table.lower()
+                        if target_table.lower()
                         in [a.lower() for a in (t.aliases or [])]
                     ),
                     None,
@@ -171,13 +178,15 @@ class RelationshipValidator:
         return errors
 
     def validate_all_relationships(
-        self, tables: list[UMF]
+        self, tables: list[UMF], *, owning_domain: str | None = None
     ) -> dict[str, list[tuple[str, str]]]:
         """Validate all relationships in a set of tables.
 
         Args:
         ----
             tables: List of UMF schemas to validate
+            owning_domain: If set, defer cross-domain target validation to the
+                domain validator; source columns and local targets still validate.
 
         Returns:
         -------
@@ -196,7 +205,9 @@ class RelationshipValidator:
         results = {}
         for umf in tables:
             errors = []
-            errors.extend(self.validate_foreign_keys(umf, all_tables))
+            errors.extend(
+                self.validate_foreign_keys(umf, all_tables, owning_domain=owning_domain)
+            )
             errors.extend(self.validate_incoming_relationships(umf, all_tables))
             if errors:
                 results[umf.table_name] = errors

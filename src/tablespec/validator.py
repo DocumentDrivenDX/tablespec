@@ -32,6 +32,7 @@ from tablespec.domains import (
     DomainScope,
     iter_table_dirs,
     load_domain_dir,
+    owning_domain_dir,
     resolve_domain_scopes,
 )
 from tablespec.models.domain import DomainLoadError
@@ -291,10 +292,13 @@ def validate_table(
                             f"Expectation {i} ({exp_type}): Referenced table '{other_table_name}' does not exist"
                         )
 
-        # 6. Validate relationships when multiple tables present
-        if len(all_umf_tables) > 1:
+        # 6. Validate local relationships; domain rules resolve external targets.
+        owner = owning_domain_dir(table_dir if table_dir.is_dir() else table_dir.parent)
+        if len(all_umf_tables) > 1 or owner is not None:
             rel_validator = RelationshipValidator()
-            rel_errors = rel_validator.validate_all_relationships(all_umf_tables)
+            rel_errors = rel_validator.validate_all_relationships(
+                all_umf_tables, owning_domain=owner.name if owner else None
+            )
             for table_name, error_list in rel_errors.items():
                 for error_type, message in error_list:
                     errors.append(

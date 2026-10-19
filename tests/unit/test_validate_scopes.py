@@ -11,10 +11,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from tablespec.cli import app
-from tablespec.domains import iter_table_dirs, resolve_domain_scopes
+from tablespec.domains import discover_domains, iter_table_dirs, resolve_domain_scopes
 from tablespec.models.umf import ForeignKey, Relationships
 from tablespec.umf_loader import UMFLoader
 from tablespec.validator import (
@@ -267,3 +268,87 @@ def test_cli_baseline_without_domains_prints_a_note(tmp_path: Path) -> None:
         ["validate", str(tmp_path / "new"), "--baseline", str(tmp_path / "old")],
     )
     assert "no domain.yaml" in result.output
+
+
+@pytest.mark.parametrize("spelling", ["domain", "pipeline", "qualified"])
+def test_cross_domain_key_with_local_sibling_preserves_local_checks(
+    tmp_path: Path, spelling: str
+) -> None:
+    """A supplier target is resolved by domain rules, not the local sibling set."""
+    claims = _claims()
+    fk = claims.relationships.foreign_keys[0]
+    if spelling == "pipeline":
+        fk.references_domain = None
+    elif spelling == "qualified":
+        fk.references_domain = None
+        fk.references_pipeline = None
+        fk.references_table = "eligibility.member"
+    _corpus(tmp_path, claims=claims)
+    local = UMFBuilder("local").column("id", "VARCHAR").build()
+    UMFLoader().save(local, tmp_path / "claims" / "local")
+    results = validate_pipeline(tmp_path, ValidationContext(), check_completeness=False)
+    assert all(not errors for errors in results.values()), results
+    assert validate_domain_scopes(tmp_path).report.ok
+
+    claims.relationships.foreign_keys.append(
+        ForeignKey(
+            column="member_id", references_table="missing", references_column="id"
+        )
+    )
+    UMFLoader().save(claims, tmp_path / "claims" / "medical_claims")
+    results = validate_pipeline(tmp_path, ValidationContext(), check_completeness=False)
+    assert any(
+        "missing_referenced_table" in e for e in results["claims/medical_claims"]
+    )
+    assert not any(
+        "Referenced table 'member' not found" in e
+        for e in results["claims/medical_claims"]
+    )
+
+
+def test_cross_domain_key_still_checks_source_column(tmp_path: Path) -> None:
+    claims = _claims()
+    claims.relationships.foreign_keys[0].column = "missing"
+    _corpus(tmp_path, claims=claims)
+    results = validate_pipeline(tmp_path, ValidationContext(), check_completeness=False)
+    assert any("missing_source_column" in e for e in results["claims/medical_claims"])
+
+
+def test_nested_declaration_does_not_change_table_ownership(tmp_path: Path) -> None:
+    _corpus(tmp_path)
+    nested = tmp_path / "claims" / "inner"
+    nested.mkdir()
+    (nested / "domain.yaml").write_text("name: inner\nexports: [missing]\n")
+    nested_table = _claims()
+    nested_table.table_name = "nested_claim"
+    UMFLoader().save(nested_table, nested / "nested_claim")
+    # Nested tables retain the outer domain's declared supplier edge.
+    for path in (nested, nested / "nested_claim"):
+        (scope,) = resolve_domain_scopes(path)
+        assert scope.root == tmp_path
+        assert scope.in_scope == {"claims"}
+        assert set(scope.domains) == {"claims", "eligibility"}
+        assert validate_domain_scopes(path).report.ok
+
+    assert set(discover_domains(tmp_path / "claims")) == {"claims"}
+
+
+@pytest.mark.parametrize("target_column", ["claim_id", "missing"])
+def test_same_domain_qualified_key_uses_local_target(
+    tmp_path: Path, target_column: str
+) -> None:
+    claims = _claims()
+    claims.relationships.foreign_keys = [
+        ForeignKey(
+            column="claim_id",
+            references_table="claims.medical_claims",
+            references_column=target_column,
+        )
+    ]
+    _corpus(tmp_path, claims=claims)
+    results = validate_pipeline(tmp_path, ValidationContext(), check_completeness=False)
+    errors = results["claims/medical_claims"]
+    if target_column == "missing":
+        assert any("missing_referenced_column" in e for e in errors)
+    else:
+        assert not errors
