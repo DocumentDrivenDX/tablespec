@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Cross-domain validation rules: exports, suppliers, cross-domain keys, glossary.
 
 These rules need a view across many domain directories, which the per-table

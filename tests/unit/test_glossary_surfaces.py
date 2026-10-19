@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Glossary terms surface in the guidebook and the documentation prompt."""
 
 # @covers US-052-AC5

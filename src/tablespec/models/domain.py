@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Domain metadata models: the bounded-context unit for a set of UMF tables.
 
 A *domain* is a directory of UMF tables that share an owner, a glossary, and an

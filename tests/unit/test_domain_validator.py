@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Cross-domain validation: exports, suppliers, cross-domain keys, glossary."""
 
 # @covers US-051-AC1

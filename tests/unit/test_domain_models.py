@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Domain metadata models, glossary loading, and the FK domain fields."""
 
 # @covers US-051-AC1

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """`validate <path>` has one behavior: every table under the path, plus the
 domain rules for whatever domain.yaml applies to it. There is no mode.
 

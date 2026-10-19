@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Guidebook domain map page (context map rendered from domain.yaml)."""
 
 # @covers US-051-AC5

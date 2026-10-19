@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """`tablespec validate <root>` applies the domain rules when domain.yaml directories are beneath it."""
 
 # @covers US-051-AC4

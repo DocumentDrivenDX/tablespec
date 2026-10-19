@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Domain map page: the context map rendered from ``domain.yaml`` files.
 
 When the guidebook root contains domain directories (see

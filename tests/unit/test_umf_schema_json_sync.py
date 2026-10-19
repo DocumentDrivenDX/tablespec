@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """The checked-in UMF JSON schema must match the Pydantic model.
 
 ``src/tablespec/schemas/umf.schema.json`` is a generated artifact that nothing

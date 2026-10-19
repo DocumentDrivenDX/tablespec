@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Discover domains (bounded contexts) and resolve which ones a path covers.
 
 A domain is any directory that contains a ``domain.yaml`` (see

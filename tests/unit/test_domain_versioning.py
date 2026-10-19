@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
 """Published-language versioning: version ranges, pins, baseline diff, DOM-COMPAT."""
 
 # @covers US-052-AC1
