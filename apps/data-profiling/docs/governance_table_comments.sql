@@ -213,7 +213,7 @@ ALTER TABLE <catalog>.<Schema>.column_alerts
 
 
 -- =============================================================================
--- STEP 7: Column comments — column_comparisons
+-- STEP 7: Column comments — column_comparisons for columns
 -- =============================================================================
 
 ALTER TABLE <catalog>.<Schema>.column_comparisons
