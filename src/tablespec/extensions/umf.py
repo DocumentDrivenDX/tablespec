@@ -39,10 +39,17 @@ class _VocabularyLike(Protocol):
     version: str
 
 
+class _ModuleLike(Protocol):
+    """Mutable module extension map exposed by the generated UMF model."""
+
+    extensions: dict[str, Any] | None
+
+
 class _DocumentLike(Protocol):
     """Static view of the generated UMF 0.10 model used by this adapter."""
 
     vocabularies: Mapping[str, _VocabularyLike]
+    modules: list[_ModuleLike]
 
     def checked_copy(self) -> Self: ...
 
