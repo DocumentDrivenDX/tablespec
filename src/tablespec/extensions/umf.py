@@ -5,7 +5,7 @@ import hashlib
 import json
 from copy import deepcopy
 from importlib.resources import files
-from typing import Any
+from typing import Any, Mapping, Protocol, Self, cast
 
 from pydantic import BaseModel, ConfigDict
 from umf import (
@@ -33,6 +33,20 @@ NATIVE_TO_SCALAR = {
     "BOOLEAN": "boolean",
 }
 SHARED_COLUMN = ("name", "description", "title", "aliases")
+
+
+class _VocabularyLike(Protocol):
+    version: str
+
+
+class _DocumentLike(Protocol):
+    """Static view of the generated UMF 0.10 model used by this adapter."""
+
+    vocabularies: Mapping[str, _VocabularyLike]
+
+    def checked_copy(self) -> Self: ...
+
+    def to_dict(self) -> dict[str, Any]: ...
 
 
 class PipelinePayload(BaseModel):
@@ -104,7 +118,7 @@ def pipeline_registry() -> Registry:
     return registry
 
 
-def from_legacy(data: dict, *, document_id: str | None = None) -> Document:
+def from_legacy(data: dict, *, document_id: str | None = None) -> _DocumentLike:
     """Migrate the raw mapping without normalizing it through Pydantic defaults."""
     data = deepcopy(data)
     name = data.pop("table_name")
@@ -134,20 +148,23 @@ def from_legacy(data: dict, *, document_id: str | None = None) -> Document:
             element["scalarType"] = scalar
         element["extensions"][EXTENSION_ID] = {"metadata": metadata}
         elements.append(element)
-    return Document.model_validate(
-        {
-            "umf": current_core_version(),
-            "id": document_id or name,
-            "vocabularies": {EXTENSION_ID: {"version": EXTENSION_VERSION}},
-            "modules": [
-                {
-                    "id": "table",
-                    "namespace": name,
-                    "elements": elements,
-                    "extensions": {EXTENSION_ID: {"metadata": data}},
-                }
-            ],
-        }
+    return cast(
+        _DocumentLike,
+        Document.model_validate(
+            {
+                "umf": current_core_version(),
+                "id": document_id or name,
+                "vocabularies": {EXTENSION_ID: {"version": EXTENSION_VERSION}},
+                "modules": [
+                    {
+                        "id": "table",
+                        "namespace": name,
+                        "elements": elements,
+                        "extensions": {EXTENSION_ID: {"metadata": data}},
+                    }
+                ],
+            }
+        ),
     )
 
 
@@ -160,7 +177,7 @@ def _metadata(node: dict) -> dict:
     return deepcopy(payload["metadata"])
 
 
-def to_legacy(document: Document) -> dict:
+def to_legacy(document: _DocumentLike) -> dict:
     """Derive the compiler view; refuse relevant semantics without a binding."""
     document = document.checked_copy()
     validation = validate_document(document, pipeline_registry())
@@ -230,7 +247,7 @@ def to_legacy(document: Document) -> dict:
     return table
 
 
-def compiler_view(document: Document):
+def compiler_view(document: _DocumentLike):
     """Return a native validated view retaining the authoritative shared document."""
     from tablespec.models.umf import UMF, UMFColumn
 
@@ -262,7 +279,7 @@ def compiler_view(document: Document):
     return view
 
 
-def document_from_view(view) -> Document:
+def document_from_view(view) -> _DocumentLike:
     if view._shared_document is not None:
         current = view.model_dump(mode="json", exclude_none=True)
         if current != view._shared_snapshot:
@@ -273,7 +290,7 @@ def document_from_view(view) -> Document:
     return from_legacy(view.model_dump(mode="json", exclude_none=True))
 
 
-def _fingerprint(document: Document) -> str:
+def _fingerprint(document: _DocumentLike) -> str:
     data = document.to_dict()
     data.get("extensions", {}).pop(ARCHIVE_ID, None)
     data["vocabularies"].pop(ARCHIVE_ID, None)
@@ -283,7 +300,7 @@ def _fingerprint(document: Document) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def retain_sources(document: Document, files: dict[str, str]) -> Document:
+def retain_sources(document: _DocumentLike, files: dict[str, str]) -> _DocumentLike:
     """Retain exact UTF-8 legacy files for explicit unchanged-source rollback."""
     data = document.to_dict()
     snapshot = _fingerprint(document)
@@ -293,10 +310,10 @@ def retain_sources(document: Document, files: dict[str, str]) -> Document:
         "snapshot": snapshot,
         "filesSha256": _files_hash(files),
     }
-    return Document.model_validate(data)
+    return cast(_DocumentLike, Document.model_validate(data))
 
 
-def recover_sources(document: Document) -> dict[str, str]:
+def recover_sources(document: _DocumentLike) -> dict[str, str]:
     """Recover original file strings; refuse to represent edited meaning as old source."""
     document = document.checked_copy()
     archive = document.to_dict().get("extensions", {}).get(ARCHIVE_ID)
