@@ -166,6 +166,10 @@ def spark_session():
             "spark.default.parallelism": "2",
             "spark.dynamicAllocation.enabled": "false",
             "spark.sql.shuffle.partitions": "2",
+            # This suite executes many local native joins under a bounded
+            # runner heap. Avoid building broadcast tables that have caused
+            # driver OOMs in the domain-pack ingestion matrix.
+            "spark.sql.autoBroadcastJoinThreshold": "-1",
             "spark.executor.cores": "1",
             "spark.executor.instances": "1",
             "spark.ui.enabled": "false",
