@@ -599,6 +599,33 @@ class UMFColumnDerivation(BaseModel):
         default=None,
         description="Survivorship strategy for selecting among candidates",
     )
+    output_expression: str | None = Field(
+        default=None,
+        description="SQL expression over this table's OTHER OUTPUT columns (bare "
+        "names), computed in a projection over the final assembly instead of "
+        "from base/joined columns. Lets a column build on a sibling (e.g. an "
+        "override applied to a priority-chain column) without repeating its "
+        "expression. Output expressions may reference each other (resolved in "
+        "dependency order; cycles are an error) and run before final_filter / "
+        "final_dedup, which can therefore reference them. Mutually exclusive "
+        "with candidates.",
+    )
+
+    @model_validator(mode="after")
+    def validate_output_expression_exclusive(self) -> "UMFColumnDerivation":
+        """An output expression replaces candidate-based derivation."""
+        if self.output_expression is not None:
+            if not self.output_expression.strip():
+                msg = "output_expression cannot be empty"
+                raise ValueError(msg)
+            if self.candidates:
+                msg = (
+                    "output_expression and candidates are mutually exclusive: an "
+                    "output expression is computed from the table's own output "
+                    "columns, not from source candidates"
+                )
+                raise ValueError(msg)
+        return self
 
     @model_validator(mode="after")
     def validate_candidates_not_empty(self) -> "UMFColumnDerivation":

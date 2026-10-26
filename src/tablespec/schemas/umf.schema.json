@@ -2728,6 +2728,19 @@
           ],
           "default": null,
           "description": "Survivorship strategy for selecting among candidates"
+        },
+        "output_expression": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SQL expression over this table's OTHER OUTPUT columns (bare names), computed in a projection over the final assembly instead of from base/joined columns. Lets a column build on a sibling (e.g. an override applied to a priority-chain column) without repeating its expression. Output expressions may reference each other (resolved in dependency order; cycles are an error) and run before final_filter / final_dedup, which can therefore reference them. Mutually exclusive with candidates.",
+          "title": "Output Expression"
         }
       },
       "title": "UMFColumnDerivation",
