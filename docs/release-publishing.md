@@ -1,0 +1,5 @@
+# PyPI release path
+
+The existing tag workflow continues to build and verify the Tablespec package, GitHub release assets, Pages index, and Pages installation, but now stages the GitHub release as a draft. It attaches a SHA256 manifest binding the wheel and source distribution to the exact tag, source commit, and `tablespec` package metadata. An owner publishes the draft only after the existing release and domain qualification gates are satisfied. `publish-pypi.yml` then verifies the published release is immutable and checks the exact source, package metadata, full asset inventory, and GitHub asset hashes before requesting PyPI OIDC upload. Its manual backfill accepts only an existing immutable release and applies the same checks.
+
+Configure PyPI Trusted Publishing for this repository and `.github/workflows/publish-pypi.yml` with environment `pypi`; enable immutable releases in GitHub repository settings. Uploads fail closed if either configuration or immutable release evidence is absent. The website's npm dependencies are build tooling; this repository currently declares no npm package to publish.

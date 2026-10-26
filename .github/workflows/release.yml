@@ -86,6 +86,13 @@ jobs:
           echo "Built packages:"
           ls -1 dist/
 
+      - name: Bind artifacts to tag and source
+        run: |
+          python scripts/verify_release_artifacts.py create-manifest \
+            --dist-dir dist --output dist/release-manifest.json \
+            --tag "$GITHUB_REF_NAME" --repository "$GITHUB_REPOSITORY" \
+            --source-commit "$GITHUB_SHA" --package tablespec
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -142,7 +149,7 @@ jobs:
         with:
           files: dist/*
           body_path: release_notes.md
-          draft: false
+          draft: true
           prerelease: ${{ contains(steps.release_notes.outputs.tag, 'rc') || contains(steps.release_notes.outputs.tag, 'alpha') || contains(steps.release_notes.outputs.tag, 'beta') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
