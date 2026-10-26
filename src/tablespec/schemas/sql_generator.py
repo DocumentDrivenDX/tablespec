@@ -1591,14 +1591,21 @@ SELECT {pk_col} FROM {_UNION_UNIVERSE_VIEW};"""
                     break
 
             if not join_col:
+                join_col = self._explicit_aggregate_source_key(table_umf, source_table)
+            if not join_col:
                 join_col = self._infer_join_column_from_umf(source_table)
             if not join_col:
-                self.logger.warning(
-                    f"Could not determine join column for {source_table} aggregation"
+                # raising beats warning: skipping the view still left its
+                # LEFT JOIN in the plan, which only failed at runtime
+                msg = (
+                    f"{table_umf.table_name}: cannot determine the join column for "
+                    f"the {source_table} pre-aggregation (give {source_table} a "
+                    "primary key, or set metadata.base_join_column on the target "
+                    "to a column both tables share)"
                 )
-                continue
+                raise ValueError(msg)
 
-            pk_col = table_umf.primary_key[0] if table_umf.primary_key else "id"
+            pk_col = self._aggregate_join_key(table_umf)
             resolved_table = self._resolve_table_name(source_table)
             derived_cols = self._get_derived_columns_for_source(source_table)
 
@@ -1680,7 +1687,11 @@ SELECT {pk_col} FROM {_UNION_UNIVERSE_VIEW};"""
                 expression_raw = spec.get("expression", "")
                 expression = self._substitute_template_vars(expression_raw)
 
-                if self._is_complex_aggregate_expression(expression):
+                if self._is_complex_aggregate_expression(expression) or (
+                    expression and src_col == "*" and func != "COUNT"
+                ):
+                    # no `column:` to rebuild from -- the expression is the
+                    # aggregate (else a bare MIN(seq) rendered as MIN(*))
                     agg_columns.append(f"  {expression} AS {col_name}")
                 elif func == "COUNT":
                     agg_columns.append(f"  COUNT(*) AS {col_name}")
@@ -1798,6 +1809,40 @@ GROUP BY {col_prefix}{join_col};"""
                 self._agg_view_source_columns[group_view_name] = source_col
 
         return sections
+
+    def _explicit_aggregate_source_key(
+        self, table_umf: UMF, source_table: str
+    ) -> str | None:
+        """Group an aggregated source by ``base_join_column`` when it has it.
+
+        Only when the target names the key explicitly: the source is then
+        grouped on the same-named column instead of its inferred (first
+        primary-key) column, so a composite-key source still rolls up per key.
+        """
+        metadata = table_umf.metadata
+        key = metadata.base_join_column if metadata else None
+        if not key:
+            return None
+        _, bare = _parse_table_ref(source_table)
+        umf = self._related_umfs.get(source_table) or self._related_umfs.get(bare)
+        if umf is None or not umf.columns:
+            return None
+        return key if any(c.name == key for c in umf.columns) else None
+
+    @staticmethod
+    def _aggregate_join_key(table_umf: UMF) -> str:
+        """Key a pre-aggregation view is grouped on and joined back by.
+
+        ``metadata.base_join_column`` wins over the primary key, the same
+        override the base view honors. It lets a target whose grain is not
+        unique on the key (several rows per key, so no honest primary key)
+        still pull per-key aggregates from another table inline: the view is
+        GROUP BY that key and LEFT JOINed back to every base row carrying it.
+        """
+        metadata = table_umf.metadata
+        if metadata and metadata.base_join_column:
+            return metadata.base_join_column
+        return table_umf.primary_key[0] if table_umf.primary_key else "id"
 
     def _generate_window_aggregation_view(
         self,
@@ -2604,7 +2649,7 @@ LEFT JOIN {table_alias}_first target
         table_umf: UMF,
     ) -> str:
         """Generate SQL for joining a pre-aggregation view."""
-        pk_col = table_umf.primary_key[0] if table_umf.primary_key else "id"
+        pk_col = self._aggregate_join_key(table_umf)
 
         base_column_selections = [
             f"base.{col}" for col in sorted(self._accumulated_columns.keys())
@@ -2743,13 +2788,22 @@ LEFT JOIN {agg_view_name} agg
         """Generate the final SELECT with column derivations and survivorship."""
         column_mappings: list[str] = []
 
+        output_order: list[str] = []
+        output_exprs: dict[str, str] = {}
         for col_def in _output_ordered_columns(table_umf.columns):
             col_name = _physical_column_name(col_def)
             derivation = col_def.derivation
             data_type = (col_def.data_type or "STRING").upper()
             column_default = col_def.default
+            output_order.append(col_name)
 
-            if derivation:
+            if derivation and derivation.output_expression:
+                # computed in the output projection below, over the other
+                # output columns -- not part of the inner SELECT
+                output_exprs[col_name] = self._substitute_template_vars(
+                    derivation.output_expression.strip()
+                )
+            elif derivation:
                 mapping = self._generate_column_mapping(
                     col_name, derivation, base_table, data_type, column_default
                 )
@@ -2771,6 +2825,7 @@ LEFT JOIN {agg_view_name} agg
                 sanitized = self._sanitize_alias(table_alias)
                 prefixed = f"{sanitized}__{prov_col}"
                 column_mappings.append(f"  base.{prefixed} AS {prefixed}")
+                output_order.append(prefixed)
 
         column_mappings_str = ",\n".join(column_mappings)
 
@@ -2820,6 +2875,11 @@ CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
 -- ============================================================================
 CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
 
+        if output_exprs:
+            inner = self._output_projection(
+                table_name, inner, output_exprs, output_order
+            )
+
         if final_filter is None and dedup_select is None and not qualify_clause:
             return f"{header}\n{inner};"
 
@@ -2830,6 +2890,53 @@ CREATE OR REPLACE TEMPORARY VIEW {table_name} AS"""
 FROM (
 {inner}
 ) _final{where_clause}{qualify_clause};"""
+
+    @staticmethod
+    def _output_projection(
+        table_name: str,
+        inner: str,
+        output_exprs: dict[str, str],
+        output_order: list[str],
+    ) -> str:
+        """Wrap the final assembly in projections that compute output expressions.
+
+        Each ``derivation.output_expression`` references other output columns
+        by bare name. Expressions are layered in dependency order (one
+        projection per layer, so a layer can only see columns computed below
+        it); the outermost SELECT restores the declared column order.
+        """
+        literal = re.compile(r"'(?:[^'\\]|\\.|'')*'")
+        deps: dict[str, set[str]] = {}
+        for name, expr in output_exprs.items():
+            bare = literal.sub("''", expr)
+            deps[name] = {
+                other
+                for other in output_exprs
+                if other != name
+                and re.search(rf"(?<![\w.`]){re.escape(other)}(?![\w`])", bare, re.I)
+            }
+            if re.search(rf"(?<![\w.`]){re.escape(name)}(?![\w`])", bare, re.I):
+                msg = f"{table_name}.{name}: output_expression references itself"
+                raise ValueError(msg)
+
+        layers: list[list[str]] = []
+        done: set[str] = set()
+        while len(done) < len(output_exprs):
+            ready = [n for n in output_exprs if n not in done and deps[n] <= done]
+            if not ready:
+                cycle = sorted(n for n in output_exprs if n not in done)
+                msg = f"{table_name}: output_expression cycle among {cycle}"
+                raise ValueError(msg)
+            layers.append(ready)
+            done.update(ready)
+
+        sql = inner
+        for i, layer in enumerate(layers):
+            alias = f"_out{i}"
+            computed = ",\n".join(f"  {output_exprs[n]} AS {n}" for n in layer)
+            sql = f"SELECT\n  {alias}.*,\n{computed}\nFROM (\n{sql}\n) {alias}"
+        ordered = ",\n".join(f"  {n}" for n in output_order)
+        return f"SELECT\n{ordered}\nFROM (\n{sql}\n) _out"
 
     @staticmethod
     def _final_dedup_select_clause(metadata: Any) -> str | None:
