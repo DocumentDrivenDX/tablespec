@@ -66,6 +66,9 @@ tui = [
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/tablespec"]
+
 [tool.hatch.metadata]
 allow-direct-references = true
 

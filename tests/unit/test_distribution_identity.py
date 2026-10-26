@@ -36,9 +36,13 @@ def test_release_verifier_requires_umf_distribution_name(tmp_path):
 
 
 def test_project_keeps_tablespec_import_and_cli_names():
-    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    project = config["project"]
     assert project["name"] == "umf-tablespec"
     assert project["scripts"]["tablespec"] == "tablespec.cli:app"
+    assert config["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == [
+        "src/tablespec"
+    ]
 
 
 def test_release_workflows_bind_both_package_identities():
