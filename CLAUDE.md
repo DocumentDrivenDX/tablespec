@@ -54,7 +54,7 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
 - `date_formats.py` - Shared date and timestamp format constants.
 - `dependency_resolver.py` - Dependency and relation resolution helpers.
 - `domains.py`, `domain_validator.py` - Domain (bounded-context) discovery from `domain.yaml` and cross-domain rules: exports, suppliers, cross-domain keys, glossary terms. Models live in `models/domain.py`.
-- `excel_converter.py` / `excel_import_git.py` - Excel import/export helpers.
+- `excel_converter.py` / `excel_import_git.py` - Excel import/export helpers (need the `[excel]` extra; resolve converters via `excel_support.py`).
 - `gx_baseline.py`, `gx_constraint_extractor.py`, `gx_schema_validator.py`, `gx_wrapper.py` - Great Expectations integration entrypoints.
 - `merge.py`, `relationship_validator.py`, `completeness_validator.py`, `validator.py` - Validation and merge orchestration.
 - `naming.py`, `naming_validator.py`, `type_lattice.py`, `type_mappings.py` - Naming and type-system utilities.
@@ -73,6 +73,8 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
   - Install: `uv sync --extra duckdb`
 - **`[tui]`** - Textual support for the optional terminal UI.
   - Install: `uv sync --extra tui`
+- **`[excel]`** - openpyxl for the UMF <-> Excel review-workbook round-trip (`excel_converter.py`, `export-excel` / `import-excel`).
+  - Install: `uv sync --extra excel`
 
 ## Development Workflow
 

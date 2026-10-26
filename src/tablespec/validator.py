@@ -36,7 +36,7 @@ from tablespec.domains import (
     resolve_domain_scopes,
 )
 from tablespec.models.domain import DomainLoadError
-from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
+from tablespec.excel_support import excel_converters
 from tablespec.expectation_utils import expectation_dicts_from_umf
 from tablespec.models import UMF, save_umf_to_yaml
 from tablespec.naming_validator import validate_naming_conventions
@@ -655,7 +655,8 @@ def export_table_to_excel(
     umf = context.load_umf(table_dir)
 
     # Convert to Excel
-    converter = UMFToExcelConverter()
+    umf_to_excel, _ = excel_converters()
+    converter = umf_to_excel()
     workbook = converter.convert(umf)
 
     # Delete existing file if force is True (openpyxl doesn't fully overwrite)
@@ -692,7 +693,8 @@ def import_table_from_excel(
         context = ValidationContext()
 
     # Convert from Excel (returns UMF and review notes)
-    converter = ExcelToUMFConverter()
+    _, excel_to_umf = excel_converters()
+    converter = excel_to_umf()
     new_umf, review_notes = converter.convert(source)
 
     # Load old UMF BEFORE saving (if committing) - for in-memory comparison
