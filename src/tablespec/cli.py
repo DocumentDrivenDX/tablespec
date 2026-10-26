@@ -29,7 +29,7 @@ from rich.console import Console
 from rich.table import Table as RichTable
 import typer
 
-from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
+from tablespec.excel_support import excel_converters
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
 from tablespec.dialects import CAST_DIALECTS
 from tablespec.umf_loader import UMFFormat, UMFLoader
@@ -714,7 +714,8 @@ def export_excel(
 
         # Convert to Excel
         console.print("[cyan]Creating Excel workbook[/cyan]...")
-        excel_converter = UMFToExcelConverter()
+        umf_to_excel, _ = excel_converters()
+        excel_converter = umf_to_excel()
         workbook = excel_converter.convert(umf)
 
         # Delete existing file if force is True (openpyxl doesn't fully overwrite)
@@ -771,7 +772,8 @@ def import_excel(
     try:
         # Convert from Excel
         console.print(f"[cyan]Loading Excel workbook[/cyan] from {source}...")
-        converter = ExcelToUMFConverter()
+        _, excel_to_umf = excel_converters()
+        converter = excel_to_umf()
         umf, _metadata = converter.convert(source)  # Unpack tuple
 
         # Check if destination exists

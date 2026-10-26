@@ -29,6 +29,7 @@ Top-level layout:
 - `authoring/` - Apply-response models and mutation/preview helpers for authoring flows.
 - `core/` - Shared IR, relation, registry, selection, and schema-fact primitives.
 - `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
+- `document_loader/` - Native document acquisition and offline verified publication (fetch, BagIt export/validation, fixity, DuckDB/Spark metadata sinks).
 - `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
 - `extensions/` - Tablespec-owned pipeline and source-archive metadata extensions over shared UMF.
 - `formatting/` - YAML formatting helpers and shared formatting constants.
@@ -54,7 +55,7 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
 - `date_formats.py` - Shared date and timestamp format constants.
 - `dependency_resolver.py` - Dependency and relation resolution helpers.
 - `domains.py`, `domain_validator.py` - Domain (bounded-context) discovery from `domain.yaml` and cross-domain rules: exports, suppliers, cross-domain keys, glossary terms. Models live in `models/domain.py`.
-- `excel_converter.py` / `excel_import_git.py` - Excel import/export helpers.
+- `excel_converter.py` / `excel_import_git.py` - Excel import/export helpers (need the `[excel]` extra; resolve converters via `excel_support.py`).
 - `gx_baseline.py`, `gx_constraint_extractor.py`, `gx_schema_validator.py`, `gx_wrapper.py` - Great Expectations integration entrypoints.
 - `merge.py`, `relationship_validator.py`, `completeness_validator.py`, `validator.py` - Validation and merge orchestration.
 - `naming.py`, `naming_validator.py`, `type_lattice.py`, `type_mappings.py` - Naming and type-system utilities.
@@ -73,6 +74,8 @@ Flat modules at the package root hold the remaining cross-cutting helpers and CL
   - Install: `uv sync --extra duckdb`
 - **`[tui]`** - Textual support for the optional terminal UI.
   - Install: `uv sync --extra tui`
+- **`[excel]`** - openpyxl for the UMF <-> Excel review-workbook round-trip (`excel_converter.py`, `export-excel` / `import-excel`).
+  - Install: `uv sync --extra excel`
 
 ## Development Workflow
 

@@ -210,7 +210,7 @@ class TestExportExcel:
         assert result.exit_code != 0
 
     @patch("tablespec.cli.UMFLoader")
-    @patch("tablespec.cli.UMFToExcelConverter")
+    @patch("tablespec.excel_converter.UMFToExcelConverter")
     def test_export_success(self, mock_converter_cls, mock_loader_cls, tmp_path):
         """Successful export creates file."""
         source = tmp_path / "test.umf.yaml"
@@ -231,7 +231,7 @@ class TestExportExcel:
         mock_workbook.save.assert_called_once_with(dest)
 
     @patch("tablespec.cli.UMFLoader")
-    @patch("tablespec.cli.UMFToExcelConverter")
+    @patch("tablespec.excel_converter.UMFToExcelConverter")
     def test_export_force_overwrites(
         self, mock_converter_cls, mock_loader_cls, tmp_path
     ):
@@ -266,7 +266,7 @@ class TestImportExcel:
         )
         assert result.exit_code != 0
 
-    @patch("tablespec.cli.ExcelToUMFConverter")
+    @patch("tablespec.excel_converter.ExcelToUMFConverter")
     @patch("tablespec.cli.UMFLoader")
     def test_import_dest_exists_no_force(
         self, mock_loader_cls, mock_converter_cls, tmp_path
@@ -288,7 +288,7 @@ class TestImportExcel:
         flat_output = " ".join(result.output.split())
         assert "already exists" in flat_output
 
-    @patch("tablespec.cli.ExcelToUMFConverter")
+    @patch("tablespec.excel_converter.ExcelToUMFConverter")
     @patch("tablespec.cli.UMFLoader")
     def test_import_success(self, mock_loader_cls, mock_converter_cls, tmp_path):
         """Successful import saves UMF."""
@@ -309,7 +309,7 @@ class TestImportExcel:
         assert "Done" in result.output
         mock_loader.save.assert_called_once()
 
-    @patch("tablespec.cli.ExcelToUMFConverter")
+    @patch("tablespec.excel_converter.ExcelToUMFConverter")
     def test_import_validation_error(self, mock_converter_cls, tmp_path):
         """ValidationError from converter is handled."""
         source = tmp_path / "test.xlsx"
@@ -411,7 +411,7 @@ class TestDomainsInfer:
 class TestImportExcelForceOverwrite:
     """Test import-excel with --force flag."""
 
-    @patch("tablespec.cli.ExcelToUMFConverter")
+    @patch("tablespec.excel_converter.ExcelToUMFConverter")
     @patch("tablespec.cli.UMFLoader")
     def test_import_force_removes_existing_dir(
         self, mock_loader_cls, mock_converter_cls, tmp_path
@@ -435,7 +435,7 @@ class TestImportExcelForceOverwrite:
         assert result.exit_code == 0
         mock_loader.save.assert_called_once()
 
-    @patch("tablespec.cli.ExcelToUMFConverter")
+    @patch("tablespec.excel_converter.ExcelToUMFConverter")
     def test_import_file_not_found_error(self, mock_converter_cls, tmp_path):
         """FileNotFoundError from converter is handled."""
         source = tmp_path / "test.xlsx"
@@ -450,7 +450,7 @@ class TestImportExcelForceOverwrite:
         assert result.exit_code != 0
         assert "Error" in result.output
 
-    @patch("tablespec.cli.ExcelToUMFConverter")
+    @patch("tablespec.excel_converter.ExcelToUMFConverter")
     def test_import_generic_exception(self, mock_converter_cls, tmp_path):
         """Generic exception from converter is handled."""
         source = tmp_path / "test.xlsx"

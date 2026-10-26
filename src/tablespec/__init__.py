@@ -81,7 +81,6 @@ from tablespec.compatibility import (
 )
 from tablespec.bootstrap import bootstrap_from_specs, bootstrap_from_tables
 from tablespec.guidebook import generate as generate_guidebook
-from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter
 from tablespec.inference.domain_types import DomainTypeInference, DomainTypeRegistry
 from tablespec.sample_data import GenerationConfig, SampleDataGenerator
 from tablespec.umf_diff import UMFDiff
@@ -167,9 +166,6 @@ __all__ = [
     "UMFColumnDerivation",
     "ValidationRule",
     "ValidationRules",
-    # -- Excel Conversion --
-    "UMFToExcelConverter",
-    "ExcelToUMFConverter",
     # -- Split-Format UMF --
     "UMFLoader",
     "UMFFormat",
@@ -215,4 +211,13 @@ try:
     __all__.extend(["SparkSessionFactory", "create_delta_spark_session"])
 except ImportError:
     # pyspark not available - Spark factory won't be exported
+    pass
+
+# Excel round-trip is available only if openpyxl is installed (via tablespec[excel])
+try:
+    from tablespec.excel_converter import ExcelToUMFConverter, UMFToExcelConverter  # noqa: F401
+
+    __all__.extend(["UMFToExcelConverter", "ExcelToUMFConverter"])
+except ImportError:
+    # openpyxl not available - Excel converters won't be exported
     pass

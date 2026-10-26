@@ -28,7 +28,6 @@ dependencies = [
     "pydantic>=2.0.0,<3.0.0",
     "pyyaml>=6.0.0,<7.0.0",
     "great-expectations>=1.6.0,<2.0.0",
-    "openpyxl>=3.1.0",
     # typer 0.26.0 dropped its click dependency and the click-type bridge
     # (cli.py passes click_type=click.Choice and imports click directly).
     "typer>=0.9.0,<0.26.0",
@@ -44,6 +43,10 @@ dependencies = [
 tablespec = "tablespec.cli:app"
 
 [project.optional-dependencies]
+# UMF <-> Excel review-workbook round-trip (tablespec.excel_converter,
+# `tablespec export-excel` / `import-excel`). Opt-in: most consumers never use
+# spreadsheets.
+excel = ["openpyxl>=3.1.0"]
 databricks = ["databricks-sdk>=0.117.0,<1.0.0"]
 spark = [
     "pyspark>=4.0.0,<5.0.0",
@@ -74,6 +77,8 @@ fallback-version = "0.0.0"
 
 [dependency-groups]
 dev = [
+    # Excel round-trip tests run in every dev env (the extra is opt-in for users)
+    "openpyxl>=3.1.0",
     "pytest>=8.4.2",
     "pytest-cov>=6.0.0",
     "anyio>=4.0.0",
