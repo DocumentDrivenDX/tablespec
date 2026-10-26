@@ -291,6 +291,10 @@ def test_domain_catalog_native_queries_and_replacement(
             expected = [
                 [normalized(value) for value in row] for row in check["expected"]
             ]
+            if "ORDER BY" not in check["sql"].upper():
+                # No ORDER BY = no defined row order; partitioned engines
+                # (Spark local[2]) legitimately return rows in any order.
+                actual, expected = sorted(actual, key=repr), sorted(expected, key=repr)
             assert actual == expected, check["id"]
         for name, spec in data.specs.items():
             columns = [c["name"] for c in spec["columns"]]

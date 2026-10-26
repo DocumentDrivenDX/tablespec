@@ -43,6 +43,7 @@ from tests.conformance.engines import (
     DbtDatabricksCompileEngine,
     _databricks_compile_availability,
 )
+from tests.golden_text import read_golden
 
 # dbt's file-backed logger and the databricks adapter close their handles lazily
 # during GC; the resulting ResourceWarning would be escalated by the suite-wide
@@ -142,7 +143,7 @@ def test_databricks_parse_golden(case: Case) -> None:
         f"databricks parse golden missing for '{case.id}': {golden}. "
         f"Regenerate with UPDATE_DATABRICKS_GOLDEN=1."
     )
-    expected = golden.read_text()
+    expected = read_golden(golden)
     assert parsed == expected, (
         f"databricks parsed model body for '{case.id}' drifted from the parse golden "
         f"(regenerate with UPDATE_DATABRICKS_GOLDEN=1 if intended).\n"

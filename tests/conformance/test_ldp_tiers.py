@@ -44,6 +44,7 @@ from tests.conformance.engines import (
     LdpDatabricksE2EEngine,
     LdpStructureEngine,
 )
+from tests.golden_text import read_golden
 
 pytestmark = [pytest.mark.no_spark]
 
@@ -157,7 +158,7 @@ def test_ldp_structure_golden(case: Case) -> None:
         f"LDP structure golden missing for '{case.id}': {golden}. "
         f"Regenerate with UPDATE_LDP_STRUCTURE_GOLDEN=1."
     )
-    assert emitted == golden.read_text(), (
+    assert emitted == read_golden(golden), (
         f"LDP ingested-dataset SQL for '{case.id}' drifted from its structure golden "
         f"(regenerate with UPDATE_LDP_STRUCTURE_GOLDEN=1 if intended)."
     )

@@ -68,6 +68,13 @@ def _configure_local_spark_env() -> bool:
     os.environ["JAVA_HOME"] = str(java_home)
     os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
     os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
+    # The whole pytest process shares ONE local JVM: whichever test launches it
+    # first (the conformance engine, the JDBC lane, or the spark_session
+    # fixture) fixes the driver heap, and later getOrCreate() calls silently
+    # ignore spark.driver.memory. Pin it at launch for every path, matching the
+    # factory's 4g -- the default 1g heap OOMed the sample-data ingestion suite
+    # in CI, and every Spark test after it then failed "Connection refused".
+    os.environ.setdefault("PYSPARK_SUBMIT_ARGS", "--driver-memory 4g pyspark-shell")
     return True
 
 

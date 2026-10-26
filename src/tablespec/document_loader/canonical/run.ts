@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
 // @bun
 var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
