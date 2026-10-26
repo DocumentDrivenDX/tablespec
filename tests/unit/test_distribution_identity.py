@@ -43,6 +43,8 @@ def test_project_keeps_tablespec_import_and_cli_names():
     assert config["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == [
         "src/tablespec"
     ]
+    package_init = (ROOT / "src/tablespec/__init__.py").read_text()
+    assert '__version__ = _get_version("umf-tablespec")' in package_init
 
 
 def test_release_workflows_bind_both_package_identities():

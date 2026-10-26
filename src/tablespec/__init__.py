@@ -89,7 +89,7 @@ from tablespec.umf_loader import UMFFormat, UMFLoader
 
 from importlib.metadata import version as _get_version
 
-__version__ = _get_version("tablespec")
+__version__ = _get_version("umf-tablespec")
 
 __all__ = [
     # -- Core UMF I/O & Models --

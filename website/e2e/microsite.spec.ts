@@ -91,8 +91,8 @@ test.describe('Getting Started', () => {
 
     await test.step('documents uv and pip install paths', async () => {
       const body = await page.locator('body').textContent()
-      expect(body).toContain('uv add tablespec')
-      expect(body).toContain('pip install tablespec')
+      expect(body).toContain('uv add umf-tablespec')
+      expect(body).toContain('pip install umf-tablespec')
     })
 
     await test.step('covers UMF loading and compile path', async () => {
