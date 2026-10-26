@@ -29,6 +29,7 @@ Top-level layout:
 - `authoring/` - Apply-response models and mutation/preview helpers for authoring flows.
 - `core/` - Shared IR, relation, registry, selection, and schema-fact primitives.
 - `dbt/` - dbt project renderers, routing, seeds, registry, and runner wrappers.
+- `document_loader/` - Native document acquisition and offline verified publication (fetch, BagIt export/validation, fixity, DuckDB/Spark metadata sinks).
 - `e2e/` - Compile UMF inputs into runtime artifacts and execute the end-to-end backbone.
 - `extensions/` - Tablespec-owned pipeline and source-archive metadata extensions over shared UMF.
 - `formatting/` - YAML formatting helpers and shared formatting constants.
