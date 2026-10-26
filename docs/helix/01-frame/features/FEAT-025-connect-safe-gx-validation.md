@@ -106,7 +106,7 @@ VAL-CONNECT-09. When GX returns FEWER results than were fed (same-type collation
 
 ## Constraints and Assumptions
 
-- Requires `tablespec[spark]` (a Spark or Sail session) at execution time; the suite artifact itself is produced without Spark.
+- Requires `umf-tablespec[spark]` (a Spark or Sail session) at execution time; the suite artifact itself is produced without Spark.
 - Native evaluators must stay in GX-semantic parity; adding a baseline expectation
   type requires adding a native evaluator or accepting an explicit fail-closed
   unsupported result until the evaluator exists.

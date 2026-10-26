@@ -26,7 +26,7 @@ Tests are automatically skipped if required dependencies are not available.
 
 Requires PySpark installed:
 ```bash
-pip install tablespec[spark]
+pip install umf-tablespec[spark]
 # or
 uv sync --extra spark
 ```
@@ -40,7 +40,7 @@ Tests requiring PySpark:
 
 Requires Great Expectations (installed by default):
 ```bash
-pip install tablespec
+pip install umf-tablespec
 ```
 
 Tests using GX:
@@ -65,7 +65,7 @@ Add to your CI config to run tests only when dependencies are available:
 # GitHub Actions example
 - name: Run integration tests
   run: |
-    pip install tablespec[spark]
+    pip install umf-tablespec[spark]
     pytest tests/integration/ -v
   continue-on-error: true  # Don't fail CI if Spark unavailable
 ```

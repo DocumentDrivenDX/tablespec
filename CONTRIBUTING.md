@@ -245,7 +245,7 @@ except ImportError:
 ```
 
 3. Include clear error messages if Spark is not available
-4. Be documented as requiring `tablespec[spark]` installation
+4. Be documented as requiring `umf-tablespec[spark]` installation
 
 ## Testing
 
@@ -467,7 +467,7 @@ All type conversions go through `type_mappings.py`:
 
 - **PySpark features**: Must gracefully handle missing PySpark
 - **Conditional imports**: Use try/except in `__init__.py`
-- **Clear errors**: Guide users to install `tablespec[spark]` when needed
+- **Clear errors**: Guide users to install `umf-tablespec[spark]` when needed
 - **Documentation**: Mark Spark-dependent features in README
 
 ### Makefile Guidelines

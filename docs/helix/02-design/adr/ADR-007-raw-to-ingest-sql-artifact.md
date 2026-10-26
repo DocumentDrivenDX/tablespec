@@ -67,7 +67,7 @@ artifact, not to wrap it at runtime.
 ### Going forward
 
 1. **All pipelines** generate and commit the raw->ingest `.sql` artifact (like Gold), and the
-   warehouse runs the SQL. No `pip install tablespec[spark]` on the cluster for ingest.
+   warehouse runs the SQL. No `pip install umf-tablespec[spark]` on the cluster for ingest.
 2. **pulseflow's `TypeConverter`** is migrated to execute the generated SQL (against a temp
    view / Delta table) instead of applying Column-API casts.
 3. **Single source of truth** is preserved: the runtime caster and GX validation converge on

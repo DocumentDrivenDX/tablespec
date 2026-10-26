@@ -104,7 +104,7 @@ def test_src_never_imports_external_dbt() -> None:
     tablespec generates dbt projects as pure text; dbt-core is a TEST-ONLY
     dependency (it lives in the dev group, not a user extra). If any source
     module imported ``dbt`` / ``dbt.*`` -- even lazily inside a function -- the
-    dbt emitter would break on a base ``pip install tablespec`` without the
+    dbt emitter would break on a base ``pip install umf-tablespec`` without the
     dev/test stack. (``tablespec.dbt``, the internal emitter package, is fine;
     only the external top-level ``dbt`` is forbidden.)
     """

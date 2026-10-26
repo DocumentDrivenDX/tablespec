@@ -18,7 +18,7 @@ __all__ = [
     "ValidationResult",
 ]
 
-# TableValidator and GXTableValidator require pyspark - only available with tablespec[spark]
+# TableValidator and GXTableValidator require pyspark - only available with umf-tablespec[spark]
 try:
     from .table_validator import VALIDATION_ERROR_SCHEMA, TableValidator
 except ImportError:

@@ -190,7 +190,7 @@ __all__ = [
     "bootstrap_from_specs",
 ]
 
-# SparkToUmfMapper and TableValidator are available only if pyspark is installed (via tablespec[spark])
+# SparkToUmfMapper and TableValidator are available only if pyspark is installed (via umf-tablespec[spark])
 try:
     from tablespec.profiling import JdbcToUmfMapper, SparkToUmfMapper  # noqa: F401
     from tablespec.type_mappings import map_to_pyspark_type_obj  # noqa: F401

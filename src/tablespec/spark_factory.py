@@ -37,7 +37,7 @@ def _import_spark_session() -> type:
     except ImportError:
         msg = (
             "PySpark is required for SparkSessionFactory. "
-            "Install it with: pip install tablespec[spark]"
+            "Install it with: pip install umf-tablespec[spark]"
         )
         raise ImportError(msg) from None
 

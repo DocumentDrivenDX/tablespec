@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE.md", "LICENSE-MIT", "LICENSE-APACHE"]
-name = "tablespec"
+name = "umf-tablespec"
 dynamic = ["version"]
 description = "Python library for working with table schemas in Universal Metadata Format (UMF)"
 readme = "README.md"

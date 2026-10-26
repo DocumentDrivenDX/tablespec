@@ -216,7 +216,7 @@ Uses `pytest.main()` in-process.
 - `tests/integration/test_demo.py` is skipped — it spawns a subprocess that can't access
   Spark Connect (legitimate limitation of subprocess execution model).
 - Tests requiring `tablespec.session` or monkeypatching `pyspark.sql.functions` may need
-  the `spark` extra installed (`pip install tablespec[spark]`) even on Databricks if they
+  the `spark` extra installed (`pip install umf-tablespec[spark]`) even on Databricks if they
   import internal modules that aren't satisfied by the runtime's pyspark alone.
 
 ### Building wheels

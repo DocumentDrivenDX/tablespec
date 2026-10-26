@@ -21,7 +21,7 @@ Requiring PySpark as a mandatory dependency would significantly increase install
 
 ## Decision
 
-PySpark is an optional dependency, installable via `pip install tablespec[spark]`. Spark-dependent code is isolated to specific modules, and the rest of the library functions without PySpark installed.
+PySpark is an optional dependency, installable via `pip install umf-tablespec[spark]`. Spark-dependent code is isolated to specific modules, and the rest of the library functions without PySpark installed.
 
 The isolation is implemented at multiple levels:
 

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """tablespec demo — end-to-end walkthrough of the library's capabilities.
 
-Requires: tablespec[spark]  (uv sync --extra spark)
+Requires: umf-tablespec[spark]  (uv sync --extra spark)
 
 Also serves as an acceptance test: exits non-zero on any failure.
 Run via: uv run python examples/demo.py
@@ -284,11 +284,11 @@ for change in col_changes:
 check(len(col_changes) == 2, f"should detect 2 changes, got {len(col_changes)}")
 
 # ===================================================================
-# 8-11. PySpark Features (require tablespec[spark])
+# 8-11. PySpark Features (require umf-tablespec[spark])
 # ===================================================================
 
 if not HAS_SPARK:
-    section("PySpark Features (skipped -- install tablespec[spark])")
+    section("PySpark Features (skipped -- install umf-tablespec[spark])")
     print("Sections 8-11 require PySpark. Install with:")
     print("  uv sync --extra spark")
     print("\nThese sections demonstrate:")

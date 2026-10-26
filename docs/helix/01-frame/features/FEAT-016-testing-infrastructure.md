@@ -151,7 +151,7 @@ For new features: write test file first with `@pytest.mark.xfail` tests as the e
 
 ### Existing Dependency Evidence
 
-- `tablespec[lite]` (Sail backend) or `tablespec[spark]` (Spark backend) for GX harness
+- `tablespec[lite]` (Sail backend) or `umf-tablespec[spark]` (Spark backend) for GX harness
 
 ### Source Evidence
 

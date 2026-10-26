@@ -7,7 +7,7 @@ contract as delimited, with **typed raw** landing via Spark's JDBC connector
 ## Composition
 
 ```python
-from tablespec.profiling import JdbcToUmfMapper  # requires tablespec[spark]
+from tablespec.profiling import JdbcToUmfMapper  # requires umf-tablespec[spark]
 from tablespec import bootstrap_from_specs  # or compile_umfs after discovery
 from tablespec.ingestion import get_reader
 

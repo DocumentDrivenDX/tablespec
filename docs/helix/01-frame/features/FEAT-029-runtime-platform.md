@@ -113,7 +113,7 @@ and never construct a new local session
 SESS-03. Locally, the factory SHALL produce a Delta-enabled session and verify
 the Delta extensions are configured, failing fast with a clear error when they
 are not (`src/tablespec/spark_factory.py:235-313,358-378`); when PySpark is
-absent it SHALL raise an `ImportError` naming `tablespec[spark]`
+absent it SHALL raise an `ImportError` naming `umf-tablespec[spark]`
 (`src/tablespec/spark_factory.py:30-41`).
 
 ### Non-Functional Requirements

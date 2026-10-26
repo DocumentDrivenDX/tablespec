@@ -8,7 +8,7 @@ json / JSONL sources (:class:`JsonReader`), parquet, and jdbc sources
 (:class:`JdbcReader`, bead tablespec-4b65c810) are delivered here.
 
 This package never imports PySpark at module import time -- readers receive an
-active session, keeping ``tablespec[spark]`` optional (ADR-003).
+active session, keeping ``umf-tablespec[spark]`` optional (ADR-003).
 """
 
 from __future__ import annotations

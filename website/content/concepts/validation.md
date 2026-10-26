@@ -100,7 +100,7 @@ staged = executor.execute_staged(raw_df, typed_df, expectations)
 
 ## Validating a DataFrame against a spec
 
-`TableValidator` requires `tablespec[spark]`. It is the one-call wrapper for
+`TableValidator` requires `umf-tablespec[spark]`. It is the one-call wrapper for
 application code: it loads the UMF spec, generates the baseline suite,
 executes it, and returns a DataFrame of validation errors. An empty error
 DataFrame means the input passed validation:

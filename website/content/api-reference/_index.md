@@ -8,7 +8,7 @@ This page is for Python users who want the importable surface of the
 `tablespec` package. Most symbols below are importable from `tablespec`.
 When a symbol lives in a deeper module, the table names that module path.
 Symbols in the [Spark extras](#spark-extras) section require
-`tablespec[spark]`.
+`umf-tablespec[spark]`.
 
 ## Loading and saving UMF specs
 
@@ -173,7 +173,7 @@ CLI front-ends: `tablespec export-excel` / `import-excel`.
 
 ## Spark extras
 
-These symbols are available only with `tablespec[spark]`. Use them when the
+These symbols are available only with `umf-tablespec[spark]`. Use them when the
 operation needs a Spark DataFrame, JDBC discovery, Spark profiling, or
 Databricks-aware Spark session creation.
 

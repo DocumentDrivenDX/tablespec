@@ -254,7 +254,7 @@ class WarehouseSQLSink:
                 from databricks.sdk import WorkspaceClient
             except ImportError as exc:
                 raise ImportError(
-                    "Install tablespec[databricks] for warehouse loading"
+                    "Install umf-tablespec[databricks] for warehouse loading"
                 ) from exc
             client = WorkspaceClient(profile=profile)
         self.client = client

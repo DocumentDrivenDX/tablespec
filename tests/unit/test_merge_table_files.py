@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """Contract tests for table merge with survivorship (US-018).
 
-Full Spark-backed merge is exercised when tablespec[spark] is available.
+Full Spark-backed merge is exercised when umf-tablespec[spark] is available.
 These tests pin fail-closed preconditions and the public API surface so the
 story remains machine-traceable via @covers.
 """

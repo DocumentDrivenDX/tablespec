@@ -23,7 +23,7 @@ Emitted UMFs carry:
   (:data:`tablespec.ingestion.constants.PROVENANCE_COLUMNS`), so each spec is
   pipeline-complete and passes ``tablespec validate`` unmodified (DISC-02).
 
-Note: This module requires pyspark. Install with: pip install tablespec[spark]
+Note: This module requires pyspark. Install with: pip install umf-tablespec[spark]
 """
 
 from __future__ import annotations

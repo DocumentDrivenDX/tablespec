@@ -96,7 +96,7 @@ bootstrap_from_tables(spark, ["member", "claims"], "/tmp/catalog-umfs", profile=
 generate_guidebook(root=Path("/tmp/catalog-umfs"), output_dir=Path("guidebook"))
 ```
 
-`JdbcToUmfMapper` / `SparkToUmfMapper` (in `tablespec[spark]`) are the
+`JdbcToUmfMapper` / `SparkToUmfMapper` (in `umf-tablespec[spark]`) are the
 lower-level entry points if you want to control UMF generation directly before
 rendering.
 

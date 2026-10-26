@@ -1333,7 +1333,7 @@ def explore(
     Browse tables and columns in a tree view, search across all loaded UMFs,
     and edit column descriptions and data types inline.
 
-    Requires the tui extra: pip install tablespec[tui]
+    Requires the tui extra: pip install umf-tablespec[tui]
 
     Examples:
       tablespec explore tables/
@@ -1344,7 +1344,7 @@ def explore(
     except ImportError:
         console.print(
             "[red]Error:[/red] TUI requires textual. "
-            "Install with: [cyan]pip install tablespec[tui][/cyan]"
+            "Install with: [cyan]pip install umf-tablespec[tui][/cyan]"
         )
         raise typer.Exit(1)
 
