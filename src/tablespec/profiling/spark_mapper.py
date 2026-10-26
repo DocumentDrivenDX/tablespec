@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """Map Spark DataFrame schema to UMF base schema.
 
-Note: This module requires pyspark. Install with: pip install tablespec[spark]
+Note: This module requires pyspark. Install with: pip install umf-tablespec[spark]
 """
 
 from __future__ import annotations

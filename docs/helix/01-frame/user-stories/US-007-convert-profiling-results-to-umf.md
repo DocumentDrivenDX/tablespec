@@ -36,7 +36,7 @@ This story preserves the native, Connect-safe Spark-SQL profiling path that repl
 
 ## Acceptance Criteria
 
-- [ ] **US-007-AC1** — Given a Spark DataFrame with `member_id=1`, `age=34`, and `state="CA"`, when the native profiling flow runs, then `SparkToUmfMapper` converts a Spark DataFrame schema to a UMF object, mapping Spark types to UMF types and preserving nullable and DecimalType precision/scale (requires `tablespec[spark]`)
+- [ ] **US-007-AC1** — Given a Spark DataFrame with `member_id=1`, `age=34`, and `state="CA"`, when the native profiling flow runs, then `SparkToUmfMapper` converts a Spark DataFrame schema to a UMF object, mapping Spark types to UMF types and preserving nullable and DecimalType precision/scale (requires `umf-tablespec[spark]`)
 - [ ] **US-007-AC2** — Given a Spark DataFrame with `member_id=1`, `age=34`, and `state="CA"`, when the native profiling flow runs, then The native Spark-SQL profiler enriches an existing UMF schema with profiling results — completeness, distinct counts, min/max/mean/stddev statistics, and profiling metadata (tool, version, timestamp) — without importing PyDeequ and without assuming a classic `SparkContext` (FEAT-024 / US-021)
 - [ ] **US-007-AC3** — Given a Spark DataFrame with `member_id=1`, `age=34`, and `state="CA"`, when the native profiling flow runs, then Nullable fields are updated based on completeness metrics (columns with 100% completeness become non-nullable)
 - [ ] **US-007-AC4** — Given a Spark DataFrame with `member_id=1`, `age=34`, and `state="CA"`, when the native profiling flow runs, then `ColumnProfile` and `DataFrameProfile` types provide a consistent structure for profiling data regardless of the source tool
@@ -51,7 +51,7 @@ This story preserves the native, Connect-safe Spark-SQL profiling path that repl
 
 | Scenario | AC ID | Input / State | Action | Expected Result |
 |----------|-------|---------------|--------|-----------------|
-| Convert schema into UMF | US-007-AC1 | Spark DataFrame with member_id=1, age=34, state="CA" | the native profiling flow runs | `SparkToUmfMapper` converts a Spark DataFrame schema to a UMF object, mapping Spark types to UMF types and preserving nullable and DecimalType precision/scale (requires `tablespec[spark]`) |
+| Convert schema into UMF | US-007-AC1 | Spark DataFrame with member_id=1, age=34, state="CA" | the native profiling flow runs | `SparkToUmfMapper` converts a Spark DataFrame schema to a UMF object, mapping Spark types to UMF types and preserving nullable and DecimalType precision/scale (requires `umf-tablespec[spark]`) |
 | Profile with Connect-safe functions | US-007-AC2 | Connect DataFrame with member_id=1, age=34, state="CA" | the native profiling flow runs | The native Spark-SQL profiler enriches an existing UMF schema with profiling results — completeness, distinct counts, min/max/mean/stddev statistics, and profiling metadata (tool, version, timestamp) — without importing PyDeequ and without assuming a classic `SparkContext` (FEAT-024 / US-021) |
 | Update nullability from completeness | US-007-AC3 | DataFrame with member_id=1, age=34, state="CA" and age completeness 100% | the native profiling flow runs | Nullable fields are updated based on completeness metrics (columns with 100% completeness become non-nullable) |
 | Return stable profile types | US-007-AC4 | DataFrameProfile for member_id=1, age=34, state="CA" | the native profiling flow runs | `ColumnProfile` and `DataFrameProfile` types provide a consistent structure for profiling data regardless of the source tool |

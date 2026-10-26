@@ -50,7 +50,7 @@ an SDK client, discover authentication, or issue SQL. JSON UMF files and split
 UMF directories are supported. Invalid candidate UMF files fail the load rather
 than silently dropping tables. External/cross-pipeline foreign keys are rejected.
 
-For an explicitly authorized load, install `tablespec[databricks]` using the
+For an explicitly authorized load, install `umf-tablespec[databricks]` using the
 project's package index, then supply an existing SDK authentication profile and
 SQL warehouse identifier:
 

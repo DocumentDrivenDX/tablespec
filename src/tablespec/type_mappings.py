@@ -249,7 +249,7 @@ def map_to_pyspark_type_obj(data_type: str) -> "DataType":
     Unlike map_to_pyspark_type() which returns strings, this returns
     actual PySpark type instances for use in StructField construction.
 
-    Requires PySpark to be installed (available with tablespec[spark]).
+    Requires PySpark to be installed (available with umf-tablespec[spark]).
 
     Args:
     ----

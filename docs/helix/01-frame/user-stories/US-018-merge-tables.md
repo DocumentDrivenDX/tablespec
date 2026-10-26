@@ -29,7 +29,7 @@ This story covers the merge table files with survivorship slice in the parent fe
 
 ## Acceptance Criteria
 
-- [ ] **US-018-AC1** — Given `member_primary.csv` and `member_override.csv` Spark DataFrames, when the table merge flow runs, then `merge.py` merges multiple Spark DataFrames using UMF metadata (requires `tablespec[spark]`)
+- [ ] **US-018-AC1** — Given `member_primary.csv` and `member_override.csv` Spark DataFrames, when the table merge flow runs, then `merge.py` merges multiple Spark DataFrames using UMF metadata (requires `umf-tablespec[spark]`)
 - [ ] **US-018-AC2** — Given `member_primary.csv` with `status="active"` and `member_override.csv` with `status="inactive"`, when the table merge flow runs, then survivorship rules from UMF drive conflict resolution
 - [ ] **US-018-AC3** — Given `dedupe_latest_by="updated_at"` in the merge configuration, when the table merge flow runs, then the deduplication strategy is configurable
 
@@ -43,7 +43,7 @@ This story covers the merge table files with survivorship slice in the parent fe
 
 | Scenario | AC ID | Input / State | Action | Expected Result |
 |----------|-------|---------------|--------|-----------------|
-| Merge primary and override rows | US-018-AC1 | `member_primary.csv` and `member_override.csv` Spark DataFrames | the table merge flow runs | `merge.py` merges multiple Spark DataFrames using UMF metadata (requires `tablespec[spark]`) |
+| Merge primary and override rows | US-018-AC1 | `member_primary.csv` and `member_override.csv` Spark DataFrames | the table merge flow runs | `merge.py` merges multiple Spark DataFrames using UMF metadata (requires `umf-tablespec[spark]`) |
 | Apply survivorship to status | US-018-AC2 | `member_primary.csv` with `status="active"` and `member_override.csv` with `status="inactive"` | the table merge flow runs | survivorship rules from UMF drive conflict resolution |
 | Use configurable deduplication | US-018-AC3 | `dedupe_latest_by="updated_at"` in the merge configuration | the table merge flow runs | the deduplication strategy is configurable |
 

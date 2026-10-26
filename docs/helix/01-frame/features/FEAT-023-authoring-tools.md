@@ -101,7 +101,7 @@ Textual-based terminal UI for browsing and editing UMF schemas:
 - Relationship visualization between tables.
 - Inline editing of column properties and expectations.
 
-Requires adding `textual` as an optional dependency (`tablespec[tui]`). Testing via Textual's pilot framework.
+Requires adding `textual` as an optional dependency (`umf-tablespec[tui]`). Testing via Textual's pilot framework.
 
 NOTE: The TUI is for interactive exploration and editing. The CLI commands above are for scripting and CI. These are complementary, not overlapping.
 

@@ -9,7 +9,7 @@ Tests the full end-to-end pipeline using Unity Catalog sample tables:
 
 Requires:
     - Databricks runtime with access to `samples` catalog
-    - tablespec[spark] installed
+    - umf-tablespec[spark] installed
 
 These tests validate that the pipeline generalizes across different
 table structures (string-heavy, numeric, temporal, mixed).

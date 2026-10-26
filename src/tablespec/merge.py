@@ -61,7 +61,7 @@ def merge_table_files(
         raise ValueError(msg)
 
     if SparkSessionFactory is None:
-        msg = "SparkSessionFactory is not available. Install tablespec[spark] for merge support."
+        msg = "SparkSessionFactory is not available. Install umf-tablespec[spark] for merge support."
         raise ImportError(msg)
 
     spark_session = spark or SparkSessionFactory.create_session("tablespec-merge")
@@ -156,7 +156,7 @@ def _apply_scoring(
         return df.withColumn("_merge_score", F.lit(0))
 
     if cast_timestamp_with_epoch_fallback is None:
-        msg = "casting_utils module is not available. Install tablespec[spark] for merge support."
+        msg = "casting_utils module is not available. Install umf-tablespec[spark] for merge support."
         raise ImportError(msg)
 
     for col in timestamp_columns:

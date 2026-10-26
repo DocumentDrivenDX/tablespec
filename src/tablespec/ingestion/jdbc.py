@@ -9,7 +9,7 @@ as named secret references (``password_secret_ref``); they are resolved at
 read time, never persisted, and never logged (JDBC-01/JDBC-04).
 
 This module never imports PySpark at module import time -- readers receive an
-active session, keeping ``tablespec[spark]`` optional (ADR-003).
+active session, keeping ``umf-tablespec[spark]`` optional (ADR-003).
 """
 
 from __future__ import annotations

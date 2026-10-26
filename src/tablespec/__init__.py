@@ -88,7 +88,7 @@ from tablespec.umf_loader import UMFFormat, UMFLoader
 
 from importlib.metadata import version as _get_version
 
-__version__ = _get_version("tablespec")
+__version__ = _get_version("umf-tablespec")
 
 __all__ = [
     # -- Core UMF I/O & Models --
@@ -186,7 +186,7 @@ __all__ = [
     "bootstrap_from_specs",
 ]
 
-# SparkToUmfMapper and TableValidator are available only if pyspark is installed (via tablespec[spark])
+# SparkToUmfMapper and TableValidator are available only if pyspark is installed (via umf-tablespec[spark])
 try:
     from tablespec.profiling import JdbcToUmfMapper, SparkToUmfMapper  # noqa: F401
     from tablespec.type_mappings import map_to_pyspark_type_obj  # noqa: F401

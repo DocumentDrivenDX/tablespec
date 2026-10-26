@@ -8,7 +8,7 @@
 Provides a Textual-based terminal UI for browsing UMF schemas, searching
 across columns, and performing inline edits. Requires the `tui` extra:
 
-    pip install tablespec[tui]
+    pip install umf-tablespec[tui]
 
 Launch via CLI:
 

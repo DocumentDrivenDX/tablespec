@@ -29,7 +29,7 @@ This story covers the capture and compare quality baselines slice in the parent 
 
 ## Acceptance Criteria
 
-- [ ] **US-016-AC1** — Given a `member` table baseline with 10 rows, then a second snapshot with 12 rows, when the quality baseline capture and comparison flow runs, then **US-016-AC1** - `BaselineService.capture()` records row counts, column distributions, and numeric stats (requires `tablespec[spark]`)
+- [ ] **US-016-AC1** — Given a `member` table baseline with 10 rows, then a second snapshot with 12 rows, when the quality baseline capture and comparison flow runs, then **US-016-AC1** - `BaselineService.capture()` records row counts, column distributions, and numeric stats (requires `umf-tablespec[spark]`)
 - [ ] **US-016-AC2** — Given a `member` table baseline with 10 rows, then a second snapshot with 12 rows, when the quality baseline capture and comparison flow runs, then **US-016-AC2** - `BaselineService.compare()` produces drift metrics between two baselines
 - [ ] **US-016-AC3** — Given a `member` table baseline with 10 rows, then a second snapshot with 12 rows, when the quality baseline capture and comparison flow runs, then **US-016-AC3** - Distribution drift uses Jensen-Shannon divergence
 - [ ] **US-016-AC4** — Given a `member` table baseline with 10 rows, then a second snapshot with 12 rows, when the quality baseline capture and comparison flow runs, then **US-016-AC4** - Baselines are stored and retrievable via `BaselineWriter`
@@ -44,7 +44,7 @@ This story covers the capture and compare quality baselines slice in the parent 
 
 | Scenario | AC ID | Input / State | Action | Expected Result |
 |----------|-------|---------------|--------|-----------------|
-| Capture a member baseline | US-016-AC1 | member baseline with 10 rows | the quality baseline capture and comparison flow runs | **US-016-AC1** - `BaselineService.capture()` records row counts, column distributions, and numeric stats (requires `tablespec[spark]`) |
+| Capture a member baseline | US-016-AC1 | member baseline with 10 rows | the quality baseline capture and comparison flow runs | **US-016-AC1** - `BaselineService.capture()` records row counts, column distributions, and numeric stats (requires `umf-tablespec[spark]`) |
 | Compare two baseline snapshots | US-016-AC2 | member baseline snapshot 10 rows vs 12 rows | the quality baseline capture and comparison flow runs | **US-016-AC2** - `BaselineService.compare()` produces drift metrics between two baselines |
 | Measure distribution drift | US-016-AC3 | claim_amount distribution drift | the quality baseline capture and comparison flow runs | **US-016-AC3** - Distribution drift uses Jensen-Shannon divergence |
 | Persist baselines to disk | US-016-AC4 | member.baseline.json | the quality baseline capture and comparison flow runs | **US-016-AC4** - Baselines are stored and retrievable via `BaselineWriter` |

@@ -86,6 +86,13 @@ jobs:
           echo "Built packages:"
           ls -1 dist/
 
+      - name: Bind artifacts to tag and source
+        run: |
+          python scripts/verify_release_artifacts.py create-manifest \
+            --dist-dir dist --output dist/release-manifest.json \
+            --tag "$GITHUB_REF_NAME" --repository "$GITHUB_REPOSITORY" \
+            --source-commit "$GITHUB_SHA" --package umf-tablespec
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -115,16 +122,16 @@ jobs:
 
           # Create release notes
           cat > release_notes.md << EOF
-          ## tablespec $TAG
+          ## umf-tablespec $TAG
 
           ### Installation
 
           \`\`\`bash
           # From GitHub Pages index
-          pip install tablespec==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+          pip install umf-tablespec==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 
           # With PySpark support
-          pip install tablespec[spark]==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+          pip install "umf-tablespec[spark]==${TAG#v}" --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
           \`\`\`
 
           ### What's Changed
@@ -133,8 +140,8 @@ jobs:
 
           ### Artifacts
 
-          - Source distribution (sdist): \`tablespec-${TAG#v}.tar.gz\`
-          - Wheel distribution: \`tablespec-${TAG#v}-py3-none-any.whl\`
+          - Source distribution (sdist): \`umf_tablespec-${TAG#v}.tar.gz\`
+          - Wheel distribution: \`umf_tablespec-${TAG#v}-py3-none-any.whl\`
           EOF
 
       - name: Create GitHub Release
@@ -142,7 +149,7 @@ jobs:
         with:
           files: dist/*
           body_path: release_notes.md
-          draft: false
+          draft: true
           prerelease: ${{ contains(steps.release_notes.outputs.tag, 'rc') || contains(steps.release_notes.outputs.tag, 'alpha') || contains(steps.release_notes.outputs.tag, 'beta') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -254,10 +261,10 @@ jobs:
 
           # Install from the GitHub Pages index; the deployment checklist
           # allows one retry after an extra propagation wait, then fails.
-          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "tablespec==$VERSION" || {
+          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "umf-tablespec==$VERSION" || {
             echo "First install attempt failed; waiting 60s for Pages propagation..."
             sleep 60
-            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "tablespec==$VERSION"
+            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "umf-tablespec==$VERSION"
           }
 
           # A clean install must import: catches runtime deps that only exist

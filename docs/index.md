@@ -37,16 +37,16 @@ dimensional modeling. Those concerns begin in silver and downstream layers.
 
 ```bash
 # Using uv (recommended)
-uv add tablespec --index-url https://easel.github.io/tablespec/simple/
+uv add umf-tablespec --index-url https://easel.github.io/tablespec/simple/
 
 # With Spark support
-uv add tablespec[spark] --index-url https://easel.github.io/tablespec/simple/
+uv add 'umf-tablespec[spark]' --index-url https://easel.github.io/tablespec/simple/
 
 # Using pip
-pip install tablespec --index-url https://easel.github.io/tablespec/simple/
+pip install umf-tablespec --index-url https://easel.github.io/tablespec/simple/
 ```
 
-**Note**: This package is distributed via GitHub Pages. The `--index-url` flag is required.
+**Note**: The distribution is named `umf-tablespec`; the Python import remains `tablespec`. It is distributed via GitHub Pages. The `--index-url` flag is required.
 
 ## Quick Start
 

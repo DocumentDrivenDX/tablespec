@@ -127,7 +127,7 @@ Public API defined in `src/tablespec/__init__.py`. Conditional imports for Spark
 # Always available
 from tablespec import UMF, load_umf_from_yaml, generate_sql_ddl
 
-# Available only with tablespec[spark]
+# Available only with umf-tablespec[spark]
 from tablespec import SparkToUmfMapper, TableValidator
 ```
 

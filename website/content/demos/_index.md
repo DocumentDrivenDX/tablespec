@@ -116,7 +116,7 @@ validates a DataFrame.
 asciinema play examples/tablespec-demo.cast
 ```
 
-**Run live** (requires `tablespec[spark]`; also serves as an acceptance test
+**Run live** (requires `umf-tablespec[spark]`; also serves as an acceptance test
 and exits non-zero on any failure):
 
 ```bash

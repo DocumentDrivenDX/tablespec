@@ -79,7 +79,7 @@ tablespec preview tables/medical_claims/
 
 Launch an interactive TUI: browse tables and columns in a tree view, search
 across loaded UMFs, edit descriptions and types inline. Requires the `tui`
-extra (`tablespec[tui]`); without it the command exits with an install hint.
+extra (`umf-tablespec[tui]`); without it the command exits with an install hint.
 
 ```bash
 tablespec explore tables/

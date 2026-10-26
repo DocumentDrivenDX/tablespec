@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE.md", "LICENSE-MIT", "LICENSE-APACHE"]
-name = "tablespec"
+name = "umf-tablespec"
 dynamic = ["version"]
 description = "Python library for working with table schemas in Universal Metadata Format (UMF)"
 readme = "README.md"
@@ -68,6 +68,9 @@ tui = [
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tablespec"]
 
 [tool.hatch.metadata]
 allow-direct-references = true

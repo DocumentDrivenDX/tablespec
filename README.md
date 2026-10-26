@@ -34,7 +34,7 @@ Play the asciinema recording in your terminal:
 # Install asciinema, then play the recording
 asciinema play examples/tablespec-demo.cast
 
-# Or run the demo live (requires tablespec[spark])
+# Or run the demo live (requires umf-tablespec[spark])
 uv run python examples/demo.py
 ```
 
@@ -44,27 +44,27 @@ uv run python examples/demo.py
 
 ```bash
 # Add to your uv project
-uv add tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add umf-tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # With Spark support (for profiling and validation)
-uv add tablespec[spark] "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add 'umf-tablespec[spark]' "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ### Using pip
 
 ```bash
 # Install from GitHub Pages index
-pip install tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+pip install umf-tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 
 # With Spark support
-pip install tablespec[spark] --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+pip install 'umf-tablespec[spark]' --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
 
-**Note**: Use the project index for tablespec and PyPI for its dependencies.
+**Note**: The distribution is named `umf-tablespec`; its Python import package and CLI remain `tablespec`. Use the project index for `umf-tablespec` and PyPI for its dependencies.
 uv also requires the pinned `umf-core` Git dependency as a direct requirement.
 
 **Optional extras**:
-- `tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.
+- `umf-tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.
 
 ### Claude Code / Codex plugin
 
@@ -249,7 +249,7 @@ bootstrap_from_tables(spark, ["member", "claims"], "/tmp/catalog-umfs", profile=
 generate_guidebook(root=Path("/tmp/catalog-umfs"), output_dir=Path("guidebook"))
 ```
 
-`JdbcToUmfMapper` / `SparkToUmfMapper` (in `tablespec[spark]`) are the lower-level
+`JdbcToUmfMapper` / `SparkToUmfMapper` (in `umf-tablespec[spark]`) are the lower-level
 entry points if you want to control UMF generation directly before rendering.
 
 **Without a Spark session** — e.g. inside a Databricks App, which has a SQL

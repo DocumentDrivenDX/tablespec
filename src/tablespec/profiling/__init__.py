@@ -15,8 +15,8 @@ Type mappings:
     - ``SPARK_TO_UMF_TYPE``: Spark DataType class name → UMF data_type string.
     - ``SQL_TO_UMF_TYPE``: SQL/warehouse type name → UMF data_type string (for dbt, etc.).
 
-Spark-dependent components require installing tablespec[spark]:
-    pip install tablespec[spark]
+Spark-dependent components require installing umf-tablespec[spark]:
+    pip install umf-tablespec[spark]
 """
 
 from tablespec.profiling.gx_expectation_builder import ProfileToGxMapper

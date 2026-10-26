@@ -25,8 +25,8 @@ Focused sibling skills carry the mechanics. Route by task:
 ## Getting tablespec
 
 tablespec is published to a GitHub Pages index, so the `--index-url` flag is
-required: `pip install tablespec --index-url
-https://documentdrivendx.github.io/tablespec/simple/` (use `tablespec[spark]` for
+required: `pip install umf-tablespec --index-url
+https://documentdrivendx.github.io/tablespec/simple/` (use `umf-tablespec[spark]` for
 the Spark-backed bootstrap, profiling, and validation features). Installing
 provides a `tablespec` CLI. Full documentation:
 https://documentdrivendx.github.io/tablespec/
