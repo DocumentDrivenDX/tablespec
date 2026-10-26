@@ -39,13 +39,21 @@ def release_version(tag: str) -> str:
 def distribution_metadata(path: Path) -> tuple[str, str]:
     if path.name.endswith(".whl"):
         with zipfile.ZipFile(path) as archive:
-            metadata_files = [name for name in archive.namelist() if name.endswith(".dist-info/METADATA")]
+            metadata_files = [
+                name
+                for name in archive.namelist()
+                if name.endswith(".dist-info/METADATA")
+            ]
             if len(metadata_files) != 1:
                 raise ValueError(f"wheel must contain one METADATA file: {path.name}")
             raw = archive.read(metadata_files[0])
     elif path.name.endswith(".tar.gz"):
         with tarfile.open(path, "r:gz") as archive:
-            metadata_files = [member for member in archive.getmembers() if member.name.endswith("/PKG-INFO")]
+            metadata_files = [
+                member
+                for member in archive.getmembers()
+                if member.name.endswith("/PKG-INFO")
+            ]
             if len(metadata_files) != 1:
                 raise ValueError(f"sdist must contain one PKG-INFO file: {path.name}")
             stream = archive.extractfile(metadata_files[0])
@@ -62,19 +70,36 @@ def distribution_metadata(path: Path) -> tuple[str, str]:
 
 
 def distribution_files(directory: Path, package: str, version: str) -> list[Path]:
-    files = sorted(path for path in directory.iterdir() if path.is_file() and path.name != MANIFEST_NAME)
+    files = sorted(
+        path
+        for path in directory.iterdir()
+        if path.is_file() and path.name != MANIFEST_NAME
+    )
     wheels = [path for path in files if path.name.endswith(".whl")]
     sdists = [path for path in files if path.name.endswith(".tar.gz")]
     if len(files) != 2 or len(wheels) != 1 or len(sdists) != 1:
-        raise ValueError("exactly one wheel and one .tar.gz source distribution required")
+        raise ValueError(
+            "exactly one wheel and one .tar.gz source distribution required"
+        )
     for path in files:
         name, found_version = distribution_metadata(path)
-        if normalized_name(name) != normalized_name(package) or found_version != version:
+        if (
+            normalized_name(name) != normalized_name(package)
+            or found_version != version
+        ):
             raise ValueError(f"distribution identity mismatch in {path.name}")
     return files
 
 
-def create_manifest(directory: Path, output: Path, *, tag: str, repository: str, source_commit: str, package: str) -> dict[str, Any]:
+def create_manifest(
+    directory: Path,
+    output: Path,
+    *,
+    tag: str,
+    repository: str,
+    source_commit: str,
+    package: str,
+) -> dict[str, Any]:
     version = release_version(tag)
     if COMMIT_PATTERN.fullmatch(source_commit) is None:
         raise ValueError("full lowercase source commit required")
@@ -88,7 +113,9 @@ def create_manifest(directory: Path, output: Path, *, tag: str, repository: str,
         "version": version,
         "artifacts": [{"name": path.name, "sha256": digest(path)} for path in files],
     }
-    output.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8"
+    )
     return manifest
 
 
@@ -132,14 +159,20 @@ def verify_release(
     advertised: dict[str, str] = {}
     for asset in assets:
         name, checksum = asset.get("name"), asset.get("digest")
-        if not isinstance(name, str) or not isinstance(checksum, str) or not checksum.startswith("sha256:"):
+        if (
+            not isinstance(name, str)
+            or not isinstance(checksum, str)
+            or not checksum.startswith("sha256:")
+        ):
             raise ValueError("every release asset must have a SHA256 digest")
         if name in advertised:
             raise ValueError("duplicate release asset name")
         advertised[name] = checksum.removeprefix("sha256:")
     if advertised != actual:
         raise ValueError("downloaded assets do not match the immutable release digests")
-    expected_artifacts = {entry["name"]: entry["sha256"] for entry in manifest.get("artifacts", [])}
+    expected_artifacts = {
+        entry["name"]: entry["sha256"] for entry in manifest.get("artifacts", [])
+    }
     if expected_artifacts != {path.name: digest(path) for path in files}:
         raise ValueError("distribution assets do not match the source manifest")
     return {
@@ -170,11 +203,23 @@ def main() -> None:
     verify.add_argument("--package", required=True)
     args = parser.parse_args()
     if args.command == "create-manifest":
-        value = create_manifest(args.dist_dir, args.output, tag=args.tag, repository=args.repository,
-                                source_commit=args.source_commit, package=args.package)
+        value = create_manifest(
+            args.dist_dir,
+            args.output,
+            tag=args.tag,
+            repository=args.repository,
+            source_commit=args.source_commit,
+            package=args.package,
+        )
     else:
-        value = verify_release(args.release_json, args.dist_dir, tag=args.tag, repository=args.repository,
-                               source_commit=args.source_commit, package=args.package)
+        value = verify_release(
+            args.release_json,
+            args.dist_dir,
+            tag=args.tag,
+            repository=args.repository,
+            source_commit=args.source_commit,
+            package=args.package,
+        )
     print(json.dumps(value, sort_keys=True))
 
 
