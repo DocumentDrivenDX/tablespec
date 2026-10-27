@@ -50,6 +50,7 @@ from tablespec.models.umf import UMF  # noqa: E402
 from tablespec.schemas.sql_generator import generate_sql_plan  # noqa: E402
 
 from tests.ingest_parity.canonical import to_json  # noqa: E402
+from tests.golden_text import read_golden  # noqa: E402
 
 FIXTURE_DIR = Path(__file__).parent.parent / "fixtures" / "dbt_dag"
 TABLES = ["member", "claims", "member_claims"]
@@ -148,7 +149,7 @@ def test_multi_table_project_matches_golden() -> None:
     """The full generated multi-table dbt project is byte-identical to the golden."""
     actual = generate_dbt_dag_project(_load_umfs())
     expected = {
-        str(p.relative_to(GOLDEN_DAG_DIR)): p.read_text()
+        str(p.relative_to(GOLDEN_DAG_DIR)): read_golden(p)
         for p in GOLDEN_DAG_DIR.rglob("*")
         if p.is_file()
     }

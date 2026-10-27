@@ -20,6 +20,7 @@ import yaml
 
 from tablespec.ldp import generate_ldp_project
 from tablespec.models.umf import UMF
+from tests.golden_text import read_golden
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
@@ -55,7 +56,7 @@ def test_ldp_project_matches_golden() -> None:
     for rel, content in sorted(files.items()):
         golden = GOLDEN_DIR / rel
         assert golden.exists(), f"missing LDP golden: {golden}"
-        assert content == golden.read_text(), (
+        assert content == read_golden(golden), (
             f"LDP golden mismatch for {rel} "
             f"(regenerate with UPDATE_LDP_GOLDEN=1 if intended)"
         )

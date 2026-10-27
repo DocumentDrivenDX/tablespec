@@ -60,6 +60,7 @@ The inventory below mirrors the top-level `src/tablespec` surface exactly. Packa
 | `authoring/` | Mutation preview and apply helpers. |
 | `core/` | IR, registry, relations, schema-facts, and selection helpers. |
 | `dbt/` | dbt project emitters, routing, registry, renderer, contracts, and selection helpers. |
+| `document_loader/` | Native document acquisition and offline verified publication (fetch, BagIt, fixity, metadata sinks). |
 | `e2e/` | Compile/bootstrap/manifest/runtime backbones for shipped artifacts. |
 | `extensions/` | Tablespec-owned pipeline and source-archive metadata extensions over shared UMF. |
 | `formatting/` | YAML formatter support. |
@@ -95,6 +96,7 @@ The inventory below mirrors the top-level `src/tablespec` surface exactly. Packa
 | `domains.py` | Domain (bounded-context) discovery from domain.yaml directories (FEAT-035). |
 | `excel_converter.py` | Excel round-trip conversion. |
 | `excel_import_git.py` | Git-aware Excel import. |
+| `excel_support.py` | Optional [excel] extra gate: resolves the Excel converters or raises the install hint. |
 | `expectation_migration.py` | Expectation migration helpers. |
 | `expectation_utils.py` | Expectation utility helpers. |
 | `format_utils.py` | Formatting utilities. |
