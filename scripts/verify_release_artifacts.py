@@ -73,8 +73,7 @@ def distribution_files(directory: Path, package: str, version: str) -> list[Path
     files = sorted(
         path
         for path in directory.iterdir()
-        if path.is_file()
-        and path.name != MANIFEST_NAME
+        if path.is_file() and path.name != MANIFEST_NAME
     )
     wheels = [path for path in files if path.name.endswith(".whl")]
     sdists = [path for path in files if path.name.endswith(".tar.gz")]
