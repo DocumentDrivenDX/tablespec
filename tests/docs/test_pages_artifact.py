@@ -155,6 +155,7 @@ def test_publication_workflow_verifies_local_build_then_public_pypi() -> None:
     assert 'python -m pip install "$WHEEL"' in release
     assert '"umf-tablespec==$VERSION"' not in release
     assert "Verify public PyPI artifact hashes" in publish
+    assert "          ref: main\n          path: validator" in publish
     assert "verify_pypi_release.py --manifest dist/release-manifest.json" in publish
     assert (
         "python -m pip install --no-cache-dir --index-url https://pypi.org/simple"
