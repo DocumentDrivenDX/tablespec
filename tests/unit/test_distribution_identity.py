@@ -35,6 +35,21 @@ def test_release_verifier_requires_umf_distribution_name(tmp_path):
         distribution_files(tmp_path, "tablespec", "1.2.3")
 
 
+def test_release_verifier_ignores_hidden_build_bookkeeping(tmp_path):
+    _write_artifacts(tmp_path)
+    (tmp_path / ".gitignore").write_text("\n")
+
+    assert len(distribution_files(tmp_path, "umf-tablespec", "1.2.3")) == 2
+
+
+def test_release_verifier_rejects_unexpected_visible_files(tmp_path):
+    _write_artifacts(tmp_path)
+    (tmp_path / "README.txt").write_text("not a release artifact\n")
+
+    with pytest.raises(ValueError, match="README.txt"):
+        distribution_files(tmp_path, "umf-tablespec", "1.2.3")
+
+
 def test_project_keeps_tablespec_import_and_cli_names():
     config = tomllib.loads((ROOT / "pyproject.toml").read_text())
     project = config["project"]
