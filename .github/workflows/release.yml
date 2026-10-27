@@ -195,6 +195,7 @@ jobs:
           files: dist/*
           body_path: release_notes.md
           draft: true
+          overwrite_files: true
           prerelease: ${{ contains(steps.release_notes.outputs.tag, 'rc') || contains(steps.release_notes.outputs.tag, 'alpha') || contains(steps.release_notes.outputs.tag, 'beta') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

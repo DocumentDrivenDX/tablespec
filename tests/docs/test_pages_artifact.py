@@ -113,6 +113,8 @@ def test_release_workflow_builds_combined_pages_artifact() -> None:
     assert "--package umf-tablespec" in workflow
     assert "/simple/tablespec/index.html" in workflow
     assert "/simple/umf-tablespec/index.html" in workflow
+    assert "draft: true" in workflow
+    assert "overwrite_files: true" in workflow
     install_commands = [
         line.strip()
         for line in workflow.splitlines()
@@ -156,3 +158,6 @@ def test_publication_workflow_verifies_local_build_then_public_pypi() -> None:
         "python -m pip install --no-cache-dir --index-url https://pypi.org/simple"
         in publish
     )
+    assert "types: [published]" in publish
+    assert "name: pypi" in publish
+    assert "id-token: write" in publish
