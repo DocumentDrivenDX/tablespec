@@ -70,10 +70,19 @@ def distribution_metadata(path: Path) -> tuple[str, str]:
 
 
 def distribution_files(directory: Path, package: str, version: str) -> list[Path]:
+    build_gitignore = directory / ".gitignore"
+    if build_gitignore.is_symlink() or (
+        build_gitignore.exists()
+        and (not build_gitignore.is_file() or build_gitignore.read_bytes() != b"*")
+    ):
+        raise ValueError(
+            "unexpected dist/.gitignore; only the one-byte uv marker is allowed"
+        )
+
     files = sorted(
         path
         for path in directory.iterdir()
-        if path.is_file() and path.name != MANIFEST_NAME
+        if path.is_file() and path.name != MANIFEST_NAME and path.name != ".gitignore"
     )
     wheels = [path for path in files if path.name.endswith(".whl")]
     sdists = [path for path in files if path.name.endswith(".tar.gz")]

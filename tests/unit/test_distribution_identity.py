@@ -35,11 +35,18 @@ def test_release_verifier_requires_umf_distribution_name(tmp_path):
         distribution_files(tmp_path, "tablespec", "1.2.3")
 
 
-def test_release_verifier_reports_hidden_files_in_distribution_directory(tmp_path):
+def test_release_verifier_accepts_only_the_generated_uv_gitignore(tmp_path):
     _write_artifacts(tmp_path)
-    (tmp_path / ".gitignore").write_text("\n")
+    (tmp_path / ".gitignore").write_text("*")
 
-    with pytest.raises(ValueError, match=r"\.gitignore"):
+    assert len(distribution_files(tmp_path, "umf-tablespec", "1.2.3")) == 2
+
+
+def test_release_verifier_rejects_unexpected_gitignore_contents(tmp_path):
+    _write_artifacts(tmp_path)
+    (tmp_path / ".gitignore").write_text("**")
+
+    with pytest.raises(ValueError, match=r"unexpected dist/\.gitignore"):
         distribution_files(tmp_path, "umf-tablespec", "1.2.3")
 
 
