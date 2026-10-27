@@ -35,6 +35,22 @@ def test_release_verifier_requires_umf_distribution_name(tmp_path):
         distribution_files(tmp_path, "tablespec", "1.2.3")
 
 
+def test_release_verifier_reports_hidden_files_in_distribution_directory(tmp_path):
+    _write_artifacts(tmp_path)
+    (tmp_path / ".gitignore").write_text("\n")
+
+    with pytest.raises(ValueError, match=r"\.gitignore"):
+        distribution_files(tmp_path, "umf-tablespec", "1.2.3")
+
+
+def test_release_verifier_rejects_unexpected_visible_files(tmp_path):
+    _write_artifacts(tmp_path)
+    (tmp_path / "README.txt").write_text("not a release artifact\n")
+
+    with pytest.raises(ValueError, match="README.txt"):
+        distribution_files(tmp_path, "umf-tablespec", "1.2.3")
+
+
 def test_project_keeps_tablespec_import_and_cli_names():
     config = tomllib.loads((ROOT / "pyproject.toml").read_text())
     project = config["project"]
@@ -52,3 +68,7 @@ def test_release_workflows_bind_both_package_identities():
     publish = (ROOT / ".github/workflows/publish-pypi.yml").read_text()
     assert "--package umf-tablespec" in release
     assert "--package umf-tablespec" in publish
+    assert "workflow_dispatch:" in release
+    assert "ref: ${{ inputs.release_tag || github.ref }}" in release
+    assert 'git rev-parse "refs/tags/$RELEASE_TAG^{commit}"' in release
+    assert '--source-commit "$(git rev-parse HEAD)"' in release

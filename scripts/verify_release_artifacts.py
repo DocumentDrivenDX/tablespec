@@ -77,9 +77,14 @@ def distribution_files(directory: Path, package: str, version: str) -> list[Path
     )
     wheels = [path for path in files if path.name.endswith(".whl")]
     sdists = [path for path in files if path.name.endswith(".tar.gz")]
-    if len(files) != 2 or len(wheels) != 1 or len(sdists) != 1:
+    unexpected = [path for path in files if path not in wheels and path not in sdists]
+    if len(files) != 2 or len(wheels) != 1 or len(sdists) != 1 or unexpected:
         raise ValueError(
-            "exactly one wheel and one .tar.gz source distribution required"
+            "exactly one wheel and one .tar.gz source distribution required; "
+            f"found wheels={[path.name for path in wheels]}, "
+            f"sdists={[path.name for path in sdists]}, "
+            f"unexpected={[path.name for path in unexpected]}, "
+            f"files={[path.name for path in files]}"
         )
     for path in files:
         name, found_version = distribution_metadata(path)
