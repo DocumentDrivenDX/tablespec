@@ -195,6 +195,7 @@ jobs:
           files: dist/*
           body_path: release_notes.md
           draft: true
+          overwrite_files: true
           prerelease: ${{ contains(steps.release_notes.outputs.tag, 'rc') || contains(steps.release_notes.outputs.tag, 'alpha') || contains(steps.release_notes.outputs.tag, 'beta') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -257,12 +258,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="$RELEASE_TAG"
-          python source/scripts/build_pages_artifact.py \
+          python scripts/build_pages_artifact.py \
             --site-dir source/website/public \
             --dist-dir dist \
             --out-dir pages \
             --repo "$GITHUB_REPOSITORY" \
             --tag "$TAG" \
+            --package umf-tablespec \
             --include-github-releases
 
       - name: Inspect Pages artifact
@@ -270,6 +272,7 @@ jobs:
           test -f pages/index.html
           test -f pages/simple/index.html
           test -f pages/simple/tablespec/index.html
+          test -f pages/simple/umf-tablespec/index.html
           echo "Generated Pages artifact:"
           find pages -maxdepth 3 -type f -print | sort
 
@@ -295,7 +298,7 @@ jobs:
 
   verify:
     name: Verify Release
-    needs: [release, deploy-pages]
+    needs: [build, release, deploy-pages]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
@@ -303,25 +306,37 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Download exact build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
       - name: Wait for GitHub Pages propagation
         run: sleep 60
 
-      - name: Verify GitHub Pages installation
+      - name: Verify GitHub Pages index and install built wheel
         run: |
           TAG="$RELEASE_TAG"
           VERSION=${TAG#v}
+          WHEEL_NAME="umf_tablespec-${VERSION}-py3-none-any.whl"
+          WHEEL="dist/$WHEEL_NAME"
+          test -f "$WHEEL"
 
-          # Install from the GitHub Pages index; the deployment checklist
-          # allows one retry after an extra propagation wait, then fails.
-          pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "umf-tablespec==$VERSION" || {
-            echo "First install attempt failed; waiting 60s for Pages propagation..."
-            sleep 60
-            pip install --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple "umf-tablespec==$VERSION"
-          }
+          INDEX="https://documentdrivendx.github.io/tablespec/simple/umf-tablespec/"
+          curl --fail --silent --show-error "$INDEX" -o pages-index.html
+          grep --fixed-strings "$WHEEL_NAME" pages-index.html
+          grep --fixed-strings "#sha256=" pages-index.html
+
+          # The GitHub Release is intentionally a draft until the package is
+          # published through its trusted Actions identity. Verify this exact
+          # build artifact locally; the publish workflow checks the public
+          # PyPI bytes and a fresh install after OIDC upload.
+          python -m pip install "$WHEEL"
 
           # A clean install must import: catches runtime deps that only exist
           # in the dev group (CI otherwise never installs without dev deps).
-          python -c "import tablespec, tablespec.cli; print('import OK', tablespec.__name__)"
+          python -c "import tablespec, tablespec.cli; from importlib.metadata import version; assert version('umf-tablespec') == '$VERSION'; print('import OK', tablespec.__name__)"
 
       - name: Summary
         run: |

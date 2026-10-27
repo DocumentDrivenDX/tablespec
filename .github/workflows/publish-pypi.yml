@@ -62,3 +62,18 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: upload/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify public PyPI artifact hashes
+        run: python validator/scripts/verify_pypi_release.py --manifest dist/release-manifest.json
+
+      - name: Verify fresh public installation
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          VERSION="${TAG#v}"
+          python -m pip install --no-cache-dir --index-url https://pypi.org/simple "umf-tablespec==$VERSION"
+          python -c "import tablespec, tablespec.cli; from importlib.metadata import version; assert version('umf-tablespec') == '$VERSION'; print('PyPI install OK', tablespec.__name__)"

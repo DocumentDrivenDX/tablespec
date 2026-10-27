@@ -59,7 +59,12 @@ def _current_dist_links(dist_dir: Path, tag: str, repo: str) -> list[PackageLink
         raise SystemExit(f"dist directory does not exist: {dist_dir}")
 
     links: list[PackageLink] = []
-    for artifact in sorted(path for path in dist_dir.iterdir() if path.is_file()):
+    for artifact in sorted(
+        path
+        for path in dist_dir.iterdir()
+        if path.is_file()
+        and (path.name.endswith(".whl") or path.name.endswith(".tar.gz"))
+    ):
         digest = _sha256(artifact)
         name = artifact.name
         href = (
@@ -137,10 +142,13 @@ def _dedupe_links(links: list[PackageLink]) -> list[PackageLink]:
     return sorted(deduped, key=lambda item: (item.name, item.href))
 
 
-def _write_simple_index(out_dir: Path, links: list[PackageLink]) -> None:
+def _write_simple_index(out_dir: Path, links: list[PackageLink], package: str) -> None:
     simple_dir = out_dir / "simple"
-    package_dir = simple_dir / "tablespec"
-    package_dir.mkdir(parents=True, exist_ok=True)
+    # Keep the original project path for its already-published distributions,
+    # and expose the current UMF-family distribution at its own PEP 503 path.
+    project_names = sorted({"tablespec", package})
+    for project_name in project_names:
+        (simple_dir / project_name).mkdir(parents=True, exist_ok=True)
 
     (simple_dir / "index.html").write_text(
         "\n".join(
@@ -150,7 +158,11 @@ def _write_simple_index(out_dir: Path, links: list[PackageLink]) -> None:
                 "<head><title>Simple Index</title></head>",
                 "<body>",
                 "  <h1>Simple Index</h1>",
-                '  <a href="tablespec/">tablespec</a><br/>',
+                *[
+                    f'  <a href="{html.escape(project_name, quote=True)}/">'
+                    f"{html.escape(project_name)}</a><br/>"
+                    for project_name in project_names
+                ],
                 "</body>",
                 "</html>",
                 "",
@@ -172,15 +184,19 @@ def _write_simple_index(out_dir: Path, links: list[PackageLink]) -> None:
             f"{html.escape(link.name)}</a><br/>"
         )
     rows.extend(["</body>", "</html>", ""])
-    (package_dir / "index.html").write_text("\n".join(rows), encoding="utf-8")
+    for project_name in project_names:
+        (simple_dir / project_name / "index.html").write_text(
+            "\n".join(rows), encoding="utf-8"
+        )
 
 
-def _check_artifact(out_dir: Path) -> None:
-    required = [
+def _check_artifact(out_dir: Path, package: str) -> None:
+    required = {
         out_dir / "index.html",
         out_dir / "simple" / "index.html",
         out_dir / "simple" / "tablespec" / "index.html",
-    ]
+        out_dir / "simple" / package / "index.html",
+    }
     missing = [path for path in required if not path.is_file()]
     if missing:
         formatted = ", ".join(str(path) for path in missing)
@@ -201,13 +217,14 @@ def build_pages_artifact(args: argparse.Namespace) -> None:
         token = args.github_token or os.environ.get("GITHUB_TOKEN")
         links.extend(_fetch_github_releases(args.repo, token))
 
-    _write_simple_index(out_dir, links)
-    _check_artifact(out_dir)
+    _write_simple_index(out_dir, links, args.package)
+    _check_artifact(out_dir, args.package)
 
     for path in [
         out_dir / "index.html",
         out_dir / "simple" / "index.html",
         out_dir / "simple" / "tablespec" / "index.html",
+        out_dir / "simple" / args.package / "index.html",
     ]:
         print(f"ok {path}")
 
@@ -219,6 +236,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--dist-dir")
     parser.add_argument("--repo", default="easel/tablespec")
     parser.add_argument("--tag", default="")
+    parser.add_argument("--package", default="tablespec")
     parser.add_argument("--releases-json")
     parser.add_argument("--include-github-releases", action="store_true")
     parser.add_argument("--github-token")
