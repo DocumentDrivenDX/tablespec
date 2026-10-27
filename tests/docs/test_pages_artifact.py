@@ -29,6 +29,7 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
     sdist = dist_dir / "tablespec-1.2.3.tar.gz"
     wheel.write_bytes(b"wheel-content")
     sdist.write_bytes(b"sdist-content")
+    (dist_dir / "release-manifest.json").write_text("{}", encoding="utf-8")
 
     releases_json.write_text(
         json.dumps(
@@ -91,6 +92,7 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
     assert "tablespec-1.2.3-py3-none-any.whl" in html
     assert "tablespec-1.2.3-py3-none-any.whl" in current_html
     assert "tablespec-1.2.3.tar.gz" in html
+    assert "release-manifest.json" not in html
     assert (
         "https://github.com/DocumentDrivenDX/tablespec/releases/download/v1.2.3/"
         in html

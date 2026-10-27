@@ -59,7 +59,12 @@ def _current_dist_links(dist_dir: Path, tag: str, repo: str) -> list[PackageLink
         raise SystemExit(f"dist directory does not exist: {dist_dir}")
 
     links: list[PackageLink] = []
-    for artifact in sorted(path for path in dist_dir.iterdir() if path.is_file()):
+    for artifact in sorted(
+        path
+        for path in dist_dir.iterdir()
+        if path.is_file()
+        and (path.name.endswith(".whl") or path.name.endswith(".tar.gz"))
+    ):
         digest = _sha256(artifact)
         name = artifact.name
         href = (
