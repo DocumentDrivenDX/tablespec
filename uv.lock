@@ -2564,123 +2564,6 @@ wheels = [
 ]
 
 [[package]]
-name = "tablespec"
-source = { editable = "." }
-dependencies = [
-    { name = "click" },
-    { name = "gitpython" },
-    { name = "great-expectations" },
-    { name = "jsonschema" },
-    { name = "pydantic" },
-    { name = "pyyaml" },
-    { name = "rich" },
-    { name = "ruamel-yaml" },
-    { name = "sqlglot" },
-    { name = "sqlparse" },
-    { name = "typer" },
-    { name = "umf-core" },
-]
-
-[package.optional-dependencies]
-databricks = [
-    { name = "databricks-sdk" },
-]
-duckdb = [
-    { name = "duckdb" },
-    { name = "duckdb-engine" },
-    { name = "sqlalchemy" },
-]
-excel = [
-    { name = "openpyxl" },
-]
-spark = [
-    { name = "pyarrow" },
-    { name = "pyspark" },
-]
-tui = [
-    { name = "textual" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "anyio" },
-    { name = "dbt-core" },
-    { name = "dbt-databricks" },
-    { name = "dbt-duckdb" },
-    { name = "dbt-spark", extra = ["session"] },
-    { name = "duckdb" },
-    { name = "googleapis-common-protos" },
-    { name = "grpcio" },
-    { name = "grpcio-status" },
-    { name = "hypothesis" },
-    { name = "mkdocs" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "openpyxl" },
-    { name = "pandas" },
-    { name = "pre-commit" },
-    { name = "pyright" },
-    { name = "pysail" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock" },
-    { name = "ruff" },
-    { name = "scipy" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "click", specifier = ">=8.0.0,<9.0.0" },
-    { name = "databricks-sdk", marker = "extra == 'databricks'", specifier = ">=0.117.0,<1.0.0" },
-    { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=1.0.0,<2.0.0" },
-    { name = "duckdb-engine", marker = "extra == 'duckdb'", specifier = ">=0.15.0,<1.0.0" },
-    { name = "gitpython", specifier = ">=3.1.0,<4.0.0" },
-    { name = "great-expectations", specifier = ">=1.6.0,<2.0.0" },
-    { name = "jsonschema", specifier = ">=4.25.1,<5.0.0" },
-    { name = "openpyxl", marker = "extra == 'excel'", specifier = ">=3.1.0" },
-    { name = "pyarrow", marker = "extra == 'spark'", specifier = ">=18.0.0,<23.0.0" },
-    { name = "pydantic", specifier = ">=2.0.0,<3.0.0" },
-    { name = "pyspark", marker = "extra == 'spark'", specifier = ">=4.0.0,<5.0.0" },
-    { name = "pyyaml", specifier = ">=6.0.0,<7.0.0" },
-    { name = "rich", specifier = ">=13.0.0,<14.0.0" },
-    { name = "ruamel-yaml", specifier = ">=0.18.0,<1.0.0" },
-    { name = "sqlalchemy", marker = "extra == 'duckdb'", specifier = ">=2.0.0,<3.0.0" },
-    { name = "sqlglot", specifier = ">=26.0.0" },
-    { name = "sqlparse", specifier = ">=0.4.0,<1.0.0" },
-    { name = "textual", marker = "extra == 'tui'", specifier = ">=0.50.0" },
-    { name = "typer", specifier = ">=0.9.0,<0.26.0" },
-    { name = "umf-core", git = "https://github.com/DocumentDrivenDX/umf.git?subdirectory=python&rev=4cdddceaceded64e59ac24b65f106e9610f90653" },
-]
-provides-extras = ["databricks", "duckdb", "excel", "spark", "tui"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "anyio", specifier = ">=4.0.0" },
-    { name = "dbt-core", specifier = ">=1.9.0,<2.0.0" },
-    { name = "dbt-databricks", specifier = ">=1.9,<2" },
-    { name = "dbt-duckdb", specifier = ">=1.9.0,<2.0.0" },
-    { name = "dbt-spark", extras = ["session"], specifier = ">=1.10,<2" },
-    { name = "duckdb", specifier = ">=1.5.0,<2.0.0" },
-    { name = "googleapis-common-protos" },
-    { name = "grpcio" },
-    { name = "grpcio-status" },
-    { name = "hypothesis", specifier = ">=6.0.0" },
-    { name = "mkdocs", specifier = ">=1.6" },
-    { name = "mkdocs-material", specifier = ">=9.5" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.27" },
-    { name = "openpyxl", specifier = ">=3.1.0" },
-    { name = "pandas", specifier = ">=2.0" },
-    { name = "pre-commit", specifier = ">=4.0.0" },
-    { name = "pyright", specifier = ">=1.1.0" },
-    { name = "pysail", specifier = ">=0.6.4,<0.7" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pytest-cov", specifier = ">=6.0.0" },
-    { name = "pytest-mock", specifier = ">=3.15.1" },
-    { name = "ruff", specifier = ">=0.13.3" },
-    { name = "scipy", specifier = ">=1.11" },
-]
-
-[[package]]
 name = "text-unidecode"
 version = "1.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2851,6 +2734,123 @@ dependencies = [
     { name = "jsonschema" },
     { name = "pydantic" },
     { name = "ruamel-yaml" },
+]
+
+[[package]]
+name = "umf-tablespec"
+source = { editable = "." }
+dependencies = [
+    { name = "click" },
+    { name = "gitpython" },
+    { name = "great-expectations" },
+    { name = "jsonschema" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "rich" },
+    { name = "ruamel-yaml" },
+    { name = "sqlglot" },
+    { name = "sqlparse" },
+    { name = "typer" },
+    { name = "umf-core" },
+]
+
+[package.optional-dependencies]
+databricks = [
+    { name = "databricks-sdk" },
+]
+duckdb = [
+    { name = "duckdb" },
+    { name = "duckdb-engine" },
+    { name = "sqlalchemy" },
+]
+excel = [
+    { name = "openpyxl" },
+]
+spark = [
+    { name = "pyarrow" },
+    { name = "pyspark" },
+]
+tui = [
+    { name = "textual" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "anyio" },
+    { name = "dbt-core" },
+    { name = "dbt-databricks" },
+    { name = "dbt-duckdb" },
+    { name = "dbt-spark", extra = ["session"] },
+    { name = "duckdb" },
+    { name = "googleapis-common-protos" },
+    { name = "grpcio" },
+    { name = "grpcio-status" },
+    { name = "hypothesis" },
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings", extra = ["python"] },
+    { name = "openpyxl" },
+    { name = "pandas" },
+    { name = "pre-commit" },
+    { name = "pyright" },
+    { name = "pysail" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "scipy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.0.0,<9.0.0" },
+    { name = "databricks-sdk", marker = "extra == 'databricks'", specifier = ">=0.117.0,<1.0.0" },
+    { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=1.0.0,<2.0.0" },
+    { name = "duckdb-engine", marker = "extra == 'duckdb'", specifier = ">=0.15.0,<1.0.0" },
+    { name = "gitpython", specifier = ">=3.1.0,<4.0.0" },
+    { name = "great-expectations", specifier = ">=1.6.0,<2.0.0" },
+    { name = "jsonschema", specifier = ">=4.25.1,<5.0.0" },
+    { name = "openpyxl", marker = "extra == 'excel'", specifier = ">=3.1.0" },
+    { name = "pyarrow", marker = "extra == 'spark'", specifier = ">=18.0.0,<23.0.0" },
+    { name = "pydantic", specifier = ">=2.0.0,<3.0.0" },
+    { name = "pyspark", marker = "extra == 'spark'", specifier = ">=4.0.0,<5.0.0" },
+    { name = "pyyaml", specifier = ">=6.0.0,<7.0.0" },
+    { name = "rich", specifier = ">=13.0.0,<14.0.0" },
+    { name = "ruamel-yaml", specifier = ">=0.18.0,<1.0.0" },
+    { name = "sqlalchemy", marker = "extra == 'duckdb'", specifier = ">=2.0.0,<3.0.0" },
+    { name = "sqlglot", specifier = ">=26.0.0" },
+    { name = "sqlparse", specifier = ">=0.4.0,<1.0.0" },
+    { name = "textual", marker = "extra == 'tui'", specifier = ">=0.50.0" },
+    { name = "typer", specifier = ">=0.9.0,<0.26.0" },
+    { name = "umf-core", git = "https://github.com/DocumentDrivenDX/umf.git?subdirectory=python&rev=4cdddceaceded64e59ac24b65f106e9610f90653" },
+]
+provides-extras = ["databricks", "duckdb", "excel", "spark", "tui"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "anyio", specifier = ">=4.0.0" },
+    { name = "dbt-core", specifier = ">=1.9.0,<2.0.0" },
+    { name = "dbt-databricks", specifier = ">=1.9,<2" },
+    { name = "dbt-duckdb", specifier = ">=1.9.0,<2.0.0" },
+    { name = "dbt-spark", extras = ["session"], specifier = ">=1.10,<2" },
+    { name = "duckdb", specifier = ">=1.5.0,<2.0.0" },
+    { name = "googleapis-common-protos" },
+    { name = "grpcio" },
+    { name = "grpcio-status" },
+    { name = "hypothesis", specifier = ">=6.0.0" },
+    { name = "mkdocs", specifier = ">=1.6" },
+    { name = "mkdocs-material", specifier = ">=9.5" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.27" },
+    { name = "openpyxl", specifier = ">=3.1.0" },
+    { name = "pandas", specifier = ">=2.0" },
+    { name = "pre-commit", specifier = ">=4.0.0" },
+    { name = "pyright", specifier = ">=1.1.0" },
+    { name = "pysail", specifier = ">=0.6.4,<0.7" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
+    { name = "pytest-mock", specifier = ">=3.15.1" },
+    { name = "ruff", specifier = ">=0.13.3" },
+    { name = "scipy", specifier = ">=1.11" },
 ]
 
 [[package]]
