@@ -78,4 +78,6 @@ def test_release_workflows_bind_both_package_identities():
     assert "workflow_dispatch:" in release
     assert "ref: ${{ inputs.release_tag || github.ref }}" in release
     assert 'git rev-parse "refs/tags/$RELEASE_TAG^{commit}"' in release
-    assert '--source-commit "$(git rev-parse HEAD)"' in release
+    assert "ref: ${{ github.sha }}" in release
+    assert "path: source" in release
+    assert '--source-commit "$(git -C source rev-parse HEAD)"' in release
