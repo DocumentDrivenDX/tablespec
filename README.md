@@ -44,10 +44,10 @@ uv run python examples/demo.py
 
 ```bash
 # Add to your uv project
-uv add umf-tablespec "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add umf-tablespec umf-core==0.10.0 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 
 # With Spark support (for profiling and validation)
-uv add 'umf-tablespec[spark]' "umf-core @ git+https://github.com/DocumentDrivenDX/umf.git@4cdddceaceded64e59ac24b65f106e9610f90653#subdirectory=python" --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add 'umf-tablespec[spark]' umf-core==0.10.0 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 ```
 
 ### Using pip
@@ -61,7 +61,7 @@ pip install 'umf-tablespec[spark]' --index-url https://documentdrivendx.github.i
 ```
 
 **Note**: The distribution is named `umf-tablespec`; its Python import package and CLI remain `tablespec`. Use the project index for `umf-tablespec` and PyPI for its dependencies.
-uv also requires the pinned `umf-core` Git dependency as a direct requirement.
+`umf-core` 0.10.0 is published on PyPI and is also a direct dependency of the package.
 
 **Optional extras**:
 - `umf-tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.

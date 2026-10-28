@@ -2729,11 +2729,15 @@ wheels = [
 [[package]]
 name = "umf-core"
 version = "0.10.0"
-source = { git = "https://github.com/DocumentDrivenDX/umf.git?subdirectory=python&rev=4cdddceaceded64e59ac24b65f106e9610f90653#4cdddceaceded64e59ac24b65f106e9610f90653" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
     { name = "pydantic" },
     { name = "ruamel-yaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/3b/84a212ecaa81d974db8a9a9d1027db77881d711b985dae3effa3a513285c/umf_core-0.10.0.tar.gz", hash = "sha256:6b3ad653f95ed5321d5cec69fcaa08037ce1546386b76cbc4e52d1abf19cb19d", size = 481894, upload-time = "2026-10-26T17:35:45.398Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/ce/e811584a62318594012ad533e32882e92eeac1859996ac045e8a7b9ae516/umf_core-0.10.0-py3-none-any.whl", hash = "sha256:49633924b45a3c8499d4fcc1a24c30d5a8fcb34d974ab019bbda987cb47da0f9", size = 71258, upload-time = "2026-10-26T17:35:44.146Z" },
 ]
 
 [[package]]
@@ -2822,7 +2826,7 @@ requires-dist = [
     { name = "sqlparse", specifier = ">=0.4.0,<1.0.0" },
     { name = "textual", marker = "extra == 'tui'", specifier = ">=0.50.0" },
     { name = "typer", specifier = ">=0.9.0,<0.26.0" },
-    { name = "umf-core", git = "https://github.com/DocumentDrivenDX/umf.git?subdirectory=python&rev=4cdddceaceded64e59ac24b65f106e9610f90653" },
+    { name = "umf-core", specifier = "==0.10.0" },
 ]
 provides-extras = ["databricks", "duckdb", "excel", "spark", "tui"]
 
