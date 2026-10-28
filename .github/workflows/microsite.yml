@@ -3,24 +3,13 @@ name: Microsite
 # Playwright content suite + production-baseURL link crawl.
 # Local: `make website-test` or `cd website && npm run test:all`
 
+# Full qualification and deployment are explicit, not repeated on PRs.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "website/**"
-      - ".github/workflows/microsite.yml"
-      - "scripts/build_pages_artifact.py"
-  push:
-    branches:
-      - main
-    paths:
-      - "website/**"
-      - ".github/workflows/microsite.yml"
-      - "scripts/build_pages_artifact.py"
 
 concurrency:
-  group: microsite-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: qualification-${{ github.workflow }}-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   playwright:

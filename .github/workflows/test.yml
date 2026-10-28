@@ -1,10 +1,8 @@
 name: Coverage
 
+# Full qualification and deployment are explicit, not repeated on PRs.
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   coverage:
