@@ -1,0 +1,33 @@
+name: Fast PR checks
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.pre-commit-config.yaml'
+permissions:
+  contents: read
+concurrency:
+  group: fast-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v5
+      - name: Lint without installing Spark or dbt
+        run: uvx --from ruff==0.13.3 ruff check .
+      - name: Check formatting without installing project extras
+        run: uvx --from ruff==0.13.3 ruff format --check .
+      - name: Publication identity regression tests
+        run: >-
+          uv run --isolated --no-project --python 3.12 --with pytest==8.4.2
+          python -m pytest tests/unit/test_pypi_publication.py -q
