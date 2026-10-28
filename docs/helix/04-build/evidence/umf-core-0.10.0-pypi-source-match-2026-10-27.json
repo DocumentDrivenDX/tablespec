@@ -1,0 +1,57 @@
+{
+  "evidence": "PyPI umf-core 0.10.0 source match",
+  "verified_at": "2026-10-27",
+  "distribution": {
+    "name": "umf-core",
+    "version": "0.10.0",
+    "requires_python": ">=3.11",
+    "pypi_uploads": [
+      {
+        "filename": "umf_core-0.10.0-py3-none-any.whl",
+        "sha256": "49633924b45a3c8499d4fcc1a24c30d5a8fcb34d974ab019bbda987cb47da0f9",
+        "uploaded_at": "2026-10-26T17:35:44.146462Z"
+      },
+      {
+        "filename": "umf_core-0.10.0.tar.gz",
+        "sha256": "6b3ad653f95ed5321d5cec69fcaa08037ce1546386b76cbc4e52d1abf19cb19d",
+        "uploaded_at": "2026-10-26T17:35:45.398624Z"
+      }
+    ]
+  },
+  "source_comparison": {
+    "pinned_repository": "https://github.com/DocumentDrivenDX/umf",
+    "pinned_commit": "4cdddceaceded64e59ac24b65f106e9610f90653",
+    "pinned_path": "python/src/umf",
+    "published_sdist_path": "umf_core-0.10.0/src/umf",
+    "metadata_match": {
+      "pinned_pyproject": "python/pyproject.toml at the pinned commit",
+      "published_pyproject": "pyproject.toml in the PyPI sdist",
+      "fields": {
+        "name": "umf-core",
+        "version": "0.10.0",
+        "requires_python": ">=3.11",
+        "dependencies": [
+          "pydantic>=2.11,<3",
+          "jsonschema>=4.25,<5",
+          "ruamel.yaml>=0.18,<1"
+        ]
+      },
+      "result": "identical project metadata"
+    },
+    "result": "identical file set and SHA-256 for every file",
+    "files": [
+      {"path": "__init__.py", "sha256": "e9dca8a080364f76a1c370caabd95f35e36c011c6b27fd58a487cadf320aee9d"},
+      {"path": "constraint_kernel.py", "sha256": "108a1d5083d41acb7bcf9149fbd5ebf997b4646b80751a0ee7d6e299f1bc712a"},
+      {"path": "generated_resources.py", "sha256": "7c647682f3a87559911a49e08c92669be95c2556c4e89801ab8c671e058beac8"},
+      {"path": "json.py", "sha256": "3b9362c4111fb96b5e79604e7150eacf88be07a8232013a1d2695afae97c7539"},
+      {"path": "literal_kernel.py", "sha256": "f168ba4299f526bbf94082982a7500016c7bae48e02709281b43d310f4e551ea"},
+      {"path": "models.py", "sha256": "c625c5f187268ce66c60a396a7cad14d2b5e3d9ddb976719e0cc6209fcfc08e1"},
+      {"path": "py.typed", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+      {"path": "registry.py", "sha256": "b5a8731527bb4f4c2909d91c7a2829a32f4e9c66d5cff11b53c673ea42b43d05"},
+      {"path": "schemas.py", "sha256": "22f02d6a6903b8804a1d504b0b6f232872aa564bc20e77933c880a4f9016a402"},
+      {"path": "serialization.py", "sha256": "ecbe6a15e49426a4f97513ccd93fe43d1df36862c31da1c6eaf80529f2dec59e"},
+      {"path": "validation.py", "sha256": "d5be00c4643cbe08c8fc8238f8b8b166e5c5555779334dc1a4a34a78a03fc0f3"}
+    ],
+    "qualification_basis": "The published source archive and pinned upstream source have identical implementation files and metadata identifies both as umf-core 0.10.0. This verifies source/API identity for the dependency substitution; it is not a Tablespec release or runtime qualification."
+  }
+}
