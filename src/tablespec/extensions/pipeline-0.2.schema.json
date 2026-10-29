@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tablespec.pipeline:0.2.0",
+  "additionalProperties": true,
+  "description": "Native refinements and pipeline metadata; never part of UMF core.",
+  "properties": {
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object",
+      "properties": {
+        "source": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/deltaAppendSource"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "delimited",
+                    "parquet",
+                    "json",
+                    "jdbc"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
+        },
+        "ldp": {
+          "$ref": "#/$defs/ldpCapability"
+        }
+      }
+    }
+  },
+  "required": [
+    "metadata"
+  ],
+  "title": "PipelinePayload",
+  "type": "object",
+  "$defs": {
+    "identityScope": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "enrollment_id",
+        "installation_id",
+        "destination_generation"
+      ],
+      "properties": {
+        "enrollment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "installation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination_generation": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "deltaAppendSource": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "table",
+        "read_mode",
+        "starting_version",
+        "identity_scope",
+        "mutation_mode"
+      ],
+      "properties": {
+        "kind": {
+          "const": "delta"
+        },
+        "table": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_-]*\\.[A-Za-z_][A-Za-z0-9_-]*\\.[A-Za-z_][A-Za-z0-9_-]*$"
+        },
+        "read_mode": {
+          "const": "append_stream"
+        },
+        "starting_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "identity_scope": {
+          "$ref": "#/$defs/identityScope"
+        },
+        "mutation_mode": {
+          "const": "append_only"
+        }
+      }
+    },
+    "schemaBinding": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "schema_id",
+        "version",
+        "sha256",
+        "schema_uri"
+      ],
+      "properties": {
+        "schema_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "schema_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "transformStage": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "stage_id",
+        "role",
+        "entrypoint",
+        "input",
+        "output",
+        "group_by",
+        "data_rejection_exceptions"
+      ],
+      "properties": {
+        "stage_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "validate_raw_item",
+            "reconstruct_revision"
+          ]
+        },
+        "entrypoint": {
+          "type": "string",
+          "pattern": "^[A-Za-z_]\\w*(\\.[A-Za-z_]\\w*)+$"
+        },
+        "input": {
+          "$ref": "#/$defs/schemaBinding"
+        },
+        "output": {
+          "$ref": "#/$defs/schemaBinding"
+        },
+        "group_by": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "data_rejection_exceptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]\\w*$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "ldpCapability": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "revisions",
+        "transform",
+        "archive"
+      ],
+      "properties": {
+        "required_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "revisions": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "record_id",
+            "record_revision",
+            "record_kind",
+            "delivery_sequence",
+            "content_hash",
+            "replay",
+            "conflict",
+            "retention",
+            "latest_projection",
+            "reconstruction"
+          ],
+          "properties": {
+            "record_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "record_revision": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "record_kind": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "delivery_sequence": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "replay": {
+              "const": "same_sequence_and_canonical_bytes"
+            },
+            "conflict": {
+              "const": "block_and_retain_evidence"
+            },
+            "retention": {
+              "const": "all_revisions"
+            },
+            "latest_projection": {
+              "const": "separate"
+            },
+            "reconstruction": {
+              "const": "bounded_chunk_codec"
+            }
+          }
+        },
+        "transform": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "transform_id",
+            "artifact_uri",
+            "version",
+            "sha256",
+            "stages"
+          ],
+          "properties": {
+            "transform_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "artifact_uri": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "stages": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/transformStage"
+              }
+            },
+            "max_group_items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 128
+            },
+            "max_group_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100663296
+            }
+          }
+        },
+        "archive": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "raw_target",
+            "target",
+            "fact_events_target",
+            "sequence_decisions_target",
+            "latest_target",
+            "schema_version",
+            "schema",
+            "identity_fields",
+            "revision_key_fields",
+            "delivery_key_fields",
+            "write_mode"
+          ],
+          "properties": {
+            "raw_target": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "target": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "latest_target": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "schema_version": {
+              "const": "1.0.0"
+            },
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "enum": [
+                  "string",
+                  "long"
+                ]
+              },
+              "required": [
+                "event_type",
+                "delivery_sequence",
+                "record_id",
+                "record_revision",
+                "content_hash",
+                "payload_json",
+                "record_sha256",
+                "disposition",
+                "reason_code",
+                "evidence_json",
+                "event_order"
+              ]
+            },
+            "identity_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "revision_key_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "delivery_key_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "write_mode": {
+              "const": "append_only"
+            },
+            "sequence_decisions_target": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "fact_events_target": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

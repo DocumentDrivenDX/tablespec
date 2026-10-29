@@ -130,6 +130,59 @@ or a physical-name collision in the UMF set MUST raise `LdpProjectError`; an
 unknown relation in a gold plan MUST raise `UnknownDatasetError`
 (`src/tablespec/ldp/project.py:255`, `src/tablespec/ldp/renderer.py:80`).
 
+#### Declarative append/revision capability
+
+The following additive requirements are approved for the TableSpec-owned
+`tablespec.pipeline` extension. They do not add fields to UMF core, change the
+shared `NodeRegistry` / cast / `SQLPlanGenerator` contracts, or make the LDP
+emitter a runtime coordinator.
+
+LDP-13. A declared Delta source MUST bind a qualified table identity, append
+stream mode, starting source version, and one explicit processing identity
+scope (`enrollment_id`, `installation_id`, `destination_generation`). Unsupported
+mutation modes MUST block readiness and emission; the compiler MUST NOT infer
+update/delete CDC semantics. ZeroBus, when present, is a producer binding to a
+pre-created Delta/streaming-table target, not a source reader or resource
+provisioner.
+
+LDP-14. An immutable revision declaration MUST identify records by the scoped
+identity plus `record_id` and `record_revision`, sequence deliveries by
+`delivery_seq`, and bind canonical content with `record_sha256`. Exact replay
+with the same sequence and canonical bytes is idempotently collapsed; the same
+sequence/revision with different content MUST block with conflict evidence.
+Accepted revisions remain immutable and retained; the latest-per-key result is a
+separate derivative. Incomplete chunks remain pending and cannot advance a
+materialized/projected receipt. Tablespec emits this contract and MUST NOT
+publish or certify a cross-table prefix itself.
+
+LDP-15. An external transform declaration MUST bind a stable identifier,
+immutable version and content hash, typed input/output schemas, identity-group
+keys and explicit maximum items/bytes per group. The generated LDP module MUST
+load the pinned closure, validate the declared stage schemas, invoke the typed
+validator and bounded reconstructor, and fail the flow on artifact/configuration
+errors. Expected source rejections are recorded only through explicitly bound
+adapter rejection types. The generated sequence and revision processors MUST
+persist through the selected streaming checkpoint and append revision/conflict
+events to the declared archive. Native runtime support remains unqualified until
+the exact generated graph passes its pinned runtime and permission gates.
+
+LDP-16. Static readiness MUST report the declared source/transform identities,
+dependency edges, identity scope, bounds and declaration blockers. The separate
+publication-readiness API MUST consume evaluated coordinator evidence and report
+its pinned source/transform/dependency versions, cursors, conflict evidence
+references and blockers; missing evidence MUST be refused. Cross-dataset
+readiness is evaluated by Erg against a pinned snapshot; Tablespec MUST NOT
+claim cross-table atomicity or coordinator readiness from static graph
+validation. The existing `generate_ldp_project` remains the sole
+compiler/emitter entrypoint and MUST refuse an invalid capability declaration.
+
+Typed Delta/LDP declarations use `tablespec.pipeline` version `0.2.0`; the
+published `0.1.0` schema and its legacy round-trip behavior remain unchanged.
+The generated advanced module uses `transformWithStateInPandas` and a separate
+AUTO CDC SCD1 latest-state target. Its declared profile is Databricks Runtime
+16.3+ with standard access mode. This is a target profile, not evidence that the
+generated graph has passed native Databricks execution or privilege checks.
+
 ### Non-Functional Requirements
 
 - **Encapsulation**: Generating an LDP project MUST import 0 Databricks or Spark

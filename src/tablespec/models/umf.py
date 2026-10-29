@@ -394,8 +394,34 @@ class JdbcSource(BaseModel):
         return self
 
 
+class DeltaIdentityScope(BaseModel):
+    """Exact external identity values used to isolate one processing scope."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enrollment_id: str = Field(min_length=1)
+    installation_id: str = Field(min_length=1)
+    destination_generation: str = Field(min_length=1)
+
+
+class DeltaAppendSource(BaseModel):
+    """Pinned append-only Delta source for the LDP extension."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["delta"]
+    table: str = Field(
+        pattern=r"^[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*$",
+        description="Fully qualified catalog.schema.table identity.",
+    )
+    read_mode: Literal["append_stream"]
+    starting_version: int = Field(ge=0)
+    identity_scope: DeltaIdentityScope
+    mutation_mode: Literal["append_only"] = "append_only"
+
+
 SourceSpec = Annotated[
-    DelimitedSource | ParquetSource | JsonSource | JdbcSource,
+    DelimitedSource | ParquetSource | JsonSource | JdbcSource | DeltaAppendSource,
     Field(discriminator="kind"),
 ]
 
@@ -404,7 +430,7 @@ SourceSpec = Annotated[
 #: all-STRING raw landing (ADR-007). Suite composition consults this to keep
 #: string-shape raw checks (length/regex/strftime/castability) off typed raw
 #: (SUITE-01/SUITE-02) -- see ``tablespec.gx_baseline``.
-TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset({"jdbc", "json", "parquet"})
+TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset({"delta", "jdbc", "json", "parquet"})
 
 
 class Nullable(BaseModel):
@@ -1539,6 +1565,10 @@ class UMFMetadata(BaseModel):
     updated_at: datetime | None = Field(
         default=None, description="Last update timestamp"
     )
+    ldp: dict[str, Any] | None = Field(
+        default=None,
+        description="Typed by the tablespec.pipeline extension when compiling advanced LDP declarations.",
+    )
     created_by: str | None = Field(default=None, description="Creator identifier")
     pipeline_phase: int | None = Field(
         default=None,
@@ -1654,6 +1684,10 @@ class UMFMetadata(BaseModel):
     )
     output_config: OutputConfig | None = Field(
         default=None, description="Output file configuration"
+    )
+    ldp: dict[str, Any] | None = Field(
+        default=None,
+        description="TableSpec-native LDP revision/transform declaration; validated by tablespec.ldp.",
     )
 
 
@@ -1986,7 +2020,7 @@ class UMF(BaseModel):
 
     def effective_source(
         self,
-    ) -> "DelimitedSource | ParquetSource | JsonSource | JdbcSource":
+    ) -> "DelimitedSource | ParquetSource | JsonSource | JdbcSource | DeltaAppendSource":
         """Resolve the effective source shape for this table (ADR-015).
 
         Returns ``source`` when declared; otherwise derives a
@@ -2230,6 +2264,8 @@ __all__ = [
     "TYPED_RAW_SOURCE_KINDS",
     "UMF",
     "Cardinality",
+    "DeltaAppendSource",
+    "DeltaIdentityScope",
     "DelimitedSource",
     "DerivationCandidate",
     "FileFormat",

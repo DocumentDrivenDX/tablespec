@@ -38,6 +38,10 @@ ddx:
 | LDP-10 honest gaps | Emit uniqueness and FK intent as comments, not fabricated constraints | `LdpExpectationEmitter` | P1 |
 | LDP-11 shared cast body | Keep ingested cast SQL character-identical to the dbt/direct shared cast select | Core seam, `LdpProjectEmitter` | P1 |
 | LDP-12 fail closed | Reject cycles, dangling non-external refs, unknown relations, and physical-name collisions | `LdpProjectEmitter`, `LdpRefRenderer` | P1 |
+| LDP-13 append Delta source | Bind qualified table, starting version, append-only mode, and enrollment/installation/generation identity scope; refuse unsupported mutations | TableSpec pipeline extension + `LdpProjectEmitter` | P1 |
+| LDP-14 immutable revisions | Preserve canonical identity/sequence/hash, collapse exact replay, block conflicts, retain all revisions, derive latest separately | Revision contract + Erg coordinator adapter boundary | P1 |
+| LDP-15 external transform | Bind stable ID/version/hash, typed input/output, identity grouping and item/byte bounds; emit deterministic invocation metadata | LDP project manifest | P1 |
+| LDP-16 cross-dataset readiness | Static declaration checks are separate from publication readiness; report evaluated dependency pins/cursors/conflict evidence from a coordinator snapshot and never claim cross-table atomicity | `assess_ldp_readiness`, `assess_publication_readiness` | P1 |
 
 ### NFR Impact on Architecture
 
@@ -82,6 +86,35 @@ shared while satisfying FR-19.3.
 
 **Selected Approach**: Shared target-agnostic core seam with a semantic LDP
 renderer.
+
+### Approved append/revision extension boundary
+
+The typed extension belongs in `tablespec.pipeline` version `0.2.0`; its
+published `0.1.0` schema remains unchanged for legacy documents and round trips.
+UMF core and the shared `LogicalPlan` remain unchanged. The current emitter and
+`generate_ldp_project` stay the only compiler path and continue to reuse shared
+casts, registry and SQL planning. A Delta append-stream binding is validated as
+a declared source, with explicit table identity, source version and processing
+scope; unsupported update/delete modes fail closed. A scoped revision contract
+binds enrollment, installation and destination generation with record ID,
+revision, delivery sequence and canonical content hash. Exact same-sequence
+replay is idempotent; content conflicts block and leave durable evidence;
+accepted revisions remain immutable while latest-state output is separate.
+
+For this advanced capability, the emitter generates a Python pipeline module
+that loads the pinned external-transform closure, validates both typed schemas,
+and invokes the declared validation/reconstruction stages inside bounded
+`transformWithStateInPandas` processors. It appends revision and conflict
+events to the declared archive and derives latest state separately through an
+AUTO CDC SCD1 target. Artifact, schema, and unexpected runtime failures stop the
+flow; only explicitly declared data-rejection errors become conflict evidence.
+The declared target profile is Databricks Runtime 16.3+ with standard access
+mode. Structured readiness includes dependency and conflict-evidence references
+from the Erg coordinator against a pinned snapshot. Tablespec does not create
+enrollments, publish prefix receipts, infer UMF from live metadata, or claim
+cross-table atomicity. Local synthetic tests cover generated code and pure
+state transitions only. They do not qualify the graph on native Databricks or
+prove its runtime privileges, throughput, or production readiness.
 
 **Architecture/ADR impact**: No new architecture decision is needed. This
 design applies ADR-013 and the existing core seam contract.
