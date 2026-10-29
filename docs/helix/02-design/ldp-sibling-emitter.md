@@ -293,3 +293,10 @@ failure, changed definition or competing run prevents publication.
 mismatches, stale/future/naive observations, invalid concurrency/queue settings,
 missing or mixed authority and retained fenced behavior. This profile supplies
 serialized exclusive execution, not a distributed lock or cross-table transaction.
+
+Immutable archive and fact-event streaming tables set
+`pipelines.reset.allowed=false` in generated declarations. Full refresh must not
+silently erase retained facts/conflicts or their source history. Checkpoint-loss
+qualification uses a separate synthetic deployment; production recovery retains
+the original archive and requires an explicit reconstruction/cutover procedure.
+Latest-state output remains separately rebuildable from retained fact events.
