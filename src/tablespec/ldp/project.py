@@ -164,7 +164,10 @@ _INTERNAL_SCHEMA = T.StructType([
 ])
 _ARCHIVE_SCHEMA = T.StructType([
     T.StructField(name, T.LongType() if kind == "long" else T.StringType(), name in {"delivery_sequence", "record_revision"})
-    for name, kind in _ARCHIVE.schema.items()
+    # ``schema`` is the serialized alias of ArchiveBinding.archive_schema, but
+    # BaseModel also exposes a ``schema()`` method. Use the Python field name
+    # here so generated modules do not resolve the method instead of the map.
+    for name, kind in _ARCHIVE.archive_schema.items()
 ])
 
 def _identity_keyed_stream(stream):

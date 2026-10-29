@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import hashlib
 from datetime import datetime, timedelta, timezone
+from types import ModuleType, SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
@@ -353,6 +354,85 @@ def test_generate_emits_pinned_transform_binding_and_is_deterministic() -> None:
     assert "stored_as_scd_type=1" in executor
     assert "@dp.materialized_view" not in executor
     assert "LongType" in executor
+
+
+def test_generated_revision_module_initializes_archive_schema_with_stubs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Execute generated module setup to catch model/API alias collisions."""
+    generated = generate_ldp_project([_spec()])["pipeline/ldp_events.py"]
+
+    class SparkType:
+        pass
+
+    class LongType(SparkType):
+        pass
+
+    class StringType(SparkType):
+        pass
+
+    class StructField:
+        def __init__(self, name: str, data_type: SparkType, nullable: bool) -> None:
+            self.name = name
+            self.dataType = data_type
+            self.nullable = nullable
+
+    class StructType:
+        def __init__(self, fields: list[StructField]) -> None:
+            self.fields = fields
+
+    class Column:
+        def __eq__(self, other: object) -> Column:
+            return self
+
+    registered: list[str] = []
+    flows: list[dict[str, object]] = []
+
+    def table(**kwargs: object):
+        def decorate(function):
+            registered.append(str(kwargs["name"]))
+            return function
+
+        return decorate
+
+    dp = SimpleNamespace(
+        table=table,
+        create_streaming_table=lambda **kwargs: None,
+        create_auto_cdc_flow=lambda **kwargs: flows.append(kwargs),
+    )
+    functions = SimpleNamespace(col=lambda name: Column(), lit=lambda value: value)
+    spark_types = SimpleNamespace(
+        StructType=StructType,
+        StructField=StructField,
+        LongType=LongType,
+        StringType=StringType,
+    )
+    pyspark = ModuleType("pyspark")
+    pyspark.__path__ = []  # type: ignore[attr-defined]
+    pyspark.pipelines = dp  # type: ignore[attr-defined]
+    sql = ModuleType("pyspark.sql")
+    sql.__path__ = []  # type: ignore[attr-defined]
+    sql.functions = functions  # type: ignore[attr-defined]
+    sql.types = spark_types  # type: ignore[attr-defined]
+    monkeypatch.setitem(__import__("sys").modules, "pyspark", pyspark)
+    monkeypatch.setitem(__import__("sys").modules, "pyspark.pipelines", dp)
+    monkeypatch.setitem(__import__("sys").modules, "pyspark.sql", sql)
+    monkeypatch.setitem(__import__("sys").modules, "pyspark.sql.functions", functions)
+    monkeypatch.setitem(__import__("sys").modules, "pyspark.sql.types", spark_types)
+
+    module = ModuleType("generated_ldp_events")
+    exec(compile(generated, "pipeline/ldp_events.py", "exec"), module.__dict__)
+
+    archive_fields = {field.name: field for field in module._ARCHIVE_SCHEMA.fields}
+    assert isinstance(archive_fields["delivery_sequence"].dataType, LongType)
+    assert isinstance(archive_fields["record_revision"].dataType, LongType)
+    assert isinstance(archive_fields["event_type"].dataType, StringType)
+    assert set(registered) == {
+        "catalog.schema.events_sequence_decisions",
+        "catalog.schema.events_revision_archive",
+        "catalog.schema.events_revision_fact_events",
+    }
+    assert len(flows) == 1
 
 
 def test_generated_delta_project_keeps_protocol_integer_fields_as_bigint() -> None:
