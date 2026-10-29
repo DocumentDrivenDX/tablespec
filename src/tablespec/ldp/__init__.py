@@ -28,15 +28,39 @@ from tablespec.ldp.expectations import (
     derive_comments,
     derive_expectations,
 )
+from tablespec.ldp.capability import (
+    CoordinatorEvidence,
+    DeltaAppendSource,
+    ExternalTransformBinding,
+    LdpCapability,
+    LdpReadinessReport,
+    PublicationReadinessReport,
+    RevisionPolicy,
+    TypedSchemaBinding,
+    TransformStageBinding,
+    assess_ldp_readiness,
+    assess_publication_readiness,
+)
 from tablespec.ldp.project import LdpProjectError, generate_ldp_project
 from tablespec.ldp.renderer import LdpRefRenderer, UnknownDatasetError
 
 __all__ = [
+    "CoordinatorEvidence",
+    "DeltaAppendSource",
+    "ExternalTransformBinding",
+    "LdpCapability",
     "LdpExpectation",
     "LdpProjectError",
+    "LdpReadinessReport",
+    "PublicationReadinessReport",
     "LdpRefRenderer",
     "OnViolation",
+    "RevisionPolicy",
+    "TypedSchemaBinding",
+    "TransformStageBinding",
     "UnknownDatasetError",
+    "assess_ldp_readiness",
+    "assess_publication_readiness",
     "derive_comments",
     "derive_expectations",
     "generate_ldp_project",

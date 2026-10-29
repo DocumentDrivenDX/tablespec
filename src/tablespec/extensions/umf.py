@@ -19,6 +19,7 @@ from umf import (
 
 EXTENSION_ID = "tablespec.pipeline"
 EXTENSION_VERSION = "0.1.0"
+EXTENSION_VERSION_TYPED_LDP = "0.2.0"
 ARCHIVE_ID = "tablespec.source-archive"
 NATIVE_TO_SCALAR = {
     "VARCHAR": "string",
@@ -111,6 +112,19 @@ def pipeline_registry() -> Registry:
     )
     registry.register(
         Extension(
+            EXTENSION_ID,
+            EXTENSION_VERSION_TYPED_LDP,
+            ("module", "element"),
+            json.loads(
+                files(__package__)
+                .joinpath("pipeline-0.2.schema.json")
+                .read_text(encoding="utf-8")
+            ),
+            semantics,
+        )
+    )
+    registry.register(
+        Extension(
             ARCHIVE_ID,
             "0.1.0",
             ("document",),
@@ -130,6 +144,23 @@ def from_legacy(data: dict, *, document_id: str | None = None) -> _DocumentLike:
     data = deepcopy(data)
     name = data.pop("table_name")
     columns = data.pop("columns")
+    native_metadata = data.get("metadata")
+    source = data.get("source")
+    nested_source = (
+        native_metadata.get("source") if isinstance(native_metadata, dict) else None
+    )
+    version = (
+        EXTENSION_VERSION_TYPED_LDP
+        if (
+            data.get("ldp")
+            or (isinstance(source, dict) and source.get("kind") == "delta")
+            or (
+                isinstance(nested_source, dict) and nested_source.get("kind") == "delta"
+            )
+            or (isinstance(native_metadata, dict) and native_metadata.get("ldp"))
+        )
+        else EXTENSION_VERSION
+    )
     elements = []
     for index, original in enumerate(columns):
         metadata = dict(original)
@@ -161,7 +192,7 @@ def from_legacy(data: dict, *, document_id: str | None = None) -> _DocumentLike:
             {
                 "umf": current_core_version(),
                 "id": document_id or name,
-                "vocabularies": {EXTENSION_ID: {"version": EXTENSION_VERSION}},
+                "vocabularies": {EXTENSION_ID: {"version": version}},
                 "modules": [
                     {
                         "id": "table",
@@ -212,6 +243,16 @@ def to_legacy(document: _DocumentLike) -> dict:
     if set(module) - {"id", "namespace", "elements", "extensions", "title", "aliases"}:
         raise ValueError("Unsupported module semantics cannot be executed")
     table = _metadata(module)
+    pipeline_version = data.get("vocabularies", {}).get(EXTENSION_ID, {}).get("version")
+    source = table.get("source")
+    declares_typed_ldp = bool(table.get("ldp")) or (
+        isinstance(source, dict) and source.get("kind") == "delta"
+    )
+    if declares_typed_ldp and pipeline_version != EXTENSION_VERSION_TYPED_LDP:
+        raise ValueError(
+            "Typed Delta/LDP execution requires explicit tablespec.pipeline 0.2.0; "
+            "0.1.0 metadata remains opaque and round-trip only"
+        )
     table["table_name"] = module["namespace"]
     table.setdefault("version", "1.0")
     columns = []

@@ -59,6 +59,10 @@ behave correctly.
 - [ ] **US-026-AC5** — Given a table with a primary key and a foreign key, when the dataset is emitted, then uniqueness and FK appear as comments (never as a fabricated `CONSTRAINT`), with the PK comment stating APPLY CHANGES KEYS for an incremental dataset.
 - [ ] **US-026-AC6** — Given the ingested dataset's cast SELECT, when compared to the dbt path's `IngestSelect.select_block`, then the two are character-identical (cast layer is shared, not forked).
 - [ ] **US-026-AC7** — Given a UMF set with a cycle, a dangling non-external reference, or a name collision, when `generate_ldp_project` runs, then it raises `LdpProjectError`; an unknown relation in a gold plan raises `UnknownDatasetError`.
+- [ ] **US-026-AC8** — Given a pipeline-extension Delta source declaration, when readiness is assessed, then only a qualified table identity, append-stream mode, explicit starting version, and one declared identity scope are accepted; unsupported mutation modes block, and no source or enrollment is created.
+- [ ] **US-026-AC9** — Given revision rows in one declared identity scope, when replay is checked, then exact same-sequence canonical bytes collapse idempotently, differing content at the same sequence/revision returns a blocking conflict reference, every accepted revision remains distinct, and latest state is a separate derivative.
+- [ ] **US-026-AC10** — Given a pinned external-transform binding, when the LDP project is generated, then the output contains a deterministic invocation binding for identifier/version/hash, typed input/output, identity grouping, and item/byte bounds; missing or mismatched bindings block generation.
+- [ ] **US-026-AC11** — Given evaluated cross-dataset evidence from a pinned coordinator snapshot, when `assess_publication_readiness` runs, then it reports dependency pins, source/projected cursors and conflict evidence without claiming cross-table atomicity; missing evidence is refused.
 
 ## Edge Cases
 
