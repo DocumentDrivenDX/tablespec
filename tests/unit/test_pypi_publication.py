@@ -11,15 +11,15 @@ def test_pypi_verifier_accepts_exact_public_manifest_hashes(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     expected = {
-        "umf_tablespec-0.0.14-py3-none-any.whl": "a" * 64,
-        "umf_tablespec-0.0.14.tar.gz": "b" * 64,
+        "umf_tablespec-0.0.15-py3-none-any.whl": "a" * 64,
+        "umf_tablespec-0.0.15.tar.gz": "b" * 64,
     }
     manifest = tmp_path / "release-manifest.json"
     manifest.write_text(
         json.dumps(
             {
                 "package": "umf-tablespec",
-                "version": "0.0.14",
+                "version": "0.0.15",
                 "artifacts": [
                     {"name": name, "sha256": digest}
                     for name, digest in expected.items()
@@ -43,7 +43,7 @@ def test_pypi_verifier_rejects_different_public_bytes(tmp_path, monkeypatch) -> 
         json.dumps(
             {
                 "package": "umf-tablespec",
-                "version": "0.0.14",
+                "version": "0.0.15",
                 "artifacts": [
                     {"name": "wheel.whl", "sha256": "a" * 64},
                     {"name": "source.tar.gz", "sha256": "b" * 64},

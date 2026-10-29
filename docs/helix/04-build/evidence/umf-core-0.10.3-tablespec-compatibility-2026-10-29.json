@@ -1,0 +1,53 @@
+{
+  "evidence_id": "umf-core-0.10.3-tablespec-compatibility-2026-10-29",
+  "subject": "Tablespec compatibility with the published umf-core 0.10.3 distribution",
+  "distribution": {
+    "name": "umf-core",
+    "version": "0.10.3",
+    "semantic_umf_version": "0.10.0",
+    "pypi_requires_python": ">=3.11,<3.15",
+    "pypi_requires_dist": ["pydantic>=2.11,<3"],
+    "artifacts": [
+      {
+        "filename": "umf_core-0.10.3-cp311-abi3-macosx_11_0_arm64.whl",
+        "sha256": "dc2586793e1492d1f825bd9e12f27d5db9f9330ae2343d9e7773c7052f1f6ea6",
+        "tested": true
+      },
+      {
+        "filename": "umf_core-0.10.3-cp311-abi3-manylinux_2_34_x86_64.whl",
+        "sha256": "cd35f255900ec122e5e2d47d1fbac658cc127d3f16ba82e643e199b7d8cebd75",
+        "tested": false
+      },
+      {
+        "filename": "umf_core-0.10.3.tar.gz",
+        "sha256": "61b3e12a84f68f890fa34e2da14bbda47e101b7c6eadd5207680827e8daa694c",
+        "tested": false
+      }
+    ]
+  },
+  "consumer_source": {
+    "repository": "DocumentDrivenDX/tablespec",
+    "base_commit": "ea38e5f4a0313de7e3a8e9f50269f823bb9dba8a",
+    "working_change": "Pin the distribution dependency to umf-core==0.10.3 and refresh only its lock entry.",
+    "tested_platform": "macOS arm64",
+    "tested_python": "3.12",
+    "overlay": "The published wheel was extracted from its verified artifact and placed first on PYTHONPATH; Tablespec source remained the current checkout."
+  },
+  "checks": [
+    {
+      "command": "PYTHONPATH=<verified-wheel-overlay>:src .venv/bin/python -m pytest tests/unit/test_shared_umf.py tests/unit/test_current_ontology_snapshots.py tests/ldp -q --basetemp=<fresh-tempdir>",
+      "result": "89 passed in 14.50s",
+      "scope": "Shared UMF model/registry behavior, current ontology snapshots, and LDP tests; not a full suite or managed runtime qualification."
+    },
+    {
+      "check": "Import umf and register Tablespec's existing pipeline extension with the published wheel overlay.",
+      "result": "Passed; umf.__version__ was 0.10.3, current_core_version() was 0.10.0, and pipeline_registry() registered the LDP extension."
+    }
+  ],
+  "qualification_limits": [
+    "This evidence qualifies only the tested macOS arm64 wheel overlay and listed test scope.",
+    "The public wheel set observed also includes manylinux_2_34_x86_64; that wheel was not tested here.",
+    "The source distribution's build hook compiles Rust with Rust 1.90.0; source-build behavior was not tested.",
+    "No Spark or managed LDP runtime, native deployment, release, or publication was tested."
+  ]
+}
