@@ -637,7 +637,10 @@ def cast_column_sql(
     # never drift. Everything past this point only distinguishes duckdb vs not.
     is_duck = render_dialect == "duckdb"
     t = target_type.upper()
-    typed_raw = (source_kind or "").lower() in {"jdbc", "json", "parquet"}
+    # Delta, like JDBC/JSON/Parquet, carries a physical scalar schema. Keep
+    # its typed LONG values out of the string-cleanup path so protocol sequence
+    # fields are not narrowed or routed through a potentially lossy conversion.
+    typed_raw = (source_kind or "").lower() in {"delta", "jdbc", "json", "parquet"}
 
     # String types: raw landing data is already a string -- passthrough.
     # Identical across both dialects.
@@ -645,8 +648,8 @@ def cast_column_sql(
         return column
 
     if typed_raw:
-        if t == "INTEGER":
-            sql_type = "INT"
+        if t in ("INTEGER", "BIGINT"):
+            sql_type = "INT" if t == "INTEGER" else "BIGINT"
         elif t == "DECIMAL":
             sql_type = f"DECIMAL({precision or 10},{scale if scale is not None else 2})"
         elif t in ("FLOAT", "DOUBLE"):
@@ -669,13 +672,13 @@ def cast_column_sql(
     # NULL (cast fails on "") before casting -- mirrors cast_column_with_format.
     # The cleaning + nullif logic is identical; only the regex backslash escaping
     # and the cast keyword differ between dialects.
-    if t in ("INTEGER", "DECIMAL", "DOUBLE", "FLOAT"):
+    if t in ("INTEGER", "BIGINT", "DECIMAL", "DOUBLE", "FLOAT"):
         # Spark SQL needs a doubled backslash ('^\\$'); DuckDB regexp_replace
         # treats '\\' as a literal backslash, so it needs a single one ('^\$').
         dollar_re = "'^\\$'" if is_duck else "'^\\\\$'"
         cleaned = f"nullif(trim(regexp_replace({column}, {dollar_re}, '')), '')"
-        if t == "INTEGER":
-            sql_type = "INT"
+        if t in ("INTEGER", "BIGINT"):
+            sql_type = "INT" if t == "INTEGER" else "BIGINT"
         elif t == "DECIMAL":
             sql_type = f"DECIMAL({precision or 10},{scale if scale is not None else 2})"
         else:  # DOUBLE, FLOAT -> double (runtime maps FLOAT to DoubleType)

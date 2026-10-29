@@ -15,7 +15,7 @@ from tablespec.ldp import (
     generate_ldp_project,
 )
 from tablespec.ldp.execution import as_row_mapping, execute_revision_graph
-from tablespec.models.umf import UMF
+from tablespec.models.umf import UMF, UMFColumn
 
 pytestmark = [pytest.mark.no_spark, pytest.mark.fast]
 
@@ -316,7 +316,7 @@ def test_generate_emits_pinned_transform_binding_and_is_deterministic() -> None:
     )
     assert manifest["archive"]["target"] == "catalog.schema.events_revision_archive"
     assert manifest["archive"]["write_mode"] == "append_only"
-    assert manifest["runtime_profile"]["minimum_databricks_runtime"] == "16.3"
+    assert manifest["runtime_profile"]["minimum_databricks_runtime"] == "17.3"
     assert manifest["runtime_profile"]["runtime_provided_dependencies"] == [
         "pyspark",
         "pandas",
@@ -353,6 +353,37 @@ def test_generate_emits_pinned_transform_binding_and_is_deterministic() -> None:
     assert "stored_as_scd_type=1" in executor
     assert "@dp.materialized_view" not in executor
     assert "LongType" in executor
+
+
+def test_generated_delta_project_keeps_protocol_integer_fields_as_bigint() -> None:
+    spec = _spec().model_copy(deep=True)
+    spec.columns.extend(
+        [
+            UMFColumn(name="delivery_seq", data_type="INTEGER"),
+            UMFColumn(name="record_revision", data_type="INTEGER"),
+        ]
+    )
+
+    files = generate_ldp_project([spec])
+    assert set(files) == {
+        "raw/raw_events.sql",
+        "bindings/events.json",
+        "pipeline/ldp_events.py",
+        "ingested/ingested_events.sql",
+    }
+
+    ingested = files["ingested/ingested_events.sql"]
+    assert "cast(delivery_seq as BIGINT)" in ingested
+    assert "AS delivery_seq" in ingested
+    assert "cast(record_revision as BIGINT)" in ingested
+    assert "AS record_revision" in ingested
+    assert "regexp_replace(delivery_seq" not in ingested
+    assert "regexp_replace(record_revision" not in ingested
+    assert "cast(delivery_seq as INT)" not in ingested
+    assert "cast(record_revision as INT)" not in ingested
+
+    # The shared cast's exact 2**53+7 value is exercised in the companion
+    # casting regression; this asserts the generated boundary uses that type.
 
 
 def test_generate_refuses_missing_or_conflicting_readiness() -> None:

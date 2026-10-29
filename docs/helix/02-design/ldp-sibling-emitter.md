@@ -108,8 +108,11 @@ and invokes the declared validation/reconstruction stages inside bounded
 events to the declared archive and derives latest state separately through an
 AUTO CDC SCD1 target. Artifact, schema, and unexpected runtime failures stop the
 flow; only explicitly declared data-rejection errors become conflict evidence.
-The declared target profile is Databricks Runtime 16.3+ with standard access
-mode. Structured readiness includes dependency and conflict-evidence references
+The declared target profile is Databricks Runtime 17.3+ with standard access
+mode. The pinned Delta source version uses the Lakeflow SQL `STARTINGVERSION`
+read option, which the [Lakeflow SQL reference](https://docs.databricks.com/aws/en/ldp/developer/ldp-sql-ref-create-streaming-table)
+supports beginning in Runtime 17.3.
+Structured readiness includes dependency and conflict-evidence references
 from the Erg coordinator against a pinned snapshot. Tablespec does not create
 enrollments, publish prefix receipts, infer UMF from live metadata, or claim
 cross-table atomicity. Local synthetic tests cover generated code and pure

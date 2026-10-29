@@ -66,9 +66,15 @@ def _typed_type(col: dict[str, Any]) -> str:
 
 
 def _cast_for(
-    col: dict[str, Any], *, dialect: str = "spark", source_kind: str | None = None
+    col: dict[str, Any],
+    *,
+    dialect: str = "spark",
+    source_kind: str | None = None,
+    target_type_override: str | None = None,
 ) -> str:
     """Canonical SQL cast expression for one column."""
+    if target_type_override is not None:
+        col = {**col, "data_type": target_type_override}
     return cast_column_sql(
         col["name"],
         col.get("data_type", "VARCHAR"),
@@ -153,6 +159,7 @@ def build_ingest_select(
     umf_data: dict[str, Any],
     *,
     dialect: str = "spark",
+    cast_type_overrides: dict[str, str] | None = None,
 ) -> IngestSelect:
     """Build the shared cast SELECT + dedup metadata for a UMF table.
 
@@ -165,6 +172,8 @@ def build_ingest_select(
     ----
         umf_data: UMF table data (e.g. ``umf.model_dump(exclude_none=True)``).
         dialect: ``"spark"`` (default), ``"databricks"``, or ``"duckdb"``.
+        cast_type_overrides: Optional explicit target types keyed by UMF column
+            name, for protocol fields with a fixed physical type.
 
     Returns:
     -------
@@ -173,6 +182,13 @@ def build_ingest_select(
 
     """
     cols: list[dict[str, Any]] = umf_data["columns"]
+    overrides = cast_type_overrides or {}
+    unknown_overrides = set(overrides) - {column["name"] for column in cols}
+    if unknown_overrides:
+        raise ValueError(
+            "cast type overrides reference undeclared columns: "
+            + ", ".join(sorted(unknown_overrides))
+        )
     pk: list[str] = umf_data.get("primary_key") or []
     ingestion = umf_data.get("ingestion") or {}
     mode = ingestion.get("mode", "incremental")  # snapshot | incremental
@@ -182,13 +198,20 @@ def build_ingest_select(
 
     cast_pad = max(
         (
-            len(_cast_for(c, dialect=render_dialect, source_kind=source_kind))
+            len(
+                _cast_for(
+                    c,
+                    dialect=render_dialect,
+                    source_kind=source_kind,
+                    target_type_override=overrides.get(c["name"]),
+                )
+            )
             for c in cols
         ),
         default=0,
     )
     select_block = ",\n".join(
-        f"        {_cast_for(c, dialect=render_dialect, source_kind=source_kind):<{cast_pad}} AS {c['name']}"
+        f"        {_cast_for(c, dialect=render_dialect, source_kind=source_kind, target_type_override=overrides.get(c['name'])):<{cast_pad}} AS {c['name']}"
         for c in cols
     )
 

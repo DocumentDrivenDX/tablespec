@@ -437,10 +437,22 @@ def generate_ldp_project(
         node = registry.plan.nodes[f"ingested_{umf.table_name}"]
         assert node.role is NodeRole.INGESTED
         umf_data = umf.model_dump(exclude_none=True)
-        ingest = build_ingest_select(umf_data, dialect=dialect)
         source = umf.effective_source()
         if getattr(source, "kind", None) == "delta":
             capability = capability_for_umf(umf)
+            declared_columns = {column["name"] for column in umf_data["columns"]}
+            ingest = build_ingest_select(
+                umf_data,
+                dialect=dialect,
+                cast_type_overrides={
+                    field: "BIGINT"
+                    for field in (
+                        capability.revisions.delivery_sequence,
+                        capability.revisions.record_revision,
+                    )
+                    if field in declared_columns
+                },
+            )
             delta_source = source.model_dump(mode="json")
             files[f"raw/raw_{umf.table_name}.sql"] = _raw_delta_streaming_table(
                 umf.table_name, delta_source, capability.archive.raw_target
@@ -456,6 +468,7 @@ def generate_ldp_project(
                 umf.table_name, capability
             )
         else:
+            ingest = build_ingest_select(umf_data, dialect=dialect)
             raw_file_format = _read_files_format(umf, default=file_format)
             files[f"raw/raw_{umf.table_name}.sql"] = _raw_streaming_table(
                 umf.table_name, file_format=raw_file_format
