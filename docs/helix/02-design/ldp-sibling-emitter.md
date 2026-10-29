@@ -268,3 +268,35 @@ Architecture and ADRs.
 | A ref cannot be resolved but still emits a phantom dataset | L | H | Use fail-closed resolution in `LdpRefRenderer` and negative-path tests |
 | Honest LDP gaps get faked as constraints | L | M | Emit comments for uniqueness/FK intent and assert the comment format in goldens |
 | LDP execution semantics differ from the generated shape | M | M | Keep runtime claims scoped to Databricks-only execution and avoid pretending local tests cover more than generation/parity |
+
+## Explicit serialized-job publication authority
+
+The Erg operator approved the explicit serialized-job profile on 2026-10-29.
+The fenced-writer default remains unchanged. `CoordinatorEvidence` accepts
+`execution_authority: SerializedJobAuthority` as an alternative to its complete
+fenced lease triplet; mixing the two forms is invalid. Serialized evidence never
+populates `writer_fence`, and the readiness report identifies its authority kind.
+
+`assess_publication_readiness` permits this form only with the explicit policy
+`allow_serialized_job_execution`. Under its default `fenced_writer` policy the
+result is blocked with `FENCED_WRITER_REQUIRED`. The serialized model pins job,
+run, task, job-definition digest and code digest; concurrency must be one and
+queueing disabled. A retained backend observation must match every pin and name
+the same sole active run. Observations must be timezone-aware, non-future and
+fresh under `max_authority_age_seconds` (default 60, configurable from 1 to 300).
+Shape validation and pin comparison do not authenticate backend facts: the
+coordinator obtains and verifies the actual job definition and active-run set,
+retains its hashed observation, and rechecks before writing a receipt. An API
+failure, changed definition or competing run prevents publication.
+
+`tests/ldp/test_serialized_authority.py` covers opt-in/default refusal, all pin
+mismatches, stale/future/naive observations, invalid concurrency/queue settings,
+missing or mixed authority and retained fenced behavior. This profile supplies
+serialized exclusive execution, not a distributed lock or cross-table transaction.
+
+Immutable archive and fact-event streaming tables set
+`pipelines.reset.allowed=false` in generated declarations. Full refresh must not
+silently erase retained facts/conflicts or their source history. Checkpoint-loss
+qualification uses a separate synthetic deployment; production recovery retains
+the original archive and requires an explicit reconstruction/cutover procedure.
+Latest-state output remains separately rebuildable from retained fact events.

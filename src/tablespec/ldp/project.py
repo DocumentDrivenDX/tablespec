@@ -192,7 +192,7 @@ def sequence_decisions():
         )
     )
 
-@dp.table(name=_ARCHIVE.target, comment="Append-only checkpoint-backed revision and conflict event archive.")
+@dp.table(name=_ARCHIVE.target, table_properties={"pipelines.reset.allowed": "false"}, comment="Append-only checkpoint-backed revision and conflict event archive.")
 def revision_archive():
     decisions = spark.readStream.table(_SEQUENCE_TARGET)
     accepted = decisions.filter(F.col("event_type") == "accepted_item")
@@ -210,7 +210,7 @@ def revision_archive():
         *[field.name for field in _ARCHIVE_SCHEMA.fields]
     )
 
-@dp.table(name=_FACT_EVENTS_TARGET, comment="Append-only fact events selected from the immutable archive.")
+@dp.table(name=_FACT_EVENTS_TARGET, table_properties={"pipelines.reset.allowed": "false"}, comment="Append-only fact events selected from the immutable archive.")
 def revision_fact_events():
     return spark.readStream.table(_ARCHIVE.target).filter(F.col("event_type") == "revision")
 
