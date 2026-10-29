@@ -600,7 +600,7 @@ def invocation_manifest(table_name: str, capability: LdpCapability) -> dict:
         "cross_table_atomicity": "not_asserted",
         "runtime_profile": {
             "api": "PySpark transformWithStateInPandas with Lakeflow Pipelines",
-            "minimum_databricks_runtime": "16.3",
+            "minimum_databricks_runtime": "17.3",
             "minimum_access_mode": "standard",
             "runtime_provided_dependencies": ["pyspark", "pandas", "pyarrow"],
             "runtime_dependency_versions": "record from the selected runtime before qualification",

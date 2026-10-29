@@ -45,6 +45,30 @@ class TestCastColumnSql:
             == "cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
         )
 
+    def test_bigint_delta_uses_native_long_cast(self):
+        """Typed Delta LONG fields bypass string cleanup and stay BIGINT."""
+        assert (
+            cast_column_sql("delivery_seq", "BIGINT", source_kind="delta")
+            == "cast(delivery_seq as BIGINT)"
+        )
+
+    def test_bigint_cast_preserves_odd_value_above_binary64_exact_range(self):
+        """The shared BIGINT expression preserves an integer above 2**53."""
+        import duckdb
+
+        value = 2**53 + 7
+        expr = cast_column_sql(
+            f"'{value}'", "BIGINT", dialect="duckdb", source_kind="delta"
+        )
+        assert duckdb.sql(f"SELECT {expr}").fetchone()[0] == value
+
+    def test_bigint_string_cast_keeps_full_integer_width(self):
+        """BIGINT text parsing targets 64-bit SQL integers, never Spark INT."""
+        assert (
+            cast_column_sql("revision", "BIGINT")
+            == "cast(nullif(trim(regexp_replace(revision, '^\\\\$', '')), '') as BIGINT)"
+        )
+
     def test_decimal_uses_precision_and_scale(self):
         """DECIMAL honours precision/scale so the cast matches the typed column."""
         assert (
