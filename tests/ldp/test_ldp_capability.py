@@ -768,3 +768,11 @@ def test_revision_processor_enforces_byte_bound_before_buffering_rows(
     assert output
     assert output[0].iloc[0]["reason_code"] == "REVISION_GROUP_LIMIT"
     assert len(handle.value_state.value[1].encode("utf-8")) <= max_bytes + 32
+
+
+def test_generated_immutable_archives_refuse_destructive_full_refresh() -> None:
+    files = generate_ldp_project([_spec()])
+    code = files["pipeline/ldp_events.py"]
+    assert '@dp.table(name=_ARCHIVE.target, table_properties={"pipelines.reset.allowed": "false"}' in code
+    assert '@dp.table(name=_FACT_EVENTS_TARGET, table_properties={"pipelines.reset.allowed": "false"}' in code
+    assert "stored_as_scd_type=1" in code
