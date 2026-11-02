@@ -10,8 +10,10 @@ permissions:
   id-token: write
 
 concurrency:
-  group: qualification-${{ github.workflow }}-${{ github.run_id }}
+  # Share release.yml's queue so a site-only deployment cannot erase a new package index.
+  group: pages
   cancel-in-progress: false
+  queue: max
 
 jobs:
   build:
