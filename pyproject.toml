@@ -142,7 +142,7 @@ filterwarnings = [
     "ignore::DeprecationWarning:great_expectations.*",
     "ignore::DeprecationWarning:pydantic.*",
     # Typer <0.26 imports the still-supported Click stream helpers (Click 8.5).
-    "ignore:'click.utils.get_(binary|text)_stream' is deprecated.*:DeprecationWarning:click.utils",
+    "ignore:'click.utils.get_(binary|text)_stream' is deprecated.*:DeprecationWarning:typer",
     "ignore::PendingDeprecationWarning",
 ]
 addopts = "--strict-markers"
