@@ -95,6 +95,14 @@ def _links_from_release_payload(payload: object) -> list[PackageLink]:
                 continue
             if not (name.endswith(".whl") or name.endswith(".tar.gz")):
                 continue
+            digest = asset.get("digest")
+            if (
+                isinstance(digest, str)
+                and digest.startswith("sha256:")
+                and len(digest) == 71
+                and all(char in "0123456789abcdef" for char in digest[7:])
+            ):
+                url += f"#sha256={digest[7:]}"
             links.append(PackageLink(name=name, href=url, tag=tag))
     return links
 
