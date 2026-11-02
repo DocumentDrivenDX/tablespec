@@ -22,6 +22,7 @@ for the honest list of what is and is not tested.
 
 from __future__ import annotations
 
+from tablespec.ldp.authority import ExclusiveJobValidation, SerializedJobAuthority
 from tablespec.ldp.expectations import (
     LdpExpectation,
     OnViolation,
@@ -46,6 +47,8 @@ from tablespec.ldp.renderer import LdpRefRenderer, UnknownDatasetError
 
 __all__ = [
     "CoordinatorEvidence",
+    "ExclusiveJobValidation",
+    "SerializedJobAuthority",
     "DeltaAppendSource",
     "ExternalTransformBinding",
     "LdpCapability",

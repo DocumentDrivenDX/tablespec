@@ -3,6 +3,7 @@ ddx:
   id: FEAT-033
   links:
     - ADR-018
+    - ADR-020
     - US-046
 ---
 
@@ -13,23 +14,24 @@ ddx:
 **Feature ID**: FEAT-033
 **Owner**: Platform / Developer Experience
 **Covered PRD Subsystem(s)**: Guidebook
-**Covered PRD Requirements**: FR-22.1, FR-22.2, FR-22.3, FR-22.4
+**Covered PRD Requirements**: FR-22.1, FR-22.2, FR-22.3, FR-22.4, FR-22.5
 **Cross-Subsystem Rationale**: None — single subsystem.
 
 ## Overview
 
-Render a directory of UMFs into a navigable, self-contained static HTML
-"guidebook" — one page per table — so engineers and analysts can browse a
-schema, its columns, and its cross-table lineage without reading YAML.
+Render a directory of UMFs into a navigable static "guidebook" site — one page
+per table — so engineers and analysts can browse a schema, its columns, and
+where every column's data ultimately comes from, without reading YAML.
 
 ## Ideal Future State
 
 A data engineer points `tablespec guidebook` (or `generate_guidebook`) at any
 directory of UMFs and gets a browsable site: each table page shows column
-metadata, foreign-key downstream consumers, derivation upstream sources with
-their SQL, survivorship prose, and validation rules; the site has group/flat
-indexes and a search index; and every page is self-contained so it works from
-disk or any static host. The capability is governed here so downstream specs,
+metadata, the source tables each column ultimately reads (with their location
+and the derivation path), derivation candidates with their SQL and
+survivorship, foreign-key and derivation consumers, and validation rules; the
+site has group/flat navigation and offline search; and it works from disk or
+any static host. The capability is governed here so downstream specs,
 tests, and agents share one contract.
 
 ## Problem Statement
@@ -47,8 +49,8 @@ tests, and agents share one contract.
 | Area | User question or job | Feature responsibility |
 |------|----------------------|------------------------|
 | Discovery | Which UMFs go in the guidebook and how are they grouped? | Flatly and recursively discover split `table.yaml` dirs and `*.umf.json` artifacts under a root; group output by parent subfolder when present, flat otherwise; skip duplicate/malformed UMFs with a logged warning. |
-| Rendering | What does a table page show? | One self-contained HTML page per table (inline CSS, no JS frameworks, no network) with column metadata, plus top/group indexes and a JSON search index. |
-| Lineage | How do tables relate? | Foreign keys render as downstream consumers on the referenced table; derivations render as upstream sources (with SQL expression + survivorship) on the derived column. |
+| Rendering | What does a table page show? | One page per table in a static site (vanilla JS/CSS as local assets, no frameworks, no network) with column metadata, plus home/group pages and client search over a bundled catalog; optionally self-contained single pages. |
+| Lineage | How do tables relate, and where does a column's data come from? | Foreign keys render as downstream consumers on the referenced table; derivations render as upstream sources (with SQL expression + survivorship) on the derived column; each column is traced transitively to the source tables it ultimately reads (ADR-020). |
 | Entry points | How do I run it? | `tablespec guidebook` CLI command and `generate_guidebook` Python API. |
 
 ## Requirements
@@ -62,22 +64,23 @@ F033-DISC-02. The feature SHALL skip a duplicate `(group, table)` pair or a UMF 
 
 #### Rendering
 
-F033-REND-01. The feature SHALL render one self-contained HTML page per table (inline CSS, no JS frameworks, no network requests) presenting per-column metadata (type, length, format, description, sample values) and validation rules.
-F033-REND-02. The feature SHALL emit a top-level index (grouped or flat), per-group indexes when groups exist, and a JSON search index covering tables and columns.
+F033-REND-01. The feature SHALL render one page per table as a static site (vanilla JavaScript and CSS shipped as local assets; no JS frameworks, no network requests) presenting per-column metadata (type, length, format, description, sample values) and validation rules, and SHALL optionally emit self-contained single pages.
+F033-REND-02. The feature SHALL emit a home page (grouped or flat), per-group pages when groups exist, and a bundled catalog enabling client-side search over tables and columns.
 
 #### Lineage
 
 F033-LIN-01. The feature SHALL render foreign keys as downstream consumers on the referenced table.
 F033-LIN-02. The feature SHALL render column derivations as upstream sources on the derived column, including the SQL expression (with priority and join filter for multi-candidate columns) and survivorship logic (ADR-018).
+F033-LIN-03. The feature SHALL trace each column transitively through generated tables to the source tables it ultimately reads, with each source's location and the derivation path, mirroring `SQLPlanGenerator` semantics (ADR-020).
 
 #### Entry points
 
-F033-ENTRY-01. The feature SHALL expose generation through the `tablespec guidebook` CLI command and the `generate_guidebook` Python API.
+F033-ENTRY-01. The feature SHALL expose generation through the `tablespec guidebook` CLI command and the `generate_guidebook` Python API, and lineage through the `tablespec lineage` CLI command.
 
 ### Non-Functional Requirements
 
 - **Performance**: No feature-specific runtime target; generation is offline static rendering.
-- **Security**: Output is self-contained with no network requests; the feature SHALL not introduce external-service calls or new data exposure beyond reading the UMFs it is pointed at.
+- **Security**: Output makes no network requests; the feature SHALL not introduce external-service calls or new data exposure beyond reading the UMFs it is pointed at.
 - **Scalability**: One bad UMF SHALL NOT abort a multi-table run (per F033-DISC-02).
 - **Reliability**: The guidebook is regenerable and deterministic from a fixed UMF set plus an optional caller-supplied timestamp/SHA.
 
@@ -88,17 +91,17 @@ F033-ENTRY-01. The feature SHALL expose generation through the `tablespec guideb
 ##### Discovery (`tablespec/guidebook/discovery.py`)
 - Flat recursive discovery; `(group, table)` identity; duplicate/malformed skip with warning
 
-##### Reverse lineage (`tablespec/guidebook/reverse_lineage.py`)
-- Single-pass inversion of the derivation + foreign-key graph into a downstream-consumer index
+##### Column lineage (`tablespec/lineage/`)
+- `LineageBuilder` traces derivations through generated tables to source tables (`builder.py`), resolving expression references (`expressions.py`) over a discovery-backed provider with source locations (`providers.py`)
 
-##### Renderer (`tablespec/guidebook/renderer.py`)
-- One standalone HTML page per table rendered directly from the `UMF`/`UMFColumn` models; FK downstream cells, derivation upstream cells, SQL/ survivorship blocks, validation tables
+##### Page payloads (`tablespec/guidebook/payloads.py`, `models.py`)
+- Table/column payloads built directly from the `UMF`/`UMFColumn` models plus the lineage graph; derivation + foreign-key "used by" inversion; the navigation/search catalog
 
-##### Index + search (`tablespec/guidebook/index_renderer.py`, `search_index.py`)
-- Grouped/flat top index, per-group indexes, JSON search index with relative URLs
+##### Site rendering (`tablespec/guidebook/render.py`, `assets/`)
+- HTML shells with inline JSON payloads; shared `site.js`/`site.css` (navigation, tabs, search, lineage diagrams); self-contained mode
 
 ##### Orchestrator + entry points (`tablespec/guidebook/generator.py`, `cli.py`, `__init__.py`)
-- `generate` orchestrator; `tablespec guidebook` CLI command; `generate_guidebook` public export
+- `generate` orchestrator; `tablespec guidebook` and `tablespec lineage` CLI commands; `generate_guidebook` public export
 
 ## User Stories
 
@@ -135,18 +138,21 @@ F033-ENTRY-01. The feature SHALL expose generation through the `tablespec guideb
 
 ### Source Evidence
 
-- `src/tablespec/guidebook/` (`discovery.py`, `reverse_lineage.py`, `renderer.py`, `index_renderer.py`, `search_index.py`, `generator.py`, `prose.py`, `sql_format.py`, `_styles.py`, `__init__.py`)
-- `src/tablespec/cli.py` (`guidebook` command), `src/tablespec/__init__.py` (`generate_guidebook` export)
-- `tests/unit/test_guidebook_discovery.py`, `test_guidebook_generate.py`, `test_guidebook_renderer.py`, `test_guidebook_prose.py`, `test_guidebook_sql_format.py`
+- `src/tablespec/guidebook/` (`discovery.py`, `generator.py`, `payloads.py`, `models.py`, `render.py`, `prose.py`, `sql_format.py`, `assets/site.js`, `assets/site.css`, `__init__.py`)
+- `src/tablespec/lineage/` (`builder.py`, `expressions.py`, `models.py`, `providers.py`, `__init__.py`)
+- `src/tablespec/cli.py` (`guidebook` and `lineage` commands), `src/tablespec/__init__.py` (`generate_guidebook` export)
+- `tests/unit/test_guidebook_discovery.py`, `test_guidebook_generate.py`, `test_guidebook_payloads.py`, `test_guidebook_render.py`, `test_guidebook_synthea.py`, `test_guidebook_prose.py`, `test_guidebook_sql_format.py`, `test_lineage_builder.py`, `test_lineage_expressions.py`, `test_lineage_providers.py`
 - `examples/synthea/` (worked example: specs → UMFs → guidebook)
 
 ### Design Decisions
 
 - ADR-018 (guidebook lineage semantics: FK downstream-only vs. derivation bidirectional; flat-discovery + group model). Cross-references ADR-017 (the Excel derivation round-trip that makes derivation data authorable).
+- ADR-020 (interactive static site and transitive column lineage; supersedes ADR-018's JavaScript-free rendering shape).
 
 ## Out of Scope
 
-- An interactive lineage graph and a git-history "recently changed" feed (present in the upstream pulseflow generator; deliberately not ported).
+- A git-history "recently changed" feed and PDF export (present in the upstream pulseflow generator; deliberately not ported).
+- Runtime lineage evidence (which files or rows were actually loaded); lineage is design-time, from UMF.
 - Generating UMFs from a live catalog as part of this feature (documented two-step flow using existing features).
 - Defining exact CLI flags / API signatures inline (owned by implementation / contract artifacts).
 

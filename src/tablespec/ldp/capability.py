@@ -9,6 +9,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from tablespec.ldp.authority import SerializedJobAuthority, assess_serialized_authority
+
 from tablespec.models.umf import DeltaAppendSource, DeltaIdentityScope, UMF
 
 MAX_GROUP_ITEMS = 128
@@ -232,9 +234,10 @@ class CoordinatorEvidence(StrictModel):
     projected_through: int = Field(ge=0)
     evaluated_at: datetime
     evidence_expires_at: datetime
-    writer_lease_ref: str = Field(min_length=1)
-    writer_fence: str = Field(min_length=1)
-    writer_lease_expires_at: datetime
+    writer_lease_ref: str | None = Field(default=None, min_length=1)
+    writer_fence: str | None = Field(default=None, min_length=1)
+    writer_lease_expires_at: datetime | None = None
+    execution_authority: SerializedJobAuthority | None = None
 
     @model_validator(mode="after")
     def validate_evidence_shape(self) -> CoordinatorEvidence:
@@ -263,8 +266,19 @@ class CoordinatorEvidence(StrictModel):
             raise ValueError(
                 "dependency snapshot hashes must be lowercase SHA-256 values"
             )
-        if self.writer_lease_expires_at <= self.evaluated_at:
-            raise ValueError("writer lease must outlive the coordinator evaluation")
+        lease = (self.writer_lease_ref, self.writer_fence, self.writer_lease_expires_at)
+        if self.execution_authority is None:
+            if any(value is None for value in lease):
+                raise ValueError("fenced writer evidence requires all lease fields")
+            if (
+                self.writer_lease_expires_at is None
+                or self.writer_lease_expires_at <= self.evaluated_at
+            ):
+                raise ValueError("writer lease must outlive the coordinator evaluation")
+        elif any(value is not None for value in lease):
+            raise ValueError(
+                "serialized job authority must not populate fenced lease fields"
+            )
         if self.evidence_expires_at <= self.evaluated_at:
             raise ValueError("coordinator evidence must expire after its evaluation")
         return self
@@ -305,8 +319,10 @@ class PublicationReadinessReport(StrictModel):
     materialized_through: int
     projected_through: int
     conflict_evidence_refs: list[str]
-    writer_lease_ref: str
-    writer_fence: str
+    writer_lease_ref: str | None
+    writer_fence: str | None
+    authority_kind: Literal["fenced_lease", "serialized_job_execution"] = "fenced_lease"
+    execution_authority: SerializedJobAuthority | None = None
     blockers: list[ReadinessIssue] = Field(default_factory=list)
     cross_table_atomicity: Literal["not_asserted"] = "not_asserted"
 
@@ -373,9 +389,23 @@ def assess_ldp_readiness(umfs: list[UMF]) -> dict[str, LdpReadinessReport]:
 
 
 def assess_publication_readiness(
-    table: str, capability: LdpCapability, evidence: CoordinatorEvidence | None
+    table: str,
+    capability: LdpCapability,
+    evidence: CoordinatorEvidence | None,
+    *,
+    publication_policy: Literal[
+        "fenced_writer", "allow_serialized_job_execution"
+    ] = "fenced_writer",
+    max_authority_age_seconds: int = 60,
 ) -> PublicationReadinessReport:
     """Evaluate current coordinator evidence for the publication barrier only."""
+    if publication_policy not in ("fenced_writer", "allow_serialized_job_execution"):
+        raise ValueError("unknown publication authority policy")
+    if (
+        type(max_authority_age_seconds) is not int
+        or not 1 <= max_authority_age_seconds <= 300
+    ):
+        raise ValueError("authority freshness must be 1..300 seconds")
     blockers: list[ReadinessIssue] = []
     if evidence is None:
         raise ValueError("publication readiness requires fresh coordinator evidence")
@@ -459,8 +489,19 @@ def assess_publication_readiness(
             )
         )
     now = datetime.now(timezone.utc)
-    if (
-        evidence.writer_lease_expires_at.tzinfo is None
+    if evidence.execution_authority is not None:
+        blockers.extend(
+            ReadinessIssue(code=code, message=message)
+            for code, message in assess_serialized_authority(
+                evidence.execution_authority,
+                publication_policy,
+                now,
+                max_authority_age_seconds,
+            )
+        )
+    elif (
+        evidence.writer_lease_expires_at is None
+        or evidence.writer_lease_expires_at.tzinfo is None
         or evidence.writer_lease_expires_at <= now
     ):
         blockers.append(
@@ -483,6 +524,10 @@ def assess_publication_readiness(
         conflict_evidence_refs=evidence.conflict_evidence_refs,
         writer_lease_ref=evidence.writer_lease_ref,
         writer_fence=evidence.writer_fence,
+        authority_kind="serialized_job_execution"
+        if evidence.execution_authority
+        else "fenced_lease",
+        execution_authority=evidence.execution_authority,
         blockers=blockers,
     )
 
