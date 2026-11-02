@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import re
 
 from tablespec.guidebook import generate
 from tablespec.guidebook.renderer import render_table_page
@@ -145,5 +147,13 @@ def test_root_domain_glossary_is_used_for_flat_table_pages(tmp_path: Path) -> No
     out = tmp_path / "out"
     generate(root, out)
     page = (out / "medical_claims.html").read_text(encoding="utf-8")
-    assert 'title="A person enrolled for a coverage period"' in page
-    assert 'title="A billed encounter"' in page
+    match = re.search(
+        r'<script type="application/json" id="page-data">(.*?)</script>', page
+    )
+    assert match is not None
+    doc = json.loads(match.group(1))["doc"]
+    assert (doc["term"], doc["term_definition"]) == ("claim", "A billed encounter")
+    assert (doc["columns"][1]["term"], doc["columns"][1]["term_definition"]) == (
+        "mbr",
+        "A person enrolled for a coverage period",
+    )

@@ -7,7 +7,7 @@ ddx:
 
 | Date | Status | Deciders | Related | Confidence |
 |------|--------|----------|---------|------------|
-| 2026-06-15 | Accepted | David Mautz | FEAT-033, ADR-017 | High |
+| 2026-06-15 | Accepted (rendering shape superseded by ADR-020) | David Mautz | FEAT-033, ADR-017, ADR-020 | High |
 
 ## Context
 
@@ -87,7 +87,7 @@ the Excel round-trip share one derivation surface.
 ## Supersession
 
 - **Supersedes**: None.
-- **Superseded by**: None.
+- **Superseded by**: ADR-020, for decision 3's rendering shape (static JavaScript-free pages) and the out-of-scope interactive lineage view. Decisions 1 and 2 remain in force.
 
 ## Concern Impact
 
