@@ -39,6 +39,7 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
                     "assets": [
                         {
                             "name": "tablespec-1.1.0-py3-none-any.whl",
+                            "digest": "sha256:" + "a" * 64,
                             "browser_download_url": (
                                 "https://github.com/easel/tablespec/releases/"
                                 "download/v1.1.0/tablespec-1.1.0-py3-none-any.whl"
@@ -100,6 +101,7 @@ def test_pages_artifact_combines_hugo_site_and_package_index(tmp_path: Path) -> 
     assert "../../../releases/" not in html
     assert "#sha256=" in html
     assert "tablespec-1.1.0-py3-none-any.whl" in html
+    assert "tablespec-1.1.0-py3-none-any.whl#sha256=" + "a" * 64 in html
     assert "notes.txt" not in html
 
 
