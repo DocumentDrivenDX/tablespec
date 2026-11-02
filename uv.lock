@@ -2728,16 +2728,15 @@ wheels = [
 
 [[package]]
 name = "umf-core"
-version = "0.10.0"
+version = "0.10.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "jsonschema" },
     { name = "pydantic" },
-    { name = "ruamel-yaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/50/3b/84a212ecaa81d974db8a9a9d1027db77881d711b985dae3effa3a513285c/umf_core-0.10.0.tar.gz", hash = "sha256:6b3ad653f95ed5321d5cec69fcaa08037ce1546386b76cbc4e52d1abf19cb19d", size = 481894, upload-time = "2026-10-26T17:35:45.398Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/76/5c61b172236838ef2e9d3b296caaa8ab841dd628eb68f05e4d08b28cbd89/umf_core-0.10.3.tar.gz", hash = "sha256:61b3e12a84f68f890fa34e2da14bbda47e101b7c6eadd5207680827e8daa694c", size = 2826487, upload-time = "2026-10-27T16:24:36.072Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bf/ce/e811584a62318594012ad533e32882e92eeac1859996ac045e8a7b9ae516/umf_core-0.10.0-py3-none-any.whl", hash = "sha256:49633924b45a3c8499d4fcc1a24c30d5a8fcb34d974ab019bbda987cb47da0f9", size = 71258, upload-time = "2026-10-26T17:35:44.146Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/5a/38995576356367e00591358a9d969ecd52149584dd3648de6a39b29cb9be/umf_core-0.10.3-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:dc2586793e1492d1f825bd9e12f27d5db9f9330ae2343d9e7773c7052f1f6ea6", size = 3331547, upload-time = "2026-10-27T16:24:32.256Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/fe/724685bfa20da89a845d7558299d514ab11f8f7d08d17c808cd8ad4ef105/umf_core-0.10.3-cp311-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:cd35f255900ec122e5e2d47d1fbac658cc127d3f16ba82e643e199b7d8cebd75", size = 3612043, upload-time = "2026-10-27T16:24:34.438Z" },
 ]
 
 [[package]]
@@ -2828,7 +2827,7 @@ requires-dist = [
     { name = "sqlparse", specifier = ">=0.4.0,<1.0.0" },
     { name = "textual", marker = "extra == 'tui'", specifier = ">=0.50.0" },
     { name = "typer", specifier = ">=0.9.0,<0.26.0" },
-    { name = "umf-core", specifier = "==0.10.0" },
+    { name = "umf-core", specifier = "==0.10.3" },
 ]
 provides-extras = ["databricks", "duckdb", "excel", "spark", "tui"]
 

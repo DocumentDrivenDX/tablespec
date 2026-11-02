@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "umf-core==0.10.0",
+    "umf-core==0.10.3",
     "gitpython>=3.1.0,<4.0.0",
     "pydantic>=2.0.0,<3.0.0",
     "pyyaml>=6.0.0,<7.0.0",
@@ -141,6 +141,8 @@ filterwarnings = [
     "error",
     "ignore::DeprecationWarning:great_expectations.*",
     "ignore::DeprecationWarning:pydantic.*",
+    # Typer <0.26 imports the still-supported Click stream helpers (Click 8.5).
+    "ignore:'click.utils.get_(binary|text)_stream' is deprecated.*:DeprecationWarning:typer",
     "ignore::PendingDeprecationWarning",
 ]
 addopts = "--strict-markers"

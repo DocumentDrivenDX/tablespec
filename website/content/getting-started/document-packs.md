@@ -55,8 +55,9 @@ back independent object and table stores; retry uses the same revision keys.
 
 ## Installation and pins
 
-Current source uses UMF core 0.10.0, pinned to the official source commit in
-[Getting started](../). Use the matching TableSpec dependency set; the historical
+Current source uses the `umf-core==0.10.3` distribution. Its UMF document
+semantic version remains 0.10.0; see [Getting started](../) for the package
+pin. Use the matching TableSpec dependency set; the historical
 0.0.9 release below does not qualify the current dependency set. Acquisition and
 BagIt use the Python standard library plus existing UMF serialization and JSON
 Schema validation. DuckDB is optional.

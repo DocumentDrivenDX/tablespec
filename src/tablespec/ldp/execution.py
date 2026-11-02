@@ -79,7 +79,10 @@ def execute_revision_graph(
             item = dict(item)
             if any(raw.get(key) != value for key, value in scope.items()):
                 raise ValueError("raw processing identity differs")
-            if any(item.get(key) != raw.get(key) for key in (sequence_field, policy.content_hash)):
+            if any(
+                item.get(key) != raw.get(key)
+                for key in (sequence_field, policy.content_hash)
+            ):
                 raise ValueError("validated outer identity differs")
             # The validator's wire item intentionally does not contain the
             # processing-scope columns. Attach only the already-filtered,
@@ -89,9 +92,17 @@ def execute_revision_graph(
                 raise ValueError("canonical item bytes missing")
             sequence = item.get(sequence_field)
             revision = item.get(policy.record_revision)
-            if isinstance(sequence, bool) or not isinstance(sequence, int) or sequence < 0:
+            if (
+                isinstance(sequence, bool)
+                or not isinstance(sequence, int)
+                or sequence < 0
+            ):
                 raise ValueError("delivery sequence is not an integer")
-            if isinstance(revision, bool) or not isinstance(revision, int) or revision < 0:
+            if (
+                isinstance(revision, bool)
+                or not isinstance(revision, int)
+                or revision < 0
+            ):
                 raise ValueError("record revision is not an integer")
             item["item_json"] = raw["item_json"]
             validated.append(item)
@@ -119,12 +130,16 @@ def execute_revision_graph(
         encoded = {item["item_json"].encode("utf-8") for item in items}
         if len(encoded) > 1:
             conflicted_sequences.add(key)
-            conflicts.append(_evidence(
-                scope,
-                "DELIVERY_SEQUENCE_CONFLICT",
-                delivery_sequence=key[-1],
-                canonical_item_sha256=sorted(sha256(value).hexdigest() for value in encoded),
-            ))
+            conflicts.append(
+                _evidence(
+                    scope,
+                    "DELIVERY_SEQUENCE_CONFLICT",
+                    delivery_sequence=key[-1],
+                    canonical_item_sha256=sorted(
+                        sha256(value).hexdigest() for value in encoded
+                    ),
+                )
+            )
             continue
         replay_collapsed.append(items[0])
 
@@ -140,7 +155,11 @@ def execute_revision_graph(
     facts: list[dict[str, Any]] = []
     for key, items in groups.items():
         # A sequence already conflicted in this batch remains blocked.
-        if any((*[item[k] for k in identity_fields], item[sequence_field]) in conflicted_sequences for item in items):
+        if any(
+            (*[item[k] for k in identity_fields], item[sequence_field])
+            in conflicted_sequences
+            for item in items
+        ):
             continue
         unique: dict[bytes, dict[str, Any]] = {}
         for item in items:
@@ -148,7 +167,10 @@ def execute_revision_graph(
         ordered = sorted(unique.values(), key=lambda item: item[sequence_field])
         total_bytes = sum(len(item["item_json"].encode("utf-8")) for item in ordered)
         base = dict(zip(revision_group, key, strict=True))
-        if len(ordered) > transform.max_group_items or total_bytes > transform.max_group_bytes:
+        if (
+            len(ordered) > transform.max_group_items
+            or total_bytes > transform.max_group_bytes
+        ):
             conflicts.append(_evidence(scope, "REVISION_GROUP_LIMIT", **base))
             continue
         result = reconstruct_revision([item["item_json"] for item in ordered])
@@ -166,7 +188,10 @@ def execute_revision_graph(
     for fact in facts:
         key = (*[fact[k] for k in identity_fields], fact[policy.record_id])
         previous = latest_by_record.get(key)
-        if previous is None or fact[policy.record_revision] > previous[policy.record_revision]:
+        if (
+            previous is None
+            or fact[policy.record_revision] > previous[policy.record_revision]
+        ):
             latest_by_record[key] = fact
 
     return RevisionGraphResult(

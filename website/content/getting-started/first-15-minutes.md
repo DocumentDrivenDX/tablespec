@@ -9,7 +9,7 @@ open a guidebook — **without Spark or a Databricks workspace**.
 ## 1. Install
 
 ```bash
-uv add umf-tablespec umf-core==0.10.0 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+uv add umf-tablespec umf-core==0.10.3 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
 # or: pip install umf-tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
 ```
 
