@@ -2020,7 +2020,9 @@ class UMF(BaseModel):
 
     def effective_source(
         self,
-    ) -> "DelimitedSource | ParquetSource | JsonSource | JdbcSource | DeltaAppendSource":
+    ) -> (
+        "DelimitedSource | ParquetSource | JsonSource | JdbcSource | DeltaAppendSource"
+    ):
         """Resolve the effective source shape for this table (ADR-015).
 
         Returns ``source`` when declared; otherwise derives a
