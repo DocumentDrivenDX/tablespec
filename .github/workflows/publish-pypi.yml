@@ -63,6 +63,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: upload/
+          skip-existing: true
 
       - uses: actions/setup-python@v5
         with:
@@ -76,5 +77,13 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
           VERSION="${TAG#v}"
-          python -m pip install --no-cache-dir --index-url https://pypi.org/simple "umf-tablespec==$VERSION"
+          # PyPI JSON and the simple index can propagate at different times.
+          # Keep the exact version/hash gate and bound retries to one minute.
+          for attempt in 1 2 3 4 5 6; do
+            if python -m pip install --no-cache-dir --index-url https://pypi.org/simple "umf-tablespec==$VERSION"; then
+              break
+            fi
+            if [ "$attempt" = 6 ]; then exit 1; fi
+            sleep 10
+          done
           python -c "import tablespec, tablespec.cli; from importlib.metadata import version; assert version('umf-tablespec') == '$VERSION'; print('PyPI install OK', tablespec.__name__)"
