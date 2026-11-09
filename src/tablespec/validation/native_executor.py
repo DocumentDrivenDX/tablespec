@@ -49,6 +49,21 @@ logger = logging.getLogger(__name__)
 _SAMPLE_LIMIT = 10
 
 
+def partial_unexpected_limit(result_format: Any, default: int = _SAMPLE_LIMIT) -> int:
+    """How many failing values a result may carry, per GX's ``result_format``.
+
+    ``"BOOLEAN_ONLY"`` -> 0; a dict with ``partial_unexpected_count`` -> that
+    count; anything else (``None``, ``"BASIC"``, ...) -> *default*. A limit of
+    0 lets callers return counts only, never values (e.g. PHI columns).
+    """
+    if isinstance(result_format, dict):
+        if "partial_unexpected_count" in result_format:
+            return max(0, int(result_format["partial_unexpected_count"]))
+        result_format = result_format.get("result_format")
+    name = str(getattr(result_format, "value", result_format) or "").upper()
+    return 0 if name == "BOOLEAN_ONLY" else default
+
+
 def _ok(observed_value: Any = None, element_count: int = 0) -> dict[str, Any]:
     """Build a passing GX-shaped result dict."""
     return {
@@ -200,6 +215,58 @@ def _table_columns_to_match_ordered_list(
             "partial_unexpected_list": mismatches[:_SAMPLE_LIMIT],
         },
     }
+
+
+def columns_match_set(
+    columns: list[str],
+    column_set: list[str] | None,
+    exact_match: bool | None = True,
+) -> dict[str, Any]:
+    """``expect_table_columns_to_match_set`` over a bare list of column names.
+
+    Mirrors GX's semantics: with ``exact_match`` (GX default, also when ``None``)
+    the column sets must be equal; without it every ``column_set`` name must be
+    present and extra columns are allowed. ``observed_value`` is the sorted
+    actual column list and ``details.mismatched`` carries the ``missing`` /
+    ``unexpected`` names, as GX reports them.
+
+    Pure (names only, no DataFrame), so callers can check column lists they
+    recorded elsewhere -- e.g. each landed file's header, when the table the
+    files append into (``mergeSchema``) holds the union of every file's columns.
+    """
+    exact = True if exact_match is None else bool(exact_match)
+    actual = set(columns)
+    expected = set(column_set) if column_set is not None else None
+    if expected is None:
+        success, missing, unexpected = not exact, [], sorted(actual)
+    else:
+        missing = sorted(expected - actual)
+        unexpected = sorted(actual - expected)
+        success = not missing and not (exact and unexpected)
+    mismatched: dict[str, list[str]] = {}
+    if unexpected:
+        mismatched["unexpected"] = unexpected
+    if missing:
+        mismatched["missing"] = missing
+    return {
+        "success": success,
+        "result": {
+            "observed_value": sorted(actual),
+            "details": {"mismatched": mismatched},
+            "element_count": len(actual),
+            "unexpected_count": len(missing) + (len(unexpected) if exact else 0),
+            "unexpected_percent": 0.0,
+            "partial_unexpected_list": [],
+        },
+    }
+
+
+def _table_columns_to_match_set(
+    df: DataFrame, kwargs: dict[str, Any]
+) -> dict[str, Any]:
+    return columns_match_set(
+        list(df.columns), kwargs.get("column_set"), kwargs.get("exact_match", True)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -629,6 +696,7 @@ _TABLE_EVALUATORS = {
     "expect_table_row_count_to_be_between": _table_row_count_to_be_between,
     "expect_table_column_count_to_equal": _table_column_count_to_equal,
     "expect_table_columns_to_match_ordered_list": _table_columns_to_match_ordered_list,
+    "expect_table_columns_to_match_set": _table_columns_to_match_set,
     "expect_compound_columns_to_be_unique": _compound_columns_to_be_unique,
 }
 

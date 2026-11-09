@@ -283,3 +283,122 @@ def test_cross_column_date_order_parity(engine):
     # column_A=end_date, column_B=start_date -> the offending row is the single
     # dirty pair. Byte-equal on both engines after the native-path format fix.
     assert rd.unexpected_values == [["2023-01-01", "2023-06-01"]]
+
+
+# ─────────────────────────────────────────────────────────────────────
+# (d) cast_to_type ingest-cast knobs -- identical on both engines.
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_cast_to_type_blank_as_null_parity(engine):
+    """Blank strings are values by default (they cast to NULL) and are not with
+    ``blank_as_null``, matching ingest casts that ``nullif(trim(...), '')``."""
+    data = [("5",), ("",), ("   ",), ("x",)]
+    schema = "n string"
+    base = {"column": "n", "target_type": "INTEGER"}
+
+    default = _by_type(
+        _run(
+            engine,
+            [{"type": "expect_column_values_to_cast_to_type", "kwargs": base}],
+            data,
+            schema,
+        )
+    )["expect_column_values_to_cast_to_type"]
+    assert default.success is False
+    assert default.unexpected_count == 3
+
+    blank = _by_type(
+        _run(
+            engine,
+            [
+                {
+                    "type": "expect_column_values_to_cast_to_type",
+                    "kwargs": {**base, "blank_as_null": True},
+                }
+            ],
+            data,
+            schema,
+        )
+    )["expect_column_values_to_cast_to_type"]
+    assert blank.success is False
+    assert blank.unexpected_count == 1
+    assert blank.details["element_count"] == 2
+
+
+def test_cast_to_type_cast_expression_parity(engine):
+    """``cast_expression`` replaces the built-in cast: a pipeline that strips
+    non-digits before casting does not lose ``"861855.0"`` or ``"A123"``."""
+    exp = [
+        {
+            "type": "expect_column_values_to_cast_to_type",
+            "kwargs": {
+                "column": "n",
+                "target_type": "INTEGER",
+                "cast_expression": (
+                    "try_cast(try_cast(nullif(regexp_replace(trim({column}), '[^0-9.]', ''), '')"
+                    " AS DECIMAL(38,0)) AS INT)"
+                ),
+            },
+        }
+    ]
+    schema = "n string"
+
+    clean = _by_type(_run(engine, exp, [("861855.0",), ("A123",), (None,)], schema))
+    assert clean["expect_column_values_to_cast_to_type"].success is True
+
+    dirty = _by_type(_run(engine, exp, [("5",), ("xyz",), ("99999999999",)], schema))
+    rd = dirty["expect_column_values_to_cast_to_type"]
+    assert rd.success is False
+    assert rd.unexpected_count == 2
+
+
+def test_cast_to_type_counts_only_parity(engine):
+    """``partial_unexpected_count: 0`` reports the count with no values."""
+    exp = [
+        {
+            "type": "expect_column_values_to_cast_to_type",
+            "kwargs": {
+                "column": "n",
+                "target_type": "INTEGER",
+                "result_format": {
+                    "result_format": "SUMMARY",
+                    "partial_unexpected_count": 0,
+                },
+            },
+        }
+    ]
+    rd = _by_type(_run(engine, exp, [("5",), ("x",), ("y",)], "n string"))[
+        "expect_column_values_to_cast_to_type"
+    ]
+    assert rd.success is False
+    assert rd.unexpected_count == 2
+    assert rd.unexpected_values == []
+
+
+# ─────────────────────────────────────────────────────────────────────
+# (e) table columns match set -- GX built-in (classic) vs native (Connect).
+# ─────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("column_set", "exact_match", "success"),
+    [
+        (["b", "a"], True, True),  # order-insensitive
+        (["a"], True, False),  # extra column with exact match
+        (["a"], False, True),  # extra column allowed
+        (["a", "b", "c"], False, False),  # missing column
+    ],
+)
+def test_columns_to_match_set_parity(engine, column_set, exact_match, success):
+    exp = [
+        {
+            "type": "expect_table_columns_to_match_set",
+            "kwargs": {"column_set": column_set, "exact_match": exact_match},
+        }
+    ]
+    r = _by_type(_run(engine, exp, [(1, 2)], "a int, b int"))[
+        "expect_table_columns_to_match_set"
+    ]
+    assert r.success is success
+    assert r.observed_value == ["a", "b"]

@@ -280,6 +280,16 @@ class GXSuiteExecutor:
                         )
                     )
                     continue
+                if kwargs.get("result_format") is not None:
+                    # GX trims the failing-value sample per result_format on the
+                    # classic path; do the same here so counts-only holds on both.
+                    limit = native_executor.partial_unexpected_limit(
+                        kwargs["result_format"]
+                    )
+                    result_obj = raw.get("result", {})
+                    result_obj["partial_unexpected_list"] = list(
+                        result_obj.get("partial_unexpected_list") or []
+                    )[:limit]
                 results.append(
                     self._native_result_to_expectation_result(exp_type, column, raw)
                 )
@@ -316,6 +326,9 @@ class GXSuiteExecutor:
                 format_str=kwargs.get("format"),
                 fallback_formats=kwargs.get("fallback_formats"),
                 mostly=kwargs.get("mostly", 1.0),
+                cast_expression=kwargs.get("cast_expression"),
+                blank_as_null=kwargs.get("blank_as_null", False),
+                result_format=kwargs.get("result_format"),
             )
         if exp_type == "expect_column_pair_values_a_to_be_greater_than_b":
             return validate_column_pair_date_order(
