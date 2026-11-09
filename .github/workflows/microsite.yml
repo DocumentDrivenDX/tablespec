@@ -15,6 +15,7 @@ jobs:
   playwright:
     name: Playwright content + link check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Keep browser libraries and fonts identical to the Linux snapshot runner.
     container: mcr.microsoft.com/playwright:v1.60.0-noble
     defaults:

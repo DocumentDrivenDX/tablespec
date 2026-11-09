@@ -28,6 +28,7 @@ jobs:
   version-guard:
     name: Plugin manifest version guard
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Restrict manual recovery to the default branch
         if: github.event_name == 'workflow_dispatch'
@@ -93,6 +94,7 @@ jobs:
     name: Build Distribution
     needs: version-guard
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -146,6 +148,7 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -204,6 +207,7 @@ jobs:
     name: Build Microsite and PyPI Index for GitHub Pages
     needs: build
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -285,6 +289,7 @@ jobs:
     name: Deploy to GitHub Pages
     needs: [build-index, release]
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       pages: write
       id-token: write
@@ -300,6 +305,7 @@ jobs:
     name: Verify Release
     needs: [build, release, deploy-pages]
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Set up Python
         uses: actions/setup-python@v5
