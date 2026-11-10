@@ -42,14 +42,14 @@ class TestCastColumnSql:
         """INTEGER strips currency/empties then casts to INT."""
         assert (
             cast_column_sql("age", "INTEGER")
-            == "cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
+            == "try_cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
         )
 
     def test_bigint_delta_uses_native_long_cast(self):
         """Typed Delta LONG fields bypass string cleanup and stay BIGINT."""
         assert (
             cast_column_sql("delivery_seq", "BIGINT", source_kind="delta")
-            == "cast(delivery_seq as BIGINT)"
+            == "try_cast(delivery_seq as BIGINT)"
         )
 
     def test_bigint_cast_preserves_odd_value_above_binary64_exact_range(self):
@@ -66,14 +66,14 @@ class TestCastColumnSql:
         """BIGINT text parsing targets 64-bit SQL integers, never Spark INT."""
         assert (
             cast_column_sql("revision", "BIGINT")
-            == "cast(nullif(trim(regexp_replace(revision, '^\\\\$', '')), '') as BIGINT)"
+            == "try_cast(nullif(trim(regexp_replace(revision, '^\\\\$', '')), '') as BIGINT)"
         )
 
     def test_decimal_uses_precision_and_scale(self):
         """DECIMAL honours precision/scale so the cast matches the typed column."""
         assert (
             cast_column_sql("amt", "DECIMAL", precision=18, scale=2)
-            == "cast(nullif(trim(regexp_replace(amt, '^\\\\$', '')), '') as DECIMAL(18,2))"
+            == "try_cast(nullif(trim(regexp_replace(amt, '^\\\\$', '')), '') as DECIMAL(18,2))"
         )
 
     def test_decimal_defaults_to_10_2(self):
@@ -112,11 +112,11 @@ class TestCastColumnSql:
     @pytest.mark.parametrize(
         ("source_kind", "dialect", "expected"),
         [
-            ("jdbc", "spark", "cast(d as date)"),
+            ("jdbc", "spark", "try_cast(d as date)"),
             ("jdbc", "duckdb", "try_cast(d as date)"),
-            ("json", "spark", "cast(d as date)"),
+            ("json", "spark", "try_cast(d as date)"),
             ("json", "duckdb", "try_cast(d as date)"),
-            ("parquet", "spark", "cast(d as date)"),
+            ("parquet", "spark", "try_cast(d as date)"),
             ("parquet", "duckdb", "try_cast(d as date)"),
         ],
     )
@@ -136,11 +136,11 @@ class TestCastColumnSql:
     @pytest.mark.parametrize(
         ("source_kind", "dialect", "expected"),
         [
-            ("jdbc", "spark", "cast(ts as timestamp)"),
+            ("jdbc", "spark", "try_cast(ts as timestamp)"),
             ("jdbc", "duckdb", "try_cast(ts as timestamp)"),
-            ("json", "spark", "cast(ts as timestamp)"),
+            ("json", "spark", "try_cast(ts as timestamp)"),
             ("json", "duckdb", "try_cast(ts as timestamp)"),
-            ("parquet", "spark", "cast(ts as timestamp)"),
+            ("parquet", "spark", "try_cast(ts as timestamp)"),
             ("parquet", "duckdb", "try_cast(ts as timestamp)"),
         ],
     )
@@ -158,7 +158,7 @@ class TestCastColumnSql:
 
     def test_boolean(self):
         """BOOLEAN is a plain cast."""
-        assert cast_column_sql("flag", "BOOLEAN") == "cast(flag as boolean)"
+        assert cast_column_sql("flag", "BOOLEAN") == "try_cast(flag as boolean)"
 
     def test_unsupported_type_raises(self):
         """Unknown target types raise ValueError."""
@@ -304,7 +304,7 @@ class TestCastColumnSqlSparkDialectExtras:
     def test_double_type_maps_to_double(self):
         assert (
             cast_column_sql("rate", "DOUBLE")
-            == "cast(nullif(trim(regexp_replace(rate, '^\\\\$', '')), '') as DOUBLE)"
+            == "try_cast(nullif(trim(regexp_replace(rate, '^\\\\$', '')), '') as DOUBLE)"
         )
 
     def test_timestamp_without_format(self):

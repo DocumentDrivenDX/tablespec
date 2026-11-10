@@ -41,6 +41,7 @@ from tablespec.dbt.contracts import (
     render_contract_config_arg,
 )
 from tablespec.dbt.profiles import render_profiles_yml as _render_profiles_yml
+from tablespec.dbt.materialization import dbt_ingest_select
 from tablespec.dbt.schema_tests import render_tests_for_column
 from tablespec.models.umf import UMF
 from tablespec.schemas.ingest_generator import (
@@ -377,7 +378,9 @@ def generate_dbt_project(
         if t in seen:
             continue
         seen.add(t)
-        emitted.append((u, t, build_ingest_select(u, dialect=dialect)))
+        emitted.append(
+            (u, t, dbt_ingest_select(build_ingest_select(u, dialect=dialect)))
+        )
 
     # One resolver shared across every emitted model: a FK target resolves iff its
     # referenced table is one of the emitted tables (skip-when-unresolvable).

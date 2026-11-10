@@ -420,8 +420,78 @@ class DeltaAppendSource(BaseModel):
     mutation_mode: Literal["append_only"] = "append_only"
 
 
+class ExcelSource(BaseModel):
+    """One worksheet of an Excel workbook (``.xlsx``), read as all-STRING rows.
+
+    Like ``delimited``, the raw stage lands strings (ADR-007): cell values are
+    stringified as read and typed at ingest. ``header_row: auto`` picks, among
+    ``header_candidates``, the row whose cells best match the UMF's column
+    names / canonical names / aliases -- for workbooks whose vintages differ by
+    a title row above the header.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["excel"]
+    path: str | None = Field(
+        default=None,
+        description="Workbook file path. Usually supplied at runtime by the caller.",
+    )
+    sheet: str | int | None = Field(
+        default=None,
+        description="Worksheet name (case-insensitive) or zero-based index; "
+        "None reads the first sheet.",
+    )
+    header_row: int | Literal["auto"] = Field(
+        default=0,
+        description="Zero-based header row, or 'auto' to choose among header_candidates.",
+    )
+    header_candidates: list[int] = Field(
+        default_factory=lambda: [0, 1],
+        min_length=1,
+        description="Rows header_row: auto scores; ties go to the later row.",
+    )
+
+    @field_validator("header_row")
+    @classmethod
+    def _non_negative_header_row(cls, v: int | str) -> int | str:
+        if isinstance(v, int) and v < 0:
+            raise ValueError("header_row must be >= 0")
+        return v
+
+    @field_validator("header_candidates")
+    @classmethod
+    def _non_negative_candidates(cls, v: list[int]) -> list[int]:
+        if any(c < 0 for c in v):
+            raise ValueError("header_candidates must be >= 0")
+        return v
+
+
+class ExternalTableSource(BaseModel):
+    """An existing table this UMF describes but does not ingest (read in place).
+
+    For tables another system owns -- a legacy table, a share, a federated
+    catalog -- that downstream specs read by name. ``table`` may carry
+    ``${var}`` template references that the runtime resolves per environment.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["external"]
+    table: str = Field(
+        min_length=1,
+        description="Table identity, typically catalog.schema.table (template vars allowed).",
+    )
+
+
 SourceSpec = Annotated[
-    DelimitedSource | ParquetSource | JsonSource | JdbcSource | DeltaAppendSource,
+    DelimitedSource
+    | ParquetSource
+    | JsonSource
+    | JdbcSource
+    | DeltaAppendSource
+    | ExcelSource
+    | ExternalTableSource,
     Field(discriminator="kind"),
 ]
 
@@ -430,7 +500,9 @@ SourceSpec = Annotated[
 #: all-STRING raw landing (ADR-007). Suite composition consults this to keep
 #: string-shape raw checks (length/regex/strftime/castability) off typed raw
 #: (SUITE-01/SUITE-02) -- see ``tablespec.gx_baseline``.
-TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset({"delta", "jdbc", "json", "parquet"})
+TYPED_RAW_SOURCE_KINDS: frozenset[str] = frozenset(
+    {"delta", "external", "jdbc", "json", "parquet"}
+)
 
 
 class Nullable(BaseModel):
@@ -699,7 +771,7 @@ class UMFColumn(BaseModel):
     )
     data_type: str = Field(
         description="Column data type",
-        pattern=r"^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
+        pattern=r"^(VARCHAR|DECIMAL|INTEGER|BIGINT|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
     )
     dimension: int | None = Field(
         default=None,
@@ -715,6 +787,13 @@ class UMFColumn(BaseModel):
         description="Nullability specification. Can be a boolean (true/false) for "
         "simple cases, or a Nullable mapping with per-context values "
         "(e.g., LOB keys for healthcare pipelines).",
+    )
+    optional: bool = Field(
+        default=False,
+        description="The column may be absent from a source file (older or newer "
+        "file vintages); ingest lands it as NULL and baseline structural "
+        "expectations do not require it. Distinct from nullable, which is about "
+        "values in a column that is present.",
     )
     sample_values: list[str] | None = Field(
         default=None, description="Sample values for the column"
@@ -1012,7 +1091,7 @@ class UMFColumn(BaseModel):
         elif expected == "TIMESTAMP":
             compatible = umf_type in ("DATETIME",)
         elif expected == "INTEGER":
-            compatible = umf_type in ("INTEGER",)
+            compatible = umf_type in ("INTEGER", "BIGINT")
         elif expected == "STRING":
             compatible = umf_type in string_types
         elif expected == "BOOLEAN":
@@ -1749,16 +1828,53 @@ class PostUpsertRule(BaseModel):
     )
 
 
+class ChangeTrackingConfig(BaseModel):
+    """Change-feed columns for ``ingestion.mode: change_tracking``.
+
+    Models feeds like SQL Server Change Tracking exports: every row carries an
+    operation code, and a delete row may carry its key only in dedicated key
+    columns (e.g. ``CT_ID``) with the data columns NULL.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    operation_column: str = Field(
+        default="SYS_CHANGE_OPERATION",
+        min_length=1,
+        description="Raw column holding the per-row operation code.",
+    )
+    delete_values: list[str] = Field(
+        default_factory=lambda: ["D"],
+        min_length=1,
+        description="Operation codes that delete the keyed row.",
+    )
+    key_columns: list[str] | None = Field(
+        default=None,
+        description="Raw columns carrying the key on every row, aligned "
+        "positionally with primary_key; the effective key is "
+        "coalesce(key_column, primary_key column). None = the primary key "
+        "columns themselves carry it.",
+    )
+
+
 class IngestionConfig(BaseModel):
     """Configuration for ingestion behavior.
 
     Controls how data from multiple files is deduplicated and written.
     """
 
-    mode: Literal["snapshot", "incremental"] = Field(
+    mode: Literal["snapshot", "incremental", "append", "change_tracking"] = Field(
         default="incremental",
         description="'snapshot': Filter to latest file, overwrite table. "
-        "'incremental': Keep latest per PK, upsert to table.",
+        "'incremental': Keep latest per PK, upsert to table. "
+        "'append': Keep every landed row (history / event tables). "
+        "'change_tracking': Apply a change feed per PK -- latest operation wins; "
+        "delete codes remove the row (see change_tracking).",
+    )
+    change_tracking: ChangeTrackingConfig | None = Field(
+        default=None,
+        description="Change-feed columns for mode 'change_tracking' "
+        "(defaults apply when omitted).",
     )
     update_mode: Literal["upsert", "update_only"] = Field(
         default="upsert",
@@ -1968,7 +2084,7 @@ class UMF(BaseModel):
     source: SourceSpec | None = Field(
         default=None,
         description="Source shape declaration (ADR-015), discriminated on 'kind' "
-        "(delimited | parquet | json | jdbc). When absent the table is a delimited "
+        "(delimited | parquet | json | jdbc | delta | excel | external). When absent the table is a delimited "
         "flat file described by file_format (or its defaults); resolve via "
         "effective_source().",
     )
@@ -2021,7 +2137,13 @@ class UMF(BaseModel):
     def effective_source(
         self,
     ) -> (
-        "DelimitedSource | ParquetSource | JsonSource | JdbcSource | DeltaAppendSource"
+        DelimitedSource
+        | ParquetSource
+        | JsonSource
+        | JdbcSource
+        | DeltaAppendSource
+        | ExcelSource
+        | ExternalTableSource
     ):
         """Resolve the effective source shape for this table (ADR-015).
 
@@ -2036,6 +2158,36 @@ class UMF(BaseModel):
         if self.file_format is not None:
             return DelimitedSource(**self.file_format.model_dump())
         return DelimitedSource()
+
+    @model_validator(mode="after")
+    def validate_change_tracking(self) -> Self:
+        """mode 'change_tracking' needs a primary key, and key_columns must align with it."""
+        ingestion = self.ingestion
+        if ingestion is None:
+            return self
+        if (
+            ingestion.change_tracking is not None
+            and ingestion.mode != "change_tracking"
+        ):
+            msg = "ingestion.change_tracking is only valid with mode 'change_tracking'"
+            raise ValueError(msg)
+        if ingestion.mode != "change_tracking":
+            return self
+        if not self.primary_key:
+            msg = "ingestion mode 'change_tracking' requires a primary_key"
+            raise ValueError(msg)
+        ct = ingestion.change_tracking
+        if (
+            ct is not None
+            and ct.key_columns is not None
+            and len(ct.key_columns) != len(self.primary_key)
+        ):
+            msg = (
+                "ingestion.change_tracking.key_columns must align with primary_key "
+                f"({len(ct.key_columns)} vs {len(self.primary_key)})"
+            )
+            raise ValueError(msg)
+        return self
 
     @model_validator(mode="after")
     def validate_json_source_projection(self) -> Self:
@@ -2266,10 +2418,13 @@ __all__ = [
     "TYPED_RAW_SOURCE_KINDS",
     "UMF",
     "Cardinality",
+    "ChangeTrackingConfig",
     "DeltaAppendSource",
     "DeltaIdentityScope",
     "DelimitedSource",
     "DerivationCandidate",
+    "ExcelSource",
+    "ExternalTableSource",
     "FileFormat",
     "FileFormatSpec",
     "FilenamePattern",

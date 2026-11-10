@@ -5,6 +5,6 @@ CREATE OR REFRESH MATERIALIZED VIEW ingested_member
   CONSTRAINT not_null_member_id EXPECT (member_id IS NOT NULL) ON VIOLATION FAIL UPDATE
 )
 AS SELECT
-        cast(nullif(trim(regexp_replace(member_id, '^\\$', '')), '') as INT) AS member_id,
-        member_name                                                          AS member_name
+        try_cast(nullif(trim(regexp_replace(member_id, '^\\$', '')), '') as INT) AS member_id,
+        member_name                                                              AS member_name
 FROM raw_member;

@@ -37,7 +37,11 @@ from tablespec.dbt.contracts import (
     render_column_contract,
     render_contract_config_arg,
 )
-from tablespec.dbt.materialization import Materialization, MaterializationPolicy
+from tablespec.dbt.materialization import (
+    Materialization,
+    MaterializationPolicy,
+    dbt_ingest_select,
+)
 from tablespec.dbt.profiles import PROFILE_TARGETS, render_profiles_yml
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError
 from tablespec.dbt.renderer import DbtRefRenderer
@@ -99,7 +103,7 @@ def _staging_model_sql(
 ) -> str:
     """Render an ``ingested_<t>`` staging model body (raw -> typed cast SELECT)."""
     umf_data = umf.model_dump(exclude_none=True)
-    ingest = build_ingest_select(umf_data, dialect=dialect)
+    ingest = dbt_ingest_select(build_ingest_select(umf_data, dialect=dialect))
     source = routing.source_literal(f"raw_{umf.table_name}")
     config = _config_block(mat, contract=True)
 

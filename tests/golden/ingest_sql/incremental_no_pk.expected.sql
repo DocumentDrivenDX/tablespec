@@ -31,8 +31,8 @@ COMMENT 'Raw event stream with no natural key';
 -- WARNING: appending blindly; duplicate rows are possible on re-ingest.
 INSERT INTO ingested_events
     SELECT
-        event_type                                                                  AS event_type,
-        payload                                                                     AS payload,
-        try_to_timestamp(occurred_at, 'yyyy-MM-dd HH:mm:ss')                        AS occurred_at,
-        cast(nullif(trim(regexp_replace(amount, '^\\$', '')), '') as DECIMAL(10,2)) AS amount
+        event_type                                                                      AS event_type,
+        payload                                                                         AS payload,
+        try_to_timestamp(occurred_at, 'yyyy-MM-dd HH:mm:ss')                            AS occurred_at,
+        try_cast(nullif(trim(regexp_replace(amount, '^\\$', '')), '') as DECIMAL(10,2)) AS amount
     FROM raw_events;

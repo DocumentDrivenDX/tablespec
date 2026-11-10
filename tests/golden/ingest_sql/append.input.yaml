@@ -1,0 +1,22 @@
+table_name: claim_events
+description: Claim status events (history; every delivery row is kept)
+primary_key:
+  - event_id
+ingestion:
+  mode: append
+  order_by:
+    - _load_ts
+columns:
+  - name: event_id
+    data_type: BIGINT
+    nullable: false
+  - name: claim_id
+    data_type: VARCHAR
+    nullable: false
+  - name: status
+    data_type: VARCHAR
+    nullable: true
+  - name: event_date
+    data_type: DATE
+    format: YYYY-MM-DD
+    nullable: true

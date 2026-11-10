@@ -20,9 +20,14 @@ fanout, expensive); it does not re-derive the graph.
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from tablespec.core.ir import LogicalPlan, NodeRole, PlanNode
+
+if TYPE_CHECKING:
+    from tablespec.schemas.ingest_generator import IngestSelect
 
 
 @dataclass(frozen=True)
@@ -51,6 +56,7 @@ class MaterializationPolicy:
 
     def for_ingested(self, *, mode: str, primary_key: list[str]) -> Materialization:
         """Materialization for an ``ingested_<t>`` staging model."""
+        mode, primary_key = dbt_ingest_mode(mode, primary_key)
         if mode == "incremental" and primary_key:
             return Materialization(
                 strategy="incremental",
@@ -91,3 +97,30 @@ class MaterializationPolicy:
 
 
 __all__ = ["Materialization", "MaterializationPolicy"]
+
+
+def dbt_ingest_mode(mode: str, primary_key: list[str]) -> tuple[str, list[str]]:
+    """Map ``ingestion.mode`` onto the modes the dbt emitters render.
+
+    ``append`` keeps every row, which is dbt's keyless incremental append.
+    ``change_tracking`` needs a MERGE that deletes on the operation code, which
+    the dbt strategies do not express; it raises rather than falling through to
+    a table rebuild that would silently drop the delete semantics.
+    """
+    if mode == "change_tracking":
+        msg = (
+            "ingestion mode 'change_tracking' is not supported by the dbt emitters; "
+            "use generate_ingest_sql for these tables"
+        )
+        raise NotImplementedError(msg)
+    if mode == "append":
+        return "incremental", []
+    return mode, list(primary_key)
+
+
+def dbt_ingest_select(ingest: IngestSelect) -> IngestSelect:
+    """*ingest* with its mode / key mapped by :func:`dbt_ingest_mode`."""
+    mode, primary_key = dbt_ingest_mode(ingest.mode, ingest.primary_key)
+    if (mode, primary_key) == (ingest.mode, ingest.primary_key):
+        return ingest
+    return dataclasses.replace(ingest, mode=mode, primary_key=primary_key)

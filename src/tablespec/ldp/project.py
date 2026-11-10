@@ -38,6 +38,7 @@ parity against duckdb, and fail-closed routing -- see the LDP tests.
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
 import json
 
@@ -260,7 +261,16 @@ def _ingested_dataset_sql(
     incremental + pk  -> STREAMING TABLE shell (+ EXPECTATIONS) then APPLY CHANGES.
     incremental no-pk -> STREAMING TABLE append of the cast SELECT over the STREAM.
     snapshot          -> MATERIALIZED VIEW full reload of the cast SELECT.
+    append            -> as incremental no-pk (every landed row kept).
+    change_tracking   -> not rendered yet (raises LdpProjectError).
     """
+    if ingest.mode == "change_tracking":
+        raise LdpProjectError(
+            f"LDP does not render ingestion mode 'change_tracking' yet; "
+            f"{umf.table_name} needs generate_ingest_sql"
+        )
+    if ingest.mode == "append":
+        ingest = dataclasses.replace(ingest, mode="incremental", primary_key=[])
     table = umf.table_name
     ingested = f"ingested_{table}"
     raw_stream = f"raw_{table}"

@@ -91,13 +91,13 @@ class TestBuildIngestSelect:
         assert len(lines) == 3
         # exact per-column cast expression (a swapped/broken cast would fail)
         assert lines[0].startswith(
-            "cast(nullif(trim(regexp_replace(id, '^\\\\$', '')), '') as INT)"
+            "try_cast(nullif(trim(regexp_replace(id, '^\\\\$', '')), '') as INT)"
         )
         assert lines[0].endswith("AS id,")
         assert lines[1].startswith("name")  # STRING passthrough, no cast
         assert lines[1].endswith("AS name,")
         assert lines[2].startswith(
-            "cast(nullif(trim(regexp_replace(amt, '^\\\\$', '')), '') as DECIMAL(12,4))"
+            "try_cast(nullif(trim(regexp_replace(amt, '^\\\\$', '')), '') as DECIMAL(12,4))"
         )
         assert lines[2].endswith("AS amt")  # last column: no trailing comma
 

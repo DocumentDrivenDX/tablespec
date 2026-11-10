@@ -10,10 +10,10 @@ CREATE OR REFRESH STREAMING TABLE ingested_claims
 APPLY CHANGES INTO ingested_claims
 FROM (
   SELECT
-        cast(nullif(trim(regexp_replace(claim_id, '^\\$', '')), '') as INT)               AS claim_id,
-        cast(nullif(trim(regexp_replace(member_id, '^\\$', '')), '') as INT)              AS member_id,
-        cast(nullif(trim(regexp_replace(claim_amount, '^\\$', '')), '') as DECIMAL(18,2)) AS claim_amount,
-        status                                                                            AS status
+        try_cast(nullif(trim(regexp_replace(claim_id, '^\\$', '')), '') as INT)               AS claim_id,
+        try_cast(nullif(trim(regexp_replace(member_id, '^\\$', '')), '') as INT)              AS member_id,
+        try_cast(nullif(trim(regexp_replace(claim_amount, '^\\$', '')), '') as DECIMAL(18,2)) AS claim_amount,
+        status                                                                                AS status
   FROM STREAM raw_claims
 )
 KEYS (claim_id)

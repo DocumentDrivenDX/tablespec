@@ -115,13 +115,15 @@ def _build_cast_expr(
     # plain ``cast`` is ANSI-strict on Spark Connect (Sail/DataFusion) and THROWS
     # on a non-numeric string instead of NULLing it, whereas ``try_cast`` returns
     # NULL on both classic Spark and Connect.
-    if t in ("INTEGER", "DECIMAL", "DOUBLE", "FLOAT"):
+    if t in ("INTEGER", "BIGINT", "DECIMAL", "DOUBLE", "FLOAT"):
         cleaned = F.regexp_replace(F.trim(column_ref), r"^\$", "")
         cleaned = F.when(F.trim(cleaned) == "", F.lit(None).cast("string")).otherwise(
             cleaned
         )
         if t == "INTEGER":
             return cleaned.try_cast("int")
+        if t == "BIGINT":
+            return cleaned.try_cast("bigint")
         if t == "DECIMAL":
             return cleaned.try_cast("decimal(10,2)")
         return cleaned.try_cast("double")  # DOUBLE / FLOAT
@@ -452,6 +454,7 @@ if GX_AVAILABLE:
                     valid_types = [
                         "DATE",
                         "INTEGER",
+                        "BIGINT",
                         "DOUBLE",
                         "FLOAT",
                         "TIMESTAMP",

@@ -26,6 +26,7 @@ NATIVE_TO_SCALAR = {
     "CHAR": "string",
     "TEXT": "string",
     "INTEGER": "integer",
+    "BIGINT": "integer",
     "DECIMAL": "decimal",
     "FLOAT": "float",
     "DATE": "date",

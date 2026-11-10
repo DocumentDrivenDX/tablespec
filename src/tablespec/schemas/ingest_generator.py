@@ -12,6 +12,9 @@ The output is plain Spark SQL (Databricks/Delta dialect) with three parts:
        - incremental + primary_key  -> dedup-latest then MERGE (upsert)
        - incremental, no primary_key -> blind INSERT INTO (+ warning)
        - snapshot                    -> INSERT OVERWRITE (drop/reload)
+       - append                      -> INSERT INTO (every landed row kept)
+       - change_tracking             -> latest operation per key, then MERGE
+                                        (delete codes DELETE, others upsert)
 
 The cast expressions come from :func:`tablespec.casting_utils.cast_column_sql`,
 so they match what the runtime caster produces. The result is meant to be written
@@ -26,7 +29,7 @@ from typing import Any
 from tablespec.casting_utils import cast_column_sql
 from tablespec.dialects import normalize_cast_dialect
 from tablespec.models.umf import TYPED_RAW_SOURCE_KINDS
-from tablespec.schemas.generators import _resolve_nullable
+from tablespec.schemas.generators import _resolve_nullable, _sql_comment
 
 # Databricks/Spark-SQL-correct type names for the typed target table.
 # (generate_sql_ddl emits a literal DATETIME, which Spark SQL does not accept.)
@@ -36,6 +39,7 @@ _SPARK_TYPE: dict[str, str] = {
     "CHAR": "STRING",
     "STRING": "STRING",
     "INTEGER": "INT",
+    "BIGINT": "BIGINT",
     "FLOAT": "FLOAT",
     "DOUBLE": "DOUBLE",
     "BOOLEAN": "BOOLEAN",
@@ -108,13 +112,19 @@ class IngestSelect:
     Attributes:
     ----------
         columns: ordered output column names (UMF column order).
-        mode: ``"incremental"`` or ``"snapshot"``.
+        mode: ``"incremental"``, ``"snapshot"``, ``"append"`` or
+            ``"change_tracking"``.
         primary_key: declared primary key columns (may be empty).
         order_by: provenance ordering columns for dedup-latest (newest wins).
         dialect: public dialect spelling (``"spark"``, ``"databricks"``, or
             ``"duckdb"``). The Spark-family spellings share the same render path.
         select_block: aligned ``<cast> AS <name>`` lines, one per column, with the
             8-space indentation the artifact/dbt model bodies expect.
+        key_exprs: raw-side key expressions the dedup window partitions by, one
+            per primary key column (the bare key names, except for
+            change_tracking with key_columns: ``coalesce(<key_col>, <pk>)``).
+        operation_column: change_tracking only -- the raw operation column.
+        delete_values: change_tracking only -- operation codes that delete.
     """
 
     columns: list[str]
@@ -123,11 +133,16 @@ class IngestSelect:
     order_by: list[str]
     dialect: str
     select_block: str
+    key_exprs: tuple[str, ...] = ()
+    operation_column: str | None = None
+    delete_values: tuple[str, ...] = ()
 
     @property
     def has_dedup(self) -> bool:
-        """True when a dedup-latest window applies (incremental + primary key)."""
-        return self.mode == "incremental" and bool(self.primary_key)
+        """True when a dedup-latest window applies (incremental or change_tracking + key)."""
+        return self.mode in ("incremental", "change_tracking") and bool(
+            self.primary_key
+        )
 
     def dedup_window_sql(self, source: str) -> str:
         """Return a ``SELECT * ... WHERE _rn = 1`` dedup-latest subquery over *source*.
@@ -144,7 +159,7 @@ class IngestSelect:
         intentionally NOT added here: it would change the committed byte-for-byte
         ingest_sql goldens, and the ``order_by``-unique contract makes it moot.)
         """
-        partition = ", ".join(self.primary_key)
+        partition = ", ".join(self.key_exprs or self.primary_key)
         order_clause = ", ".join(f"{c} DESC" for c in self.order_by)
         return (
             "        SELECT * FROM (\n"
@@ -191,28 +206,41 @@ def build_ingest_select(
         )
     pk: list[str] = umf_data.get("primary_key") or []
     ingestion = umf_data.get("ingestion") or {}
-    mode = ingestion.get("mode", "incremental")  # snapshot | incremental
+    mode = ingestion.get("mode", "incremental")
     order_by = ingestion.get("order_by") or _DEFAULT_ORDER_BY
     render_dialect = normalize_cast_dialect(dialect)
     source_kind = _declared_source_kind(umf_data)
 
-    cast_pad = max(
-        (
-            len(
-                _cast_for(
-                    c,
-                    dialect=render_dialect,
-                    source_kind=source_kind,
-                    target_type_override=overrides.get(c["name"]),
-                )
-            )
-            for c in cols
-        ),
-        default=0,
-    )
+    # change_tracking: a delete row may carry its key only in a dedicated key
+    # column, so each key is coalesce(<key_col>, <pk>) on the raw side -- both
+    # for the dedup partition and for the key's own cast input.
+    key_exprs: tuple[str, ...] = tuple(pk)
+    operation_column = None
+    delete_values: tuple[str, ...] = ()
+    key_inputs: dict[str, str] = {}
+    if mode == "change_tracking":
+        ct = ingestion.get("change_tracking") or {}
+        operation_column = ct.get("operation_column") or "SYS_CHANGE_OPERATION"
+        delete_values = tuple(ct.get("delete_values") or ["D"])
+        key_columns = ct.get("key_columns")
+        if key_columns:
+            key_inputs = {
+                k: f"coalesce({kc}, {k})" for k, kc in zip(pk, key_columns, strict=True)
+            }
+            key_exprs = tuple(key_inputs[k] for k in pk)
+
+    def cast(c: dict[str, Any]) -> str:
+        expr = _cast_for(
+            {**c, "name": key_inputs.get(c["name"], c["name"])},
+            dialect=render_dialect,
+            source_kind=source_kind,
+            target_type_override=overrides.get(c["name"]),
+        )
+        return expr
+
+    cast_pad = max((len(cast(c)) for c in cols), default=0)
     select_block = ",\n".join(
-        f"        {_cast_for(c, dialect=render_dialect, source_kind=source_kind, target_type_override=overrides.get(c['name'])):<{cast_pad}} AS {c['name']}"
-        for c in cols
+        f"        {cast(c):<{cast_pad}} AS {c['name']}" for c in cols
     )
 
     return IngestSelect(
@@ -222,6 +250,9 @@ def build_ingest_select(
         order_by=order_by,
         dialect=dialect,
         select_block=select_block,
+        key_exprs=key_exprs,
+        operation_column=operation_column,
+        delete_values=delete_values,
     )
 
 
@@ -232,7 +263,7 @@ def _create_table(name: str, body_lines: list[str], comment: str | None = None) 
         ") USING DELTA",
     ]
     if comment:
-        lines.append(f"COMMENT '{comment.replace(chr(39), chr(39) * 2)[:255]}'")
+        lines.append(f"COMMENT '{_sql_comment(comment)}'")
     return "\n".join(lines) + ";"
 
 
@@ -272,7 +303,11 @@ def generate_ingest_sql(
     mode = ingest.mode
     order_by = ingest.order_by
 
-    pad = max((len(c["name"]) for c in cols), default=0)
+    feed_columns = _change_feed_columns(umf_data, typed_raw)
+    pad = max(
+        (len(n) for n in [*(c["name"] for c in cols), *(n for n, _ in feed_columns)]),
+        default=0,
+    )
 
     # --- 1. raw landing table: every column STRING for delimited sources or the
     #         native typed width for parquet/JDBC + ingest metadata ---
@@ -280,6 +315,7 @@ def generate_ingest_sql(
         f"    {c['name']:<{pad}} {_typed_type(c) if typed_raw else 'STRING'}"
         for c in cols
     ]
+    raw_body += [f"    {n:<{pad}} {t}" for n, t in feed_columns]
     raw_body += [f"    {n:<{pad}} {t}" for n, t in _META_COLUMNS]
     raw_comment = (
         "Raw landing zone -- native typed, as received"
@@ -316,12 +352,70 @@ def generate_ingest_sql(
     )
 
 
+def _change_feed_columns(
+    umf_data: dict[str, Any], typed_raw: bool
+) -> list[tuple[str, str]]:
+    """Raw-only columns a change_tracking feed carries: the key columns (typed
+    like their primary key column on typed raw) and the operation column."""
+    ingestion = umf_data.get("ingestion") or {}
+    if ingestion.get("mode") != "change_tracking":
+        return []
+    ct = ingestion.get("change_tracking") or {}
+    by_name = {c["name"]: c for c in umf_data["columns"]}
+    pk: list[str] = umf_data.get("primary_key") or []
+    out = [
+        (kc, _typed_type(by_name[k]) if typed_raw and k in by_name else "STRING")
+        for k, kc in zip(pk, ct.get("key_columns") or [], strict=False)
+    ]
+    out.append((ct.get("operation_column") or "SYS_CHANGE_OPERATION", "STRING"))
+    return out
+
+
+def _change_tracking_transform(raw: str, ingested: str, ingest: IngestSelect) -> str:
+    """Latest operation per key wins; delete codes DELETE, anything else upserts.
+
+    The source carries the operation as ``_ct_operation``, so the MERGE lists
+    columns explicitly rather than ``SET *`` / ``INSERT *``.
+    """
+    on = " AND ".join(f"tgt.{k} = src.{k}" for k in ingest.primary_key)
+    deletes = ", ".join("'" + v.replace("'", "''") + "'" for v in ingest.delete_values)
+    sets = ", ".join(f"tgt.{c} = src.{c}" for c in ingest.columns)
+    cols = ", ".join(ingest.columns)
+    vals = ", ".join(f"src.{c}" for c in ingest.columns)
+    return (
+        f"-- change_tracking: latest {ingest.operation_column} per key "
+        f"(order_by: {', '.join(ingest.order_by)})\n"
+        f"MERGE INTO {ingested} AS tgt\n"
+        "USING (\n"
+        f"    SELECT\n{ingest.select_block},\n"
+        f"        {ingest.operation_column} AS _ct_operation\n"
+        f"    FROM (\n{ingest.dedup_window_sql(raw)}\n    ) src_raw\n"
+        ") AS src\n"
+        f"ON {on}\n"
+        f"WHEN MATCHED AND src._ct_operation IN ({deletes}) THEN DELETE\n"
+        f"WHEN MATCHED THEN UPDATE SET {sets}\n"
+        f"WHEN NOT MATCHED AND src._ct_operation NOT IN ({deletes}) THEN\n"
+        f"    INSERT ({cols}) VALUES ({vals});"
+    )
+
+
 def _build_transform(raw: str, ingested: str, ingest: IngestSelect) -> str:
     """Build the part-3 transform statement for the given mode + key."""
     select_block = ingest.select_block
     mode = ingest.mode
     pk = ingest.primary_key
     order_by = ingest.order_by
+
+    if mode == "change_tracking":
+        return _change_tracking_transform(raw, ingested, ingest)
+
+    if mode == "append":
+        return (
+            "-- append mode: every landed row is kept (no dedup, no overwrite).\n"
+            f"INSERT INTO {ingested}\n"
+            f"    SELECT\n{select_block}\n"
+            f"    FROM {raw};"
+        )
 
     if mode == "incremental" and pk:
         on = " AND ".join(f"tgt.{k} = src.{k}" for k in pk)

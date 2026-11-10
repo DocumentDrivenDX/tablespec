@@ -19,7 +19,7 @@ from .relationship_resolver import (
     RelationshipResolver,
     ResolvedPlan,
 )
-from .sql_generator import SQLPlanGenerator, generate_sql_plan
+from .sql_generator import SQLPlanGenerator, UnresolvedTableError, generate_sql_plan
 
 __all__ = [
     "build_ingest_select",
@@ -33,4 +33,5 @@ __all__ = [
     "RelationshipResolver",
     "ResolvedPlan",
     "SQLPlanGenerator",
+    "UnresolvedTableError",
 ]

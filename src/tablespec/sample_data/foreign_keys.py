@@ -383,7 +383,7 @@ class DynamicValueGenerator:
 
         if sample_values:
             return self._create_sample_based_generator(sample_values, data_type)
-        if data_type == "INTEGER":
+        if data_type in ("INTEGER", "BIGINT"):
             return self._create_integer_generator(column_metadata)
         return self._create_string_generator(column_metadata)
 
