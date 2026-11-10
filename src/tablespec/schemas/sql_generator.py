@@ -106,7 +106,7 @@ _SPARK_TYPE_MAP = {
     "INTEGER": "INT",
     "INTEGERTYPE": "INT",
     "INT": "INT",
-    "BIGINT": "INT",
+    "BIGINT": "BIGINT",
     "SMALLINT": "INT",
     "TINYINT": "INT",
     "DECIMAL": "DECIMAL(18,2)",
@@ -202,6 +202,55 @@ def _output_ordered_columns(columns: list[Any]) -> list[Any]:
     return sorted(columns, key=_key)
 
 
+class UnresolvedTableError(ValueError):
+    """A plan reads a table that is not among the supplied ``related_umfs``."""
+
+
+#: Candidate ``table`` values the generator treats as plan-internal, not tables.
+_MARKER_TABLES = frozenset({"intermediate", "member_universe", _UNION_UNIVERSE_VIEW})
+
+
+def referenced_tables(table_umf: UMF) -> set[str]:
+    """Every table name a plan for *table_umf* reads: derivation candidates (and
+    their ``join_via`` lookups), the base table, and union-branch tables
+    (``metadata.source_tables`` when ``union_branches`` names none)."""
+    refs: set[str] = set()
+    for col in table_umf.columns or []:
+        deriv = col.derivation
+        if not deriv or not deriv.candidates:
+            continue
+        for cand in deriv.candidates:
+            if cand.table:
+                refs.add(cand.table)
+            if cand.join_via and cand.join_via.lookup_table:
+                refs.add(cand.join_via.lookup_table)
+    meta = table_umf.metadata
+    if meta is not None:
+        if meta.base_table:
+            refs.add(meta.base_table)
+        union_tables = meta.union_base_tables
+        if meta.base_table_strategy == "union_branches" and not union_tables:
+            union_tables = meta.source_tables
+        refs.update(union_tables or [])
+    return refs
+
+
+def unresolved_table_refs(table_umf: UMF, related_umfs: dict[str, UMF]) -> list[str]:
+    """Tables a plan for *table_umf* reads that *related_umfs* does not hold.
+
+    Qualified ``ns.table`` refs resolve full-then-bare, as the generator looks
+    them up; plan markers and self-references are never unresolved.
+    """
+    unknown = set()
+    for ref in referenced_tables(table_umf):
+        if ref in _MARKER_TABLES or ref == table_umf.table_name or ref in related_umfs:
+            continue
+        if _parse_table_ref(ref)[1] in related_umfs:
+            continue
+        unknown.add(ref)
+    return sorted(unknown)
+
+
 class SQLPlanGenerator:
     """Generate SQL execution plans from UMF metadata and relationships.
 
@@ -222,6 +271,10 @@ class SQLPlanGenerator:
             ``None``, a :class:`LiteralRenderer` wrapping *table_resolver* is used,
             preserving the historical inline-the-name behaviour byte-for-byte.
             Inject a ``DbtRefRenderer`` here to emit ``{{ ref() }}`` instead.
+        strict_references: When ``True``, a table the plan reads that is not in
+            ``related_umfs`` raises :class:`UnresolvedTableError` instead of
+            logging a warning and projecting no columns from it (which yields
+            an empty or partial plan that only fails, if at all, at runtime).
 
     """
 
@@ -231,12 +284,14 @@ class SQLPlanGenerator:
         table_resolver: Callable[[str], str] | None = None,
         *,
         table_renderer: TableRenderer | None = None,
+        strict_references: bool = False,
     ) -> None:
         if table_renderer is not None and table_resolver is not None:
             msg = "Pass either table_resolver or table_renderer, not both"
             raise ValueError(msg)
         self.template_vars: dict[str, str] = template_vars or {}
         self.table_resolver = table_resolver
+        self.strict_references = strict_references
         # The one relation-rendering seam. Defaults to the historical literal
         # behaviour so existing artifacts/goldens are unchanged.
         self._renderer: TableRenderer = (
@@ -392,6 +447,15 @@ class SQLPlanGenerator:
         self, table_name: str, table_umf: UMF, related_umfs: dict[str, UMF]
     ) -> str:
         """Generate the complete SQL plan for *table_name*."""
+        if self.strict_references:
+            unknown = unresolved_table_refs(table_umf, related_umfs)
+            if unknown:
+                msg = (
+                    f"{table_name}: table(s) read by the plan are not in "
+                    f"related_umfs: {', '.join(unknown)}"
+                )
+                raise UnresolvedTableError(msg)
+
         # Reset per-table state
         self._related_umfs = related_umfs
         self._pre_aggregated_columns = {}
@@ -576,6 +640,12 @@ class SQLPlanGenerator:
             _, bare = _parse_table_ref(table_name)
             umf = self._related_umfs.get(bare)
         if umf is None:
+            if self.strict_references:
+                msg = (
+                    f"Table {table_name!r} is read by the plan but not found in "
+                    "related_umfs"
+                )
+                raise UnresolvedTableError(msg)
             self.logger.warning(f"Table {table_name} not found in related_umfs")
             return []
         # physical names: every SQL surface (base view, joins, expression
@@ -3262,6 +3332,7 @@ def generate_sql_plan(
     table_resolver: Callable[[str], str] | None = None,
     table_renderer: TableRenderer | None = None,
     mode: Literal["views", "cte"] = "views",
+    strict_references: bool = False,
 ) -> str:
     """Generate a SQL execution plan for a single target table.
 
@@ -3275,6 +3346,8 @@ def generate_sql_plan(
         table_renderer: Optional :class:`TableRenderer` seam (mutually exclusive
             with *table_resolver*); inject a ``DbtRefRenderer`` to emit refs.
         mode: Output format — ``"views"`` (default) or ``"cte"``.
+        strict_references: Raise :class:`UnresolvedTableError` for a table the
+            plan reads that is missing from *related_umfs* (default: warn).
 
     Returns:
         Multi-statement SQL string (views mode) or single CTE statement
@@ -3285,8 +3358,15 @@ def generate_sql_plan(
         template_vars=template_vars,
         table_resolver=table_resolver,
         table_renderer=table_renderer,
+        strict_references=strict_references,
     )
     return generator.generate_for_table(table_umf, related_umfs, mode=mode)
 
 
-__all__ = ["SQLPlanGenerator", "generate_sql_plan"]
+__all__ = [
+    "SQLPlanGenerator",
+    "UnresolvedTableError",
+    "generate_sql_plan",
+    "referenced_tables",
+    "unresolved_table_refs",
+]

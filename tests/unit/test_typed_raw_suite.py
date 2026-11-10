@@ -100,7 +100,9 @@ def generator() -> BaselineExpectationGenerator:
 
 class TestRawStageIsTyped:
     def test_typed_kinds(self):
-        assert TYPED_RAW_SOURCE_KINDS == frozenset({"jdbc", "json", "parquet"})
+        assert TYPED_RAW_SOURCE_KINDS == frozenset(
+            {"delta", "external", "jdbc", "json", "parquet"}
+        )
         assert raw_stage_is_typed(_umf_data(JDBC_SOURCE))
         assert raw_stage_is_typed(_umf_data(JSON_SOURCE))
         assert raw_stage_is_typed(_umf_data(PARQUET_SOURCE))

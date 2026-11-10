@@ -8,12 +8,12 @@ CREATE OR REFRESH STREAMING TABLE ingested_claims
 APPLY CHANGES INTO ingested_claims
 FROM (
   SELECT
-        claim_id                                                                          AS claim_id,
-        cast(nullif(trim(regexp_replace(claim_amount, '^\\$', '')), '') as DECIMAL(18,2)) AS claim_amount,
-        cast(try_to_timestamp(service_date, 'yyyyMMdd') as date)                          AS service_date,
-        try_to_timestamp(submitted_at, 'MM/dd/yyyy HH:mm:ss')                             AS submitted_at,
-        member_id                                                                         AS member_id,
-        cast(is_paid as boolean)                                                          AS is_paid
+        claim_id                                                                              AS claim_id,
+        try_cast(nullif(trim(regexp_replace(claim_amount, '^\\$', '')), '') as DECIMAL(18,2)) AS claim_amount,
+        cast(try_to_timestamp(service_date, 'yyyyMMdd') as date)                              AS service_date,
+        try_to_timestamp(submitted_at, 'MM/dd/yyyy HH:mm:ss')                                 AS submitted_at,
+        member_id                                                                             AS member_id,
+        try_cast(is_paid as boolean)                                                          AS is_paid
   FROM STREAM raw_claims
 )
 KEYS (claim_id)

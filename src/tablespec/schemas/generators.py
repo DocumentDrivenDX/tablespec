@@ -44,6 +44,22 @@ def _resolve_nullable(nullable_value: Any) -> bool:
     return True
 
 
+#: Longest COMMENT string literal body generate_sql_ddl emits.
+_COMMENT_LIMIT = 255
+
+
+def _sql_comment(text: str, limit: int = _COMMENT_LIMIT) -> str:
+    """Escape *text* for a single-quoted SQL COMMENT and cap it at *limit*.
+
+    Quotes are doubled first, so the cap can land inside a ``''`` pair; a cut
+    that leaves an odd run of trailing quotes drops the stray one, which would
+    otherwise end the literal early and make the DDL unparseable.
+    """
+    escaped = text.replace("'", "''")[:limit]
+    trailing = len(escaped) - len(escaped.rstrip("'"))
+    return escaped[:-1] if trailing % 2 else escaped
+
+
 def generate_sql_ddl(umf_data: dict[str, Any]) -> str:
     """Generate SQL DDL from UMF data."""
     table_name = umf_data["table_name"]
@@ -93,7 +109,7 @@ def generate_sql_ddl(umf_data: dict[str, Any]) -> str:
 
         # Add comment if description available
         if col.get("description"):
-            escaped_desc = col["description"].replace("'", "''")[:255]
+            escaped_desc = _sql_comment(col["description"])
             col_def += f" COMMENT '{escaped_desc}'"
 
         columns.append(col_def)
@@ -103,7 +119,7 @@ def generate_sql_ddl(umf_data: dict[str, Any]) -> str:
 
     # Add table comment
     if umf_data.get("description"):
-        escaped_table_desc = umf_data["description"].replace("'", "''")[:255]
+        escaped_table_desc = _sql_comment(umf_data["description"])
         ddl_lines.append(f"COMMENT '{escaped_table_desc}'")
 
     ddl_lines.append(";")

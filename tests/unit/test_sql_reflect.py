@@ -23,7 +23,7 @@ class TestNormalizeSqlType:
         [
             ("STRING", "VARCHAR"),
             ("string", "VARCHAR"),
-            ("BIGINT", "INTEGER"),
+            ("BIGINT", "BIGINT"),
             ("DOUBLE", "FLOAT"),
             ("TIMESTAMP_NTZ", "TIMESTAMP"),
             ("BOOLEAN", "BOOLEAN"),
@@ -136,4 +136,4 @@ class TestUmfFromInformationSchema:
         umf = umf_from_information_schema(
             "t", [{"column_name": "id", "data_type": "BIGINT", "is_nullable": "NO"}]
         )
-        assert umf.columns[0].data_type == "INTEGER"
+        assert umf.columns[0].data_type == "BIGINT"

@@ -13,7 +13,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
 from tablespec.lineage.models import SourceLocation
-from tablespec.models.umf import DelimitedSource, DeltaAppendSource, JdbcSource
+from tablespec.models.umf import (
+    DelimitedSource,
+    DeltaAppendSource,
+    ExternalTableSource,
+    JdbcSource,
+)
 
 if TYPE_CHECKING:
     from tablespec.models.umf import UMF
@@ -93,7 +98,7 @@ class SourceLocationResolver:
         elif isinstance(source, DelimitedSource):
             system = source.path or effective_source_directory(umf)
             path = system
-        elif isinstance(source, DeltaAppendSource):
+        elif isinstance(source, (DeltaAppendSource, ExternalTableSource)):
             system = source.table
             path = source.table
         else:

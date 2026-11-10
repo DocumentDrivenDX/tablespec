@@ -10,6 +10,8 @@ from safe widenings.
 SAFE_WIDENINGS: dict[tuple[str, str], str] = {
     ("INTEGER", "DECIMAL"): "Integer values are representable as decimals",
     ("INTEGER", "FLOAT"): "Integer values are representable as floats",
+    ("INTEGER", "BIGINT"): "32-bit integers are representable as 64-bit integers",
+    ("BIGINT", "DECIMAL"): "Integer values are representable as decimals",
     ("CHAR", "VARCHAR"): "Fixed-length is a subset of variable-length",
     ("CHAR", "TEXT"): "Fixed-length is a subset of unbounded text",
     ("VARCHAR", "TEXT"): "Bounded string is a subset of unbounded text",

@@ -37,7 +37,16 @@ from tablespec.dbt.contracts import (
     render_column_contract,
     render_contract_config_arg,
 )
-from tablespec.dbt.materialization import Materialization, MaterializationPolicy
+from tablespec.dbt.change_tracking import (
+    change_tracking_body,
+    change_tracking_materialization,
+    render_post_hook_arg,
+)
+from tablespec.dbt.materialization import (
+    Materialization,
+    MaterializationPolicy,
+    dbt_ingest_select,
+)
 from tablespec.dbt.profiles import PROFILE_TARGETS, render_profiles_yml
 from tablespec.dbt.registry import NodeRegistry, NodeRegistryError
 from tablespec.dbt.renderer import DbtRefRenderer
@@ -74,6 +83,8 @@ def _config_block(mat: Materialization, *, contract: bool = False) -> str:
     if mat.unique_key:
         keys = ", ".join(f'"{k}"' for k in mat.unique_key)
         lines.append(f"        unique_key=[{keys}],")
+    if mat.post_hook:
+        lines.append(render_post_hook_arg(mat.post_hook))
     if contract:
         # An incremental model with an enforced contract MUST pin on_schema_change
         # (dbt rejects the default 'ignore'); 'fail' surfaces a column-set drift.
@@ -99,8 +110,12 @@ def _staging_model_sql(
 ) -> str:
     """Render an ``ingested_<t>`` staging model body (raw -> typed cast SELECT)."""
     umf_data = umf.model_dump(exclude_none=True)
-    ingest = build_ingest_select(umf_data, dialect=dialect)
+    ingest = dbt_ingest_select(build_ingest_select(umf_data, dialect=dialect))
     source = routing.source_literal(f"raw_{umf.table_name}")
+    if ingest.mode == "change_tracking":
+        mat = change_tracking_materialization(ingest, source)
+        config = _config_block(mat, contract=True)
+        return f"{config}\n\n{change_tracking_body(ingest, source)}\n"
     config = _config_block(mat, contract=True)
 
     if ingest.has_dedup:
@@ -439,7 +454,9 @@ def generate_dbt_dag_project(
         ingestion = umf_data.get("ingestion") or {}
         mode = ingestion.get("mode", "incremental")
         mat = policy.for_ingested(
-            mode=mode, primary_key=umf_data.get("primary_key") or []
+            mode=mode,
+            primary_key=umf_data.get("primary_key") or [],
+            change_strategy=(ingestion.get("change_tracking") or {}).get("strategy"),
         )
         files[f"models/staging/ingested_{umf.table_name}.sql"] = _staging_model_sql(
             umf, mat, routing, dialect=dialect

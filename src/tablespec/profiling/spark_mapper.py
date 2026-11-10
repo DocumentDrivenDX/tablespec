@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 SPARK_TO_UMF_TYPE: dict[str, str] = {
     "StringType": "VARCHAR",
     "IntegerType": "INTEGER",
-    "LongType": "INTEGER",  # No LONG in UMF; INTEGER covers all integral types
+    "LongType": "BIGINT",
     "ShortType": "INTEGER",
     "ByteType": "INTEGER",
     "DoubleType": "FLOAT",  # UMF uses FLOAT for all IEEE 754 types

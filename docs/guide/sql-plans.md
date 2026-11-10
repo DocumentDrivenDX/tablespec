@@ -14,6 +14,12 @@ from tablespec import generate_sql_plan
 sql = generate_sql_plan(target_umf, related_umfs, mode="cte")
 ```
 
+Pass `strict_references=True` (to `generate_sql_plan` or `SQLPlanGenerator`)
+to raise `UnresolvedTableError` when the plan reads a table that is not in
+`related_umfs`. By default that only logs a warning, and the plan silently
+drops the join or projects nothing from the table. `unresolved_table_refs(umf,
+related_umfs)` returns the same list without generating a plan.
+
 See [Happy Path §5](happy-path.md) for the basic derived-table flow. This page
 documents the plan-shaping metadata controls.
 

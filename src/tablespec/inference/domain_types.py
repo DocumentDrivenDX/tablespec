@@ -273,7 +273,7 @@ class DomainTypeRegistry:
         if expected == "TIMESTAMP":
             return data_type_upper in ("TIMESTAMP",)
         if expected == "INTEGER":
-            return data_type_upper in ("INTEGER", "INT", "LONG")
+            return data_type_upper in ("INTEGER", "INT", "BIGINT", "LONG")
         if expected == "STRING":
             return data_type_upper in ("STRING", "CHAR", "VARCHAR", "TEXT")
         if expected == "BOOLEAN":

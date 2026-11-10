@@ -8,10 +8,10 @@ CREATE OR REFRESH STREAMING TABLE ingested_multibatch_ooo
 APPLY CHANGES INTO ingested_multibatch_ooo
 FROM (
   SELECT
-        entity_key                                                                  AS entity_key,
-        state                                                                       AS state,
-        cast(nullif(trim(regexp_replace(revision, '^\\$', '')), '') as INT)         AS revision,
-        cast(nullif(trim(regexp_replace(amount, '^\\$', '')), '') as DECIMAL(12,2)) AS amount
+        entity_key                                                                      AS entity_key,
+        state                                                                           AS state,
+        try_cast(nullif(trim(regexp_replace(revision, '^\\$', '')), '') as INT)         AS revision,
+        try_cast(nullif(trim(regexp_replace(amount, '^\\$', '')), '') as DECIMAL(12,2)) AS amount
   FROM STREAM raw_multibatch_ooo
 )
 KEYS (entity_key)

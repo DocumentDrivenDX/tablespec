@@ -5,7 +5,9 @@ A :class:`SourceReader` turns a UMF ``source:`` spec (see
 ``tablespec.models.umf.SourceSpec``) into a Spark DataFrame. ``get_reader``
 dispatches on the spec's ``kind``; delimited flat files (:class:`CsvReader`),
 json / JSONL sources (:class:`JsonReader`), parquet, and jdbc sources
-(:class:`JdbcReader`, bead tablespec-4b65c810) are delivered here.
+(:class:`JdbcReader`, bead tablespec-4b65c810), Excel worksheets
+(:class:`ExcelReader`) and existing tables read in place
+(:class:`ExternalTableReader`) are delivered here.
 
 This package never imports PySpark at module import time -- readers receive an
 active session, keeping ``umf-tablespec[spark]`` optional (ADR-003).
@@ -19,6 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from tablespec.ingestion.constants import normalize_spark_encoding
+from tablespec.ingestion.excel import ExcelReader, umf_header_names
 from tablespec.ingestion.jdbc import (
     JdbcReader,
     SecretResolutionError,
@@ -33,12 +36,17 @@ from tablespec.ingestion.raw_ingester import (
     build_column_lookup,
     map_headers,
 )
-from tablespec.models.umf import DelimitedSource, JsonSource, ParquetSource
+from tablespec.models.umf import (
+    DelimitedSource,
+    ExternalTableSource,
+    JsonSource,
+    ParquetSource,
+)
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame, SparkSession
 
-    from tablespec.models.umf import SourceSpec
+    from tablespec.models.umf import UMF, SourceSpec
 
 
 @runtime_checkable
@@ -331,8 +339,22 @@ class JsonReader:
         )
 
 
-def get_reader(spec: SourceSpec) -> SourceReader:
-    """Build the :class:`SourceReader` for *spec*, dispatching on ``kind``."""
+class ExternalTableReader:
+    """Reads an existing table in place (``spark.table``); types are the table's own."""
+
+    def read(self, spec: SourceSpec, spark: SparkSession) -> DataFrame:
+        if not isinstance(spec, ExternalTableSource):
+            msg = f"ExternalTableReader requires an external source, got kind={spec.kind!r}"
+            raise TypeError(msg)
+        return spark.table(spec.table)
+
+
+def get_reader(spec: SourceSpec, *, umf: UMF | None = None) -> SourceReader:
+    """Build the :class:`SourceReader` for *spec*, dispatching on ``kind``.
+
+    *umf* supplies the known headers an Excel source with ``header_row: auto``
+    scores candidate rows against; other kinds ignore it.
+    """
     kind = getattr(spec, "kind", None)
     if kind == "delimited":
         return CsvReader()
@@ -342,12 +364,18 @@ def get_reader(spec: SourceSpec) -> SourceReader:
         return JsonReader()
     if kind == "jdbc":
         return JdbcReader()
+    if kind == "excel":
+        return ExcelReader(umf_header_names(umf) if umf is not None else None)
+    if kind == "external":
+        return ExternalTableReader()
     msg = f"unknown source kind: {kind!r}"
     raise ValueError(msg)
 
 
 __all__ = [
     "CsvReader",
+    "ExcelReader",
+    "ExternalTableReader",
     "HeaderMatch",
     "JdbcReader",
     "JsonReader",
@@ -363,6 +391,7 @@ __all__ = [
     "jdbc_connection_options",
     "jdbc_options",
     "map_headers",
+    "umf_header_names",
     "normalize_spark_encoding",
     "quote_identifier",
     "resolve_secret_ref",

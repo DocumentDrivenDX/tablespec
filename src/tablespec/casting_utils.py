@@ -27,6 +27,7 @@ try:
         DecimalType,
         DoubleType,
         IntegerType,
+        LongType,
     )
 
     _spark_available = True
@@ -590,11 +591,10 @@ def cast_column_sql(
 
     The cast contract is NULL-on-failure for malformed input, realised as:
 
-    * Spark: ANSI casting disabled, so plain ``cast(...)`` yields NULL; dates use
-      ``try_to_timestamp``.
-    * DuckDB: there is no session ANSI toggle, so ``try_cast(...)`` is emitted for
-      numerics/booleans and ``try_strptime(...)`` for dates -- producing the same
-      NULL-on-failure behaviour the Spark baseline relies on.
+    * Both dialects emit ``try_cast(...)`` for numerics/booleans, so a malformed
+      value yields NULL whatever the session's ANSI setting (Databricks
+      serverless and Spark 4 default ANSI on, where a plain ``cast`` aborts).
+    * Dates use ``try_to_timestamp`` (Spark) / ``try_strptime`` (DuckDB).
 
     Args:
     ----
@@ -625,7 +625,7 @@ def cast_column_sql(
         >>> cast_column_sql("birth_date", "DATE", "MM/DD/YYYY")
         "cast(try_to_timestamp(birth_date, 'MM/dd/yyyy') as date)"
         >>> cast_column_sql("age", "INTEGER")
-        "cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
+        "try_cast(nullif(trim(regexp_replace(age, '^\\\\$', '')), '') as INT)"
         >>> cast_column_sql("age", "INTEGER", dialect="duckdb")
         "try_cast(nullif(trim(regexp_replace(age, '^\\$', '')), '') as INT)"
 
@@ -665,8 +665,7 @@ def cast_column_sql(
         else:
             msg = f"Unsupported target_type for SQL cast: {target_type}"
             raise ValueError(msg)
-        cast_kw = "try_cast" if is_duck else "cast"
-        return f"{cast_kw}({column} as {sql_type})"
+        return f"try_cast({column} as {sql_type})"
 
     # Numerics: strip a leading "$", trim, and treat empty/whitespace strings as
     # NULL (cast fails on "") before casting -- mirrors cast_column_with_format.
@@ -683,8 +682,7 @@ def cast_column_sql(
             sql_type = f"DECIMAL({precision or 10},{scale if scale is not None else 2})"
         else:  # DOUBLE, FLOAT -> double (runtime maps FLOAT to DoubleType)
             sql_type = "DOUBLE"
-        cast_kw = "try_cast" if is_duck else "cast"
-        return f"{cast_kw}({cleaned} as {sql_type})"
+        return f"try_cast({cleaned} as {sql_type})"
 
     # Date/time: graceful NULL-on-failure parsing.
     #   spark  -> try_to_timestamp(col[, javaFmt])  (Spark 4.0+)
@@ -756,13 +754,7 @@ def cast_column_sql(
         return f"cast({expr} as date)" if t == "DATE" else expr
 
     if t == "BOOLEAN":
-        # DuckDB cast aborts on malformed booleans; try_cast keeps NULL-on-failure
-        # parity with the ANSI-disabled Spark baseline.
-        return (
-            f"try_cast({column} as boolean)"
-            if is_duck
-            else f"cast({column} as boolean)"
-        )
+        return f"try_cast({column} as boolean)"
 
     msg = f"Unsupported target_type for SQL cast: {target_type}"
     raise ValueError(msg)
@@ -822,7 +814,7 @@ def cast_column_with_format(
     target_type_upper = target_type.upper()
 
     # Preprocess for numeric types: strip currency symbols and handle empty strings
-    if target_type_upper in ("INTEGER", "DECIMAL", "DOUBLE", "FLOAT"):
+    if target_type_upper in ("INTEGER", "BIGINT", "DECIMAL", "DOUBLE", "FLOAT"):
         from pyspark.sql.types import StringType
 
         # Strip leading currency symbol ($) and trim whitespace
@@ -844,6 +836,7 @@ def cast_column_with_format(
 
     type_mapping = {
         "INTEGER": IntegerType(),  # type: ignore[misc]
+        "BIGINT": LongType(),  # type: ignore[misc]
         "DOUBLE": DoubleType(),  # type: ignore[misc]
         "FLOAT": DoubleType(),  # type: ignore[misc]
         "BOOLEAN": BooleanType(),  # type: ignore[misc]

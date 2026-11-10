@@ -859,7 +859,14 @@ class ColumnValueGenerator:
         if generated_value is None:
             col_type_upper = col_type.upper()
             # Handle both "INTEGER" and "IntegerType" formats
-            if col_type_upper in ("INTEGER", "INTEGERTYPE", "INT", "LONGTYPE", "LONG"):
+            if col_type_upper in (
+                "INTEGER",
+                "INTEGERTYPE",
+                "INT",
+                "BIGINT",
+                "LONGTYPE",
+                "LONG",
+            ):
                 generated_value = random.randint(1, 1000)
             # Handle both "DECIMAL" and "DecimalType" formats (also DECIMAL(p,s))
             elif (
@@ -1021,7 +1028,14 @@ class ColumnValueGenerator:
             # Generate a fallback value based on Spark native types and UMF types
             col_type_upper = col_type.upper()
             # Handle both "INTEGER" and "IntegerType" formats
-            if col_type_upper in ("INTEGER", "INTEGERTYPE", "INT", "LONGTYPE", "LONG"):
+            if col_type_upper in (
+                "INTEGER",
+                "INTEGERTYPE",
+                "INT",
+                "BIGINT",
+                "LONGTYPE",
+                "LONG",
+            ):
                 generated_value = random.randint(1, 1000)
             # Handle both "DECIMAL" and "DecimalType" formats (also DECIMAL(p,s))
             elif (

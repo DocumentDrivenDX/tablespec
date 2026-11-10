@@ -579,6 +579,7 @@ class GeneratedDataset:
                     "INTEGER": isinstance(value, int) and not isinstance(value, bool),
                     "INT": isinstance(value, int) and not isinstance(value, bool),
                     "LONG": isinstance(value, int) and not isinstance(value, bool),
+                    "BIGINT": isinstance(value, int) and not isinstance(value, bool),
                     "BOOLEAN": isinstance(value, bool),
                     "DECIMAL": isinstance(value, (int, float, Decimal))
                     and not isinstance(value, bool),

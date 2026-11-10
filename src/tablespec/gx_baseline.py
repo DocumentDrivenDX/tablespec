@@ -272,6 +272,23 @@ class BaselineExpectationGenerator:
         ]
         column_names = [col["name"] for col in columns]
 
+        # Optional columns may be absent, so neither an exact count nor an
+        # exact ordered list holds: require the non-optional set instead.
+        if any(col.get("optional") for col in columns):
+            required = [col["name"] for col in columns if not col.get("optional")]
+            expectations.append(
+                {
+                    "type": "expect_table_columns_to_match_set",
+                    "kwargs": {"column_set": required, "exact_match": False},
+                    "meta": {
+                        "description": "Table must contain every non-optional column",
+                        "severity": "critical",
+                        "generated_from": "baseline",
+                    },
+                }
+            )
+            return expectations
+
         # Expect specific column count
         if columns:
             expectations.append(
@@ -603,18 +620,24 @@ class BaselineExpectationGenerator:
                     }
                 )
 
-        # 5. Integer casting validation (if INTEGER type)
-        if data_type == "IntegerType" or data_type.upper() == "INTEGER":
+        # 5. Integer casting validation (if INTEGER / BIGINT type)
+        integer_target = {
+            "INTEGERTYPE": "INTEGER",
+            "INTEGER": "INTEGER",
+            "LONGTYPE": "BIGINT",
+            "BIGINT": "BIGINT",
+        }.get(data_type.upper())
+        if integer_target:
             expectations.append(
                 {
                     "type": "expect_column_values_to_cast_to_type",
                     "kwargs": {
                         "column": column_name,
-                        "target_type": "INTEGER",
+                        "target_type": integer_target,
                         "mostly": 1.0,
                     },
                     "meta": {
-                        "description": f"Column {column_name} values must successfully cast to INTEGER (no letters or decimals)",
+                        "description": f"Column {column_name} values must successfully cast to {integer_target} (no letters or decimals)",
                         "severity": "critical",
                         "generated_from": "baseline",
                     },

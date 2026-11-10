@@ -38,6 +38,7 @@ parity against duckdb, and fail-closed routing -- see the LDP tests.
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
 import json
 
@@ -250,6 +251,51 @@ def _expectations_block(umf: UMF) -> tuple[str, list[str]]:
     return constraints_text, []
 
 
+def _change_tracking_dataset_sql(
+    ingested: str, raw: str, ingest: IngestSelect, constraints: str
+) -> str:
+    """LDP rendering of ``mode: change_tracking`` for the feed's strategy.
+
+    ``merge`` -> ``APPLY CHANGES`` keyed on the primary key, deleting on the
+    feed's delete codes and sequenced by ``order_by`` (+ the change version).
+    The operation and sequence travel as helper columns that the stored table
+    excludes. ``rebuild`` -> a MATERIALIZED VIEW recomputed from the raw
+    table's full history, so the newest baseline supersedes earlier rows.
+    """
+    feed = ingest.feed()
+    if feed.strategy == "rebuild":
+        header = f"CREATE OR REFRESH MATERIALIZED VIEW {ingested}"
+        if constraints:
+            header += f"\n{constraints}"
+        return (
+            f"{header}\nAS SELECT\n{ingest.select_block}\n"
+            f"FROM (\n{ingest.change_state_sql(raw)}\n) AS src_raw;"
+        )
+    terms = ingest.order_terms
+    sequence = terms[0] if len(terms) == 1 else f"STRUCT({', '.join(terms)})"
+    shell = f"CREATE OR REFRESH STREAMING TABLE {ingested}"
+    if constraints:
+        shell += f"\n{constraints}"
+    shell += ";"
+    keys = ", ".join(ingest.primary_key)
+    return (
+        f"{shell}\n\n"
+        f"APPLY CHANGES INTO {ingested}\n"
+        "FROM (\n"
+        "  SELECT\n"
+        f"{ingest.select_block},\n"
+        f"        {feed.operation_expr} AS {feed.OPERATION_ALIAS},\n"
+        f"        {sequence} AS _ct_sequence\n"
+        f"  FROM STREAM {raw}\n"
+        ")\n"
+        f"KEYS ({keys})\n"
+        f"APPLY AS DELETE WHEN {feed.is_delete()}\n"
+        "SEQUENCE BY _ct_sequence\n"
+        f"COLUMNS * EXCEPT ({feed.OPERATION_ALIAS}, _ct_sequence)\n"
+        "STORED AS SCD TYPE 1;"
+    )
+
+
 def _ingested_dataset_sql(
     umf: UMF,
     registry: NodeRegistry,
@@ -260,7 +306,13 @@ def _ingested_dataset_sql(
     incremental + pk  -> STREAMING TABLE shell (+ EXPECTATIONS) then APPLY CHANGES.
     incremental no-pk -> STREAMING TABLE append of the cast SELECT over the STREAM.
     snapshot          -> MATERIALIZED VIEW full reload of the cast SELECT.
+    append            -> as incremental no-pk (every landed row kept).
+    change_tracking   -> merge: STREAMING TABLE + APPLY CHANGES ... APPLY AS DELETE
+                         WHEN (SCD type 1); rebuild: MATERIALIZED VIEW of the live
+                         state over the full raw history.
     """
+    if ingest.mode == "append":
+        ingest = dataclasses.replace(ingest, mode="incremental", primary_key=[])
     table = umf.table_name
     ingested = f"ingested_{table}"
     raw_stream = f"raw_{table}"
@@ -270,6 +322,11 @@ def _ingested_dataset_sql(
         umf.model_dump(exclude_none=True), resolver, mode=ingest.mode
     )
     comment_block = ("\n".join(comments) + "\n") if comments else ""
+
+    if ingest.mode == "change_tracking":
+        return comment_block + _change_tracking_dataset_sql(
+            ingested, raw_stream, ingest, constraints
+        )
 
     if ingest.has_dedup:
         # incremental + primary_key: a STREAMING TABLE shell holds the EXPECTATIONS,

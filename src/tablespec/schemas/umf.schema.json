@@ -71,6 +71,98 @@
       "title": "Cardinality",
       "type": "object"
     },
+    "ChangeTrackingConfig": {
+      "additionalProperties": false,
+      "description": "Change-feed columns and apply strategy for ``ingestion.mode: change_tracking``.\n\nModels feeds like SQL Server Change Tracking exports: each increment row\ncarries an operation code, and a delete row may carry its key only in a\ndedicated key column (e.g. ``CT_ID``) with the data columns NULL. A feed\nmay also deliver full baselines -- rows with no operation code (see\n``baseline_values``).\n\nOperation codes are compared trimmed and upper-cased.",
+      "properties": {
+        "strategy": {
+          "default": "merge",
+          "description": "'merge': apply each landed batch to the ingested table (latest operation per key wins; deletes remove the row; baseline rows upsert like any other row). 'rebuild': recompute the ingested table from the full raw history on every run, where the newest baseline supersedes everything delivered before it (keys missing from it were deleted at the source) and only increments delivered after it apply.",
+          "enum": [
+            "merge",
+            "rebuild"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "operation_column": {
+          "default": "SYS_CHANGE_OPERATION",
+          "description": "Raw column holding the per-row operation code.",
+          "minLength": 1,
+          "title": "Operation Column",
+          "type": "string"
+        },
+        "delete_values": {
+          "description": "Operation codes that delete the keyed row.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Delete Values",
+          "type": "array"
+        },
+        "baseline_values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Operation codes that mark full-baseline rows. None: rows whose operation is NULL or blank are baseline rows (a baseline export has no operation column). Only 'rebuild' treats baselines specially.",
+          "title": "Baseline Values"
+        },
+        "key_columns": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Raw columns carrying the key on every row, aligned positionally with primary_key; the effective key is coalesce(key_column, primary_key column). None = the primary key columns themselves carry it.",
+          "title": "Key Columns"
+        },
+        "version_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Raw column with the per-row change version (e.g. SYS_CHANGE_VERSION). Orders rows after ingestion.order_by, so it breaks ties between changes to one key within a delivery. Compared as an integer (string raw is cast to BIGINT).",
+          "title": "Version Column"
+        },
+        "delivery_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "'rebuild' only: raw column ordering deliveries (e.g. an extract timestamp captured from the filename), used to find the newest baseline and the increments after it. Default: the first ingestion.order_by column.",
+          "title": "Delivery Column"
+        }
+      },
+      "title": "ChangeTrackingConfig",
+      "type": "object"
+    },
     "DelimitedSource": {
       "additionalProperties": false,
       "description": "Delimited flat-file source: ``kind: delimited`` + the FileFormatSpec fields.\n\nThe ``source:`` spelling of :class:`FileFormatSpec`. ``path`` optionally\npins the file (or directory) to read; readers that are handed a spec\nwithout a path receive it from the caller per file.",
@@ -240,6 +332,79 @@
       "title": "DelimitedSource",
       "type": "object"
     },
+    "DeltaAppendSource": {
+      "additionalProperties": false,
+      "description": "Pinned append-only Delta source for the LDP extension.",
+      "properties": {
+        "kind": {
+          "const": "delta",
+          "title": "Kind",
+          "type": "string"
+        },
+        "table": {
+          "description": "Fully qualified catalog.schema.table identity.",
+          "pattern": "^[A-Za-z_][\\w-]*\\.[A-Za-z_][\\w-]*\\.[A-Za-z_][\\w-]*$",
+          "title": "Table",
+          "type": "string"
+        },
+        "read_mode": {
+          "const": "append_stream",
+          "title": "Read Mode",
+          "type": "string"
+        },
+        "starting_version": {
+          "minimum": 0,
+          "title": "Starting Version",
+          "type": "integer"
+        },
+        "identity_scope": {
+          "$ref": "#/$defs/DeltaIdentityScope"
+        },
+        "mutation_mode": {
+          "const": "append_only",
+          "default": "append_only",
+          "title": "Mutation Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "table",
+        "read_mode",
+        "starting_version",
+        "identity_scope"
+      ],
+      "title": "DeltaAppendSource",
+      "type": "object"
+    },
+    "DeltaIdentityScope": {
+      "additionalProperties": false,
+      "description": "Exact external identity values used to isolate one processing scope.",
+      "properties": {
+        "enrollment_id": {
+          "minLength": 1,
+          "title": "Enrollment Id",
+          "type": "string"
+        },
+        "installation_id": {
+          "minLength": 1,
+          "title": "Installation Id",
+          "type": "string"
+        },
+        "destination_generation": {
+          "minLength": 1,
+          "title": "Destination Generation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enrollment_id",
+        "installation_id",
+        "destination_generation"
+      ],
+      "title": "DeltaIdentityScope",
+      "type": "object"
+    },
     "DerivationCandidate": {
       "description": "Source column candidate for survivorship derivation.",
       "properties": {
@@ -406,6 +571,74 @@
       "title": "DerivationCandidate",
       "type": "object"
     },
+    "ExcelSource": {
+      "additionalProperties": false,
+      "description": "One worksheet of an Excel workbook (``.xlsx``), read as all-STRING rows.\n\nLike ``delimited``, the raw stage lands strings (ADR-007): cell values are\nstringified as read and typed at ingest. ``header_row: auto`` picks, among\n``header_candidates``, the row whose cells best match the UMF's column\nnames / canonical names / aliases -- for workbooks whose vintages differ by\na title row above the header.",
+      "properties": {
+        "kind": {
+          "const": "excel",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Workbook file path. Usually supplied at runtime by the caller.",
+          "title": "Path"
+        },
+        "sheet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Worksheet name (case-insensitive) or zero-based index; None reads the first sheet.",
+          "title": "Sheet"
+        },
+        "header_row": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "const": "auto",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Zero-based header row, or 'auto' to choose among header_candidates.",
+          "title": "Header Row"
+        },
+        "header_candidates": {
+          "description": "Rows header_row: auto scores; ties go to the later row.",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Header Candidates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ExcelSource",
+      "type": "object"
+    },
     "Expectation": {
       "description": "A single validation expectation with structured metadata.",
       "properties": {
@@ -537,6 +770,29 @@
         }
       },
       "title": "ExpectationSuite",
+      "type": "object"
+    },
+    "ExternalTableSource": {
+      "additionalProperties": false,
+      "description": "An existing table this UMF describes but does not ingest (read in place).\n\nFor tables another system owns -- a legacy table, a share, a federated\ncatalog -- that downstream specs read by name. ``table`` may carry\n``${var}`` template references that the runtime resolves per environment.",
+      "properties": {
+        "kind": {
+          "const": "external",
+          "title": "Kind",
+          "type": "string"
+        },
+        "table": {
+          "description": "Table identity, typically catalog.schema.table (template vars allowed).",
+          "minLength": 1,
+          "title": "Table",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "table"
+      ],
+      "title": "ExternalTableSource",
       "type": "object"
     },
     "FileFormatSpec": {
@@ -1004,13 +1260,27 @@
       "properties": {
         "mode": {
           "default": "incremental",
-          "description": "'snapshot': Filter to latest file, overwrite table. 'incremental': Keep latest per PK, upsert to table.",
+          "description": "'snapshot': Filter to latest file, overwrite table. 'incremental': Keep latest per PK, upsert to table. 'append': Keep every landed row (history / event tables). 'change_tracking': Apply a change feed per PK -- latest operation wins; delete codes remove the row (see change_tracking).",
           "enum": [
             "snapshot",
-            "incremental"
+            "incremental",
+            "append",
+            "change_tracking"
           ],
           "title": "Mode",
           "type": "string"
+        },
+        "change_tracking": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChangeTrackingConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Change-feed columns for mode 'change_tracking' (defaults apply when omitted)."
         },
         "update_mode": {
           "default": "upsert",
@@ -2158,7 +2428,7 @@
         },
         "data_type": {
           "description": "Column data type",
-          "pattern": "^(VARCHAR|DECIMAL|INTEGER|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
+          "pattern": "^(VARCHAR|DECIMAL|INTEGER|BIGINT|DATE|DATETIME|TIMESTAMP|BOOLEAN|TEXT|CHAR|FLOAT|EMBEDDING)$",
           "title": "Data Type",
           "type": "string"
         },
@@ -2217,6 +2487,12 @@
           "default": null,
           "description": "Nullability specification. Can be a boolean (true/false) for simple cases, or a Nullable mapping with per-context values (e.g., LOB keys for healthcare pipelines).",
           "title": "Nullable"
+        },
+        "optional": {
+          "default": false,
+          "description": "The column may be absent from a source file (older or newer file vintages); ingest lands it as NULL and baseline structural expectations do not require it. Distinct from nullable, which is about values in a column that is present.",
+          "title": "Optional",
+          "type": "boolean"
         },
         "sample_values": {
           "anyOf": [
@@ -2762,6 +3038,20 @@
           "default": null,
           "description": "Last update timestamp",
           "title": "Updated At"
+        },
+        "ldp": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "TableSpec-native LDP revision/transform declaration; validated by tablespec.ldp.",
+          "title": "Ldp"
         },
         "created_by": {
           "anyOf": [
@@ -3372,6 +3662,9 @@
           "discriminator": {
             "mapping": {
               "delimited": "#/$defs/DelimitedSource",
+              "delta": "#/$defs/DeltaAppendSource",
+              "excel": "#/$defs/ExcelSource",
+              "external": "#/$defs/ExternalTableSource",
               "jdbc": "#/$defs/JdbcSource",
               "json": "#/$defs/JsonSource",
               "parquet": "#/$defs/ParquetSource"
@@ -3390,6 +3683,15 @@
             },
             {
               "$ref": "#/$defs/JdbcSource"
+            },
+            {
+              "$ref": "#/$defs/DeltaAppendSource"
+            },
+            {
+              "$ref": "#/$defs/ExcelSource"
+            },
+            {
+              "$ref": "#/$defs/ExternalTableSource"
             }
           ]
         },
@@ -3398,7 +3700,7 @@
         }
       ],
       "default": null,
-      "description": "Source shape declaration (ADR-015), discriminated on 'kind' (delimited | parquet | json | jdbc). When absent the table is a delimited flat file described by file_format (or its defaults); resolve via effective_source().",
+      "description": "Source shape declaration (ADR-015), discriminated on 'kind' (delimited | parquet | json | jdbc | delta | excel | external). When absent the table is a delimited flat file described by file_format (or its defaults); resolve via effective_source().",
       "title": "Source"
     },
     "validation_rules": {
