@@ -61,7 +61,7 @@ pip install 'umf-tablespec[spark]' --index-url https://documentdrivendx.github.i
 ```
 
 **Note**: The distribution is named `umf-tablespec`; its Python import package and CLI remain `tablespec`. Use the project index for `umf-tablespec` and PyPI for its dependencies.
-`umf-core` distribution 0.10.3 is published on PyPI and is the direct package dependency. Its UMF document semantic version remains 0.10.0.
+`umf-core` (PyPI) is the direct package dependency, supported from 0.10.0 through 0.10.3; its UMF document semantic version is 0.10.0. umf-core 0.10.2+ publishes native wheels for Linux x86_64 and macOS arm64 only. On other platforms, such as Linux aarch64 (Databricks serverless), pin `umf-core==0.10.0`, the pure-Python build, so pip doesn't try to compile the native extension.
 
 **Optional extras**:
 - `umf-tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.
