@@ -135,6 +135,16 @@ def _build_cast_expr(
     raise ValueError(msg)
 
 
+def render_cast_expression(template: str, column: str) -> str:
+    """Substitute *column* (backtick-quoted) for ``{column}`` in a cast template.
+
+    Plain substitution rather than ``str.format`` so templates may carry
+    literal braces (e.g. a ``[0-9]{4}`` regex).
+    """
+    quoted = "`" + column.replace("`", "``") + "`"
+    return template.replace("{column}", quoted)
+
+
 def validate_cast_to_type(
     dataframe: Any,
     column: str,
@@ -143,6 +153,9 @@ def validate_cast_to_type(
     format_str: str | None = None,
     fallback_formats: list[str] | None = None,
     mostly: float = 1.0,
+    cast_expression: str | None = None,
+    blank_as_null: bool = False,
+    result_format: Any = None,
 ) -> dict[str, Any]:
     """Connect-safe validation that a column's values cast to ``target_type``.
 
@@ -154,6 +167,21 @@ def validate_cast_to_type(
     classic JVM session is active in the process, which fails inside a Connect
     plan.
 
+    Optional knobs for checking a pipeline's own ingest cast:
+
+    * ``cast_expression`` -- a NULL-on-failure Spark SQL template with a
+      ``{column}`` placeholder (see :func:`render_cast_expression`). When set it
+      replaces the built-in cast, so the check counts exactly the values the
+      pipeline's ingest would turn into NULL.
+    * ``blank_as_null`` -- empty / whitespace-only strings are not counted as
+      values, matching ingest casts that ``nullif(trim(...), '')`` first
+      (:func:`tablespec.casting_utils.cast_column_sql`).
+    * ``result_format`` -- GX's knob; ``"BOOLEAN_ONLY"`` or
+      ``{"partial_unexpected_count": 0}`` returns counts only and never
+      collects a failing value to the driver.
+
+    Counts come from a single aggregate pass over *dataframe*.
+
     Returns a GX-shaped result dict (``success`` + ``result`` with
     ``unexpected_count``, ``unexpected_percent``, ``partial_unexpected_list``,
     ``observed_value``).
@@ -162,8 +190,12 @@ def validate_cast_to_type(
         msg = "PySpark is required for custom casting expectations"
         raise ImportError(msg)
 
-    from pyspark.sql.types import DateType, TimestampType
+    from pyspark.sql.types import DateType, StringType, TimestampType
 
+    from tablespec.profiling.native_profiler import _functions_for
+    from tablespec.validation.native_executor import partial_unexpected_limit
+
+    F = _functions_for(dataframe)  # noqa: N806
     column_ref = dataframe[column]
 
     # Already the target type (e.g. Gold tables with pre-typed columns) -> pass.
@@ -171,7 +203,7 @@ def validate_cast_to_type(
     is_already_target_type = (
         target_type.upper() == "DATE" and isinstance(col_type, DateType)
     ) or (target_type.upper() == "TIMESTAMP" and isinstance(col_type, TimestampType))
-    if is_already_target_type:
+    if is_already_target_type and cast_expression is None:
         total_count = dataframe.count()
         return {
             "success": True,
@@ -184,7 +216,24 @@ def validate_cast_to_type(
             },
         }
 
-    original_non_null_count = dataframe.filter(column_ref.isNotNull()).count()
+    present = column_ref.isNotNull()
+    if blank_as_null and isinstance(col_type, StringType):
+        present = present & (F.trim(column_ref) != "")
+
+    if cast_expression is not None:
+        cast_expr = F.expr(render_cast_expression(cast_expression, column))
+    else:
+        cast_expr = _build_cast_expr(
+            dataframe, column_ref, target_type, format_str, fallback_formats
+        )
+    failed = present & cast_expr.isNull()
+
+    counts = dataframe.agg(
+        F.count(F.when(present, 1)).alias("n"),
+        F.count(F.when(failed, 1)).alias("failed"),
+    ).collect()[0]
+    original_non_null_count = counts["n"] or 0
+    unexpected_count = counts["failed"] or 0
     if original_non_null_count == 0:
         return {
             "success": True,
@@ -197,24 +246,14 @@ def validate_cast_to_type(
             },
         }
 
-    cast_expr = _build_cast_expr(
-        dataframe, column_ref, target_type, format_str, fallback_formats
-    )
+    unexpected_percent = unexpected_count / original_non_null_count * 100
 
-    casted_df = dataframe.withColumn(f"_casted_{column}", cast_expr)
-    casting_failures_df = casted_df.filter(
-        casted_df[column].isNotNull() & casted_df[f"_casted_{column}"].isNull()
-    )
-    unexpected_count = casting_failures_df.count()
-    unexpected_percent = (
-        (unexpected_count / original_non_null_count * 100)
-        if original_non_null_count > 0
-        else 0.0
-    )
-
+    sample_limit = partial_unexpected_limit(result_format, default=10)
     unexpected_values = []
-    if unexpected_count > 0:
-        sample_rows = casting_failures_df.select(column).limit(20).collect()
+    if unexpected_count > 0 and sample_limit > 0:
+        sample_rows = (
+            dataframe.filter(failed).select(column).limit(sample_limit).collect()
+        )
         unexpected_values = [row[column] for row in sample_rows]
 
     success_percent = (
@@ -233,7 +272,7 @@ def validate_cast_to_type(
             "element_count": original_non_null_count,
             "unexpected_count": unexpected_count,
             "unexpected_percent": unexpected_percent,
-            "partial_unexpected_list": unexpected_values[:10],
+            "partial_unexpected_list": unexpected_values,
             "observed_value": f"{success_percent * 100:.2f}% cast successfully to {target_type}{format_msg}",
         },
     }
@@ -426,6 +465,8 @@ if GX_AVAILABLE:
             "format",  # Optional UMF format string for DATE/TIMESTAMP
             "fallback_formats",  # Optional list of alternative formats to try
             "mostly",
+            "cast_expression",  # Optional Spark SQL cast template ({column})
+            "blank_as_null",  # Optional - blank strings are not values
         )
 
         # Default values for parameters
@@ -433,6 +474,8 @@ if GX_AVAILABLE:
             "format": None,  # Optional - if None, uses Spark default casting
             "fallback_formats": None,  # Optional - list of fallback formats for mixed data
             "mostly": 1.0,
+            "cast_expression": None,
+            "blank_as_null": False,
             "result_format": "BASIC",
         }
 
@@ -447,6 +490,10 @@ if GX_AVAILABLE:
             super().validate_configuration(configuration)  # type: ignore[arg-type]  # GX base class accepts None but type stub is incomplete
 
             if configuration:
+                cast_expression = configuration.kwargs.get("cast_expression")
+                if cast_expression is not None and "{column}" not in cast_expression:
+                    msg = "cast_expression must contain a {column} placeholder"
+                    raise ValueError(msg)
                 target_type = configuration.kwargs.get("target_type")
                 if target_type:
                     valid_types = [
@@ -483,6 +530,9 @@ if GX_AVAILABLE:
             format_str = getattr(self, "format", None)  # type: ignore[attr-defined]
             fallback_formats = getattr(self, "fallback_formats", None)  # type: ignore[attr-defined]
             mostly = getattr(self, "mostly", 1.0)  # type: ignore[attr-defined]
+            cast_expression = getattr(self, "cast_expression", None)  # type: ignore[attr-defined]
+            blank_as_null = getattr(self, "blank_as_null", False)  # type: ignore[attr-defined]
+            result_format = getattr(self, "result_format", None)
 
             # Get Spark DataFrame from execution engine
             # In GX 1.x with Spark, the batch contains the DataFrame.
@@ -498,6 +548,9 @@ if GX_AVAILABLE:
                     format_str=format_str,
                     fallback_formats=fallback_formats,
                     mostly=mostly,
+                    cast_expression=cast_expression,
+                    blank_as_null=blank_as_null,
+                    result_format=result_format,
                 )
 
             except Exception as e:
