@@ -22,6 +22,12 @@ jobs:
   linux-wheel:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # both ends of the supported umf-core range: 0.10.3 (native) and
+        # 0.10.0 (pure Python, for platforms without a native wheel)
+        umf-core: ["0.10.3", "0.10.0"]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,7 +47,8 @@ jobs:
         run: |
           python -m venv "$RUNNER_TEMP/consumer"
           "$RUNNER_TEMP/consumer/bin/python" -m pip --isolated install --index-url https://pypi.org/simple \
-            --only-binary=umf-core "$(find "$GITHUB_WORKSPACE/dist" -name '*.whl' -print -quit)[duckdb]" pytest==8.4.2
+            --only-binary=umf-core "umf-core==${{ matrix.umf-core }}" \
+            "$(find "$GITHUB_WORKSPACE/dist" -name '*.whl' -print -quit)[duckdb]" pytest==8.4.2
           "$RUNNER_TEMP/consumer/bin/python" -m pip check
       - name: Prove imports use installed distributions
         run: |
@@ -67,7 +74,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-core-consumer
+          name: linux-core-consumer-${{ matrix.umf-core }}
           path: dist/*
           if-no-files-found: error
           retention-days: 30
