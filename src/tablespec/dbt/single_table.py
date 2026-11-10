@@ -41,6 +41,11 @@ from tablespec.dbt.contracts import (
     render_contract_config_arg,
 )
 from tablespec.dbt.profiles import render_profiles_yml as _render_profiles_yml
+from tablespec.dbt.change_tracking import (
+    change_tracking_body,
+    change_tracking_materialization,
+    render_post_hook_arg,
+)
 from tablespec.dbt.materialization import dbt_ingest_select
 from tablespec.dbt.schema_tests import render_tests_for_column
 from tablespec.models.umf import UMF
@@ -106,6 +111,25 @@ def _model_config(ingest: IngestSelect) -> str:
     return f"{{{{\n    config(\n        materialized='table',\n{contract}\n    )\n}}}}"
 
 
+def _change_tracking_config(ingest: IngestSelect, source: str) -> str:
+    """Config block for a change_tracking model (see tablespec.dbt.change_tracking)."""
+    mat = change_tracking_materialization(ingest, source)
+    lines = ["{{", "    config(", f"        materialized='{mat.strategy}',"]
+    if mat.incremental_strategy:
+        lines.append(f"        incremental_strategy='{mat.incremental_strategy}',")
+        if ingest.dialect in ("spark", "databricks"):
+            lines.append("        file_format='delta',")
+    if mat.unique_key:
+        keys = ", ".join(f'"{k}"' for k in mat.unique_key)
+        lines.append(f"        unique_key=[{keys}],")
+    if mat.post_hook:
+        lines.append(render_post_hook_arg(mat.post_hook))
+    if mat.strategy == "incremental":
+        lines.append("        on_schema_change='fail',")
+    lines += [render_contract_config_arg(), "    )", "}}"]
+    return "\n".join(lines)
+
+
 def _model_sql(table: str, ingest: IngestSelect) -> str:
     """Render the dbt model SQL for *table*.
 
@@ -113,8 +137,11 @@ def _model_sql(table: str, ingest: IngestSelect) -> str:
     runs the shared dedup-latest window so the newest row per key wins within the
     batch; dbt then MERGEs that deduped set into the target.
     """
-    config = _model_config(ingest)
     source = f"{{{{ source('raw', 'raw_{table}') }}}}"
+    if ingest.mode == "change_tracking":
+        config = _change_tracking_config(ingest, source)
+        return f"{config}\n\n{change_tracking_body(ingest, source)}\n"
+    config = _model_config(ingest)
 
     if ingest.has_dedup:
         # incremental + pk: dbt MERGEs on the unique key; the model body dedups the

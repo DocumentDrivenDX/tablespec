@@ -73,8 +73,18 @@
     },
     "ChangeTrackingConfig": {
       "additionalProperties": false,
-      "description": "Change-feed columns for ``ingestion.mode: change_tracking``.\n\nModels feeds like SQL Server Change Tracking exports: every row carries an\noperation code, and a delete row may carry its key only in dedicated key\ncolumns (e.g. ``CT_ID``) with the data columns NULL.",
+      "description": "Change-feed columns and apply strategy for ``ingestion.mode: change_tracking``.\n\nModels feeds like SQL Server Change Tracking exports: each increment row\ncarries an operation code, and a delete row may carry its key only in a\ndedicated key column (e.g. ``CT_ID``) with the data columns NULL. A feed\nmay also deliver full baselines -- rows with no operation code (see\n``baseline_values``).\n\nOperation codes are compared trimmed and upper-cased.",
       "properties": {
+        "strategy": {
+          "default": "merge",
+          "description": "'merge': apply each landed batch to the ingested table (latest operation per key wins; deletes remove the row; baseline rows upsert like any other row). 'rebuild': recompute the ingested table from the full raw history on every run, where the newest baseline supersedes everything delivered before it (keys missing from it were deleted at the source) and only increments delivered after it apply.",
+          "enum": [
+            "merge",
+            "rebuild"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
         "operation_column": {
           "default": "SYS_CHANGE_OPERATION",
           "description": "Raw column holding the per-row operation code.",
@@ -91,6 +101,22 @@
           "title": "Delete Values",
           "type": "array"
         },
+        "baseline_values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Operation codes that mark full-baseline rows. None: rows whose operation is NULL or blank are baseline rows (a baseline export has no operation column). Only 'rebuild' treats baselines specially.",
+          "title": "Baseline Values"
+        },
         "key_columns": {
           "anyOf": [
             {
@@ -106,6 +132,32 @@
           "default": null,
           "description": "Raw columns carrying the key on every row, aligned positionally with primary_key; the effective key is coalesce(key_column, primary_key column). None = the primary key columns themselves carry it.",
           "title": "Key Columns"
+        },
+        "version_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Raw column with the per-row change version (e.g. SYS_CHANGE_VERSION). Orders rows after ingestion.order_by, so it breaks ties between changes to one key within a delivery. Compared as an integer (string raw is cast to BIGINT).",
+          "title": "Version Column"
+        },
+        "delivery_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "'rebuild' only: raw column ordering deliveries (e.g. an extract timestamp captured from the filename), used to find the newest baseline and the increments after it. Default: the first ingestion.order_by column.",
+          "title": "Delivery Column"
         }
       },
       "title": "ChangeTrackingConfig",

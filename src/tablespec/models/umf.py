@@ -1829,15 +1829,28 @@ class PostUpsertRule(BaseModel):
 
 
 class ChangeTrackingConfig(BaseModel):
-    """Change-feed columns for ``ingestion.mode: change_tracking``.
+    """Change-feed columns and apply strategy for ``ingestion.mode: change_tracking``.
 
-    Models feeds like SQL Server Change Tracking exports: every row carries an
-    operation code, and a delete row may carry its key only in dedicated key
-    columns (e.g. ``CT_ID``) with the data columns NULL.
+    Models feeds like SQL Server Change Tracking exports: each increment row
+    carries an operation code, and a delete row may carry its key only in a
+    dedicated key column (e.g. ``CT_ID``) with the data columns NULL. A feed
+    may also deliver full baselines -- rows with no operation code (see
+    ``baseline_values``).
+
+    Operation codes are compared trimmed and upper-cased.
     """
 
     model_config = ConfigDict(extra="forbid")
 
+    strategy: Literal["merge", "rebuild"] = Field(
+        default="merge",
+        description="'merge': apply each landed batch to the ingested table "
+        "(latest operation per key wins; deletes remove the row; baseline rows "
+        "upsert like any other row). 'rebuild': recompute the ingested table from "
+        "the full raw history on every run, where the newest baseline supersedes "
+        "everything delivered before it (keys missing from it were deleted at the "
+        "source) and only increments delivered after it apply.",
+    )
     operation_column: str = Field(
         default="SYS_CHANGE_OPERATION",
         min_length=1,
@@ -1848,6 +1861,12 @@ class ChangeTrackingConfig(BaseModel):
         min_length=1,
         description="Operation codes that delete the keyed row.",
     )
+    baseline_values: list[str] | None = Field(
+        default=None,
+        description="Operation codes that mark full-baseline rows. None: rows "
+        "whose operation is NULL or blank are baseline rows (a baseline export "
+        "has no operation column). Only 'rebuild' treats baselines specially.",
+    )
     key_columns: list[str] | None = Field(
         default=None,
         description="Raw columns carrying the key on every row, aligned "
@@ -1855,6 +1874,34 @@ class ChangeTrackingConfig(BaseModel):
         "coalesce(key_column, primary_key column). None = the primary key "
         "columns themselves carry it.",
     )
+    version_column: str | None = Field(
+        default=None,
+        description="Raw column with the per-row change version (e.g. "
+        "SYS_CHANGE_VERSION). Orders rows after ingestion.order_by, so it breaks "
+        "ties between changes to one key within a delivery. Compared as an "
+        "integer (string raw is cast to BIGINT).",
+    )
+    delivery_column: str | None = Field(
+        default=None,
+        description="'rebuild' only: raw column ordering deliveries (e.g. an "
+        "extract timestamp captured from the filename), used to find the newest "
+        "baseline and the increments after it. Default: the first "
+        "ingestion.order_by column.",
+    )
+
+    @model_validator(mode="after")
+    def _delivery_column_needs_rebuild(self) -> Self:
+        if self.delivery_column is not None and self.strategy != "rebuild":
+            raise ValueError(
+                "change_tracking.delivery_column requires strategy 'rebuild'"
+            )
+        overlap = {v.strip().upper() for v in self.delete_values} & {
+            v.strip().upper() for v in self.baseline_values or []
+        }
+        if overlap:
+            msg = f"change_tracking delete_values and baseline_values overlap: {sorted(overlap)}"
+            raise ValueError(msg)
+        return self
 
 
 class IngestionConfig(BaseModel):

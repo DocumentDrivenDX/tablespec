@@ -1,0 +1,32 @@
+table_name: claim_header_rebuild
+description: Claim headers from a SQL Server Change Tracking export (rebuild from full history)
+primary_key:
+  - claim_header_id
+ingestion:
+  mode: change_tracking
+  order_by:
+    - _load_ts
+  change_tracking:
+    strategy: rebuild
+    version_column: SYS_CHANGE_VERSION
+    operation_column: SYS_CHANGE_OPERATION
+    delete_values:
+      - D
+    key_columns:
+      - CT_claim_header_id
+columns:
+  - name: claim_header_id
+    data_type: BIGINT
+    nullable: false
+  - name: billed_amount
+    data_type: DECIMAL
+    precision: 12
+    scale: 2
+    nullable: true
+  - name: status
+    data_type: VARCHAR
+    nullable: true
+  - name: legacy_code
+    data_type: VARCHAR
+    nullable: true
+    optional: true

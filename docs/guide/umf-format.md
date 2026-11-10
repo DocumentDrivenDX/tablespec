@@ -136,21 +136,43 @@ source:
 | `append` | Every landed row is kept (history and event tables) |
 | `change_tracking` | Apply a change feed: latest operation per key wins; delete codes remove the row |
 
-`change_tracking` requires a `primary_key`. Its columns default to SQL Server
-Change Tracking's names:
+`change_tracking` requires a `primary_key`. Every setting has a default, and
+the defaults match a SQL Server Change Tracking export:
 
 ```yaml
 ingestion:
   mode: change_tracking
-  order_by: [_load_ts]
+  order_by: [extract_ts]                     # delivery order, newest wins
   change_tracking:
+    strategy: merge                          # merge (default) | rebuild
     operation_column: SYS_CHANGE_OPERATION   # default
     delete_values: [D]                       # default
+    baseline_values: null                    # default: NULL/blank operation = baseline row
     key_columns: [CT_claim_id]               # optional; aligned with primary_key
+    version_column: SYS_CHANGE_VERSION       # optional; orders rows within a delivery
+    delivery_column: extract_ts              # rebuild only; default: first order_by column
 ```
 
-`key_columns` names raw columns that carry the key on every row, for feeds
-whose delete rows leave the data columns NULL; the effective key is
-`coalesce(key_column, primary_key_column)`. `generate_ingest_sql` renders all
-four modes. The dbt and LDP emitters render `append` as a keyless incremental
-append and do not render `change_tracking` yet (they raise).
+- **`strategy: merge`** applies each landed batch to the ingested table: the
+  latest row per key (by `order_by`, then `version_column`) wins, a delete
+  code removes the row, and anything else upserts -- baseline rows included.
+- **`strategy: rebuild`** recomputes the table from the full raw history on
+  every run. The newest baseline (by `delivery_column`) supersedes everything
+  delivered before it, so a key missing from a re-baseline is gone, and only
+  increments delivered after it apply. Before any baseline lands, every
+  increment applies. Use it when the source re-sends full baselines.
+- `key_columns` names raw columns that carry the key on every row, for feeds
+  whose delete rows leave the data columns NULL; the effective key is
+  `coalesce(key_column, primary_key_column)`.
+- Operation codes compare trimmed and upper-cased. `version_column` is compared
+  as an integer.
+
+How each emitter renders it:
+
+| Emitter | `merge` | `rebuild` |
+|---------|---------|-----------|
+| `generate_ingest_sql` (Spark/Delta) | `MERGE ... WHEN MATCHED AND <delete> THEN DELETE` | `INSERT OVERWRITE` from the history |
+| dbt | `incremental` `merge` on the key + a `post_hook` that deletes keys whose latest operation is a delete | `table` from the history |
+| LDP | `APPLY CHANGES ... APPLY AS DELETE WHEN ... STORED AS SCD TYPE 1` | `MATERIALIZED VIEW` from the history |
+
+`append` renders as a keyless incremental append in dbt and LDP.

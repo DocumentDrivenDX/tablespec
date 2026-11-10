@@ -37,6 +37,7 @@ class Materialization:
     strategy: str  # "table" | "incremental" | "ephemeral" | "view"
     incremental_strategy: str | None = None  # "merge" | "append"
     unique_key: tuple[str, ...] = ()
+    post_hook: str | None = None  # SQL run after the model (change_tracking deletes)
 
 
 class MaterializationPolicy:
@@ -54,8 +55,26 @@ class MaterializationPolicy:
     ) -> None:
         self._gold_incremental = gold_incremental or {}
 
-    def for_ingested(self, *, mode: str, primary_key: list[str]) -> Materialization:
-        """Materialization for an ``ingested_<t>`` staging model."""
+    def for_ingested(
+        self,
+        *,
+        mode: str,
+        primary_key: list[str],
+        change_strategy: str | None = None,
+    ) -> Materialization:
+        """Materialization for an ``ingested_<t>`` staging model.
+
+        For ``change_tracking``, ``change_strategy`` picks ``rebuild`` (table) or
+        ``merge`` (incremental merge; the emitter adds the delete hook).
+        """
+        if mode == "change_tracking":
+            if (change_strategy or "merge") == "rebuild":
+                return Materialization(strategy="table")
+            return Materialization(
+                strategy="incremental",
+                incremental_strategy="merge",
+                unique_key=tuple(primary_key),
+            )
         mode, primary_key = dbt_ingest_mode(mode, primary_key)
         if mode == "incremental" and primary_key:
             return Materialization(
@@ -103,16 +122,9 @@ def dbt_ingest_mode(mode: str, primary_key: list[str]) -> tuple[str, list[str]]:
     """Map ``ingestion.mode`` onto the modes the dbt emitters render.
 
     ``append`` keeps every row, which is dbt's keyless incremental append.
-    ``change_tracking`` needs a MERGE that deletes on the operation code, which
-    the dbt strategies do not express; it raises rather than falling through to
-    a table rebuild that would silently drop the delete semantics.
+    ``change_tracking`` passes through; it is rendered by
+    :mod:`tablespec.dbt.change_tracking`.
     """
-    if mode == "change_tracking":
-        msg = (
-            "ingestion mode 'change_tracking' is not supported by the dbt emitters; "
-            "use generate_ingest_sql for these tables"
-        )
-        raise NotImplementedError(msg)
     if mode == "append":
         return "incremental", []
     return mode, list(primary_key)
