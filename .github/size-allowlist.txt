@@ -1,0 +1,4 @@
+# Product data and demo media allowed above 1 MB.
+examples/domain-packs/legal/sources/*.pdf
+examples/tablespec-demo*
+uv.lock
