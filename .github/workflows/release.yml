@@ -1,4 +1,3 @@
-name: release
 # Tag-driven release: test, build, smoke-install, integrate with latest umf-core, publish to PyPI
 # (trusted publishing, environment "pypi"), create the GitHub Release.
 # workflow_dispatch is a dry run: it builds and smoke-tests the branch and never publishes.
