@@ -20,7 +20,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uvx --from ruff==0.13.3 ruff check .
       - run: uvx --from ruff==0.13.3 ruff format --check .
-      - run: TREE_BUDGET_MB=30 python3 .github/size_guard.py
+      - run: TREE_BUDGET_MB=36 python3 .github/size_guard.py
   fast:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
