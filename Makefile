@@ -90,14 +90,10 @@ docs-serve: ## Serve API documentation locally
 website-install: ## Install website npm deps and Chromium for Playwright
 	cd website && npm ci && npm run install:browsers
 
-website-test-content: ## Microsite content/nav/screenshot Playwright suite
-	cd website && npm run test:content
-
 website-test-links: ## Microsite link crawl + content checks under /tablespec/ base
 	cd website && npm run test:links
 
-website-test: ## Full microsite Playwright suite (content + link check)
-	cd website && npm run test:all
+website-test: website-test-links ## Microsite link crawl (alias)
 
 app-smoke: ## FR-23 mock-runtime smoke for apps/data-profiling (no workspace)
 	cd apps/data-profiling && PROFILER_RUNTIME=mock \

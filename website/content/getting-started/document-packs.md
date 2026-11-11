@@ -55,7 +55,7 @@ back independent object and table stores; retry uses the same revision keys.
 
 ## Installation and pins
 
-Current source uses the `umf-core==0.10.3` distribution. Its UMF document
+Current source uses the `umf-core>=0.10.0,<0.11` distribution. Its UMF document
 semantic version remains 0.10.0; see [Getting started](../) for the package
 pin. Use the matching TableSpec dependency set; the historical
 0.0.9 release below does not qualify the current dependency set. Acquisition and

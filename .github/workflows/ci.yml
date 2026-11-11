@@ -1,5 +1,6 @@
 name: ci
 on:
+  workflow_call:
   push:
     branches: [main]
   pull_request:
@@ -39,6 +40,23 @@ jobs:
           --ignore=tests/dbt_dag --ignore=tests/dbt_roadmap
           --ignore=tests/ingest_parity --ignore=tests/e2e
           --durations=25 -q
+  quickstart:
+    # Executes the README quickstart against the built wheel in a fresh environment.
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - run: |
+          uv venv "$RUNNER_TEMP/qs" --python 3.12
+          uv pip install --python "$RUNNER_TEMP/qs/bin/python" dist/*.whl
+          tablespec_bin="$RUNNER_TEMP/qs/bin"
+          PATH="$tablespec_bin:$PATH" tablespec --help > /dev/null
+          PATH="$tablespec_bin:$PATH" python3 .github/run_quickstart.py README.md
   full:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04

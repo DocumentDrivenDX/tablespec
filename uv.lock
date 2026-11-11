@@ -2762,15 +2762,15 @@ wheels = [
 
 [[package]]
 name = "umf-core"
-version = "0.10.3"
+version = "0.10.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/85/76/5c61b172236838ef2e9d3b296caaa8ab841dd628eb68f05e4d08b28cbd89/umf_core-0.10.3.tar.gz", hash = "sha256:61b3e12a84f68f890fa34e2da14bbda47e101b7c6eadd5207680827e8daa694c", size = 2826487, upload-time = "2026-10-27T16:24:36.072Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/35/8110dfbc7ab1e11b2d187353c174ee5ba30a9a5a2d6e9322ff8f4d9bc597/umf_core-0.10.10.tar.gz", hash = "sha256:8f83bf9fdac4dc880d645eadc41485f8a06f3524fa78ed2f8d2b433e3dc86812", size = 7626568, upload-time = "2026-11-11T02:15:20.076Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/5a/38995576356367e00591358a9d969ecd52149584dd3648de6a39b29cb9be/umf_core-0.10.3-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:dc2586793e1492d1f825bd9e12f27d5db9f9330ae2343d9e7773c7052f1f6ea6", size = 3331547, upload-time = "2026-10-27T16:24:32.256Z" },
-    { url = "https://files.pythonhosted.org/packages/6b/fe/724685bfa20da89a845d7558299d514ab11f8f7d08d17c808cd8ad4ef105/umf_core-0.10.3-cp311-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:cd35f255900ec122e5e2d47d1fbac658cc127d3f16ba82e643e199b7d8cebd75", size = 3612043, upload-time = "2026-10-27T16:24:34.438Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/90/5045c71aa4ca852fa5669faff488056b248051d8e855d3001775832a68cc/umf_core-0.10.10-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:994702131472a24a999a7bd1dde83feafbdef63c7fc88d81ff881a95f9c57ca4", size = 30419736, upload-time = "2026-11-11T02:15:13.841Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/ab/a28dcb5b866909591ade63a6b4ac2b54db0ec6b6097fbe0bc0e7b4fe72c1/umf_core-0.10.10-cp311-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:c884a88ee01da2e948e926d2d94de1244e739b371c46a77b115db9dca197ebec", size = 33927466, upload-time = "2026-11-11T02:15:17.356Z" },
 ]
 
 [[package]]
@@ -2863,7 +2863,7 @@ requires-dist = [
     { name = "sqlparse", specifier = ">=0.4.0,<1.0.0" },
     { name = "textual", marker = "extra == 'tui'", specifier = ">=0.50.0" },
     { name = "typer", specifier = ">=0.9.0,<0.26.0" },
-    { name = "umf-core", specifier = ">=0.10.0,<=0.10.3" },
+    { name = "umf-core", specifier = ">=0.10.0,<0.11" },
 ]
 provides-extras = ["databricks", "duckdb", "excel", "spark", "tui"]
 

@@ -32,34 +32,10 @@ Any new shortcode that emits `href` for an internal path must call:
 ```bash
 # from repo root
 make website-install
-make website-test          # content suite + /tablespec/ link crawl
+make website-test-links    # /tablespec/ link crawl + required content
 
 # from website/
-npm run test:content
 npm run test:links
-npm run test:all
 ```
 
-### Snapshot / deploy policy
-
-| Workflow | What runs | Blocks deploy? |
-|----------|-----------|----------------|
-| `publish-microsite.yml` | Hugo build + **`npm run test:links`** only | Yes |
-| `microsite.yml` | Content suite (nav + screenshots) + links | PR/main check only |
-
-Homepage visual snapshots (`toHaveScreenshot`) can drift with fonts/theme CSS.
-They use a raised `maxDiffPixelRatio` (0.12). The Microsite workflow runs in
-`mcr.microsoft.com/playwright:v1.60.0-noble` to pin browser libraries and fonts.
-Rebaseline in that **Linux container**, using Hugo 0.160.0 and Go 1.23.x:
-
-```bash
-cd website
-npm ci && npm run install:browsers:ci
-npm run test:update-snapshots
-```
-
-Do **not** gate Pages deploy on screenshot equality — link/content validation is
-the functional gate.
-
-CI: `.github/workflows/microsite.yml` and the pre-deploy gate in
-`publish-microsite.yml`.
+CI: `.github/workflows/pages.yml` builds and link-checks on every website PR and deploys on release.

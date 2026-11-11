@@ -11,30 +11,16 @@ that a data pipeline can run or review.
 
 ## Install
 
-tablespec is distributed via GitHub Pages. Use the project index for tablespec
-and PyPI for its dependencies:
+tablespec is published on PyPI as `umf-tablespec`:
 
 ```bash
-# Using uv (recommended)
-uv add umf-tablespec umf-core==0.10.3 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
-
-# Using pip
-pip install umf-tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+uv add umf-tablespec        # or: pip install umf-tablespec
+uv add 'umf-tablespec[spark]'   # only for PySpark-based profiling, JDBC discovery, DataFrame validation
 ```
 
-Shared documents use UMF core 0.10.0; older core versions are refused.
-
-The package depends on the `umf-core==0.10.3` distribution. Its UMF document
-semantic version remains 0.10.0. The current Tablespec source was checked against
-that published wheel with the shared-model and LDP tests on macOS arm64; this does
-not qualify other platforms or the managed LDP runtime.
-
-Add the `[spark]` extra only if you need PySpark-based profiling, JDBC
-discovery, or DataFrame validation:
-
-```bash
-uv add umf-tablespec[spark] umf-core==0.10.3 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
-```
+The package depends on `umf-core>=0.10.0,<0.11`; shared documents use UMF core 0.10.0 and older core versions are
+refused. umf-core 0.10.2+ ships native wheels for Linux x86_64 and macOS arm64 only; on other platforms (for example
+Linux aarch64) pin `umf-core==0.10.0`, the pure-Python build.
 
 ## Author a UMF table spec
 

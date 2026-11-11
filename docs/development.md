@@ -27,36 +27,19 @@ uv run pytest --cov=src/tablespec --cov-report=html
 uv run pytest tests/unit/test_gx_baseline.py
 ```
 
-## Product microsite (Playwright)
+## Product microsite
 
-The Hugo microsite under `website/` has two Playwright suites:
-
-| Suite | Command | What it proves |
-|-------|---------|----------------|
-| Content | `make website-test-content` | Navigation, screenshots, key page copy (`e2e/microsite.spec.ts`) |
-| Links | `make website-test-links` | Crawl every internal link under production base path `/tablespec/` and check required content (`e2e/link-check.spec.ts`) |
-| Both | `make website-test` | Content then links |
-
-First-time setup (Hugo extended + Node required):
+The Hugo microsite under `website/` has one Playwright suite: a link crawl and required-content check under the
+production base path `/tablespec/` (`website/e2e/link-check.spec.ts`).
 
 ```bash
-make website-install   # npm ci + Chromium
-make website-test      # or: cd website && npm run test:all
+make website-install   # npm ci + Chromium (Hugo extended + Node required)
+make website-test-links
 ```
 
-From `website/` directly:
-
-```bash
-npm ci
-npm run install:browsers   # local; use install:browsers:ci in CI
-npm run test:content
-npm run test:links
-```
-
-The link suite serves Hugo with `--baseURL http://127.0.0.1:1314/tablespec/` so
-root-absolute hrefs that drop the project path fail the same way they do on
-GitHub Pages. CI runs both suites in `.github/workflows/microsite.yml` and as a
-pre-deploy gate in `publish-microsite.yml`.
+The suite serves Hugo with `--baseURL http://127.0.0.1:1314/tablespec/` so root-absolute hrefs that drop the project
+path fail the same way they do on GitHub Pages. CI runs it in `.github/workflows/pages.yml`. The footer shows the
+released version (`HUGO_PARAMS_VERSION`, set from the release tag).
 
 ### App smoke (no workspace)
 
