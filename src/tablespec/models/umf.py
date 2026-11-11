@@ -1526,14 +1526,15 @@ class OutgoingRelationship(BaseModel):
         "(fan-out preserved on both sides) regardless of cardinality notation. "
         "Consumed by direct joins only.",
     )
-    join_conditions: list[dict[str, str]] | None = Field(
+    join_conditions: list[dict[str, str | bool]] | None = Field(
         default=None,
         description="Additional AND-ed equality conditions appended to the "
         "direct-join ON clause (composite keys). Each dict gives one side pair: "
         "source_column or source_expression (base side; bare tokens qualified "
         "against the accumulated base view) and target_column or "
         "target_expression (target side; bare tokens qualified against the "
-        "joined table). Consumed by direct joins only.",
+        "joined table). Optional null_safe: true compares the pair with "
+        "IS NOT DISTINCT FROM, so NULL matches NULL. Consumed by direct joins only.",
     )
     table_instance: str | None = Field(
         default=None,
@@ -1544,6 +1545,23 @@ class OutgoingRelationship(BaseModel):
         "source/target/conditions. Unbound relationships apply to every "
         "instance the candidates declare.",
     )
+
+    @field_validator("join_conditions")
+    @classmethod
+    def validate_join_conditions(
+        cls, v: list[dict[str, str | bool]] | None
+    ) -> list[dict[str, str | bool]] | None:
+        """Only null_safe may be boolean, and it must be: a quoted 'false' would read as on."""
+        for cond in v or []:
+            for key, value in cond.items():
+                if key == "null_safe":
+                    if not isinstance(value, bool):
+                        msg = f"join_conditions null_safe must be a boolean, got {value!r}"
+                        raise ValueError(msg)
+                elif not isinstance(value, str):
+                    msg = f"join_conditions {key} must be a string, got {value!r}"
+                    raise ValueError(msg)
+        return v
 
     def parse_table_reference(self) -> "TableReference":
         """Parse target_table into TableReference with optional pipeline qualification.

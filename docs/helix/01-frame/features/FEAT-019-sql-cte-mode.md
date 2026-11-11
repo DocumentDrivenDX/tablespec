@@ -106,7 +106,8 @@ Ported from production use and now source-backed in this feature's scope
 
 - **Join shaping on outgoing relationships**: expression join keys
   (`source_expression`/`target_expression`), composite `join_conditions`
-  (AND-ed column or expression equalities), `join_type: full_outer` (forces
+  (AND-ed column or expression equalities; `null_safe: true` on a condition
+  renders `IS NOT DISTINCT FROM`, so NULL matches NULL), `join_type: full_outer` (forces
   the direct strategy regardless of cardinality notation), candidate-level
   `join_filter`, and portable `alternative_joins` (UNION-of-joins).
 - **Instance-bound relationships**: `table_instance` binds a relationship to

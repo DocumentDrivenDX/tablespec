@@ -1414,7 +1414,10 @@ class TestCompositeJoinKeysAndFullOuter:
     direct-join ON clause; join_type full_outer emits FULL OUTER JOIN and
     forces the direct strategy (fan-out preserved) despite 1:N cardinality."""
 
-    def _corpus(self, *, join_type=None, cardinality=None):
+    def _corpus(self, *, join_type=None, cardinality=None, npi_null_safe=None):
+        npi_cond = {"source_column": "npi", "target_column": "npi"}
+        if npi_null_safe is not None:
+            npi_cond["null_safe"] = npi_null_safe
         detail = _make_umf(
             "cj_detail",
             [
@@ -1437,7 +1440,7 @@ class TestCompositeJoinKeysAndFullOuter:
                         target_column="incident_id",
                         join_type=join_type,
                         join_conditions=[
-                            {"source_column": "npi", "target_column": "npi"},
+                            npi_cond,
                             {
                                 "source_expression": "LOWER(charge)",
                                 "target_expression": "LOWER(billed_amount)",
@@ -1496,6 +1499,40 @@ class TestCompositeJoinKeysAndFullOuter:
         assert "ON base.incident_id = target.incident_id" in sql
         assert "AND base.npi = target.npi" in sql
         assert "AND LOWER(base.charge) = LOWER(target.billed_amount)" in sql
+
+    def test_null_safe_condition_renders_is_not_distinct_from(self):
+        target, related = self._corpus(join_type="full_outer", npi_null_safe=True)
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "ON base.incident_id = target.incident_id" in sql
+        assert "AND base.npi IS NOT DISTINCT FROM target.npi" in sql
+        # only the flagged pair; the others keep plain equality
+        assert "AND LOWER(base.charge) = LOWER(target.billed_amount)" in sql
+
+    def test_null_safe_false_keeps_plain_equality(self):
+        target, related = self._corpus(npi_null_safe=False)
+        sql = SQLPlanGenerator().generate_for_table(target, related)
+        assert "AND base.npi = target.npi" in sql
+        assert "IS NOT DISTINCT FROM" not in sql
+
+    @pytest.mark.parametrize(
+        "cond",
+        [
+            {"source_column": "npi", "target_column": "npi", "null_safe": "false"},
+            {"source_column": True, "target_column": "npi"},
+        ],
+    )
+    def test_join_conditions_reject_mistyped_values(self, cond):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            OutgoingRelationship(
+                target_table="cj_header",
+                source_column="incident_id",
+                target_column="incident_id",
+                join_conditions=[cond],
+                type="foreign_to_primary",
+                confidence=1.0,
+            )
 
     def test_full_outer_join_type_emits_keyword(self):
         target, related = self._corpus(join_type="full_outer")

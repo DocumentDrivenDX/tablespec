@@ -51,8 +51,9 @@ class JoinInfo:
     join_type: Literal["left", "inner", "full_outer"] = "left"
     # Alternative join paths (source_column/target_column dicts, priority order)
     alternative_joins: list[dict[str, str]] = field(default_factory=list)
-    # Extra AND-ed equality conditions for composite keys (direct joins only)
-    join_conditions: list[dict[str, str]] = field(default_factory=list)
+    # Extra AND-ed equality conditions for composite keys (direct joins only);
+    # null_safe: True renders IS NOT DISTINCT FROM
+    join_conditions: list[dict[str, str | bool]] = field(default_factory=list)
     # Expression join keys (SQL over source/target columns; direct joins only)
     source_expression: str | None = None
     target_expression: str | None = None
