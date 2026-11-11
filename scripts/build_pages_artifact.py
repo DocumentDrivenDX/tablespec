@@ -242,7 +242,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--site-dir", required=True)
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--dist-dir")
-    parser.add_argument("--repo", default="easel/tablespec")
+    parser.add_argument("--repo", default="DocumentDrivenDX/tablespec")
     parser.add_argument("--tag", default="")
     parser.add_argument("--package", default="tablespec")
     parser.add_argument("--releases-json")
