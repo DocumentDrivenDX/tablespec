@@ -1857,7 +1857,14 @@
             {
               "items": {
                 "additionalProperties": {
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ]
                 },
                 "type": "object"
               },
@@ -1868,7 +1875,7 @@
             }
           ],
           "default": null,
-          "description": "Additional AND-ed equality conditions appended to the direct-join ON clause (composite keys). Each dict gives one side pair: source_column or source_expression (base side; bare tokens qualified against the accumulated base view) and target_column or target_expression (target side; bare tokens qualified against the joined table). Consumed by direct joins only.",
+          "description": "Additional AND-ed equality conditions appended to the direct-join ON clause (composite keys). Each dict gives one side pair: source_column or source_expression (base side; bare tokens qualified against the accumulated base view) and target_column or target_expression (target side; bare tokens qualified against the joined table). Optional null_safe: true compares the pair with IS NOT DISTINCT FROM, so NULL matches NULL. Consumed by direct joins only.",
           "title": "Join Conditions"
         },
         "table_instance": {

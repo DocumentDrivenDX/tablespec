@@ -2253,7 +2253,10 @@ FROM {prev_view} base
         on_clause = f"{left_key} = {right_key}"
         # Composite keys: extra AND-ed equalities, each side rewritten like the
         # primary key pair (base side against the accumulated view, target side
-        # against the joined table)
+        # against the joined table). null_safe pairs use IS NOT DISTINCT FROM:
+        # ANSI (no Spark-only <=>), and Spark still plans it as an equi-join
+        # key, unlike the (a = b OR (a IS NULL AND b IS NULL)) expansion, which
+        # falls back to a nested-loop join when no other equi key exists.
         for cond in join_info.get("join_conditions") or []:
             cond_src = cond.get("source_expression")
             cond_left = (
@@ -2272,7 +2275,8 @@ FROM {prev_view} base
                 if cond_tgt
                 else f"target.{cond['target_column']}"
             )
-            on_clause += f" AND {cond_left} = {cond_right}"
+            op = "IS NOT DISTINCT FROM" if cond.get("null_safe") else "="
+            on_clause += f" AND {cond_left} {op} {cond_right}"
         if join_filter:
             rewritten_filter = self._rewrite_join_filter(join_filter, target_table)
             on_clause += f" AND {rewritten_filter}"
