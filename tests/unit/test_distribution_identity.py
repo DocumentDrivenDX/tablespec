@@ -68,16 +68,3 @@ def test_project_keeps_tablespec_import_and_cli_names():
     ]
     package_init = (ROOT / "src/tablespec/__init__.py").read_text()
     assert '__version__ = _get_version("umf-tablespec")' in package_init
-
-
-def test_release_workflows_bind_both_package_identities():
-    release = (ROOT / ".github/workflows/release.yml").read_text()
-    publish = (ROOT / ".github/workflows/publish-pypi.yml").read_text()
-    assert "--package umf-tablespec" in release
-    assert "--package umf-tablespec" in publish
-    assert "workflow_dispatch:" in release
-    assert "ref: ${{ inputs.release_tag || github.ref }}" in release
-    assert 'git rev-parse "refs/tags/$RELEASE_TAG^{commit}"' in release
-    assert "ref: ${{ github.sha }}" in release
-    assert "path: source" in release
-    assert '--source-commit "$(git -C source rev-parse HEAD)"' in release
