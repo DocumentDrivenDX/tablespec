@@ -1,355 +1,134 @@
-name: Release & Publish
-
+# Tag-driven release: test, build, smoke-install, integrate with latest umf-core, publish to PyPI
+# (trusted publishing, environment "pypi"), create the GitHub Release.
+# workflow_dispatch is a dry run: it builds and smoke-tests the branch and never publishes.
+name: release
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    tags: ['v*.*.*']
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Existing stable tag to build/recover through the release workflow
-        required: true
-        type: string
-
 permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-env:
-  RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
-
+  contents: read
 concurrency:
-  group: pages
+  group: release-${{ github.ref }}
   cancel-in-progress: false
-  queue: max
-
 jobs:
-  version-guard:
-    name: Plugin manifest version guard
+  test:
+    uses: ./.github/workflows/ci.yml
+  build:
+    needs: test
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Restrict manual recovery to the default branch
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-            echo "Manual release recovery must run from main; got $GITHUB_REF" >&2
-            exit 1
-          fi
-
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
-
-      - name: Assert source is the requested immutable tag
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - name: Check distributions and version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          TAG: ${{ github.ref_name }}
         run: |
-          if ! git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
-            echo "Requested release tag does not exist: $RELEASE_TAG" >&2
-            exit 1
-          fi
-          TAG_COMMIT="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
-          CHECKED_OUT_COMMIT="$(git rev-parse HEAD)"
-          if [[ "$TAG_COMMIT" != "$CHECKED_OUT_COMMIT" ]]; then
-            echo "Checked out source does not match $RELEASE_TAG" >&2
-            exit 1
-          fi
-
-      # Claude Code refreshes an installed plugin only when plugin.json's
-      # `version` changes. A tag pushed without bumping the manifests ships
-      # nothing to plugin users and fails silently — so fail the release here.
-      - name: Assert plugin manifests match the release tag
-        run: |
-          EXPECTED="${RELEASE_TAG#v}"
-          echo "release tag: $RELEASE_TAG -> expected plugin version: $EXPECTED"
-          python3 - "$EXPECTED" <<'PY'
-          import json
-          import sys
-
+          ls -l dist
+          uvx twine check dist/*
+          test "$(stat -c%s dist/*.tar.gz)" -lt 5000000
+          if [ "$REF_TYPE" = tag ]; then
+            VERSION="${TAG#v}"
+            test -f "dist/umf_tablespec-$VERSION-py3-none-any.whl"
+            test -f "dist/umf_tablespec-$VERSION.tar.gz"
+            # Claude Code only refreshes an installed plugin when plugin.json's version changes.
+            python3 - "$VERSION" <<'PY'
+          import json, sys
           expected = sys.argv[1]
           checks = {
               ".claude-plugin/plugin.json": lambda m: m["version"],
               ".codex-plugin/plugin.json": lambda m: m["version"],
-              ".claude-plugin/marketplace.json": lambda m: next(
-                  p["version"] for p in m["plugins"] if p["name"] == "tablespec"
-              ),
+              ".claude-plugin/marketplace.json": lambda m: next(p["version"] for p in m["plugins"] if p["name"] == "tablespec"),
           }
-          bad = []
-          for path, get in checks.items():
-              try:
-                  found = get(json.load(open(path)))
-              except (OSError, KeyError, StopIteration, json.JSONDecodeError) as exc:
-                  bad.append(f"{path}: could not read version ({exc})")
-                  continue
-              if found != expected:
-                  bad.append(f"{path}: {found!r} != tag {expected!r}")
+          bad = [f"{path}: {get(json.load(open(path)))!r} != {expected!r}" for path, get in checks.items()
+                 if get(json.load(open(path))) != expected]
           if bad:
-              print("\n".join(bad), file=sys.stderr)
-              sys.exit(1)
-          print(f"all plugin manifests declare {expected}")
+              sys.exit("\n".join(bad))
+          print("plugin manifests match", expected)
           PY
-
-  build:
-    name: Build Distribution
-    needs: version-guard
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+  smoke:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Fresh venv install of the built wheel, then the README quickstart
+        run: |
+          uv venv "$RUNNER_TEMP/v" --python 3.12
+          uv pip install --python "$RUNNER_TEMP/v/bin/python" dist/*.whl
+          export PATH="$RUNNER_TEMP/v/bin:$PATH"
+          tablespec --help > /dev/null
+          python -c "import tablespec, tablespec.cli"
+          python3 .github/run_quickstart.py README.md
+  integration:
+    # Latest released umf-core within the supported range.
+    needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}  # Use the workflow/verifier source for this run.
-
-      - name: Checkout tagged package source
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ inputs.release_tag || github.ref }}
-          path: source
-          fetch-depth: 0  # Include the release tag for dynamic versioning.
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-
-      - name: Build package
-        working-directory: source
-        run: uv build --out-dir ../dist
-
-      - name: Verify build
-        run: |
-          ls -lh dist/
-          ls -la dist/
-          echo "Built packages:"
-          ls -1 dist/
-
-      - name: Bind artifacts to tag and source
-        run: |
-          python scripts/verify_release_artifacts.py create-manifest \
-            --dist-dir dist --output dist/release-manifest.json \
-            --tag "$RELEASE_TAG" --repository "$GITHUB_REPOSITORY" \
-            --source-commit "$(git -C source rev-parse HEAD)" --package umf-tablespec
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 90
-
-  release:
-    name: Create GitHub Release
-    needs: build
+      - run: uv sync --all-extras --group dev
+      - run: uv pip install --upgrade "umf-core>=0.10.0,<0.11"
+      - run: >-
+          uv run --no-sync pytest -n auto --dist loadfile -p no:cacheprovider --timeout=300
+          tests/unit/test_shared_umf.py tests/conformance tests/golden tests/test_core_encapsulation.py -q
+  publish:
+    if: github.ref_type == 'tag'
+    needs: [smoke, integration]
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_tag || github.ref }}
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - name: Extract release notes
-        id: release_notes
-        run: |
-          TAG="$RELEASE_TAG"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-          # Create release notes
-          cat > release_notes.md << EOF
-          ## umf-tablespec $TAG
-
-          ### Installation
-
-          \`\`\`bash
-          # From GitHub Pages index
-          pip install umf-tablespec==${TAG#v} --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
-
-          # With PySpark support
-          pip install "umf-tablespec[spark]==${TAG#v}" --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
-          \`\`\`
-
-          ### What's Changed
-
-          See the [commit history](https://github.com/DocumentDrivenDX/tablespec/commits/$TAG) for details.
-
-          ### Artifacts
-
-          - Source distribution (sdist): \`umf_tablespec-${TAG#v}.tar.gz\`
-          - Wheel distribution: \`umf_tablespec-${TAG#v}-py3-none-any.whl\`
-          EOF
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          files: dist/*
-          body_path: release_notes.md
-          draft: true
-          overwrite_files: true
-          prerelease: ${{ contains(steps.release_notes.outputs.tag, 'rc') || contains(steps.release_notes.outputs.tag, 'alpha') || contains(steps.release_notes.outputs.tag, 'beta') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-index:
-    name: Build Microsite and PyPI Index for GitHub Pages
-    needs: build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Required by Hugo enableGitInfo.
-      - name: Checkout tagged site source
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ inputs.release_tag || github.ref }}
-          path: source
-          fetch-depth: 0  # Required by Hugo enableGitInfo.
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23.x'
-          cache-dependency-path: source/website/go.sum
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: source/website/package-lock.json
-
-      - name: Set up Hugo
-        uses: peaceiris/actions-hugo@v3
-        with:
-          hugo-version: '0.160.0'
-          extended: true
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - name: Build Hugo microsite
-        working-directory: source/website
-        run: |
-          npm ci
-          hugo --gc --minify
-
-      - name: Generate combined Pages artifact
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="$RELEASE_TAG"
-          python scripts/build_pages_artifact.py \
-            --site-dir source/website/public \
-            --dist-dir dist \
-            --out-dir pages \
-            --repo "$GITHUB_REPOSITORY" \
-            --tag "$TAG" \
-            --package umf-tablespec \
-            --include-github-releases
-
-      - name: Inspect Pages artifact
-        run: |
-          test -f pages/index.html
-          test -f pages/simple/index.html
-          test -f pages/simple/tablespec/index.html
-          test -f pages/simple/umf-tablespec/index.html
-          echo "Generated Pages artifact:"
-          find pages -maxdepth 3 -type f -print | sort
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: pages/
-
-  deploy-pages:
-    name: Deploy to GitHub Pages
-    needs: [build-index, release]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    environment: pypi
     permissions:
-      pages: write
       id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  verify:
-    name: Verify Release
-    needs: [build, release, deploy-pages]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Download exact build artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: dist
-          path: dist/
-
-      - name: Wait for GitHub Pages propagation
-        run: sleep 60
-
-      - name: Verify GitHub Pages index and install built wheel
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+  github-release:
+    if: github.ref_type == 'tag'
+    needs: publish
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: (cd dist && sha256sum * > SHA256SUMS)
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/umf_tablespec-*
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          TAG="$RELEASE_TAG"
-          VERSION=${TAG#v}
-          WHEEL_NAME="umf_tablespec-${VERSION}-py3-none-any.whl"
-          WHEEL="dist/$WHEEL_NAME"
-          test -f "$WHEEL"
-
-          INDEX="https://documentdrivendx.github.io/tablespec/simple/umf-tablespec/"
-          curl --fail --silent --show-error "$INDEX" -o pages-index.html
-          grep --fixed-strings "$WHEEL_NAME" pages-index.html
-          grep --fixed-strings "#sha256=" pages-index.html
-
-          # The GitHub Release is intentionally a draft until the package is
-          # published through its trusted Actions identity. Verify this exact
-          # build artifact locally; the publish workflow checks the public
-          # PyPI bytes and a fresh install after OIDC upload.
-          python -m pip install "$WHEEL"
-
-          # A clean install must import: catches runtime deps that only exist
-          # in the dev group (CI otherwise never installs without dev deps).
-          python -c "import tablespec, tablespec.cli; from importlib.metadata import version; assert version('umf-tablespec') == '$VERSION'; print('import OK', tablespec.__name__)"
-
-      - name: Summary
-        run: |
-          TAG="$RELEASE_TAG"
-          cat << EOF
-          ✅ Release $TAG complete!
-
-          📄 GitHub Pages: https://documentdrivendx.github.io/tablespec/
-          🏷️  GitHub Release: https://github.com/DocumentDrivenDX/tablespec/releases/tag/$TAG
-          EOF
+          VERSION="${TAG#v}"
+          awk -v v="$VERSION" '/^## /{p = ($2 == v)} p' CHANGELOG.md > notes.md
+          if [ -s notes.md ]; then notes=(--notes-file notes.md); else notes=(--generate-notes); fi
+          gh release create "$TAG" dist/* --title "$TAG" "${notes[@]}"

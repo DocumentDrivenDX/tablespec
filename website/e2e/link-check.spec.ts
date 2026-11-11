@@ -43,7 +43,7 @@ const CONTENT_CHECKS: ReadonlyArray<{ path: string; mustInclude: string[] }> = [
   {
     path: `${SITE_PREFIX}/getting-started/`,
     mustInclude: [
-      'documentdrivendx.github.io/tablespec/simple/',
+      'umf-tablespec',
       'In a workspace',
       'Deploy the app',
       'First 15 minutes',

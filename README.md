@@ -20,51 +20,53 @@ Python library for working with table schemas in Universal Metadata Format (UMF)
 - **Change Management**: UMF diffing, atomic change application, and git-based changelogs
 - **Data Profiling App**: Streamlit Databricks App for profiling, drift, load results, and in-app guidebook (`apps/data-profiling/`)
 
-## Demo
-
-[![asciicast](https://github.com/DocumentDrivenDX/tablespec/raw/main/examples/tablespec-demo.gif)](https://github.com/DocumentDrivenDX/tablespec/blob/main/examples/tablespec-demo.cast)
-
-The demo walks through loading a UMF schema, generating SQL/PySpark/JSON schemas, type mappings, domain type inference, Great Expectations baseline generation, LLM prompt generation, UMF diffing, and PySpark validation with sample data generation.
-
-[**Watch with narration (MP4)**](https://github.com/DocumentDrivenDX/tablespec/raw/main/examples/tablespec-demo-narrated.mp4)
-
-Play the asciinema recording in your terminal:
-
-```bash
-# Install asciinema, then play the recording
-asciinema play examples/tablespec-demo.cast
-
-# Or run the demo live (requires umf-tablespec[spark])
-uv run python examples/demo.py
-```
-
 ## Installation
 
-### Using uv (recommended)
-
 ```bash
-# Add to your uv project
-uv add umf-tablespec umf-core==0.10.3 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
-
-# With Spark support (for profiling and validation)
-uv add 'umf-tablespec[spark]' umf-core==0.10.3 --index https://documentdrivendx.github.io/tablespec/simple/ --default-index https://pypi.org/simple
+pip install umf-tablespec            # or: uv add umf-tablespec
+pip install 'umf-tablespec[spark]'   # PySpark support (profiling, validation, sample data)
 ```
 
-### Using pip
+The distribution is named `umf-tablespec`; its import package and CLI are `tablespec`.
+Python 3.11 and 3.12 are tested in CI. Other extras: `[excel]`, `[duckdb]`, `[databricks]`, `[tui]`.
 
-```bash
-# Install from GitHub Pages index
-pip install umf-tablespec --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+`umf-core` (PyPI) is the direct dependency, allowed from 0.10.0 up to (not including) 0.11. umf-core 0.10.2+
+publishes native wheels for Linux x86_64 and macOS arm64 only. On other platforms, such as Linux aarch64
+(Databricks serverless), pin `umf-core==0.10.0`, the pure-Python build, so pip does not try to compile the
+native extension. The nightly CI job tests both 0.10.0 and the latest 0.10.x.
 
-# With Spark support
-pip install 'umf-tablespec[spark]' --index-url https://documentdrivendx.github.io/tablespec/simple/ --extra-index-url https://pypi.org/simple
+## Quickstart
+
+Write a table spec as UMF JSON and generate SQL DDL, a PySpark schema and a JSON Schema from it
+(CI runs these exact commands against the built wheel in a fresh environment):
+
+<!-- quickstart -->
+```sh
+pip install umf-tablespec
 ```
 
-**Note**: The distribution is named `umf-tablespec`; its Python import package and CLI remain `tablespec`. Use the project index for `umf-tablespec` and PyPI for its dependencies.
-`umf-core` (PyPI) is the direct package dependency, supported from 0.10.0 through 0.10.3; its UMF document semantic version is 0.10.0. umf-core 0.10.2+ publishes native wheels for Linux x86_64 and macOS arm64 only. On other platforms, such as Linux aarch64 (Databricks serverless), pin `umf-core==0.10.0`, the pure-Python build, so pip doesn't try to compile the native extension.
+```sh
+cat > claims.json <<'JSON'
+{
+  "version": "1.0",
+  "table_name": "claims",
+  "description": "Healthcare claims",
+  "columns": [
+    {"name": "claim_id", "data_type": "VARCHAR", "length": 50, "nullable": false, "description": "Unique claim identifier"},
+    {"name": "claim_amount", "data_type": "DECIMAL", "precision": 10, "scale": 2, "nullable": true, "description": "Claim amount in USD"}
+  ],
+  "primary_key": ["claim_id"]
+}
+JSON
+tablespec generate claims.json -f sql | tee claims.sql
+tablespec generate claims.json -f pyspark > claims_schema.py
+tablespec generate claims.json -f json > claims.schema.json
+grep -q "claim_amount DECIMAL(10,2)" claims.sql
+```
+<!-- /quickstart -->
 
-**Optional extras**:
-- `umf-tablespec[spark]` - Adds PySpark support for `SparkToUmfMapper`, `TableValidator`, `SampleDataGenerator` (with Spark FK seeding), `BaselineService`, and table merge. Install this extra only if you need Spark-dependent features.
+More: [microsite](https://documentdrivendx.github.io/tablespec/) (concepts, worked example, CLI and API reference),
+`tablespec --help`, and [examples/](examples/).
 
 ### Claude Code / Codex plugin
 
