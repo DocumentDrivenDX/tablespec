@@ -3,6 +3,7 @@
 Blocks run in a temporary directory with `bash -euo pipefail`; `tablespec` must be on PATH
 (CI puts a fresh venv's bin first). Usage: run_quickstart.py README.md
 """
+
 import re
 import subprocess
 import sys
@@ -19,5 +20,7 @@ if not blocks:
 with tempfile.TemporaryDirectory() as work:
     script = "\n".join(b for b in blocks if not b.lstrip().startswith("pip install"))
     print(script)
-    result = subprocess.run(["bash", "-euo", "pipefail", "-c", script], cwd=work, timeout=300)
+    result = subprocess.run(
+        ["bash", "-euo", "pipefail", "-c", script], cwd=work, timeout=300
+    )
     sys.exit(result.returncode)
