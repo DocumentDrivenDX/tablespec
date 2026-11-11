@@ -4,6 +4,7 @@
 name: release
 on:
   push:
+    branches: [reset/phase2]  # TEMPORARY dry-run trigger, removed before merge
     tags: ['v*.*.*']
   workflow_dispatch:
 permissions:
