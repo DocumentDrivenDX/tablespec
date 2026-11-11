@@ -229,8 +229,10 @@ derby.log
 .ddx/workers/
 .ddx/exec-runs.d/
 .ddx/.execute-bead-wt-*/
-.ddx/executions/*/embedded/
-.ddx/executions/**/scratch/
+.ddx/executions/
+.ddx/plugins/
+.ddx/metrics/
+.claude/skills/helix/
 .ddx/*.lock
 .ddx/*.tmp
 .ddx/server.env
@@ -238,13 +240,6 @@ derby.log
 .ddx/run-state.json
 .ddx/run-state/
 .ddx/harness-sessions/
-!.ddx/executions/
-!.ddx/executions/*/
-!.ddx/executions/*/prompt.md
-!.ddx/executions/*/manifest.json
-!.ddx/executions/*/result.json
-!.ddx/executions/*/checks.json
-!.ddx/executions/*/usage.json
 .claude/skills/*/
 .agents/skills/*/
 !.agents/skills/tablespec

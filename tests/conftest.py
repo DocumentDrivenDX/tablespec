@@ -96,6 +96,18 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_collection_modifyitems(items):
+    """Mark tests that need a local JVM Spark session as ``spark_only``.
+
+    The fast CI lane deselects them (``-m "not spark_only"``); the nightly full
+    suite runs them. Covers the ``spark_session`` fixture (directly or transitively)
+    and parametrized ``[spark...]`` backends that fetch it dynamically.
+    """
+    for item in items:
+        if "spark_session" in item.fixturenames or "[spark" in item.nodeid:
+            item.add_marker(pytest.mark.spark_only)
+
+
 def pytest_configure(config):
     """Register custom markers."""
     config.addinivalue_line(

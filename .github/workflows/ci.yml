@@ -1,0 +1,69 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx --from ruff==0.13.3 ruff check .
+      - run: uvx --from ruff==0.13.3 ruff format --check .
+      - run: TREE_BUDGET_MB=36 python3 .github/size_guard.py
+  fast:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --all-extras --group dev
+      - name: Fast suite (slow, Spark-JVM and Databricks tests run nightly)
+        run: >-
+          uv run pytest -n auto --dist loadfile -p no:cacheprovider --timeout=120
+          -m "not slow and not spark_only and not databricks_e2e"
+          --ignore=tests/dbt_dag --ignore=tests/dbt_roadmap
+          --ignore=tests/ingest_parity --ignore=tests/e2e
+          --durations=25 -q
+  full:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --all-extras --group dev
+      - name: Full suite with coverage
+        # -n 2: each worker that touches Spark starts its own local JVM
+        run: >-
+          JAVA_HOME="$JAVA_HOME_17_X64" uv run pytest -n 2 --dist loadfile
+          -p no:cacheprovider --timeout=600 -m "not databricks_e2e"
+          --cov=src/tablespec --cov-report=xml --durations=60 -q
+      - name: Lower-bound umf-core (pure-Python 0.10.0, used on Linux aarch64)
+        run: |
+          uv pip install "umf-core==0.10.0"
+          uv run --no-sync pytest -n auto -p no:cacheprovider --timeout=120 \
+            tests/unit/test_shared_umf.py tests/ldp tests/unit/test_current_ontology_snapshots.py -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: ignore

@@ -1,6 +1,6 @@
 site_name: tablespec
 site_description: Python library for Universal Metadata Format (UMF) table schemas
-repo_url: https://github.com/easel/tablespec
+repo_url: https://github.com/DocumentDrivenDX/tablespec
 
 theme:
   name: material
