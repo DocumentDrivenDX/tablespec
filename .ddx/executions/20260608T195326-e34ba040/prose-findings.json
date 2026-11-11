@@ -1,8 +1,0 @@
-{
-  "ran": true,
-  "changed_docs": [
-    "docs/guide/bootstrap.md",
-    "docs/guide/happy-path.md",
-    "docs/helix/03-test/conformance-acceptance.md"
-  ]
-}

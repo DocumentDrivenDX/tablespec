@@ -1,8 +1,0 @@
-{
-  "ran": true,
-  "changed_docs": [
-    "docs/guide/bootstrap.md",
-    "docs/helix/02-design/architecture.md",
-    "docs/helix/04-build/implementation-plan.md"
-  ]
-}
