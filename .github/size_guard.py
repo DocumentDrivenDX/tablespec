@@ -1,5 +1,9 @@
 """Fail if a tracked file is over 1 MB (unless allowlisted) or the tree exceeds TREE_BUDGET_MB."""
-import fnmatch, os, subprocess, sys
+
+import fnmatch
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 LIMIT = 1_000_000
@@ -7,7 +11,11 @@ budget = float(os.environ.get("TREE_BUDGET_MB", "30")) * 1_000_000
 allow = []
 f = Path(__file__).with_name("size-allowlist.txt")
 if f.exists():
-    allow = [l.strip() for l in f.read_text().splitlines() if l.strip() and not l.startswith("#")]
+    allow = [
+        ln.strip()
+        for ln in f.read_text().splitlines()
+        if ln.strip() and not ln.startswith("#")
+    ]
 files = subprocess.check_output(["git", "ls-files", "-z"], text=True).split("\0")
 total, bad = 0, []
 for name in filter(None, files):
