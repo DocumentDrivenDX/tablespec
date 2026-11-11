@@ -1,5 +1,13 @@
-# PyPI release path
+# Releasing tablespec
 
-The existing tag workflow continues to build and verify the Tablespec package, GitHub release assets, Pages index, and Pages installation, but now stages the GitHub release as a draft. It attaches a SHA256 manifest binding the wheel and source distribution to the exact tag, source commit, and `tablespec` package metadata. An owner publishes the draft only after the existing release and domain qualification gates are satisfied. `publish-pypi.yml` then verifies the published release is immutable and checks the exact source, package metadata, full asset inventory, and GitHub asset hashes before requesting PyPI OIDC upload. Its manual backfill accepts only an existing immutable release and applies the same checks.
+1. Bump the three plugin manifests (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+   `.claude-plugin/marketplace.json`) to the new version and add a section to `CHANGELOG.md`.
+2. Merge to `main`, then push a tag `vX.Y.Z`. The package version comes from the tag (uv-dynamic-versioning).
+3. `.github/workflows/release.yml` runs the lint and fast suites, builds the wheel and sdist, checks the plugin manifests
+   against the tag, smoke-installs the wheel in a fresh venv and runs the README quickstart, runs the shared-UMF/conformance/golden
+   tests against the latest `umf-core` in range, publishes to PyPI with trusted publishing (environment `pypi`) and creates the
+   GitHub Release with `SHA256SUMS` and a build-provenance attestation.
+4. Publishing the release triggers `.github/workflows/pages.yml`, which rebuilds the microsite stamped with the tag.
 
-Configure PyPI Trusted Publishing for this repository and `.github/workflows/publish-pypi.yml` with environment `pypi`; enable immutable releases in GitHub repository settings. Uploads fail closed if either configuration or immutable release evidence is absent. The website's npm dependencies are build tooling; this repository currently declares no npm package to publish.
+A manual dispatch of `release.yml` is a dry run: it builds and smoke-tests and never publishes.
+PyPI trusted publisher: project `umf-tablespec`, repository `DocumentDrivenDX/tablespec`, workflow `release.yml`, environment `pypi`.
