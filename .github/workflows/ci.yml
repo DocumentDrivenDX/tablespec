@@ -68,12 +68,19 @@ jobs:
           enable-cache: true
       - run: uv python install 3.12
       - run: uv sync --all-extras --group dev
-      - name: Full suite with coverage
-        # -n 2: each worker that touches Spark starts its own local JVM
+      # The spark_session fixture holds an exclusive flock for the whole test session, so two xdist
+      # workers that both need Spark deadlock until the 600 s timeout (this produced 45 errors in the
+      # first nightly run). Run everything except Spark in parallel, then the JVM-backed tests in one process.
+      - name: Full suite, non-Spark tests (parallel) with coverage
         run: >-
-          JAVA_HOME="$JAVA_HOME_17_X64" uv run pytest -n 2 --dist loadfile
-          -p no:cacheprovider --timeout=600 -m "not databricks_e2e"
-          --cov=src/tablespec --cov-report=xml --durations=60 -q
+          uv run pytest -n auto --dist loadfile
+          -p no:cacheprovider --timeout=600 -m "not spark_only and not databricks_e2e"
+          --cov=src/tablespec --cov-report=xml --durations=30 -q
+      - name: Full suite, Spark tests (one process, one JVM)
+        run: >-
+          JAVA_HOME="$JAVA_HOME_17_X64" uv run pytest -n 0
+          -p no:cacheprovider --timeout=900 -m "spark_only and not databricks_e2e"
+          --cov=src/tablespec --cov-append --cov-report=xml --durations=30 -q
       - name: Lower-bound umf-core (pure-Python 0.10.0, used on Linux aarch64)
         run: |
           uv pip install "umf-core==0.10.0"
