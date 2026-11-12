@@ -3,11 +3,14 @@
 Releases are tagged `vX.Y.Z`; the package version comes from the tag. Release notes on GitHub are taken from this file.
 
 ## Unreleased
+
+## 0.0.17 - 2026-11-11
 - `umf-core` range widened to `>=0.10.0,<0.11` (was `<=0.10.3`); tested against umf-core 0.10.10.
 - Native `columns-match-set` validation, ingest-cast knobs and counts-only results.
 - `change_tracking` merge/rebuild strategies rendered for Spark, dbt and LDP; append sources; optional columns;
   ANSI-safe casts; strict plan references; Excel and external sources.
 - pure-Python `umf-core==0.10.0` stays installable (Linux aarch64).
+- CI reset: committed evidence, vendored tooling and process-only tests removed; one `ci.yml` with a fast/slow split; the README quickstart is now executed in CI.
 - Release pipeline is now tag-driven with PyPI trusted publishing; GitHub Pages `/simple/` index retired (install from PyPI).
 
 ## 0.0.16 - 2026-11-02
